@@ -138,15 +138,17 @@ public final class Servicio implements Planta {
                 }
                 float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
                 float at = Trazo.atenuar(luz, lej);
-                // Las canerias no corren por el eje: se apilan hacia un lado.
-                float sesgo = (c - 2) * 0.10F;
-                float eje = m.techoEn(dx * alturas)[c];
+
+                // Cada caneria cuelga a su propia distancia del techo. Se
+                // evalua el techo a una profundidad menor que la real: como el
+                // techo baja hacia la fuga, eso deja el cano por debajo del
+                // cielorraso sin tener que calcular la altura a mano.
+                float eje = m.techoEn(dx * alturas[c]);
                 float radio = Math.max(1.0F, m.h() * dx * radios[c]);
-                float centroX = x + m.w() * dx * sesgo * 0.0F;
 
                 int base = Paleta.mezclar(nivel.junta, nivel.paredAlta, 0.20F + tonos[c]);
-                grafico.fillGradient((int) centroX, (int) (eje - radio),
-                        (int) centroX + Trazo.PASO, (int) (eje + radio),
+                grafico.fillGradient(x, (int) (eje - radio),
+                        x + Trazo.PASO, (int) (eje + radio),
                         Paleta.iluminar(Paleta.mezclar(base, nivel.luz, 0.26F), at),
                         Paleta.iluminar(Paleta.mezclar(base, Paleta.VANO, 0.40F), at));
             }

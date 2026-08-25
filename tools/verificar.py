@@ -593,6 +593,102 @@ def verificar_niveles(es: dict[str, str]) -> None:
         )
 
 
+def verificar_tipos_java() -> None:
+    """Cazador de errores de tipo en las llamadas a la geometria de Marco.
+
+    POR QUE EXISTE ESTE BLOQUE
+
+    La version 0.4.0 se entrego sin compilar. El fallo era una linea que decia
+    `m.techoEn(dx * alturas)[c]` cuando debia decir `m.techoEn(dx * alturas[c])`:
+    un parentesis mal puesto al editar con expresiones regulares. javac lo
+    habria cazado en un segundo, pero en el entorno donde se genera este mod no
+    hay JDK, asi que el error viajo hasta la consola del que compila.
+
+    Esto no es un compilador ni pretende serlo. Es un detector del patron
+    concreto que ya rompio el build una vez y de sus variantes cercanas:
+    indexar el resultado escalar de un metodo, o pasar un float[] a un metodo
+    que espera un float. Cubre poco, pero cubre exactamente lo que fallo.
+    """
+    escalares = {
+        "techoEn", "sueloEn", "izq", "der", "enX", "lado", "centro",
+        "anchoEn", "dx", "dy", "w", "h",
+    }
+
+    for ruta in sorted(RAIZ.glob("src/main/java/**/*.java")):
+        texto = ruta.read_text(encoding="utf-8")
+        arrays = set(re.findall(r"float\[\]\s+(\w+)\s*=", texto))
+        arrays |= set(re.findall(r"final\s+float\[\]\s+(\w+)\s*=", texto))
+        rel = ruta.relative_to(RAIZ)
+
+        for numero, linea in enumerate(texto.splitlines(), 1):
+            limpia = linea.strip()
+            if limpia.startswith(("*", "//", "/*")):
+                continue
+
+            for metodo in escalares:
+                # 1. Indexar lo que devuelve un metodo que devuelve float.
+                if re.search(r"\.%s\([^;]*\)\s*\[" % metodo, linea):
+                    fallo(
+                        f"{rel}:{numero} indexa el resultado de {metodo}(), "
+                        f"que devuelve float y no un array."
+                    )
+                # 2. Pasar un array donde se espera un escalar.
+                for argumentos in re.findall(r"\.%s\(([^()]*)\)" % metodo, linea):
+                    for arreglo in arrays:
+                        if re.search(r"\b%s\b(?!\s*\[)" % re.escape(arreglo), argumentos):
+                            fallo(
+                                f"{rel}:{numero} pasa el array '{arreglo}' sin "
+                                f"indice a {metodo}(), que espera un float."
+                            )
+
+    # Multiplicaciones contra un array sin indexar, fuera de las llamadas.
+    for ruta in sorted(RAIZ.glob("src/main/java/**/*.java")):
+        texto = ruta.read_text(encoding="utf-8")
+        arrays = set(re.findall(r"float\[\]\s+(\w+)\s*=", texto))
+        rel = ruta.relative_to(RAIZ)
+        for numero, linea in enumerate(texto.splitlines(), 1):
+            if linea.strip().startswith(("*", "//")):
+                continue
+            for arreglo in arrays:
+                if re.search(r"[*/+-]\s*%s\b(?!\s*[\[.])" % re.escape(arreglo), linea):
+                    fallo(
+                        f"{rel}:{numero} opera aritmeticamente contra el array "
+                        f"'{arreglo}' sin indexarlo."
+                    )
+
+
+def verificar_muestras() -> None:
+    """La materia prima real tiene que estar donde el generador la busca.
+
+    Los sonidos de interfaz ya no se sintetizan: se construyen a partir de las
+    grabaciones de tools/crudo/. Si falta un .wav, sonidos.py revienta a mitad
+    de la generacion, asi que se comprueba antes.
+    """
+    crudo = RAIZ / "tools" / "crudo"
+    if not crudo.is_dir():
+        fallo("Falta tools/crudo/: es la materia prima del audio de interfaz.")
+        return
+
+    grabaciones = sorted(crudo.glob("*.wav"))
+    if not grabaciones:
+        fallo("tools/crudo/ no tiene ninguna grabacion .wav.")
+    if not (crudo / "LICENCIA.txt").is_file():
+        fallo("Falta tools/crudo/LICENCIA.txt: sin licencia archivada no se "
+              "puede justificar la redistribucion de las grabaciones.")
+
+    # Todas las muestras que sonidos.py pide por nombre tienen que existir.
+    generador = (RAIZ / "tools" / "sonidos.py").read_text(encoding="utf-8")
+    pedidas = set(re.findall(r'cargar\("([^"]+)"\)', generador))
+    disponibles = {g.stem for g in grabaciones}
+    for nombre in sorted(pedidas - disponibles):
+        fallo(f"sonidos.py carga la muestra '{nombre}' y no esta en tools/crudo/.")
+
+    sobrantes = disponibles - pedidas
+    if sobrantes:
+        aviso(f"tools/crudo/ tiene {len(sobrantes)} grabacion(es) que no usa "
+              f"ningun gesto: {', '.join(sorted(sobrantes)[:4])}...")
+
+
 def main() -> int:
     props = propiedades()
     verificar_versiones(props)
@@ -603,6 +699,8 @@ def main() -> int:
     verificar_audio()
     verificar_claves(es)
     verificar_java()
+    verificar_tipos_java()
+    verificar_muestras()
     verificar_simbolos()
     verificar_niveles(es)
     verificar_recursos()
