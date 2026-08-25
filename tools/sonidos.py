@@ -790,6 +790,203 @@ def caracter_nivel3(dur: float = 43.0) -> np.ndarray:
     return reverberar(x, SALAS["piscinas"], 0.56)
 
 
+
+# ==========================================================================
+# 2c. Capa de actividad: lo que pasa cada tanto, y no cuando uno lo espera
+# ==========================================================================
+# Las dos camas de arriba resuelven que HAYA sonido siempre. No resuelven el
+# otro problema, que es mas dificil: que el sitio siga pareciendo habitado
+# despues de diez minutos. Una cama continua, por bien hecha que este, se
+# vuelve mobiliario -el oido la archiva como "silencio de esta escena" y deja
+# de contarla-. Lo que impide eso no es mas ruido de fondo: son SUCESOS.
+#
+# Los eventos del bloque 3 ya existen, pero los dispara el programador con un
+# temporizador, y eso tiene un techo: se oyen en primer plano, uno por vez, y
+# cada uno es un archivo que empieza y termina. Esta tercera capa hace lo
+# contrario. Es un bucle largo -de 47 a 61 segundos- que esta casi todo el
+# tiempo en silencio y donde, cada tanto, ocurre algo LEJOS: al fondo del
+# edificio, dos plantas mas abajo, del otro lado del vidrio.
+#
+# Por que en bucle y no como evento suelto:
+#   - se solapa con los otros sucesos en vez de esperar turno, que es lo que
+#     hace un edificio de verdad;
+#   - al ser primo con las otras dos camas (24/37/53, 28/41/59, 22/29/47,
+#     30/43/61) las tres nunca vuelven a alinearse dentro de una sesion;
+#   - no puede terminar y dejar silencio, porque no termina.
+#
+# El material es grabacion real, la misma que la interfaz. Aca se la trata al
+# reves que en un gesto de UI: en vez de acercarla se la manda lejos -octavas
+# abajo, sin agudos, con mucha mas sala que sonido directo-. Un golpe de chapa
+# bajado dos octavas y metido al fondo de un deposito ya no es un golpe de
+# chapa: es algo que se cayo en otra parte del edificio.
+
+
+def _lejos(x: np.ndarray, octavas: float, techo: float, cuerpo: float = 0.0) -> np.ndarray:
+    """Manda una grabacion al fondo del edificio.
+
+    La distancia no es bajar el volumen: es perder agudos, ganar tamano y
+    perder el transitorio. Un objeto lejano llega sin el filo del ataque
+    porque el aire y las paredes ya se lo comieron por el camino.
+    """
+    y = altura(x, 2.0 ** -octavas)
+    y = pb_m(y, techo, 4)
+    y = suavizar_ataque(y, 18.0)
+    if cuerpo > 0.0:
+        y = realzar(y, cuerpo, 1.2, 1.6)
+    # Por debajo de 45 Hz no hay informacion de material, solo retumbe de
+    # microfono, y en una cama que se escucha una hora ese retumbe se acumula.
+    return pa_m(y, 45.0, 2)
+
+
+def _sembrar(destino: np.ndarray, pieza: np.ndarray, segundo: float,
+             ganancia: float) -> None:
+    """Coloca una pieza en el bucle, envolviendo por el final.
+
+    Lo que se pasa del final vuelve a entrar por el principio. Sin esto, la
+    ultima cola quedaria cortada en seco justo en la junta del bucle, que es
+    el unico lugar donde no se puede tener un corte.
+    """
+    n = len(destino)
+    pos = int(segundo * SR) % n
+    for i in range(0, len(pieza), n):
+        trozo = pieza[i:i + n] * ganancia
+        fin = pos + len(trozo)
+        if fin <= n:
+            destino[pos:fin] += trozo
+        else:
+            corte = n - pos
+            destino[pos:] += trozo[:corte]
+            destino[:len(trozo) - corte] += trozo[corte:]
+
+
+def actividad_nivel0(dur: float = 53.0) -> np.ndarray:
+    """Nivel 0. El edificio administrativo trabajando sin nadie adentro.
+
+    Una oficina vacia no esta quieta: el cielorraso se mueve con la presion
+    del aire acondicionado, alguna puerta cortafuego se asienta, y muy de vez
+    en cuando algo cae en otra planta. Nada de esto se oye claro: la placa de
+    yeso y la alfombra se comen todo lo que no sea grave.
+    """
+    x = np.zeros(muestras(dur))
+
+    # Placas del cielorraso asentandose con el aire. Es el sonido que uno
+    # escucha mil veces en una oficina y no registra jamas.
+    placa = _lejos(cargar("impactPlate_light_000"), 1.15, 900.0, 190.0)
+    for s, g in ((3.4, 0.22), (17.9, 0.15), (31.2, 0.26), (44.6, 0.18)):
+        _sembrar(x, placa, s, g)
+
+    # Madera de un marco de puerta trabajando. Muy separadas entre si.
+    marco = _lejos(cargar("footstep_wood_001"), 1.6, 700.0, 130.0)
+    for s, g in ((9.8, 0.30), (26.5, 0.21), (48.1, 0.27)):
+        _sembrar(x, marco, s, g)
+
+    # Algo en otra planta. Dos veces en casi un minuto, y sin cuerpo: llega
+    # solo la parte grave, que es lo unico que atraviesa un forjado.
+    lejano = _lejos(cargar("impactGeneric_light_000"), 2.3, 320.0)
+    _sembrar(x, lejano, 21.7, 0.34)
+    _sembrar(x, lejano, 39.4, 0.25)
+
+    return reverberar(x, SALAS["oficina"], 0.62)
+
+
+def actividad_nivel1(dur: float = 59.0) -> np.ndarray:
+    """Nivel 1. La nave dilatandose.
+
+    Un galpon con techo de chapa cambia de forma todo el dia. No hay nadie y
+    sin embargo suena: la estructura se mueve, y en un volumen de ese tamano
+    cada movimiento vuelve tres o cuatro veces desde paredes distintas.
+    """
+    x = np.zeros(muestras(dur))
+
+    # Chapa del techo. El clac de dilatacion, bajado dos octavas para que la
+    # plancha sea de diez metros y no de treinta centimetros.
+    chapa = _lejos(cargar("impactMetal_heavy_000"), 2.0, 1_800.0, 95.0)
+    for s, g in ((6.2, 0.26), (23.8, 0.34), (41.1, 0.20), (54.7, 0.29)):
+        _sembrar(x, chapa, s, g)
+
+    # Tirante de madera del entrepiso, crujiendo bajo su propio peso.
+    tirante = _lejos(cargar("impactPlank_medium_000"), 1.7, 1_100.0, 110.0)
+    for s, g in ((14.3, 0.24), (35.6, 0.31), (49.2, 0.17)):
+        _sembrar(x, tirante, s, g)
+
+    # Un perfil metalico cediendo un milimetro. Invertido: no es un golpe, es
+    # una tension que se acumula y se suelta.
+    tension = invertir(_lejos(cargar("impactMetal_medium_001"), 1.4, 1_400.0))
+    _sembrar(x, tension, 29.9, 0.22)
+    _sembrar(x, tension, 57.3, 0.19)
+
+    return reverberar(x, SALAS["deposito"], 0.70)
+
+
+def actividad_nivel2(dur: float = 47.0) -> np.ndarray:
+    """Nivel 2. La instalacion del pasillo de servicio.
+
+    Aca los sucesos son mas seguidos que en los otros niveles y estan mas
+    cerca, porque el pasillo es estrecho y uno esta literalmente adentro de la
+    instalacion: los canos pasan a un palmo de la cabeza. Es el nivel mas
+    inquieto de los cuatro, y tiene que serlo tambien de oido.
+    """
+    x = np.zeros(muestras(dur))
+
+    # Dilatacion del cano de agua caliente: el tic-tic del metal, en grupos
+    # irregulares, nunca a intervalo fijo. Un cano que hace tic cada segundo
+    # exacto es un metronomo, y un metronomo delata la maquina.
+    tic = _lejos(cargar("impactMetal_light_000"), 0.9, 3_200.0, 320.0)
+    for s, g in ((2.1, 0.20), (2.9, 0.14), (3.4, 0.10),
+                 (18.6, 0.22), (19.2, 0.16), (20.3, 0.11),
+                 (33.8, 0.19), (34.5, 0.13),
+                 (44.2, 0.21), (45.1, 0.15)):
+        _sembrar(x, tic, s, g)
+
+    # Chapa de un conducto de ventilacion pandeando al cambiar la presion.
+    conducto = _lejos(cargar("impactTin_medium_000"), 1.3, 2_200.0, 240.0)
+    for s, g in ((11.4, 0.26), (27.7, 0.31), (40.9, 0.23)):
+        _sembrar(x, conducto, s, g)
+
+    # Un golpe de ariete lejano: la bomba que arranca en algun sitio y toda la
+    # columna de agua acusa el golpe. Es el unico suceso grande del nivel.
+    ariete = _lejos(cargar("impactMetal_light_003"), 2.1, 600.0, 80.0)
+    _sembrar(x, ariete, 15.2, 0.30)
+    _sembrar(x, ariete, 38.5, 0.24)
+
+    return reverberar(x, SALAS["servicio"], 0.66)
+
+
+def actividad_nivel3(dur: float = 61.0) -> np.ndarray:
+    """Nivel 3. El natatorio, donde cada suceso tarda en apagarse.
+
+    Es el nivel donde menos cosas pasan y donde mas se notan, porque el
+    azulejo no absorbe nada: un solo golpe se queda dando vueltas cuatro
+    segundos. La regla aca fue poner MENOS de lo que pedia el impulso, y
+    dejar que la sala haga el trabajo.
+    """
+    x = np.zeros(muestras(dur))
+
+    # Azulejo suelto en el fondo del vaso, movido por el agua. Vidrioso, corto,
+    # y con toda la cola puesta por el recinto.
+    azulejo = _lejos(cargar("impactGlass_light_003"), 0.8, 4_200.0, 480.0)
+    for s, g in ((8.7, 0.16), (25.3, 0.21), (52.8, 0.13)):
+        _sembrar(x, azulejo, s, g)
+
+    # El ventanal. Una lamina de vidrio de tres metros vibrando con el viento
+    # de afuera: se oye el vidrio, no el viento.
+    ventanal = _lejos(cargar("impactGlass_medium_000"), 1.9, 900.0, 105.0)
+    _sembrar(x, ventanal, 16.9, 0.24)
+    _sembrar(x, ventanal, 43.6, 0.19)
+
+    # La escalera de mano metalica del borde, resonando bajo el agua. Bajada
+    # tres octavas queda en el limite de lo que se puede llamar una nota.
+    escalera = _lejos(cargar("impactBell_heavy_002"), 3.0, 420.0)
+    _sembrar(x, escalera, 34.1, 0.17)
+
+    # Chapa de la climatizacion, arriba del todo, casi en el techo del recinto.
+    alto = _lejos(cargar("impactTin_medium_002"), 1.5, 1_600.0, 210.0)
+    _sembrar(x, alto, 5.4, 0.14)
+    _sembrar(x, alto, 47.2, 0.18)
+
+    return reverberar(x, SALAS["piscinas"], 0.78)
+
+
 # ==========================================================================
 # 3. Eventos ambientales
 # ==========================================================================
@@ -1214,6 +1411,13 @@ PIEZAS = {
     "caracter/nivel2": lambda: bucle_suave(caracter_nivel2(), 4.0),
     "caracter/nivel3": lambda: bucle_suave(caracter_nivel3(), 7.0),
 
+    # Capa de actividad: bucles largos, casi vacios, con sucesos lejanos. El
+    # cruce es corto porque casi toda la junta cae sobre silencio.
+    "actividad/nivel0": lambda: bucle_suave(actividad_nivel0(), 2.0),
+    "actividad/nivel1": lambda: bucle_suave(actividad_nivel1(), 2.0),
+    "actividad/nivel2": lambda: bucle_suave(actividad_nivel2(), 2.0),
+    "actividad/nivel3": lambda: bucle_suave(actividad_nivel3(), 2.0),
+
     # Eventos
     "evento/nivel0_tubo": ev_nivel0_tubo,
     "evento/nivel0_placa": ev_nivel0_placa,
@@ -1246,6 +1450,7 @@ PICOS = {
     "ui/": 0.55,
     "ambiente/": 0.70,
     "caracter/": 0.66,
+    "actividad/": 0.58,
     "evento/": 0.72,
     "nivel/": 0.80,
     "figura/": 0.60,

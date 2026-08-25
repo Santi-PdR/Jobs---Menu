@@ -135,6 +135,46 @@
       }
     ]
   },
+  "actividad.nivel0": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel0",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel0",
+        "stream": true
+      }
+    ]
+  },
+  "actividad.nivel1": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel1",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel1",
+        "stream": true
+      }
+    ]
+  },
+  "actividad.nivel2": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel2",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel2",
+        "stream": true
+      }
+    ]
+  },
+  "actividad.nivel3": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel3",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel3",
+        "stream": true
+      }
+    ]
+  },
   "evento.nivel0_tubo": {
     "category": "ambient",
     "subtitle": "jobsmenu.subtitulo.evento.nivel0_tubo",

@@ -80,6 +80,19 @@ public final class SonidosNivel {
         };
     }
 
+    // ---- Capa de actividad ----------------------------------------------
+    // La tercera cama. Al reves que las otras dos, esta casi todo el tiempo en
+    // silencio: es un bucle de un minuto donde cada tanto pasa algo lejos, al
+    // fondo del edificio. Las camas continuas evitan el silencio, pero se
+    // vuelven mobiliario; lo que mantiene el sitio habitado son los sucesos.
+    // Va en bucle y no como evento suelto para que se solape con lo demas en
+    // vez de esperar turno, y para que no pueda terminar y dejar silencio.
+
+    public static final RegistryObject<SoundEvent> ACTIVIDAD_NIVEL0 = registrar("actividad.nivel0");
+    public static final RegistryObject<SoundEvent> ACTIVIDAD_NIVEL1 = registrar("actividad.nivel1");
+    public static final RegistryObject<SoundEvent> ACTIVIDAD_NIVEL2 = registrar("actividad.nivel2");
+    public static final RegistryObject<SoundEvent> ACTIVIDAD_NIVEL3 = registrar("actividad.nivel3");
+
     // ---- Eventos --------------------------------------------------------
     // Se disparan solos, con separacion y volumen variables.
 

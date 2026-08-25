@@ -27,14 +27,26 @@ import net.minecraft.util.RandomSource;
  *
  * Se apaga sola y se descarta cuando termino de bajar del todo.
  *
- * DOS CAMAS POR NIVEL
+ * TRES CAMAS POR NIVEL
  *
- * Cada nivel monta dos instancias de esta clase, con papeles distintos (ver
- * {@link Papel}). No es una capa duplicada: es la unica forma barata de que el
- * fondo no se vuelva reconocible. Un bucle solo, por largo que sea, termina
- * aprendiendose; dos bucles de duracion prima entre si -por ejemplo 24 y 43
- * segundos- tardan mas de un cuarto de hora en volver a sonar en la misma
+ * Cada nivel monta tres instancias de esta clase, con papeles distintos (ver
+ * {@link Papel}). No son capas duplicadas: es la forma barata de que el fondo
+ * no se vuelva reconocible. Un bucle solo, por largo que sea, termina
+ * aprendiendose; varios bucles de duracion prima entre si -20, 32 y 51
+ * segundos en el nivel 0- tardan horas en volver a sonar en la misma
  * combinacion, y en ese rato el oyente nunca escucha dos veces lo mismo.
+ *
+ * El reparto responde a una pregunta por capa, y no a un criterio de volumen:
+ *
+ *   BASE       que hay en este sitio          aire, sala, zumbido
+ *   CARACTER   que esta funcionando           ventilacion, agua, corriente
+ *   ACTIVIDAD  que esta pasando               sucesos lejanos, estructura
+ *
+ * Las dos primeras evitan el silencio. Eso no alcanza: a los pocos minutos el
+ * oido archiva cualquier cama continua como "el silencio de esta escena" y
+ * deja de contarla. Lo que sostiene un sitio durante diez minutos no es que
+ * suene siempre algo, es que cada tanto PASE algo, y que no se pueda predecir
+ * cuando. De eso se ocupa la tercera.
  */
 public class CapaAmbiente extends AbstractTickableSoundInstance {
 
@@ -68,7 +80,21 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
         BASE(0.82F, 0.30F, 0.083F, 0.06F),
 
         /** La cama viva. Sostiene la sensacion de que el lugar funciona. */
-        CARACTER(0.66F, 0.72F, 0.061F, 0.09F);
+        CARACTER(0.66F, 0.72F, 0.061F, 0.09F),
+
+        // La tercera cama esta casi siempre en silencio, asi que su peso no
+        // suma al ambiente de la misma forma: lo que se oye no es su nivel
+        // medio sino los picos, y por eso puede ir alta sin engordar la mezcla.
+        //
+        // Su piso con la luz apagada es 0.88, mas alto que el de las otras dos.
+        // No es un descuido: el edificio no deja de moverse porque se corte la
+        // corriente. Que en el apagon se caigan la base y el caracter y quede
+        // esta capa sola -sin zumbido, sin ventilacion, solo la estructura
+        // crujiendo en el vacio- es el momento mas incomodo del ciclo, y sale
+        // gratis. Casi no respira (0.02) porque un suceso suelto no tiene
+        // volumen medio que hacer subir y bajar.
+        /** Los sucesos lejanos. Sostiene la sensacion de que el sitio esta habitado. */
+        ACTIVIDAD(0.74F, 0.88F, 0.037F, 0.02F);
 
         /** Cuanto pesa esta cama dentro de la mezcla de ambiente del nivel. */
         private final float peso;
@@ -117,12 +143,19 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
         // capas salen del mismo generador.
         this.pitch = 0.96F + 0.03F * nivel;
 
-        // Las dos camas del mismo nivel no arrancan con la misma edad. Si lo
+        // Las camas del mismo nivel no arrancan con la misma edad. Si lo
         // hicieran, sus respiraciones subirian y bajarian juntas y el conjunto
         // volveria a tener un pulso unico y audible.
         if (papel == Papel.CARACTER) {
             this.edad = 617;
             this.pitch *= 0.995F;
+        } else if (papel == Papel.ACTIVIDAD) {
+            this.edad = 1_483;
+            // Sin correr el tono. Estos sucesos son objetos reconocibles
+            // -chapa, vidrio, madera- y no un lecho de ruido: moverles la
+            // altura les cambia el material y el tamano, que es justamente lo
+            // que se eligio a mano al disenarlos.
+            this.pitch = 1.0F;
         }
     }
 
@@ -180,8 +213,14 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
             objetivo *= 1.0F + this.papel.vaiven * (float) Math.sin(t * this.papel.respiracion)
                     + 0.03F * (float) Math.sin(t * 0.031F + 1.7F);
 
-            // Algo al fondo del pasillo: el ambiente se retira.
-            objetivo *= 1.0F - (1.0F - MezclaAudio.AGACHE_FIGURA) * Presencia.visibilidad();
+            // Algo al fondo del pasillo: el ambiente se retira. La capa de
+            // actividad NO se retira, y ese es el punto: cuando la base y el
+            // caracter se agachan, lo que queda arriba son los sucesos del
+            // edificio. El sitio no se calla porque haya algo mirando; se
+            // calla todo lo demas y se sigue oyendo la estructura.
+            if (this.papel != Papel.ACTIVIDAD) {
+                objetivo *= 1.0F - (1.0F - MezclaAudio.AGACHE_FIGURA) * Presencia.visibilidad();
+            }
         }
 
         float paso = objetivo > this.actual ? SUAVIZADO_SUBIDA : SUAVIZADO_BAJADA;

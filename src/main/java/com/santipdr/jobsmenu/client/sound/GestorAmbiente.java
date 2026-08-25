@@ -27,12 +27,20 @@ import java.util.Random;
  *   2. CARACTER. Una segunda cama, tambien continua y tambien siempre
  *      encendida, con lo que se mueve: el aire corriendo, el agua del vaso, la
  *      circulacion de las canerias. Dura distinto que la base a proposito
- *      (25 a 36 s), asi que las dos nunca se vuelven a alinear igual. Las dos
- *      las lleva CapaAmbiente, que cambia de comportamiento segun el papel.
- *   3. EVENTOS. Tres o cuatro sonidos sueltos por nivel que se disparan con
+ *      (25 a 36 s), asi que las dos nunca se vuelven a alinear igual.
+ *   3. ACTIVIDAD. Una tercera cama, la mas larga (45 a 59 s) y casi siempre en
+ *      silencio: cada tanto ocurre algo LEJOS -la chapa del techo, un azulejo
+ *      en el fondo del vaso, algo que cae dos plantas mas abajo-. Las camas
+ *      continuas evitan el silencio pero se vuelven mobiliario; lo que sostiene
+ *      un sitio durante diez minutos es que cada tanto pase algo. Va en bucle
+ *      y no como evento para solaparse con lo demas en vez de esperar turno.
+ *      Las tres las lleva CapaAmbiente, que cambia de comportamiento segun el
+ *      papel: en el apagon la actividad se queda casi entera y las otras dos
+ *      se caen, porque el edificio no deja de moverse por un corte de luz.
+ *   4. EVENTOS. Tres o cuatro sonidos sueltos por nivel que se disparan con
  *      separacion aleatoria dentro de una ventana, cada uno con su peso, su
  *      volumen y su tono variables. Los lleva esta clase.
- *   4. TRANSICION Y FIGURA. Sonidos puntuales enganchados a lo que pasa en
+ *   5. TRANSICION Y FIGURA. Sonidos puntuales enganchados a lo que pasa en
  *      pantalla. Los llama la pantalla, no el reloj.
  *
  * Con la separacion aleatoria, el volumen aleatorio y el tono aleatorio, dos
@@ -180,7 +188,7 @@ public final class GestorAmbiente {
     }
 
     /**
-     * Se asegura de que las dos camas continuas del nivel a la vista esten
+     * Se asegura de que las tres camas del nivel a la vista esten
      * sonando, y las levanta si falta alguna.
      *
      * Se comprueban por separado porque no nacen juntas necesariamente: si el
@@ -192,6 +200,7 @@ public final class GestorAmbiente {
 
         asegurarCama(nivel, CapaAmbiente.Papel.BASE, baseDe(nivel));
         asegurarCama(nivel, CapaAmbiente.Papel.CARACTER, caracterDe(nivel));
+        asegurarCama(nivel, CapaAmbiente.Papel.ACTIVIDAD, actividadDe(nivel));
 
         if (cambio) {
             nivelSonando = nivel;
@@ -235,6 +244,19 @@ public final class GestorAmbiente {
                 return SonidosNivel.CARACTER_NIVEL3;
             default:
                 return SonidosNivel.CARACTER_NIVEL0;
+        }
+    }
+
+    private static RegistryObject<SoundEvent> actividadDe(int nivel) {
+        switch (nivel) {
+            case 1:
+                return SonidosNivel.ACTIVIDAD_NIVEL1;
+            case 2:
+                return SonidosNivel.ACTIVIDAD_NIVEL2;
+            case 3:
+                return SonidosNivel.ACTIVIDAD_NIVEL3;
+            default:
+                return SonidosNivel.ACTIVIDAD_NIVEL0;
         }
     }
 
