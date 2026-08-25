@@ -80,9 +80,9 @@ public final class Sala implements Planta {
             int y1 = Math.round(sueloFondo);
 
             if (abierta) {
-                grafico.fillGradient(x0, y0, x1, y1,
-                        Paleta.conAlfa(Paleta.iluminar(nivel.fondo, luz * 0.30F), 0.95F),
-                        Paleta.conAlfa(Paleta.VANO, 0.96F));
+                // No un rectangulo negro: el primer metro de lo que sigue del
+                // otro lado, con su pared en escorzo y su umbral iluminado.
+                Trazo.interiorVano(grafico, nivel, x0, y0, x1, y1, i < 1 ? -1 : 1, luz);
             } else {
                 grafico.fill(x0, y0, x1, y1,
                         Paleta.iluminar(Paleta.mezclar(nivel.paredBaja, nivel.junta, 0.35F), luz * 0.62F));

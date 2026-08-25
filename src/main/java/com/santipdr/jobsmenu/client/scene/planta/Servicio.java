@@ -66,12 +66,59 @@ public final class Servicio implements Planta {
         int y0 = Math.round(suelo - m.h() * 1.22F);
         int y1 = Math.round(suelo - m.h() * 0.42F);
 
-        grafico.fill(x0, y0, x1, y1,
-                Paleta.iluminar(Paleta.mezclar(nivel.junta, nivel.paredBaja, 0.40F), luz * 0.52F));
+        int chapa = Paleta.iluminar(Paleta.mezclar(nivel.junta, nivel.paredBaja, 0.40F), luz * 0.52F);
+        grafico.fill(x0, y0, x1, y1, chapa);
+
+        // La chapa no es plana: recibe la luz de arriba y se apaga hacia
+        // abajo. Un rectangulo de un solo tono es lo que hace que un objeto
+        // parezca pegado encima de la pared en vez de montado en ella.
+        grafico.fillGradient(x0, y0, x1, y1,
+                Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, luz * 0.30F), 0.22F),
+                Paleta.conAlfa(Paleta.VANO, 0.30F));
+
         grafico.fill(x0, y0, x1, y0 + 1,
                 Paleta.iluminar(nivel.paredAlta, luz * 0.40F));
         // La bisagra vertical del medio: son dos puertas, no una chapa.
         grafico.fill((x0 + x1) / 2, y0, (x0 + x1) / 2 + 1, y1, Paleta.conAlfa(Paleta.VANO, 0.45F));
+
+        // LAS REJILLAS DE VENTILACION. Un tablero electrico disipa calor, y
+        // esas persianas son lo que lo identifica como tablero y no como una
+        // chapa cualquiera atornillada al fondo. Van en el tercio superior de
+        // cada hoja, que es donde sale el aire caliente.
+        int ancho = x1 - x0;
+        int alto = y1 - y0;
+        if (ancho >= 10 && alto >= 12) {
+            int rejaAlto = Math.max(1, alto / 22);
+            for (int hoja = 0; hoja < 2; hoja++) {
+                int rx0 = x0 + ancho * (1 + hoja * 4) / 10;
+                int rx1 = rx0 + ancho * 3 / 10;
+                for (int k = 0; k < 3; k++) {
+                    int ry = y0 + alto / 8 + k * rejaAlto * 3;
+                    if (ry + rejaAlto >= y1) {
+                        break;
+                    }
+                    // Sombra arriba, filo claro abajo: asi la persiana sale
+                    // hacia afuera en vez de hundirse.
+                    grafico.fill(rx0, ry, rx1, ry + rejaAlto,
+                            Paleta.conAlfa(Paleta.VANO, 0.42F));
+                    grafico.fill(rx0, ry + rejaAlto, rx1, ry + rejaAlto + 1,
+                            Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, luz * 0.55F), 0.30F));
+                }
+            }
+
+            // Los cuatro tornillos de las esquinas. Dos pixeles cada uno, y
+            // son los que dicen que la chapa esta sujeta a algo.
+            int margen = Math.max(2, ancho / 12);
+            int cabeza = Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, luz * 0.65F), 0.55F);
+            for (int ex = 0; ex < 2; ex++) {
+                for (int ey = 0; ey < 2; ey++) {
+                    int sx = ex == 0 ? x0 + margen : x1 - margen - 1;
+                    int sy = ey == 0 ? y0 + margen : y1 - margen - 1;
+                    grafico.fill(sx, sy, sx + 1, sy + 1, cabeza);
+                }
+            }
+        }
+
         // El piloto.
         int px = x1 - Math.max(3, (x1 - x0) / 8);
         int py = y0 + Math.max(3, (y1 - y0) / 6);

@@ -458,21 +458,68 @@ def t_manchas(lz, m, nivel, luz, tramos) -> None:
 
 
 def t_luminaria(lz, m, nivel, dx, altura, largo, derrame, luz) -> None:
+    """Luminaria empotrada, con artefacto. Espejo de Trazo.luminaria."""
     lej = limitar(1.0 / dx, 0.0, 1.0)
     y = m.techo_en(1.0 * dx * altura)
     cx = m.centro(dx)
     medio = max(1.0, abs(m.ancho_en(dx)) * 0.5 * largo)
     grueso = max(1.0, m.h * dx * 0.026)
-    fuerza = luz * (0.45 + 0.55 * lej)
+    desvio = pseudo(int(dx * 977.0) + 31)
+    cansancio = 0.80 + 0.32 * desvio
+    fuerza = luz * (0.45 + 0.55 * lej) * cansancio
+
     if derrame > 0.0:
-        for k in (3, 2, 1):
-            t = k / 3.0
-            ex = medio * (1.0 + t * 1.5)
-            ey = grueso * (1.0 + t * 5.0)
+        for k in (4, 3, 2, 1):
+            t = k / 4.0
+            ex = medio * (1.0 + t * 2.1)
+            ey = grueso * (1.0 + t * 5.5)
             lz.fill(int(cx - ex), int(y - ey), int(cx + ex), int(y + ey),
-                    con_alfa(nivel.luz, 0.055 * derrame * fuerza * (1.0 - t * 0.5)))
+                    con_alfa(nivel.luz, 0.050 * derrame * fuerza * (1.0 - t * 0.55)))
+
+    cajon_x = medio * 1.14
+    cajon_y = grueso * 1.9
+    if cajon_y >= 1.0:
+        lz.fill(int(cx - cajon_x), int(y - cajon_y), int(cx + cajon_x), int(y + cajon_y),
+                con_alfa(iluminar(nivel.techo_junta, 0.62 + 0.34 * fuerza), 0.90))
+        lz.fill(int(cx - cajon_x), int(y + cajon_y - max(1.0, grueso * 0.35)),
+                int(cx + cajon_x), int(y + cajon_y),
+                con_alfa(iluminar(nivel.luz, fuerza * 0.75), 0.40))
+
+    lz.fill(int(cx - medio * 1.04), int(y - grueso * 1.35),
+            int(cx + medio * 1.04), int(y + grueso * 1.35),
+            con_alfa(iluminar(nivel.luz, min(1.0, fuerza * 0.85)), 0.55))
+
     lz.fill(int(cx - medio), int(y - grueso), int(cx + medio), int(y + grueso),
             con_alfa(iluminar(nivel.luz, min(1.0, fuerza * 1.25)), 0.92))
+
+    tapa = max(1.0, medio * 0.13)
+    oscuro = con_alfa(nivel.techo_junta, 0.45)
+    lz.fill(int(cx - medio), int(y - grueso), int(cx - medio + tapa), int(y + grueso), oscuro)
+    lz.fill(int(cx + medio - tapa), int(y - grueso), int(cx + medio), int(y + grueso), oscuro)
+
+
+def t_interior_vano(lz, nivel, x0, y0, x1, y1, lado, luz) -> None:
+    """El primer metro de lo que sigue del otro lado. Espejo de Trazo."""
+    ancho = x1 - x0
+    alto = y1 - y0
+    if ancho <= 2 or alto <= 2:
+        return
+    lz.fill(x0, y0, x1, y1, con_alfa(mezclar(VANO, nivel.niebla, 0.10), 0.97))
+    fuga = max(1, round(ancho * 0.34))
+    desde = x1 - fuga if lado < 0 else x0
+    hasta = x1 if lado < 0 else x0 + fuga
+    for k in range(fuga):
+        t = 1.0 - k / fuga if lado < 0 else k / fuga
+        px = desde + k if lado < 0 else hasta - 1 - k
+        lz.fill(px, y0 + round(alto * 0.06 * (1.0 - t)), px + 1, y1,
+                con_alfa(iluminar(nivel.pared_baja, luz * 0.30 * t * t), 0.85))
+    umbral = max(1, round(alto * 0.10))
+    lz.fill_gradient(x0 + 1, y1 - umbral, x1 - 1, y1,
+                     con_alfa(VANO, 0.0),
+                     con_alfa(iluminar(nivel.suelo_lejos, luz * 0.55), 0.62))
+    filo = x0 if lado < 0 else x1 - 1
+    lz.fill(filo, y0, filo + 1, y1,
+            con_alfa(iluminar(nivel.pared_alta, luz * 0.60), 0.45))
 
 
 def brillo_fluorescente(tiempo: float, destellos: bool = True) -> float:
@@ -577,9 +624,7 @@ def sala_puertas(lz, m, nivel, luz) -> None:
         x0, x1 = round(centro - medio), round(centro + medio)
         y0, y1 = round(suelo - alto), round(suelo)
         if i != 1:
-            lz.fill_gradient(x0, y0, x1, y1,
-                             con_alfa(iluminar(nivel.fondo, luz * 0.30), 0.95),
-                             con_alfa(VANO, 0.96))
+            t_interior_vano(lz, nivel, x0, y0, x1, y1, -1 if i < 1 else 1, luz)
         else:
             lz.fill(x0, y0, x1, y1,
                     iluminar(mezclar(nivel.pared_baja, nivel.junta, 0.35), luz * 0.62))
@@ -861,8 +906,33 @@ def serv_tablero(lz, m, nivel, luz) -> None:
     y1 = round(suelo - m.h * 0.42)
     lz.fill(x0, y0, x1, y1,
             iluminar(mezclar(nivel.junta, nivel.pared_baja, 0.40), luz * 0.52))
+    lz.fill_gradient(x0, y0, x1, y1,
+                     con_alfa(iluminar(nivel.pared_alta, luz * 0.30), 0.22),
+                     con_alfa(VANO, 0.30))
     lz.fill(x0, y0, x1, y0 + 1, iluminar(nivel.pared_alta, luz * 0.40))
     lz.fill((x0 + x1) // 2, y0, (x0 + x1) // 2 + 1, y1, con_alfa(VANO, 0.45))
+
+    ancho = x1 - x0
+    alto = y1 - y0
+    if ancho >= 10 and alto >= 12:
+        reja_alto = max(1, alto // 22)
+        for hoja in range(2):
+            rx0 = x0 + ancho * (1 + hoja * 4) // 10
+            rx1 = rx0 + ancho * 3 // 10
+            for k in range(3):
+                ry = y0 + alto // 8 + k * reja_alto * 3
+                if ry + reja_alto >= y1:
+                    break
+                lz.fill(rx0, ry, rx1, ry + reja_alto, con_alfa(VANO, 0.42))
+                lz.fill(rx0, ry + reja_alto, rx1, ry + reja_alto + 1,
+                        con_alfa(iluminar(nivel.pared_alta, luz * 0.55), 0.30))
+        margen = max(2, ancho // 12)
+        cabeza = con_alfa(iluminar(nivel.pared_alta, luz * 0.65), 0.55)
+        for ex in range(2):
+            for ey in range(2):
+                sx = x0 + margen if ex == 0 else x1 - margen - 1
+                sy = y0 + margen if ey == 0 else y1 - margen - 1
+                lz.fill(sx, sy, sx + 1, sy + 1, cabeza)
     px = x1 - max(3, (x1 - x0) // 8)
     py = y0 + max(3, (y1 - y0) // 6)
     lz.fill(px, py, px + 2, py + 2, con_alfa(ALERTA_BRILLO, 0.85 * luz + 0.15))

@@ -250,10 +250,93 @@ public final class Trazo {
     }
 
     /**
-     * Una luminaria colgada del cielorraso, centrada en el recinto.
+     * El interior de un vano abierto: lo que se ve del otro lado.
      *
-     * La usan los cuatro recintos con distinta forma y distinta cantidad, pero
-     * la cuenta -donde cae, cuanto mide, cuanto derrama- es la misma.
+     * QUE ESTABA MAL
+     *
+     * Los vanos eran un degradado plano hasta negro. Leen como un agujero
+     * recortado en la pared, no como un sitio que continua, y por dos razones
+     * concretas:
+     *
+     *   - un espacio real nunca es uniforme. Hay algo de suelo iluminado justo
+     *     en el umbral -la luz de ESTA sala entra un metro para adentro- y la
+     *     oscuridad empieza despues, no en el marco;
+     *   - un pasillo que sigue tiene una PARED LATERAL, y esa pared recibe luz
+     *     rasante desde aca, asi que se ve un poco mas clara de un lado que
+     *     del otro segun de que lado del eje este el vano.
+     *
+     * Es la diferencia entre "hay un rectangulo negro" y "hay un pasillo del
+     * que solo veo el primer metro". Cuesta cuatro rectangulos mas.
+     *
+     * @param lado -1 si el vano esta a la izquierda del eje, +1 si a la derecha
+     */
+    public static void interiorVano(GuiGraphics grafico, Nivel nivel, int x0, int y0,
+                                    int x1, int y1, int lado, float luz) {
+        int ancho = x1 - x0;
+        int alto = y1 - y0;
+        if (ancho <= 2 || alto <= 2) {
+            return;
+        }
+
+        // El fondo del hueco: negro casi entero, pero no del todo. El negro
+        // absoluto es lo que delata el recorte.
+        grafico.fill(x0, y0, x1, y1,
+                Paleta.conAlfa(Paleta.mezclar(Paleta.VANO, nivel.niebla, 0.10F), 0.97F));
+
+        // LA PARED LATERAL del otro lado, la que se ve en escorzo. Solo se ve
+        // una de las dos, y es la contraria al lado donde esta el vano: si el
+        // vano esta a la izquierda del eje, la cara que mira a la camara es la
+        // de la derecha del hueco.
+        int fuga = Math.max(1, Math.round(ancho * 0.34F));
+        int desde = lado < 0 ? x1 - fuga : x0;
+        int hasta = lado < 0 ? x1 : x0 + fuga;
+        for (int k = 0; k < fuga; k++) {
+            // Cuanto mas adentro, mas oscura: es la misma pared alejandose.
+            float t = lado < 0 ? 1.0F - k / (float) fuga : k / (float) fuga;
+            int px = lado < 0 ? desde + k : hasta - 1 - k;
+            grafico.fill(px, y0 + Math.round(alto * 0.06F * (1.0F - t)), px + 1, y1,
+                    Paleta.conAlfa(Paleta.iluminar(nivel.paredBaja, luz * 0.30F * t * t), 0.85F));
+        }
+
+        // EL UMBRAL. La luz de esta sala entra un poco: el primer tramo de
+        // suelo del otro lado se ve, y es lo que convierte el agujero en un
+        // sitio con piso.
+        int umbral = Math.max(1, Math.round(alto * 0.10F));
+        grafico.fillGradient(x0 + 1, y1 - umbral, x1 - 1, y1,
+                Paleta.conAlfa(Paleta.VANO, 0.0F),
+                Paleta.conAlfa(Paleta.iluminar(nivel.sueloLejos, luz * 0.55F), 0.62F));
+
+        // El canto vivo del marco por dentro, del lado que da al pasillo. Un
+        // filo claro de un pixel es lo que le da espesor a la pared.
+        int filo = lado < 0 ? x0 : x1 - 1;
+        grafico.fill(filo, y0, filo + 1, y1,
+                Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, luz * 0.60F), 0.45F));
+    }
+
+    /**
+     * Una luminaria empotrada en el cielorraso, centrada en el recinto.
+     *
+     * QUE ESTABA MAL
+     *
+     * Era una barra clara con un halo alrededor: una pegatina. Le faltaba lo
+     * que hace que una luminaria se lea como un objeto montado en un techo y
+     * no como una mancha pintada encima:
+     *
+     *   - un ARTEFACTO. Una luz real esta dentro de algo, y ese algo tiene
+     *     chapa, y la chapa recibe menos luz que el tubo porque esta al
+     *     costado de la fuente, no delante;
+     *   - una SOMBRA. Un objeto que sobresale del techo tapa la luz de los
+     *     que estan detras, y por lo tanto proyecta;
+     *   - un DIFUSOR con espesor. El tubo no toca el aire: hay un plastico
+     *     delante, y el plastico tiene borde;
+     *   - ASIMETRIA. Todas eran identicas. Un pasillo con doce luminarias
+     *     exactamente iguales es un patron, y un patron se lee como textura
+     *     generada, no como sitio.
+     *
+     * Ahora se dibuja de atras hacia adelante -derrame, cajon, sombra del
+     * cajon, difusor, tubo, reflejo en el techo- y cada una recibe un ligero
+     * desvio propio a partir de su posicion, asi que ninguna es igual a la de
+     * al lado.
      *
      * @param altura  a que fraccion del semialto cuelga, medida desde la fuga
      * @param largo   largo del tubo en fracciones del semiancho a esa distancia
@@ -266,21 +349,63 @@ public final class Trazo {
         float cx = m.centro(dx);
         float medio = Math.max(1.0F, Math.abs(m.anchoEn(dx)) * 0.5F * largo);
         float grueso = Math.max(1.0F, m.h() * dx * 0.026F);
-        float fuerza = luz * (0.45F + 0.55F * lej);
+
+        // Cada luminaria envejece por su cuenta. Un tubo fluorescente viejo no
+        // da la misma luz que el de al lado: unos amarillean, otros estan por
+        // irse. Sin esto la fila es un patron repetido y se nota enseguida.
+        float desvio = pseudo((int) (dx * 977.0F) + 31);
+        float cansancio = 0.80F + 0.32F * desvio;
+        float fuerza = luz * (0.45F + 0.55F * lej) * cansancio;
 
         if (derrame > 0.0F) {
-            int pasos = 3;
+            int pasos = 4;
             for (int k = pasos; k >= 1; k--) {
                 float t = k / (float) pasos;
-                float ex = medio * (1.0F + t * 1.5F);
-                float ey = grueso * (1.0F + t * 5.0F);
+                // El derrame es mas ancho que alto: la luz cae sobre el techo
+                // y se abre a los costados, no baja en circulo.
+                float ex = medio * (1.0F + t * 2.1F);
+                float ey = grueso * (1.0F + t * 5.5F);
                 grafico.fill((int) (cx - ex), (int) (y - ey), (int) (cx + ex), (int) (y + ey),
-                        Paleta.conAlfa(nivel.luz, 0.055F * derrame * fuerza * (1.0F - t * 0.5F)));
+                        Paleta.conAlfa(nivel.luz, 0.050F * derrame * fuerza * (1.0F - t * 0.55F)));
             }
         }
 
+        // EL ARTEFACTO. La chapa del cajon, un poco mas larga y mas alta que
+        // el tubo, en el color del techo pero apagada: esta al costado de la
+        // fuente, asi que recibe rebote, no luz directa.
+        float cajonX = medio * 1.14F;
+        float cajonY = grueso * 1.9F;
+        if (cajonY >= 1.0F) {
+            grafico.fill((int) (cx - cajonX), (int) (y - cajonY),
+                    (int) (cx + cajonX), (int) (y + cajonY),
+                    Paleta.conAlfa(Paleta.iluminar(nivel.techoJunta, 0.62F + 0.34F * fuerza), 0.90F));
+            // El canto inferior del cajon, donde la chapa dobla: la unica
+            // parte del artefacto que si ve el tubo de refilon.
+            grafico.fill((int) (cx - cajonX), (int) (y + cajonY - Math.max(1.0F, grueso * 0.35F)),
+                    (int) (cx + cajonX), (int) (y + cajonY),
+                    Paleta.conAlfa(Paleta.iluminar(nivel.luz, fuerza * 0.75F), 0.40F));
+        }
+
+        // EL DIFUSOR. Plastico lechoso delante del tubo: mas ancho que el tubo
+        // y bastante mas apagado. Es lo que evita que la luz sea una linea.
+        grafico.fill((int) (cx - medio * 1.04F), (int) (y - grueso * 1.35F),
+                (int) (cx + medio * 1.04F), (int) (y + grueso * 1.35F),
+                Paleta.conAlfa(Paleta.iluminar(nivel.luz, Math.min(1.0F, fuerza * 0.85F)), 0.55F));
+
+        // EL TUBO. Lo unico que de verdad brilla, y ocupa la menor superficie
+        // de las tres capas. Que la parte mas clara sea la mas chica es lo que
+        // da la sensacion de que hay una fuente y no una superficie pintada.
         grafico.fill((int) (cx - medio), (int) (y - grueso),
                 (int) (cx + medio), (int) (y + grueso),
                 Paleta.conAlfa(Paleta.iluminar(nivel.luz, Math.min(1.0F, fuerza * 1.25F)), 0.92F));
+
+        // El extremo del tubo esta siempre mas oscuro: son los electrodos. Un
+        // fluorescente nunca ilumina parejo de punta a punta.
+        float tapa = Math.max(1.0F, medio * 0.13F);
+        int oscuro = Paleta.conAlfa(nivel.techoJunta, 0.45F);
+        grafico.fill((int) (cx - medio), (int) (y - grueso), (int) (cx - medio + tapa),
+                (int) (y + grueso), oscuro);
+        grafico.fill((int) (cx + medio - tapa), (int) (y - grueso), (int) (cx + medio),
+                (int) (y + grueso), oscuro);
     }
 }
