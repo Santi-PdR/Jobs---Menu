@@ -9,21 +9,22 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 
 /**
- * Un renglon del tablon de turnos.
+ * Un renglon del listado de turnos, tal como esta impreso en el aviso.
  *
- * No es una capsula de boton: es una linea de planilla, con su numero de orden
- * a la izquierda y una barra ambar que se enciende cuando el cursor la alcanza.
+ * No es una capsula de boton: es una linea de formulario con su numero de
+ * orden, sus puntos suspensivos de relleno y una casilla al margen. Al pasar
+ * el cursor, la casilla queda marcada.
  */
 public class RenglonTablon extends AbstractButton {
 
-    /** Ancho de la barra de foco, en pixeles. */
-    private static final int ANCHO_BARRA = 2;
+    /** Lado de la casilla marcable, en pixeles. */
+    private static final int LADO_CASILLA = 7;
+
+    /** Sangria del numero de orden respecto del borde izquierdo. */
+    private static final int SANGRIA_ORDEN = 14;
 
     /** Sangria de la etiqueta respecto del borde izquierdo. */
-    private static final int SANGRIA_ETIQUETA = 28;
-
-    /** Sangria del numero de orden. */
-    private static final int SANGRIA_ORDEN = 11;
+    private static final int SANGRIA_ETIQUETA = 32;
 
     private final String orden;
     private final Runnable accion;
@@ -60,20 +61,42 @@ public class RenglonTablon extends AbstractButton {
         int y = this.getY();
         int ancho = this.getWidth();
         int alto = this.getHeight();
-
-        grafico.fill(x, y, x + ancho, y + alto, Paleta.conAlfa(Paleta.HORMIGON, 0.55F + 0.30F * this.foco));
-        grafico.fill(x, y, x + ancho, y + 1, Paleta.conAlfa(Paleta.HUMO, 0.60F));
-        grafico.fill(x, y + alto - 1, x + ancho, y + alto, Paleta.conAlfa(Paleta.HUMO, 0.60F));
-
-        int colorBarra = Paleta.mezclar(Paleta.SODIO_TENUE, Paleta.SODIO, this.foco);
-        grafico.fill(x, y, x + ANCHO_BARRA, y + alto, Paleta.conAlfa(colorBarra, 0.35F + 0.65F * this.foco));
-
         int lineaBase = y + (alto - 8) / 2;
-        int colorOrden = Paleta.mezclar(Paleta.HUESO_TENUE, Paleta.SODIO, this.foco);
-        int colorEtiqueta = Paleta.mezclar(Paleta.HUESO_TENUE, Paleta.HUESO, this.foco);
+
+        // Al enfocar, el renglon se resalta como si lo hubiesen repasado a lapiz.
+        if (this.foco > 0.0F) {
+            grafico.fill(x - 3, y, x + ancho + 3, y + alto,
+                    Paleta.conAlfa(Paleta.TINTA_TENUE, 0.14F * this.foco));
+        }
+
+        // Casilla al margen: vacia en reposo, marcada al enfocar.
+        int casillaY = y + (alto - LADO_CASILLA) / 2;
+        dibujarMarco(grafico, x, casillaY, LADO_CASILLA, Paleta.conAlfa(Paleta.TINTA_TENUE, 0.70F));
+        if (this.foco > 0.35F) {
+            grafico.fill(x + 2, casillaY + 2, x + LADO_CASILLA - 1, casillaY + LADO_CASILLA - 1,
+                    Paleta.conAlfa(Paleta.TINTA, 0.60F + 0.40F * this.foco));
+        }
+
+        int colorOrden = Paleta.conAlfa(Paleta.TINTA_TENUE, 0.70F + 0.30F * this.foco);
+        int colorEtiqueta = Paleta.mezclar(Paleta.TINTA_TENUE, Paleta.TINTA, this.foco);
 
         grafico.drawString(cliente.font, this.orden, x + SANGRIA_ORDEN, lineaBase, colorOrden, false);
         grafico.drawString(cliente.font, this.getMessage(), x + SANGRIA_ETIQUETA, lineaBase, colorEtiqueta, false);
+
+        // Puntos de relleno hasta el margen derecho, como en un formulario.
+        int inicioPuntos = x + SANGRIA_ETIQUETA + cliente.font.width(this.getMessage()) + 4;
+        int finPuntos = x + ancho - 2;
+        for (int px = inicioPuntos; px < finPuntos; px += 3) {
+            grafico.fill(px, lineaBase + 6, px + 1, lineaBase + 7,
+                    Paleta.conAlfa(Paleta.TINTA_TENUE, 0.28F + 0.22F * this.foco));
+        }
+    }
+
+    private static void dibujarMarco(GuiGraphics grafico, int x, int y, int lado, int color) {
+        grafico.fill(x, y, x + lado, y + 1, color);
+        grafico.fill(x, y + lado - 1, x + lado, y + lado, color);
+        grafico.fill(x, y, x + 1, y + lado, color);
+        grafico.fill(x + lado - 1, y, x + lado, y + lado, color);
     }
 
     @Override

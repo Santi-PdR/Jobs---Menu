@@ -27,34 +27,34 @@ public final class ConfigTurno {
     }
 
     private ConfigTurno(ForgeConfigSpec.Builder builder) {
-        builder.comment("Registro de turnos - preferencias del puesto de trabajo").push("turno");
+        builder.comment("Aviso a los ocupantes - preferencias de la estancia").push("nivel");
 
         this.menuPropio = builder
-                .comment("Sustituir la pantalla de titulo por el tablon de turnos.")
+                .comment("Sustituir la pantalla de titulo por el aviso del nivel.")
                 .define("menu_propio", true);
 
         this.escenaViva = builder
-                .comment("Animar el fondo del deposito. En false la composicion queda estatica.")
+                .comment("Animar el pasillo del nivel. En false la composicion queda estatica.")
                 .define("escena_viva", true);
 
         this.movimientoReducido = builder
-                .comment("Apagar lluvia, polvo y siluetas del fondo.")
+                .comment("Apagar el polvo y la silueta que cruza el vano.")
                 .define("movimiento_reducido", false);
 
         this.destellosReducidos = builder
-                .comment("Congelar el parpadeo de la lampara y el pulso de alerta.")
+                .comment("Congelar el parpadeo de los fluorescentes y el pulso de alerta.")
                 .define("destellos_reducidos", false);
 
         this.interfazMinima = builder
-                .comment("Dejar solo cabecera y renglones del tablon.")
+                .comment("Dejar solo la cabecera y los renglones, sin la hoja del aviso.")
                 .define("interfaz_minima", false);
 
         this.mostrarCuentaRegresiva = builder
-                .comment("Mostrar el tiempo estimado hasta la proxima aparicion.")
+                .comment("Mostrar el tiempo estimado hasta la proxima ronda.")
                 .define("mostrar_cuenta_regresiva", true);
 
         this.avisosRotativos = builder
-                .comment("Mostrar los avisos de la empresa al pie del tablon.")
+                .comment("Mostrar los avisos de la administracion al pie de la hoja.")
                 .define("avisos_rotativos", true);
 
         builder.pop();

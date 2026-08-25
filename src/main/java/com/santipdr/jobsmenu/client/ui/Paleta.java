@@ -3,24 +3,59 @@ package com.santipdr.jobsmenu.client.ui;
 /**
  * Paleta unica del mod. Colores en ARGB con alfa explicito.
  *
- * Reglas: el rojo pertenece solo a los Executores, el ambar es la unica fuente
- * de luz de la escena y nunca se usa blanco puro.
+ * El menu es luminoso a proposito: el terror de este servidor no es la
+ * oscuridad, es el amarillo que nunca se apaga. Reglas de la paleta:
+ *
+ *  - El rojo pertenece solo a los Executores. Nada mas puede usarlo.
+ *  - La unica fuente de luz es el fluorescente del techo.
+ *  - Nunca blanco puro: el techo mas limpio sigue siendo hueso viejo.
  */
 public final class Paleta {
 
     private Paleta() {
     }
 
-    public static final int FONDO_PROFUNDO = 0xFF0B0C0E;
-    public static final int FONDO_ALTO = 0xFF15181C;
-    public static final int HORMIGON = 0xFF232830;
-    public static final int HUMO = 0xFF3A414B;
-    public static final int SODIO = 0xFFD9922E;
-    public static final int SODIO_TENUE = 0xFF8A5E1C;
-    public static final int HUESO = 0xFFE8E4DA;
-    public static final int HUESO_TENUE = 0xFF9A968E;
-    public static final int ALERTA = 0xFFB3261E;
-    public static final int ALERTA_BRILLO = 0xFFE8442F;
+    /** Papel mural del nivel. El color de la casa. */
+    public static final int PARED = 0xFFD8C24F;
+
+    /** Pared cerca del fluorescente, lavada por la luz. */
+    public static final int PARED_ALTA = 0xFFE6D264;
+
+    /** Pared cerca del zocalo, donde la luz ya no llega. */
+    public static final int PARED_BAJA = 0xFF9A8630;
+
+    /** Humedad, moho, filtraciones. Tambien sirve de borde. */
+    public static final int MOHO = 0xFF5E5222;
+
+    /** Alfombra humeda. */
+    public static final int ALFOMBRA = 0xFF8A7638;
+
+    /** Alfombra en sombra y bajo los marcos de puerta. */
+    public static final int ALFOMBRA_OSCURA = 0xFF4C401E;
+
+    /** Placas del cielorraso. */
+    public static final int TECHO = 0xFFD5CB9B;
+
+    /** El tubo fluorescente. La unica luz que existe. */
+    public static final int FLUOR = 0xFFFFF7D2;
+
+    /** Papel de los avisos pegados a la pared. */
+    public static final int PAPEL = 0xFFF0E9CE;
+
+    /** Tinta principal. Todo lo que se lee. */
+    public static final int TINTA = 0xFF14120C;
+
+    /** Tinta secundaria: sellos, notas al pie, letra chica. */
+    public static final int TINTA_TENUE = 0xFF4A422A;
+
+    /** El vano que da al nivel siguiente. Nunca se aclara. */
+    public static final int VANO = 0xFF0D0B07;
+
+    /** Executores. Exclusivo. */
+    public static final int ALERTA = 0xFF8E1B12;
+
+    /** Executores, pulso de ronda inminente. */
+    public static final int ALERTA_BRILLO = 0xFFC42B18;
 
     /** Devuelve el mismo color con el alfa indicado (0.0 a 1.0). */
     public static int conAlfa(int color, float alfa) {
@@ -36,5 +71,16 @@ public final class Paleta {
         int g = (int) (((desde >> 8) & 0xFF) + (((hasta >> 8) & 0xFF) - ((desde >> 8) & 0xFF)) * f);
         int b = (int) ((desde & 0xFF) + ((hasta & 0xFF) - (desde & 0xFF)) * f);
         return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
+    /**
+     * Aplica el brillo del fluorescente a un color de la escena.
+     * Con factor 1.0 el color queda tal cual; por debajo se apaga hacia el vano.
+     */
+    public static int iluminar(int color, float factor) {
+        if (factor >= 1.0F) {
+            return color;
+        }
+        return mezclar(VANO, color, Math.max(0.0F, factor));
     }
 }

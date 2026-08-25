@@ -1,4 +1,4 @@
-# CONTEXTO — Jobs · Menú de Turno
+# CONTEXTO — Jobs · Aviso a los ocupantes
 
 > Documento maestro del mod de menús del servidor **Jobs**.
 > Todo cambio de identidad, alcance o proceso se decide **aquí primero** y después se programa.
@@ -8,7 +8,7 @@
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama de trabajo | `arena/01a03962-jobs-menu` |
 | Mod id | `jobsmenu` |
-| Nombre visible | Jobs · Menú de Turno |
+| Nombre visible | Jobs · Aviso a los ocupantes |
 | Paquete Java | `com.santipdr.jobsmenu` |
 | Versión actual | **0.1.0** |
 | Plataforma | Minecraft **1.20.1** · Forge **47.x** · Java **17** |
@@ -19,55 +19,62 @@
 
 ## 1. De qué va el servidor (canon)
 
-> *"La temática de Jobs es trabajar y encontrarte con supervivientes, hacerte tu negocio y sobrevivir a los
-> **Executores**, entidades inmortales que aparecen cada cierto tiempo para perseguirte y matarte."*
-> — definición del owner, canon de partida.
+Jobs es un **backrooms con peaje**. Estás atrapado en un nivel, y la única forma de avanzar al siguiente es
+**trabajar y juntar el dinero que cuesta la salida**. Por el camino te cruzás con otros supervivientes, armás
+tu negocio, y cada tanto aparecen los **Executores**: entidades inmortales que rondan, te persiguen y te
+matan. No se derrotan. Se sobreviven.
 
-De ahí salen los cuatro ejes que el menú tiene que respirar:
+Los cuatro ejes que el menú tiene que respirar:
 
-1. **Trabajo y oficio.** No eres un héroe: eres mano de obra. Hay turnos, hay tareas, hay un tablón.
-2. **Supervivientes.** Hay otros. A veces ayudan, a veces son competencia. El multijugador *es* eso.
-3. **Negocio propio.** Se acumula, se comercia, se pierde. El menú huele a inventario, a libro de cuentas.
-4. **Executores.** Inmortales. **Periódicos.** No se derrotan: se sobreviven. El menú debe recordarte que
-   el reloj corre y que la próxima aparición ya está agendada.
+1. **Encierro.** Estás *dentro* de algo. El pasillo no se termina, sólo continúa.
+2. **Trabajo y dinero.** No sos un héroe: sos mano de obra ahorrando para un pasaje.
+3. **La salida es real y cuesta.** Ese es el motor. Hay un vano al fondo y tiene precio.
+4. **Executores.** Inmortales, cíclicos, inevitables. El reloj corre siempre.
 
-**Grafía canónica:** *Executor* / *Executores* (mayúscula inicial siempre, en cursiva nunca). Es el término
-del servidor y no se "corrige" a Ejecutor. En inglés: *Executor* / *Executors*.
+La tensión central del menú es esa: **un espacio que no te deja salir y una tarifa que sí.**
+
+**Grafía canónica:** *Executor* / *Executores* (mayúscula inicial). Es el término del servidor y no se
+"corrige" a Ejecutor. En inglés: *Executor* / *Executors*. Los niveles se escriben *Nivel 0*, *Nivel 1*, …
 
 ---
 
 ## 2. Identidad del menú
 
+![Vista previa del menú](docs/vista_previa.png)
+
+*Generada con `tools/vista_previa.py` — es un espejo del código de la escena, no una maqueta a mano.*
+
 ### 2.1 Concepto visual
 
-**Un tablón de turnos atornillado a la pared de un depósito, de noche, bajo una lámpara de sodio que
-parpadea.** El jugador no está "en un menú": está fichando antes de salir a trabajar.
+**Un aviso fotocopiado, pegado con cinta a la pared de un pasillo amarillo infinito.** El jugador no está
+"en un menú": está parado frente a la hoja que explica cuánto cuesta irse.
 
-- Nada de pergamino, nada de sepia, nada de tipografía de época. Esto es **hormigón, chapa, tinta de
-  fotocopiadora y luz sucia de lámpara de sodio**.
-- El fondo está **vivo pero quieto**: lluvia lejana, polvo suspendido en el cono de luz, el zumbido de la
-  lámpara, y muy de vez en cuando **algo que cruza el fondo del pasillo y no vuelve a pasar**.
-- El terror es **administrativo**, no gore. El horror de Jobs es que la muerte está *programada* y alguien
-  la anotó en una planilla.
+- Papel mural amarillo mostaza, cielorraso de placas, alfombra húmeda, fluorescentes zumbando. El pasillo
+  se dibuja en **perspectiva de un punto** y se pierde al fondo.
+- Al final del pasillo hay un **vano oscuro**: la salida al Nivel 1. Nunca se ilumina. Cada tanto **algo lo
+  cruza** — no entra ni sale, sólo pasa.
+- El terror es **burocrático y luminoso**. No hay oscuridad: hay un amarillo que no se apaga nunca y una
+  administración que te cobra el pasaje.
+
+Nada de lo anterior: sin pergamino, sin sepia, sin depósito industrial, sin lámpara de sodio.
 
 ### 2.2 Voz narrativa
 
-La voz del menú es la de **la empresa/el capataz que sigue contratando gente aunque sepa lo que hay
-afuera**. Fría, breve, burocrática, con un fondo de amenaza que nunca se explica.
+La voz es la de **la administración del nivel**: la entidad anónima que redactó el aviso, fijó la tarifa y
+no piensa dar explicaciones. Fría, breve, con un fondo de amenaza que nunca se aclara.
 
 **Sí:**
-- "Turno asignado. Preséntese en el punto de entrada."
-- "La empresa no cubre desapariciones ocurridas fuera del horario."
-- "Próxima aparición estimada: 07:42. Estimada."
-- "Se ruega no describir lo que se vio."
+- "La salida existe. Cuesta lo que cuesta."
+- "El dinero no sirve de nada aquí. Sólo sirve para irse."
+- "Si oye el zumbido detenerse, no era el fluorescente."
+- "Gracias por su permanencia. Es involuntaria, pero se agradece igual."
 
 **No:**
-- Jerga de taller ni de software ("build", "commit", "config", "render", "bug").
-- Chistes que rompan el tono. Se admite **humor negro seco**, nunca guiño meta.
-- Épica heroica ("¡derrota a los Executores!"). A los Executores no se los derrota.
-- Cualquier resto de la identidad anterior (crónica victoriana, gripe, cuarentena, ghouls).
+- Jerga de taller o software ("build", "commit", "config", "render", "bug").
+- Épica heroica. A los Executores no se los derrota.
+- Guiños meta o chistes que rompan el tono. Se admite **humor negro seco**.
 
-**Regla dura:** todo texto que vea el jugador vive en `lang/*.json` y pasa por esta voz. Ningún literal
+**Regla dura:** todo texto que ve el jugador vive en `lang/*.json` y pasa por esta voz. Ningún literal
 suelto en `.java`.
 
 ### 2.3 Paleta
@@ -76,79 +83,88 @@ Definida en `client/ui/Paleta.java`. ARGB, con alfa explícito.
 
 | Nombre | Hex | Uso |
 |---|---|---|
-| `FONDO_PROFUNDO` | `#0B0C0E` | Cielo/fondo del pasillo, base de todo |
-| `FONDO_ALTO` | `#15181C` | Degradado superior, aire frío |
-| `HORMIGON` | `#232830` | Placas, base de botones, tablón |
-| `HUMO` | `#3A414B` | Bordes, separadores, estructura |
-| `SODIO` | `#D9922E` | Acento vivo: lámpara, barra activa, foco |
-| `SODIO_TENUE` | `#8A5E1C` | Halo, subrayados, acento en reposo |
-| `HUESO` | `#E8E4DA` | Texto principal |
-| `HUESO_TENUE` | `#9A968E` | Texto secundario, avisos, sellos |
-| `ALERTA` | `#B3261E` | Cuenta regresiva en zona roja |
-| `ALERTA_BRILLO` | `#E8442F` | Pulso de "aparición inminente" |
+| `PARED` | `#D8C24F` | El papel mural. El color de la casa. |
+| `PARED_ALTA` | `#E6D264` | Pared lavada por el fluorescente |
+| `PARED_BAJA` | `#9A8630` | Pared cerca del zócalo |
+| `MOHO` | `#5E5222` | Humedad, filtraciones, juntas y bordes |
+| `ALFOMBRA` | `#8A7638` | El piso |
+| `ALFOMBRA_OSCURA` | `#4C401E` | Piso en sombra |
+| `TECHO` | `#D5CB9B` | Placas del cielorraso |
+| `FLUOR` | `#FFF7D2` | El tubo. La única luz que existe. |
+| `PAPEL` | `#F0E9CE` | La hoja del aviso |
+| `TINTA` | `#14120C` | Texto principal |
+| `TINTA_TENUE` | `#4A422A` | Letra chica, sellos, notas |
+| `VANO` | `#0D0B07` | El hueco del fondo. Nunca se aclara. |
+| `ALERTA` | `#8E1B12` | Executores |
+| `ALERTA_BRILLO` | `#C42B18` | Executores, pulso de ronda inminente |
 
 Reglas de color:
 - El **rojo es exclusivo de los Executores**. Nada más en la interfaz puede usarlo.
-- El **ámbar es la única fuente de luz**. Si algo brilla, es porque la lámpara lo alcanza.
-- Nunca blanco puro (`#FFFFFF`): siempre `HUESO`.
+- La **única fuente de luz es el fluorescente**. `Paleta.iluminar()` apaga cualquier color hacia `VANO`
+  según la distancia; nada se ilumina por su cuenta.
+- Nunca blanco puro. El techo más limpio sigue siendo hueso viejo.
 
 ### 2.4 Tipografía y composición
 
 - Fuente del juego, sin texturas de fuente propias (por ahora).
-- **Alineado a la izquierda**, como un formulario. El centrado se reserva para el titular.
-- Los botones son **renglones de una planilla**, no cápsulas: rectángulo bajo, borde de 1px, número de
-  orden a la izquierda (`01`, `02`, …) y barra ámbar cuando el cursor está encima.
-- Espacio negativo generoso abajo a la derecha: ahí vive el **sello de turno** (versión, build).
+- Todo el contenido vive **dentro de la hoja**, alineado a la izquierda, como un formulario real.
+- Los botones son **renglones de formulario**: casilla marcable al margen, número de orden, etiqueta y
+  puntos suspensivos de relleno hasta el borde. Al enfocar, la casilla queda marcada.
+- La hoja tiene sombra proyectada y un trozo de cinta adhesiva en el borde superior.
 
 ---
 
 ## 3. Elementos del menú principal
 
-Implementados en `client/screen/PantallaTurno.java`.
+Implementados en `client/screen/PantallaNivel.java`.
 
 | Zona | Contenido |
 |---|---|
-| Cabecera | `JOBS` en grande + subtítulo `REGISTRO DE TURNOS` en `HUESO_TENUE` |
-| Columna central | Los cuatro renglones del tablón (ver abajo) |
-| Esquina superior derecha | **Cuenta regresiva a la próxima aparición** |
-| Pie izquierdo | **Avisos rotativos** del tablón (línea que cambia cada 7 s) |
-| Pie derecho | Sello: `jobsmenu 0.1.0` |
+| Hoja, cabecera | `JOBS` + `AVISO A LOS OCUPANTES DEL NIVEL` |
+| Hoja, bajo la línea | **Nivel actual** y **tarifa de salida** — el motor del server |
+| Hoja, cuerpo | Los cuatro renglones del formulario |
+| Hoja, pie | **Avisos rotativos** (cambian cada 7 s, con ajuste de línea) |
+| Esquina superior derecha | **Cuenta regresiva a la próxima ronda**, sobre placa oscura |
+| Esquina inferior derecha | Sello: `jobsmenu 0.1.0` |
 
-Renglones del tablón (etiquetas in-fiction, no vanilla):
+Renglones del formulario:
 
 | # | Etiqueta | Acción real |
 |---|---|---|
-| 01 | Turno en solitario | `SelectWorldScreen` |
-| 02 | Presentarse al complejo | `JoinMultiplayerScreen` |
-| 03 | Condiciones del contrato | `OptionsScreen` |
-| 04 | Abandonar el puesto | `Minecraft#stop()` |
+| 01 | Fichar turno | `SelectWorldScreen` |
+| 02 | Unirse a una cuadrilla | `JoinMultiplayerScreen` |
+| 03 | Condiciones de estancia | `OptionsScreen` |
+| 04 | Renunciar al nivel | `Minecraft#stop()` |
 
 ### 3.1 La cuenta regresiva (pieza de identidad)
 
-Ciclo fijo de **13 minutos**, anclado al reloj del sistema. No depende de la partida ni del servidor: es un
-recordatorio ambiental, no una mecánica.
+Ciclo fijo de **13 minutos** anclado al reloj del sistema. No depende de la partida ni del servidor: es
+ambiente, no mecánica.
 
-- Formato `MM:SS`, en `HUESO_TENUE`.
-- Bajo 60 s: pasa a `ALERTA`.
-- Bajo 8 s: pulsa entre `ALERTA` y `ALERTA_BRILLO` y el texto cambia a **INMINENTE**.
-- Al llegar a cero: durante 4 s el rótulo dice **APARICIÓN** y la escena baja la luz un punto.
-- Con *destellos reducidos* activo, el pulso no parpadea: se queda fijo en `ALERTA`.
+- Formato `MM:SS`. Bajo 60 s pasa a `ALERTA`; bajo 8 s pulsa y el rótulo cambia a **RONDA INMINENTE**.
+- Al llegar a cero: 4 s de **RONDA EN CURSO** y **el fluorescente baja** (la escena se apaga y se recupera).
+- Con *destellos reducidos*, no parpadea: queda fijo en `ALERTA`.
 
-Es la única cosa del menú que "sabe la hora" y es deliberadamente inútil: no puedes hacer nada al respecto.
+Es deliberadamente inútil: no podés hacer nada al respecto. Ese es el punto.
 
 ### 3.2 Escena viva
 
-`client/scene/EscenaDeposito.java`, todo procedural (cero texturas en 0.1.0):
+`client/scene/EscenaNivel.java`, todo procedural (cero texturas en 0.1.0):
 
-1. Degradado vertical del pasillo.
-2. Piso y placas de hormigón deterministas (semilla fija: la escena es *siempre el mismo depósito*).
-3. Cono y halo de la lámpara de sodio con **parpadeo irregular**.
-4. Lluvia lejana en diagonal.
-5. Polvo suspendido dentro del cono de luz.
-6. **Silueta**: cada ~47 s algo cruza el fondo del pasillo, tres segundos, sin ruido.
-7. Viñeta de bordes.
+1. **Perspectiva de un punto**: 11 tramos de pasillo que convergen, con curva cuadrática (`escala()`) para
+   que los tramos cercanos ocupen mucho más que los lejanos.
+2. Paredes, cielorraso y alfombra por tramo, con la luz cayendo según la distancia.
+3. Manchas de humedad deterministas (semilla fija: siempre el mismo pasillo).
+4. Hilera de fluorescentes, **cada uno con su propio parpadeo desfasado** — nunca fallan todos a la vez.
+5. Halo sobre las placas y reflejo pálido en la alfombra.
+6. **El vano** al fondo, con su marco, y la silueta que lo cruza cada ~47 s.
+7. Polvo suspendido, más visible a la altura de los tubos.
+8. Viñeta perimetral.
 
-Todas las capas 4–6 se apagan con *movimiento reducido*; la 3 se congela con *destellos reducidos*.
+Las capas 4, 7 y la silueta responden a *movimiento reducido* y *destellos reducidos*.
+
+> **Nota técnica que costó un bug:** `GuiGraphics#fillGradient` interpola **sólo en vertical**. Las viñetas
+> laterales se dibujan columna por columna con `fill`, no con `fillGradient`.
 
 ---
 
@@ -159,15 +175,14 @@ Todas las capas 4–6 se apagan con *movimiento reducido*; la 3 se congela con *
 | Clave | Def. | Qué hace |
 |---|---|---|
 | `menu_propio` | `true` | Sustituye el título vanilla. En `false` el mod queda invisible. |
-| `escena_viva` | `true` | Fondo animado; en `false`, fondo estático con la misma composición. |
-| `movimiento_reducido` | `false` | Apaga lluvia, polvo y silueta. |
-| `destellos_reducidos` | `false` | Congela el parpadeo de la lámpara y el pulso rojo. |
-| `interfaz_minima` | `false` | Deja sólo cabecera y renglones: sin avisos, sin cuenta regresiva, sin sello. |
-| `mostrar_cuenta_regresiva` | `true` | Control fino del reloj de aparición. |
+| `escena_viva` | `true` | Fondo animado; en `false`, misma composición pero quieta. |
+| `movimiento_reducido` | `false` | Apaga polvo y silueta. |
+| `destellos_reducidos` | `false` | Congela el parpadeo de los tubos y el pulso rojo. |
+| `interfaz_minima` | `false` | Deja sólo la cabecera y los renglones: sin hoja, sin avisos, sin reloj. |
+| `mostrar_cuenta_regresiva` | `true` | Control fino del reloj de ronda. |
 | `avisos_rotativos` | `true` | Control fino de la línea de avisos. |
 
-Accesibilidad primero: **cualquiera de esos interruptores tiene que dejar un menú usable y legible**, nunca
-uno roto.
+Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y legible**, nunca uno roto.
 
 ---
 
@@ -175,21 +190,19 @@ uno roto.
 
 | Fase | Contenido | Estado |
 |---|---|---|
-| **0.1.0** | Esqueleto Forge, config, paleta, escena procedural, pantalla de título propia, avisos, cuenta regresiva | **Entregado** |
-| 0.2.0 | Pantalla de pausa ("Turno en suspenso") y de opciones con la misma piel | Pendiente |
-| 0.3.0 | Audio: zumbido de lámpara, lluvia, golpe seco en la aparición; mezcla respetando el volumen del juego | Pendiente |
-| 0.4.0 | Texturas propias (tablón, chapa, sellos) y viñeta en textura | Pendiente |
-| 0.5.0 | Lore ampliado: expediente consultable, avisos con memoria, easter eggs por fecha/hora | Pendiente |
-| 1.0.0 | Pulido, revisión de accesibilidad completa, empaquetado para repartir a los jugadores | Pendiente |
+| **0.1.0** | Esqueleto Forge, config, paleta, pasillo procedural, aviso, renglones, reloj de ronda | **Entregado** |
+| 0.2.0 | Pausa ("Estancia en suspenso") y opciones con la misma piel | Pendiente |
+| 0.3.0 | Audio: zumbido del fluorescente, silencio en la ronda, golpe seco | Pendiente |
+| 0.4.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
+| 0.5.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |
+| 1.0.0 | Pulido, accesibilidad completa, empaquetado para repartir | Pendiente |
 
-Fuera de alcance, explícitamente: entidades, ítems, mecánicas, comandos, datos de mundo, cualquier cosa que
-toque el servidor.
+Fuera de alcance, explícitamente: entidades, ítems, mecánicas, comandos, economía real, cualquier cosa que
+toque el servidor. **La tarifa del menú es decorativa**: no lee el dinero real del jugador.
 
 ---
 
 ## 6. Reglas de trabajo vigentes
-
-Heredadas del proyecto anterior; siguen aplicando tal cual.
 
 1. **Voz coherente**: ningún texto in-game con jerga de taller o de software.
 2. **Docs sincronizados**: si sube la versión, suben `gradle.properties`, este documento y el `README`.
@@ -199,24 +212,19 @@ Heredadas del proyecto anterior; siguen aplicando tal cual.
 5. **Respaldo antes de cambios estructurales**: `git bundle` del repo.
 6. **Sin firmas de memoria**: si una API de Forge/Minecraft no está verificada en el propio repo, no se usa.
    El sandbox no tiene JDK: la compilación real ocurre en el PC del owner.
-7. **Verificación estática obligatoria**: `python3 tools/verificar.py` antes de cada entrega (ver §7).
-8. **Cada entrega cierra con el bloque PowerShell** de actualizar + compilar + desplegar.
+7. **Verificación estática obligatoria**: `python3 tools/verificar.py` antes de cada entrega.
+8. **La escena se mira antes de entregar**: `python3 tools/vista_previa.py`. Si se toca `EscenaNivel.java`,
+   **se toca el espejo también** — están sincronizados a mano y esa es su única debilidad.
+9. **Cada entrega cierra con el bloque PowerShell** de actualizar + compilar + desplegar.
 
 ---
 
-## 7. Sello de verificación
+## 7. Herramientas
 
-`tools/verificar.py` es el sustituto del compilador ausente. Comprueba:
-
-- Versión idéntica en `gradle.properties`, `CONTEXTO.md` y `README.md`.
-- Todo `${...}` de `mods.toml` tiene su clave en `gradle.properties`.
-- Paridad de claves entre `es_es.json` y `en_us.json`, y JSON válido.
-- Toda clave usada en `Component.translatable(...)` existe en ambos idiomas, y ninguna clave está huérfana.
-- Los `.java` son **ASCII puro** (los acentos viven en los `lang`, nunca en el código).
-- Llaves, paréntesis y comillas balanceadas en cada `.java`.
-- `pack.mcmeta` válido y con el `pack_format` de 1.20.1 (`15`).
-
-No sustituye a `gradlew build`, pero atrapa el 90 % de las erratas que costaban una vuelta entera.
+| Archivo | Para qué |
+|---|---|
+| `tools/verificar.py` | Sustituto del compilador ausente: versiones sincronizadas, paridad y validez de los `lang`, claves usadas vs. existentes, ASCII puro en `.java`, balance de llaves, `pack_format`. |
+| `tools/vista_previa.py` | Espejo en Python de la escena. Dibuja el menú a PNG sin Minecraft para revisar composición, perspectiva y paleta. Escribe el PNG a mano con `zlib` (no necesita Pillow). |
 
 ---
 
@@ -224,9 +232,11 @@ No sustituye a `gradlew build`, pero atrapa el 90 % de las erratas que costaban 
 
 | Término | Significado |
 |---|---|
-| **Turno** | Una sesión de juego. Empieza al entrar, termina cuando terminás o cuando te terminan. |
-| **El complejo** | El servidor. Donde están los demás supervivientes. |
-| **Contrato** | Las opciones del juego. Se "aceptan condiciones", no se "configura". |
-| **Aparición** | El evento cíclico del Executor. Nunca "spawn", nunca "ataque". |
-| **La empresa** | Quien escribe los avisos. Nunca se nombra ni se muestra. |
-| **Registro** | La memoria del menú: avisos, sellos, expediente. |
+| **Nivel** | Una dimensión del servidor. Se sale pagando. |
+| **La salida / el vano** | El hueco al fondo del pasillo. Tiene tarifa. |
+| **Tarifa** | Lo que cuesta pasar al nivel siguiente. |
+| **Turno** | Una sesión de trabajo. |
+| **Cuadrilla** | Un grupo de supervivientes. El multijugador. |
+| **Ronda** | El evento cíclico de los Executores. Nunca "spawn", nunca "ataque". |
+| **Ocupante** | El jugador, según la administración. |
+| **La administración** | Quien escribe los avisos. Nunca se nombra ni se muestra. |

@@ -1,24 +1,27 @@
 {
-  "jobsmenu.pantalla.turno": "Registro de turnos",
+  "jobsmenu.pantalla.nivel": "Aviso a los ocupantes",
 
   "jobsmenu.titulo": "JOBS",
-  "jobsmenu.subtitulo": "REGISTRO DE TURNOS",
+  "jobsmenu.subtitulo": "AVISO A LOS OCUPANTES DEL NIVEL",
 
-  "jobsmenu.tablon.solitario": "Turno en solitario",
-  "jobsmenu.tablon.complejo": "Presentarse al complejo",
-  "jobsmenu.tablon.contrato": "Condiciones del contrato",
-  "jobsmenu.tablon.abandonar": "Abandonar el puesto",
+  "jobsmenu.nivel.actual": "Se encuentra usted en el Nivel 0.",
+  "jobsmenu.nivel.tarifa": "Salida al Nivel 1: tarifa pendiente de abono.",
 
-  "jobsmenu.reloj.proxima": "Próxima aparición estimada",
-  "jobsmenu.reloj.inminente": "APARICIÓN INMINENTE",
-  "jobsmenu.reloj.aparicion": "APARICIÓN EN CURSO",
+  "jobsmenu.tablon.turno": "Fichar turno",
+  "jobsmenu.tablon.cuadrilla": "Unirse a una cuadrilla",
+  "jobsmenu.tablon.condiciones": "Condiciones de estancia",
+  "jobsmenu.tablon.renunciar": "Renunciar al nivel",
 
-  "jobsmenu.aviso.0": "La empresa no cubre desapariciones ocurridas fuera del horario.",
-  "jobsmenu.aviso.1": "Se ruega no describir lo que se vio. Ni al capataz, ni entre ustedes.",
-  "jobsmenu.aviso.2": "El material perdido durante una aparición se descuenta igual.",
-  "jobsmenu.aviso.3": "Los turnos del compañero que no ficha salida se reasignan a las 48 horas.",
-  "jobsmenu.aviso.4": "Correr no está prohibido. Tampoco recomendado.",
-  "jobsmenu.aviso.5": "El horario de aparición es orientativo. Todo aquí es orientativo.",
-  "jobsmenu.aviso.6": "Si el pasillo se queda en silencio, no era la lámpara.",
-  "jobsmenu.aviso.7": "Gracias por su compromiso. Quedan pocos como usted."
+  "jobsmenu.reloj.proxima": "Próxima ronda",
+  "jobsmenu.reloj.inminente": "RONDA INMINENTE",
+  "jobsmenu.reloj.encurso": "RONDA EN CURSO",
+
+  "jobsmenu.aviso.0": "La salida existe. Cuesta lo que cuesta.",
+  "jobsmenu.aviso.1": "No se admiten devoluciones de jornada. Lo trabajado, trabajado está.",
+  "jobsmenu.aviso.2": "El dinero no sirve de nada aquí. Sólo sirve para irse.",
+  "jobsmenu.aviso.3": "Si oye el zumbido detenerse, no era el fluorescente.",
+  "jobsmenu.aviso.4": "Los Executores no cobran, no negocian y no se cansan.",
+  "jobsmenu.aviso.5": "Se ruega no contar los niveles en voz alta.",
+  "jobsmenu.aviso.6": "Quien cruza el vano sin abonar vuelve a entrar por donde salió.",
+  "jobsmenu.aviso.7": "Gracias por su permanencia. Es involuntaria, pero se agradece igual."
 }

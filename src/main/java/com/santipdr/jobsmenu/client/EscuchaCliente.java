@@ -1,7 +1,7 @@
 package com.santipdr.jobsmenu.client;
 
 import com.santipdr.jobsmenu.JobsMenu;
-import com.santipdr.jobsmenu.client.screen.PantallaTurno;
+import com.santipdr.jobsmenu.client.screen.PantallaNivel;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.gui.screens.TitleScreen;
@@ -12,7 +12,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 /**
- * Sustituye la pantalla de titulo vanilla por el tablon de turnos.
+ * Sustituye la pantalla de titulo vanilla por el aviso del nivel.
  *
  * Se hace al abrirse la pantalla y no antes: asi, si el jugador apaga el mod en
  * la configuracion, el menu original vuelve sin reiniciar el juego.
@@ -31,9 +31,9 @@ public final class EscuchaCliente {
         if (!(evento.getScreen() instanceof TitleScreen)) {
             return;
         }
-        if (evento.getScreen() instanceof PantallaTurno) {
+        if (evento.getScreen() instanceof PantallaNivel) {
             return;
         }
-        evento.setNewScreen(new PantallaTurno());
+        evento.setNewScreen(new PantallaNivel());
     }
 }
