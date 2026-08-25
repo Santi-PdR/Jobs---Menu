@@ -149,16 +149,17 @@ public final class Presencia {
     /**
      * La dibuja, si hay algo que dibujar.
      *
-     * @param fx  punto de fuga horizontal
-     * @param fy  punto de fuga vertical
-     * @param w   semiancho de la abertura del fondo
-     * @param h   semialto de la abertura del fondo
+     * @param m    el encuadre del recinto. Se le pide el marco entero y no un
+     *             par de semiejes porque la figura tiene que pararse contra una
+     *             pared REAL: en un recinto visto de esquina, la pared derecha
+     *             esta mucho mas cerca de la fuga que la izquierda, y medir con
+     *             un semiancho promedio la dejaria flotando en medio del vano
      * @param luz  luz disponible; con el recinto apagado tampoco se la ve
      * @param piso a que fraccion del semialto apoya, segun el recinto: en el
      *             natatorio apoya en el borde del agua y no en el suelo
      */
     public static void dibujar(GuiGraphics grafico, Nivel nivel,
-                               float fx, float fy, float w, float h, float luz, float piso) {
+                               Marco m, float luz, float piso) {
         float visible = visibilidad() * luz;
         if (visible <= 0.01F) {
             return;
@@ -167,11 +168,12 @@ public final class Presencia {
         // Nunca en el centro exacto del vano: siempre corrida hacia un costado,
         // como si estuviera parada contra una de las paredes del fondo.
         float lado = esSegunda() ? -0.34F : 0.41F;
-        float x = fx + w * lado;
+        float x = m.enX(1.0F, lado);
+        float w = m.w();
 
         // Los pies apoyan donde este el piso de este recinto, no en el aire.
-        float base = fy + h * piso;
-        float altura = h * ALTURA;
+        float base = m.fy() + m.hb() * piso;
+        float altura = m.h() * ALTURA;
 
         // Respiracion: un pixel largo, muy lento. Basta para que no se lea como
         // un elemento pintado sobre la pared.

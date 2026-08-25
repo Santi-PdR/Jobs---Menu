@@ -60,9 +60,9 @@ public final class Servicio implements Planta {
      * que no ilumina nada.
      */
     private static void tableroFondo(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
-        int x0 = Math.round(m.fx() - m.w() * 0.46F);
-        int x1 = Math.round(m.fx() + m.w() * 0.46F);
-        float suelo = m.fy() + m.h();
+        int x0 = Math.round(m.izq(0.46F));
+        int x1 = Math.round(m.der(0.46F));
+        float suelo = m.sueloEn(1.0F);
         int y0 = Math.round(suelo - m.h() * 1.22F);
         int y1 = Math.round(suelo - m.h() * 0.42F);
 
@@ -90,8 +90,8 @@ public final class Servicio implements Planta {
         float dxB = Trazo.profundidad(CODO + 2, TRAMOS);
         float lej = Trazo.limitar(1.0F / dxA, 0.0F, 1.0F);
 
-        float xa = m.fx() - m.w() * dxA;
-        float xb = m.fx() - m.w() * dxB;
+        float xa = m.izq(dxA);
+        float xb = m.izq(dxB);
         int x0 = (int) Math.min(xa, xb);
         int x1 = (int) Math.max(xa, xb);
         if (x1 <= 0 || x0 >= m.ancho()) {
@@ -140,7 +140,7 @@ public final class Servicio implements Planta {
                 float at = Trazo.atenuar(luz, lej);
                 // Las canerias no corren por el eje: se apilan hacia un lado.
                 float sesgo = (c - 2) * 0.10F;
-                float eje = m.fy() - m.h() * dx * alturas[c];
+                float eje = m.techoEn(dx * alturas)[c];
                 float radio = Math.max(1.0F, m.h() * dx * radios[c]);
                 float centroX = x + m.w() * dx * sesgo * 0.0F;
 
@@ -161,12 +161,12 @@ public final class Servicio implements Planta {
             float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
             float at = Trazo.atenuar(luz, lej) * 0.85F;
             for (int signo = -1; signo <= 1; signo += 2) {
-                float x = m.fx() + signo * m.w() * dx * 0.80F;
+                float x = m.lado(signo, dx * 0.80F);
                 if (x < 0 || x > m.ancho()) {
                     continue;
                 }
-                float y0 = m.fy() - m.h() * dx * 0.90F;
-                float y1 = m.fy() - m.h() * dx * 0.54F;
+                float y0 = m.techoEn(dx * 0.90F);
+                float y1 = m.techoEn(dx * 0.54F);
                 int grosor = Math.max(1, (int) (m.w() * dx * 0.012F));
                 grafico.fill((int) x, (int) y0, (int) x + grosor, (int) y1,
                         Paleta.conAlfa(Paleta.iluminar(nivel.junta, at), 0.70F));
@@ -189,11 +189,11 @@ public final class Servicio implements Planta {
             }
             float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
             float at = Trazo.atenuar(luz, lej);
-            float x = m.fx() + m.w() * dx * 0.98F;
+            float x = m.der(dx * 0.98F);
             if (x < 0 || x > m.ancho()) {
                 continue;
             }
-            float y = m.fy() - m.h() * dx * 0.48F;
+            float y = m.techoEn(dx * 0.48F);
             float alto = Math.max(1.5F, m.h() * dx * 0.070F);
             float ancho = Math.max(1.5F, m.w() * dx * 0.030F);
 
@@ -223,7 +223,7 @@ public final class Servicio implements Planta {
             }
             float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
             float at = Trazo.atenuar(luz, lej) * 0.70F;
-            float x = m.fx() - m.w() * dx;
+            float x = m.izq(dx);
             if (x < -20 || x > m.ancho()) {
                 continue;
             }

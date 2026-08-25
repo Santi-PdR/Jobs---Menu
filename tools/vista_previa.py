@@ -98,7 +98,8 @@ class Nivel:
 
     def __init__(self, clave, planta, pared_alta, pared_baja, junta, suelo,
                  suelo_lejos, suelo_junta, techo, techo_junta, niebla, luz,
-                 fondo, proporcion, semiancho, reflejo, humedad):
+                 fondo, fuga_x, fuga_y, semi_izq, semi_der, semi_alto,
+                 semi_bajo, reflejo, humedad):
         self.clave = clave
         self.planta = planta              # que clase de recinto es
         self.pared_alta = pared_alta      # pared junto al cielorraso
@@ -112,8 +113,14 @@ class Nivel:
         self.niebla = niebla              # a donde se va todo con la distancia
         self.luz = luz                    # color de la luminaria
         self.fondo = fondo                # lo que hay tras la abertura
-        self.proporcion = proporcion      # alto del recinto / ancho
-        self.semiancho = semiancho        # semiancho de la abertura del fondo
+        # La camara del recinto. Cuatro bordes independientes y fuga propia:
+        # es lo que hace que un nivel no sea otro repintado.
+        self.fuga_x = fuga_x              # fuga horizontal, fraccion de pantalla
+        self.fuga_y = fuga_y              # fuga vertical, fraccion de pantalla
+        self.semi_izq = semi_izq          # cuanto se abre hacia la izquierda
+        self.semi_der = semi_der          # cuanto se abre hacia la derecha
+        self.semi_alto = semi_alto        # cuanto se abre hacia arriba
+        self.semi_bajo = semi_bajo        # cuanto se abre hacia abajo
         self.reflejo = reflejo            # cuanto devuelve el suelo (0..1)
         self.humedad = humedad            # manchas en la pared (0..1)
 
@@ -125,7 +132,12 @@ NIVELES = [
           suelo=0xFF8A7638, suelo_lejos=0xFF6E5C2A, suelo_junta=0xFF4C401E,
           techo=0xFFD5CB9B, techo_junta=0xFF8E8760,
           niebla=0xFFC9B455, luz=0xFFFFF7D2, fondo=0xFF0D0B07,
-          proporcion=0.62, semiancho=0.150, reflejo=0.16, humedad=1.00),
+          # Sala de reuniones vista desde una esquina: la fuga esta corrida a
+          # la derecha, asi que la pared izquierda domina el cuadro y la
+          # derecha se va rapido. Es lo contrario de un pasillo centrado.
+          fuga_x=0.680, fuga_y=0.470,
+          semi_izq=0.330, semi_der=0.105, semi_alto=0.150, semi_bajo=0.135,
+          reflejo=0.16, humedad=1.00),
 
     # Nivel 1 - El deposito. Nave con pilares, cerchas y campanas.
     Nivel(clave="nivel1", planta="nave",
@@ -133,7 +145,12 @@ NIVELES = [
           suelo=0xFF80847A, suelo_lejos=0xFF5A5E54, suelo_junta=0xFF3C4036,
           techo=0xFF9EA298, techo_junta=0xFF5C6055,
           niebla=0xFF6E7268, luz=0xFFE8F0FF, fondo=0xFF171B1D,
-          proporcion=0.50, semiancho=0.115, reflejo=0.30, humedad=0.35),
+          # Nave enorme mirada desde el suelo: horizonte muy bajo, techo
+          # lejisimos. Se abre casi igual a los dos lados porque es un volumen,
+          # no un corredor, pero el alto triplica al bajo.
+          fuga_x=0.505, fuga_y=0.720,
+          semi_izq=0.235, semi_der=0.255, semi_alto=0.300, semi_bajo=0.098,
+          reflejo=0.30, humedad=0.35),
 
     # Nivel 2 - Servicio. El unico que sigue siendo un pasillo, y dobla.
     Nivel(clave="nivel2", planta="servicio",
@@ -141,7 +158,13 @@ NIVELES = [
           suelo=0xFF413025, suelo_lejos=0xFF2A1F16, suelo_junta=0xFF1B120C,
           techo=0xFF4A3520, techo_junta=0xFF2A1C0E,
           niebla=0xFF54371C, luz=0xFFFFB65E, fondo=0xFF0B0703,
-          proporcion=1.35, semiancho=0.058, reflejo=0.22, humedad=0.75),
+          # El unico que SI es un pasillo, y se permite serlo: estrecho, alto y
+          # con la fuga descentrada a la izquierda porque el haz de canerias
+          # dobla hacia alla. Que uno de los cuatro sea un corredor esta bien;
+          # el error era que lo fueran los cuatro.
+          fuga_x=0.395, fuga_y=0.505,
+          semi_izq=0.062, semi_der=0.078, semi_alto=0.108, semi_bajo=0.098,
+          reflejo=0.22, humedad=0.75),
 
     # Nivel 3 - Las piscinas. Abajo no hay suelo: hay agua.
     Nivel(clave="nivel3", planta="natatorio",
@@ -149,7 +172,12 @@ NIVELES = [
           suelo=0xFF63B6B4, suelo_lejos=0xFF2F7E82, suelo_junta=0xFF3E9A9A,
           techo=0xFFE8F2F0, techo_junta=0xFFB2CCC9,
           niebla=0xFFBEDCD9, luz=0xFFF4FFFD, fondo=0xFF08171A,
-          proporcion=0.62, semiancho=0.118, reflejo=0.62, humedad=0.15),
+          # Natatorio: recinto ancho y de techo bajo, mirado desde el borde del
+          # agua. Se abre mucho a lo ancho y poco a lo alto, la fuga cae bajo el
+          # centro y el vaso ocupa casi todo el cuadro inferior.
+          fuga_x=0.455, fuga_y=0.330,
+          semi_izq=0.300, semi_der=0.270, semi_alto=0.080, semi_bajo=0.124,
+          reflejo=0.62, humedad=0.15),
 ]
 
 
@@ -237,24 +265,93 @@ def atenuar(luz: float, lejos: float) -> float:
 
 
 class Marco:
-    """Encuadre: donde converge la perspectiva y cuanto mide el fondo."""
+    """Encuadre: donde converge la perspectiva y como se abre el recinto.
 
-    def __init__(self, ancho, alto, fx, fy, w, h):
+    Hasta la 0.4.0 esto tenia un solo semiancho `w` y un solo semialto `h`, y
+    esa era la razon REAL de que los cuatro niveles se vieran iguales. Con un
+    unico semiancho, la pared izquierda y la derecha estan obligadas a
+    converger igual, asi que cualquier cosa que se dibujara -sala, nave,
+    natatorio- salia siendo el mismo tunel simetrico con la fuga en el medio.
+    Cambiar los pilares o el color no arregla eso: el problema era la camara,
+    no la decoracion.
+
+    Ahora los cuatro bordes son independientes:
+
+        wi  semiancho hacia la izquierda      ha  semialto hacia arriba
+        wd  semiancho hacia la derecha        hb  semialto hacia abajo
+
+    Con eso un recinto puede estar visto desde un rincon (wi != wd), tener el
+    horizonte alto o bajo (ha != hb), y dejar de leerse como un pasillo.
+    """
+
+    def __init__(self, ancho, alto, fx, fy, wi, wd, ha, hb):
         self.ancho = ancho
         self.alto = alto
         self.fx = fx
         self.fy = fy
-        self.w = w
-        self.h = h
+        self.wi = wi
+        self.wd = wd
+        self.ha = ha
+        self.hb = hb
+        # Medias, solo para escalar cosas que no son geometria del recinto
+        # (grosores, tamanos de detalle). Nunca para ubicar una pared.
+        self.w = (wi + wd) * 0.5
+        self.h = (ha + hb) * 0.5
 
-    def dx(self, x):
-        return abs(x - self.fx) / self.w
+    def lado(self, signo, dx, frac=1.0):
+        """Un punto sobre la pared izquierda (signo<0) o la derecha (signo>0).
+
+        Sirve para lo que va apoyado o repetido contra los laterales -pilares,
+        estanterias, canerias-: cada lado usa su propio semiancho, asi que en
+        un recinto visto de esquina la hilera de la izquierda queda mas abierta
+        que la de la derecha, como corresponde.
+        """
+        return self.der(dx * frac) if signo > 0 else self.izq(dx * frac)
+
+    def centro(self, dx):
+        """Eje visual del recinto a esa profundidad (no es la fuga)."""
+        return (self.izq(dx) + self.der(dx)) * 0.5
+
+    def ancho_en(self, dx):
+        """Ancho completo del recinto a esa profundidad."""
+        return self.der(dx) - self.izq(dx)
+
+    def en_x(self, dx, frac):
+        """Punto transversal del recinto, con frac de -1 (izq) a +1 (der).
+
+        Es lo que hay que usar para todo lo que se reparte a lo ancho -placas
+        del cielorraso, corridas de losa, calles de la pileta-. Interpolar
+        entre las dos paredes reales, y no escalar un semiancho unico, es lo
+        que hace que esas series sigan la forma del recinto cuando la camara
+        esta descentrada.
+        """
+        return self.izq(dx) + (self.der(dx) - self.izq(dx)) * (frac + 1.0) * 0.5
+
+    def izq(self, dx):
+        """Borde izquierdo del recinto a la profundidad dx."""
+        return self.fx - self.wi * dx
+
+    def der(self, dx):
+        """Borde derecho del recinto a la profundidad dx."""
+        return self.fx + self.wd * dx
 
     def techo_en(self, dx):
-        return self.fy - self.h * dx
+        return self.fy - self.ha * dx
 
     def suelo_en(self, dx):
-        return self.fy + self.h * dx
+        return self.fy + self.hb * dx
+
+    def dx(self, x):
+        """Profundidad de una columna. Usa el semiancho del lado que toca."""
+        if x < self.fx:
+            return (self.fx - x) / self.wi
+        return (x - self.fx) / self.wd
+
+    def dy(self, y):
+        """Profundidad de una fila. Usa el semialto del lado que toca."""
+        if y < self.fy:
+            return (self.fy - y) / self.ha
+        return (y - self.fy) / self.hb
 
 
 def t_fondo(lz, m, nivel, luz, testero=None, fuerza=1.0) -> None:
@@ -268,8 +365,8 @@ def t_fondo(lz, m, nivel, luz, testero=None, fuerza=1.0) -> None:
     """
     lz.fill(0, 0, lz.ancho, lz.alto, iluminar(nivel.niebla, luz * 0.45))
     color = nivel.fondo if testero is None else testero
-    lz.fill_gradient(round(m.fx - m.w), round(m.fy - m.h),
-                     round(m.fx + m.w), round(m.fy + m.h),
+    lz.fill_gradient(round(m.izq(1.0)), round(m.techo_en(1.0)),
+                     round(m.der(1.0)), round(m.suelo_en(1.0)),
                      iluminar(mezclar(color, nivel.niebla, 0.22),
                               limitar(luz * 0.52 * fuerza, 0.0, 1.0)),
                      iluminar(color, limitar(luz * 0.30 * fuerza, 0.0, 1.0)))
@@ -277,10 +374,10 @@ def t_fondo(lz, m, nivel, luz, testero=None, fuerza=1.0) -> None:
 
 def t_plano(lz, m, arriba, cerca, lejos_c, niebla, luz, velo) -> None:
     """El suelo o el cielo, fila por fila."""
-    desde = 0 if arriba else round(m.fy + m.h)
-    hasta = round(m.fy - m.h) if arriba else m.alto
+    desde = 0 if arriba else round(m.suelo_en(1.0))
+    hasta = round(m.techo_en(1.0)) if arriba else m.alto
     for y in range(desde, hasta, PASO):
-        dy = abs(y + PASO * 0.5 - m.fy) / m.h
+        dy = m.dy(y + PASO * 0.5)
         if dy <= 1.0:
             continue
         lej = limitar(1.0 / dy, 0.0, 1.0)
@@ -293,12 +390,12 @@ def t_transversales(lz, m, arriba, color, niebla, luz, tramos, alfa) -> None:
     for j in range(1, tramos + 1):
         dy = profundidad(j, tramos)
         lej = limitar(1.0 / dy, 0.0, 1.0)
-        y = m.fy - m.h * dy if arriba else m.fy + m.h * dy
+        y = m.techo_en(1.0 * dy) if arriba else m.suelo_en(1.0 * dy)
         if y < -4 or y > m.alto + 4:
             continue
         grosor = max(1, min(int(m.h * 0.09), int(m.h * dy * 0.010)))
-        x0 = round(m.fx - m.w * dy)
-        x1 = round(m.fx + m.w * dy)
+        x0 = round(m.izq(1.0 * dy))
+        x1 = round(m.der(1.0 * dy))
         lz.fill(max(0, x0), int(y), min(m.ancho, x1), int(y) + grosor,
                 con_alfa(iluminar(velar(color, niebla, lej, 0.55),
                                   atenuar(luz, lej)), alfa * lej + 0.10))
@@ -332,7 +429,7 @@ def t_juntas(lz, m, nivel, luz, tramos, lateral, alfa) -> None:
         y0 = int(m.techo_en(dx))
         y1 = int(m.suelo_en(dx))
         for signo in (-1, 1):
-            x = m.fx + signo * m.w * dx * lateral
+            x = m.lado(signo, dx, lateral)
             if -grosor <= x <= m.ancho + grosor:
                 lz.fill(int(x), y0, int(x) + grosor, y1, color)
 
@@ -343,7 +440,7 @@ def t_manchas(lz, m, nivel, luz, tramos) -> None:
     for i in range(total):
         dx = 1.15 + pseudo(i * 3) * (tramos * 0.42)
         signo = -1 if pseudo(i * 3 + 1) < 0.5 else 1
-        x = m.fx + signo * m.w * dx
+        x = m.lado(signo, dx)
         if x < -40 or x > m.ancho + 40:
             continue
         lej = limitar(1.0 / dx, 0.0, 1.0)
@@ -362,8 +459,9 @@ def t_manchas(lz, m, nivel, luz, tramos) -> None:
 
 def t_luminaria(lz, m, nivel, dx, altura, largo, derrame, luz) -> None:
     lej = limitar(1.0 / dx, 0.0, 1.0)
-    y = m.fy - m.h * dx * altura
-    medio = max(1.0, m.w * dx * largo)
+    y = m.techo_en(1.0 * dx * altura)
+    cx = m.centro(dx)
+    medio = max(1.0, abs(m.ancho_en(dx)) * 0.5 * largo)
     grueso = max(1.0, m.h * dx * 0.026)
     fuerza = luz * (0.45 + 0.55 * lej)
     if derrame > 0.0:
@@ -371,9 +469,9 @@ def t_luminaria(lz, m, nivel, dx, altura, largo, derrame, luz) -> None:
             t = k / 3.0
             ex = medio * (1.0 + t * 1.5)
             ey = grueso * (1.0 + t * 5.0)
-            lz.fill(int(m.fx - ex), int(y - ey), int(m.fx + ex), int(y + ey),
+            lz.fill(int(cx - ex), int(y - ey), int(cx + ex), int(y + ey),
                     con_alfa(nivel.luz, 0.055 * derrame * fuerza * (1.0 - t * 0.5)))
-    lz.fill(int(m.fx - medio), int(y - grueso), int(m.fx + medio), int(y + grueso),
+    lz.fill(int(cx - medio), int(y - grueso), int(cx + medio), int(y + grueso),
             con_alfa(iluminar(nivel.luz, min(1.0, fuerza * 1.25)), 0.92))
 
 
@@ -412,11 +510,11 @@ def dibujar(lz: Lienzo, nivel: Nivel, tiempo: float = 3.0, penumbra: float = 0.0
             luz_global: float = 1.0, presencia_v: float = 0.0,
             presencia_segunda: bool = False,
             polvo: bool = True, destellos: bool = True) -> None:
-    fx = lz.ancho * FUGA_X
-    fy = lz.alto * FUGA_Y
-    w = lz.ancho * nivel.semiancho
-    h = w * nivel.proporcion
-    m = Marco(lz.ancho, lz.alto, fx, fy, w, h)
+    fx = lz.ancho * nivel.fuga_x
+    fy = lz.alto * nivel.fuga_y
+    m = Marco(lz.ancho, lz.alto, fx, fy,
+              lz.ancho * nivel.semi_izq, lz.ancho * nivel.semi_der,
+              lz.ancho * nivel.semi_alto, lz.ancho * nivel.semi_bajo)
 
     luz = brillo_fluorescente(tiempo, destellos) * (1.0 - 0.55 * penumbra) * luz_global
     # La presencia le saca hasta un ocho por ciento a la escena mientras esta,
@@ -427,7 +525,7 @@ def dibujar(lz: Lienzo, nivel: Nivel, tiempo: float = 3.0, penumbra: float = 0.0
     PLANTAS[nivel.planta](lz, m, nivel, luz, tiempo)
 
     if presencia_v > 0.0:
-        presencia(lz, nivel, fx, fy, w, h, presencia_v, luz,
+        presencia(lz, nivel, m, presencia_v, luz,
                   presencia_segunda, tiempo, PISO_PRESENCIA[nivel.planta])
     if polvo:
         motas(lz, fx, fy, tiempo, luz)
@@ -464,10 +562,10 @@ def sala(lz, m, nivel, luz, tiempo) -> None:
 
 def sala_puertas(lz, m, nivel, luz) -> None:
     """Tres puertas al fondo: la del medio cerrada, las de los lados abiertas."""
-    suelo = m.fy + m.h
+    suelo = m.suelo_en(1.0)
     alto = m.h * 1.30
     for i in range(3):
-        centro = m.fx + m.w * (i - 1) * 0.56
+        centro = m.fx + (m.der(1.0) - m.fx if i > 1 else m.fx - m.izq(1.0)) * (i - 1) * 0.56
         medio = m.w * 0.13
         x0, x1 = round(centro - medio), round(centro + medio)
         y0, y1 = round(suelo - alto), round(suelo)
@@ -490,12 +588,12 @@ def sala_grilla(lz, m, nivel, luz) -> None:
     """Las longitudinales del cielorraso: lo que lo vuelve una grilla."""
     for i in range(1, SALA_PLACAS):
         frac = (i / SALA_PLACAS) * 2.0 - 1.0
-        for y in range(0, max(0, int(m.fy - m.h)), PASO):
-            dy = abs(y + PASO * 0.5 - m.fy) / m.h
+        for y in range(0, max(0, int(m.techo_en(1.0))), PASO):
+            dy = m.dy(y + PASO * 0.5)
             if dy <= 1.0:
                 continue
             lej = limitar(1.0 / dy, 0.0, 1.0)
-            x = m.fx + m.w * dy * frac
+            x = m.en_x(dy, frac)
             grosor = max(1, int(m.w * dy * 0.006))
             lz.fill(int(x), y, int(x) + grosor, y + PASO,
                     con_alfa(iluminar(velar(nivel.techo_junta, nivel.niebla, lej, 0.5),
@@ -504,8 +602,8 @@ def sala_grilla(lz, m, nivel, luz) -> None:
 
 def sala_alfombra(lz, m, nivel, luz) -> None:
     """La franja gastada del centro. Sin bordes rectos."""
-    for y in range(round(m.fy + m.h), m.alto, PASO):
-        dy = abs(y + PASO * 0.5 - m.fy) / m.h
+    for y in range(round(m.suelo_en(1.0)), m.alto, PASO):
+        dy = m.dy(y + PASO * 0.5)
         if dy <= 1.0:
             continue
         lej = limitar(1.0 / dy, 0.0, 1.0)
@@ -535,13 +633,13 @@ def sala_cuadros(lz, m, nivel, luz) -> None:
         dxb = profundidad(j + 1, SALA_TRAMOS)
         signo = -1 if pseudo(860 + j) < 0.5 else 1
         lej = limitar(1.0 / dxa, 0.0, 1.0)
-        x0 = int(min(m.fx + signo * m.w * dxa, m.fx + signo * m.w * dxb))
-        x1 = int(max(m.fx + signo * m.w * dxa, m.fx + signo * m.w * dxb))
+        x0 = int(min(m.lado(signo, dxa), m.lado(signo, dxb)))
+        x1 = int(max(m.lado(signo, dxa), m.lado(signo, dxb)))
         if x1 <= 0 or x0 >= m.ancho or x1 - x0 < 3:
             continue
         for col in range(max(0, x0), min(m.ancho, x1)):
             dxc = m.dx(col + 0.5)
-            centro = m.fy - m.h * dxc * 0.30
+            centro = m.techo_en(1.0 * dxc * 0.30)
             medio = m.h * dxc * 0.22
             lz.fill(col, int(centro - medio), col + 1, int(centro + medio),
                     con_alfa(iluminar(nivel.pared_alta, luz), 0.16 * lej + 0.06))
@@ -557,7 +655,7 @@ NAVE_LEJOS = 5.5       # a partir de aqui la estructura ya salio del cuadro
 
 
 def nave(lz, m, nivel, luz, tiempo) -> None:
-    t_fondo(lz, m, nivel, luz, mezclar(nivel.pared_baja, nivel.niebla, 0.30))
+    t_fondo(lz, m, nivel, luz, mezclar(nivel.pared_baja, nivel.niebla, 0.42), 1.35)
     nave_porton(lz, m, nivel, luz)
     t_plano(lz, m, True, mezclar(nivel.techo, VANO, 0.30),
             mezclar(nivel.techo, nivel.niebla, 0.50), nivel.niebla, luz, 0.62)
@@ -575,19 +673,21 @@ def nave(lz, m, nivel, luz, tiempo) -> None:
 
 def nave_porton(lz, m, nivel, luz) -> None:
     """Chapa acanalada, cerrada, con una rendija de luz abajo."""
-    suelo = m.fy + m.h
-    alto = m.h * 1.15
-    x0, x1 = round(m.fx - m.w * 0.55), round(m.fx + m.w * 0.55)
+    suelo = m.suelo_en(1.0)
+    alto = m.ha * 1.05
+    x0, x1 = round(m.izq(0.62)), round(m.der(0.62))
     y0, y1 = round(suelo - alto), round(suelo)
+    # La chapa devuelve algo de luz: si se va a negro, la nave termina en un
+    # agujero y se pierde toda la profundidad que arman las cerchas.
     lz.fill_gradient(x0, y0, x1, y1,
-                     iluminar(mezclar(nivel.pared_baja, nivel.junta, 0.45), luz * 0.42),
-                     iluminar(mezclar(nivel.junta, VANO, 0.30), luz * 0.24))
-    paso = max(2, (x1 - x0) // 14)
+                     iluminar(mezclar(nivel.pared_baja, nivel.junta, 0.35), luz * 0.95),
+                     iluminar(mezclar(nivel.junta, nivel.pared_baja, 0.40), luz * 0.62))
+    paso = max(2, (x1 - x0) // 18)
     for x in range(x0 + paso, x1, paso):
-        lz.fill(x, y0, x + 1, y1, con_alfa(VANO, 0.22))
-    for k in range(1, 4):
-        y = y0 + (y1 - y0) * k // 4
-        lz.fill(x0, y, x1, y + 1, con_alfa(VANO, 0.26))
+        lz.fill(x, y0, x + 1, y1, con_alfa(VANO, 0.16))
+    for k in range(1, 5):
+        y = y0 + (y1 - y0) * k // 5
+        lz.fill(x0, y, x1, y + 1, con_alfa(VANO, 0.20))
     lz.fill(x0 - 1, y0 - 1, x1 + 1, y0 + 1,
             iluminar(mezclar(nivel.junta, nivel.pared_alta, 0.25), luz * 0.60))
     lz.fill(x0, y1 - 2, x1, y1, con_alfa(nivel.luz, 0.12 * luz))
@@ -596,12 +696,12 @@ def nave_porton(lz, m, nivel, luz) -> None:
 def nave_losas(lz, m, nivel, luz) -> None:
     """Dos corridas longitudinales de losa. El suelo deja de ser una mancha."""
     for frac in (-0.55, 0.55):
-        for y in range(round(m.fy + m.h), m.alto, PASO):
-            dy = abs(y + PASO * 0.5 - m.fy) / m.h
+        for y in range(round(m.suelo_en(1.0)), m.alto, PASO):
+            dy = m.dy(y + PASO * 0.5)
             if dy <= 1.0:
                 continue
             lej = limitar(1.0 / dy, 0.0, 1.0)
-            x = m.fx + m.w * dy * frac
+            x = m.en_x(dy, frac)
             grosor = max(1, int(m.w * dy * 0.005))
             lz.fill(int(x), y, int(x) + grosor, y + PASO,
                     con_alfa(iluminar(nivel.suelo_junta, atenuar(luz, lej)),
@@ -617,12 +717,12 @@ def nave_cerchas(lz, m, nivel, luz) -> None:
         lej = limitar(1.0 / dx, 0.0, 1.0)
         at = atenuar(luz, lej) * 0.78
         color = iluminar(velar(nivel.junta, nivel.niebla, lej, 0.45), at)
-        y_sup = m.fy - m.h * dx * 0.98
-        y_inf = m.fy - m.h * dx * NAVE_CORDON
+        y_sup = m.techo_en(1.0 * dx * 0.98)
+        y_inf = m.techo_en(1.0 * dx * NAVE_CORDON)
         if y_inf < -6:
             continue
-        x0 = max(0, int(m.fx - m.w * dx))
-        x1 = min(m.ancho, int(m.fx + m.w * dx))
+        x0 = max(0, int(m.izq(1.0 * dx)))
+        x1 = min(m.ancho, int(m.der(1.0 * dx)))
         if x1 - x0 < 6:
             continue
         grosor = max(1, int(m.h * dx * 0.020))
@@ -650,8 +750,8 @@ def nave_campanas(lz, m, nivel, luz) -> None:
             continue
         lej = limitar(1.0 / dx, 0.0, 1.0)
         at = atenuar(luz, lej)
-        y_techo = m.fy - m.h * dx * NAVE_CORDON
-        y_lampara = m.fy - m.h * dx * (NAVE_CORDON - 0.14)
+        y_techo = m.techo_en(1.0 * dx * NAVE_CORDON)
+        y_lampara = m.techo_en(1.0 * dx * (NAVE_CORDON - 0.14))
         medio = max(1.5, m.w * dx * 0.038)
         if y_lampara > m.alto:
             continue
@@ -683,10 +783,10 @@ def nave_pilares(lz, m, nivel, luz) -> None:
         lej = limitar(1.0 / dx, 0.0, 1.0)
         at = atenuar(luz, lej)
         ancho = max(1.5, m.w * dx * 0.040)
-        y_techo = m.fy - m.h * dx * NAVE_CORDON
-        y_suelo = m.fy + m.h * dx
+        y_techo = m.techo_en(1.0 * dx * NAVE_CORDON)
+        y_suelo = m.suelo_en(1.0 * dx)
         for signo in (-1, 1):
-            x = m.fx + signo * m.w * dx * NAVE_HILERA
+            x = m.lado(signo, dx, NAVE_HILERA)
             if x < -ancho * 2 or x > m.ancho + ancho * 2:
                 continue
             frente = iluminar(velar(nivel.pared_alta, nivel.niebla, lej, 0.55), at * 0.88)
@@ -747,9 +847,9 @@ def servicio(lz, m, nivel, luz, tiempo) -> None:
 
 def serv_tablero(lz, m, nivel, luz) -> None:
     """La chapa cerrada con su piloto, justo en el punto de fuga."""
-    x0 = round(m.fx - m.w * 0.46)
-    x1 = round(m.fx + m.w * 0.46)
-    suelo = m.fy + m.h
+    x0 = round(m.izq(1.0 * 0.46))
+    x1 = round(m.der(1.0 * 0.46))
+    suelo = m.suelo_en(1.0)
     y0 = round(suelo - m.h * 1.22)
     y1 = round(suelo - m.h * 0.42)
     lz.fill(x0, y0, x1, y1,
@@ -766,8 +866,8 @@ def serv_bifurcacion(lz, m, nivel, luz) -> None:
     dxa = profundidad(SERV_CODO, SERV_TRAMOS)
     dxb = profundidad(SERV_CODO + 2, SERV_TRAMOS)
     lej = limitar(1.0 / dxa, 0.0, 1.0)
-    xa = m.fx - m.w * dxa
-    xb = m.fx - m.w * dxb
+    xa = m.izq(1.0 * dxa)
+    xb = m.izq(1.0 * dxb)
     x0, x1 = int(min(xa, xb)), int(max(xa, xb))
     if x1 <= 0 or x0 >= m.ancho:
         return
@@ -798,7 +898,7 @@ def serv_haz(lz, m, nivel, luz) -> None:
                 continue
             lej = limitar(1.0 / dx, 0.0, 1.0)
             at = atenuar(luz, lej)
-            eje = m.fy - m.h * dx * alturas[c]
+            eje = m.techo_en(dx * alturas[c])
             radio = max(1.0, m.h * dx * radios[c])
             base = mezclar(nivel.junta, nivel.pared_alta, 0.20 + tonos[c])
             lz.fill_gradient(x, int(eje - radio), x + PASO, int(eje + radio),
@@ -811,11 +911,11 @@ def serv_haz(lz, m, nivel, luz) -> None:
         lej = limitar(1.0 / dx, 0.0, 1.0)
         at = atenuar(luz, lej) * 0.85
         for signo in (-1, 1):
-            x = m.fx + signo * m.w * dx * 0.80
+            x = m.lado(signo, dx, 0.80)
             if x < 0 or x > m.ancho:
                 continue
-            y0 = m.fy - m.h * dx * 0.90
-            y1 = m.fy - m.h * dx * 0.54
+            y0 = m.techo_en(1.0 * dx * 0.90)
+            y1 = m.techo_en(1.0 * dx * 0.54)
             grosor = max(1, int(m.w * dx * 0.012))
             lz.fill(int(x), int(y0), int(x) + grosor, int(y1),
                     con_alfa(iluminar(nivel.junta, at), 0.70))
@@ -829,10 +929,10 @@ def serv_apliques(lz, m, nivel, luz) -> None:
             continue
         lej = limitar(1.0 / dx, 0.0, 1.0)
         at = atenuar(luz, lej)
-        x = m.fx + m.w * dx * 0.98
+        x = m.der(1.0 * dx * 0.98)
         if x < 0 or x > m.ancho:
             continue
-        y = m.fy - m.h * dx * 0.48
+        y = m.techo_en(1.0 * dx * 0.48)
         alto = max(1.5, m.h * dx * 0.070)
         ancho = max(1.5, m.w * dx * 0.030)
         lz.fill(int(x - ancho), int(y - alto), int(x), int(y + alto),
@@ -854,7 +954,7 @@ def serv_rejillas(lz, m, nivel, luz) -> None:
             continue
         lej = limitar(1.0 / dx, 0.0, 1.0)
         at = atenuar(luz, lej) * 0.70
-        x = m.fx - m.w * dx
+        x = m.izq(1.0 * dx)
         if x < -20 or x > m.ancho:
             continue
         y_suelo = m.suelo_en(dx)
@@ -879,7 +979,7 @@ NAT_CALLES = 4
 
 
 def natatorio(lz, m, nivel, luz, tiempo) -> None:
-    t_fondo(lz, m, nivel, luz, mezclar(nivel.pared_baja, nivel.techo, 0.55), 2.6)
+    t_fondo(lz, m, nivel, luz, mezclar(nivel.pared_baja, nivel.techo, 0.70), 2.15)
     nat_testero(lz, m, nivel, luz)
     t_plano(lz, m, True, nivel.techo, mezclar(nivel.techo, nivel.niebla, 0.30),
             nivel.niebla, luz, 0.44)
@@ -897,10 +997,30 @@ def natatorio(lz, m, nivel, luz, tiempo) -> None:
 
 
 def nat_testero(lz, m, nivel, luz) -> None:
-    """Doble puerta de vaiven al fondo, con su franja de vidrio armado."""
-    suelo = m.fy + m.h * NAT_CABECERA
+    """Doble puerta de vaiven al fondo, con su franja de vidrio armado.
+
+    Antes de la puerta va el azulejado del propio testero: con el recinto
+    ancho, la pared del fondo es una superficie grande y si queda lisa se lee
+    como una chapa gris pegada en el medio del cuadro, no como el fondo de un
+    natatorio.
+    """
+    # Azulejo del testero: hiladas horizontales, mas juntas hacia el zocalo.
+    fy0, fy1 = round(m.techo_en(1.0)), round(m.suelo_en(1.0))
+    fx0, fx1 = round(m.izq(1.0)), round(m.der(1.0))
+    hiladas = 9
+    for k in range(1, hiladas):
+        f = (k / hiladas) ** 1.25
+        y = int(fy0 + (fy1 - fy0) * f)
+        lz.fill(fx0, y, fx1, y + 1,
+                con_alfa(iluminar(nivel.junta, luz * 0.9), 0.30))
+    # Dos verticales muy tenues, para que no sea solo un rayado.
+    for f in (0.32, 0.68):
+        x = int(fx0 + (fx1 - fx0) * f)
+        lz.fill(x, fy0, x + 1, fy1, con_alfa(iluminar(nivel.junta, luz * 0.9), 0.20))
+
+    suelo = m.suelo_en(1.0 * NAT_CABECERA)
     alto = m.h * 1.05
-    x0, x1 = round(m.fx - m.w * 0.30), round(m.fx + m.w * 0.30)
+    x0, x1 = round(m.izq(1.0 * 0.30)), round(m.der(1.0 * 0.30))
     y0, y1 = round(suelo - alto), round(suelo)
     lz.fill(x0 - 2, y0 - 2, x1 + 2, y1,
             iluminar(mezclar(nivel.junta, nivel.techo, 0.30), luz * 0.75))
@@ -912,8 +1032,8 @@ def nat_testero(lz, m, nivel, luz) -> None:
         vx1 = vx0 + (x1 - x0) // 2 - 6
         lz.fill(vx0, vy, vx1, vy + max(3, (y1 - y0) // 5), con_alfa(VANO, 0.70))
     # La franja de azulejo que corre por debajo del vano, hasta las paredes.
-    lz.fill(round(m.fx - m.w * NAT_CABECERA), y1 - 2,
-            round(m.fx + m.w * NAT_CABECERA), y1,
+    lz.fill(round(m.izq(1.0 * NAT_CABECERA)), y1 - 2,
+            round(m.der(1.0 * NAT_CABECERA)), y1,
             con_alfa(iluminar(nivel.junta, luz), 0.40))
 
 
@@ -928,8 +1048,8 @@ def nat_claraboyas(lz, m, nivel, luz) -> None:
 
 def nat_borde(lz, m, nivel, luz) -> None:
     """La baldosa de la orilla. Ocupa todo el suelo; el agua se le apoya."""
-    for y in range(round(m.fy + m.h), m.alto, PASO):
-        dy = abs(y + PASO * 0.5 - m.fy) / m.h
+    for y in range(round(m.suelo_en(1.0)), m.alto, PASO):
+        dy = m.dy(y + PASO * 0.5)
         if dy <= 1.0:
             continue
         lej = limitar(1.0 / dy, 0.0, 1.0)
@@ -941,12 +1061,12 @@ def nat_borde(lz, m, nivel, luz) -> None:
 
 def nat_agua(lz, m, nivel, luz, tiempo) -> None:
     """El vaso: un trapecio que arranca lejos y se abre hacia la camara."""
-    desde = round(m.fy + m.h * NAT_CABECERA)
+    desde = round(m.suelo_en(1.0 * NAT_CABECERA))
     for y in range(desde, m.alto, PASO):
-        dy = abs(y + PASO * 0.5 - m.fy) / m.h
+        dy = m.dy(y + PASO * 0.5)
         lej = limitar(1.0 / dy, 0.0, 1.0)
-        medio = m.w * dy * NAT_VASO
-        x0, x1 = int(m.fx - medio), int(m.fx + medio)
+        x0 = int(m.en_x(dy, -NAT_VASO))
+        x1 = int(m.en_x(dy, NAT_VASO))
         if x1 <= 0 or x0 >= m.ancho:
             continue
         # Cuanto mas cerca, mas hondo se ve el vaso y mas oscuro el agua.
@@ -960,29 +1080,29 @@ def nat_agua(lz, m, nivel, luz, tiempo) -> None:
         lz.fill(min(m.ancho, x1), y, min(m.ancho, x1 + 2), y + PASO, canto)
 
     # La cabecera del vaso, al fondo, y el reflejo del techo sobre ella.
-    medio = m.w * NAT_CABECERA * NAT_VASO
-    lz.fill(int(m.fx - medio), desde - 2, int(m.fx + medio), desde + 1,
+    lz.fill(int(m.en_x(NAT_CABECERA, -NAT_VASO)), desde - 2,
+            int(m.en_x(NAT_CABECERA, NAT_VASO)), desde + 1,
             con_alfa(iluminar(nivel.techo, luz), 0.70))
     largo = m.h * 1.4
     for y in range(desde, min(m.alto, desde + int(largo)), PASO):
         tt = (y - desde) / largo
-        dy = abs(y - m.fy) / m.h
-        ancho = m.w * dy * NAT_VASO * 0.70
+        dy = m.dy(y)
         onda = math.sin(tiempo * 0.45 + tt * 7.0) * m.w * 0.012
-        lz.fill(int(m.fx - ancho + onda), y, int(m.fx + ancho + onda), y + PASO,
+        lz.fill(int(m.en_x(dy, -NAT_VASO * 0.70) + onda), y,
+                int(m.en_x(dy, NAT_VASO * 0.70) + onda), y + PASO,
                 con_alfa(nivel.techo, 0.22 * (1.0 - tt) * (1.0 - tt) * luz))
 
 
 def nat_calles(lz, m, nivel, luz, tiempo) -> None:
     """Las lineas del fondo del vaso, quebradas por el agua que las tapa."""
-    desde = round(m.fy + m.h * NAT_CABECERA)
+    desde = round(m.suelo_en(1.0 * NAT_CABECERA))
     for i in range(1, NAT_CALLES):
         frac = (i / NAT_CALLES) * 2.0 - 1.0
         for y in range(desde, m.alto, PASO):
-            dy = abs(y + PASO * 0.5 - m.fy) / m.h
+            dy = m.dy(y + PASO * 0.5)
             lej = limitar(1.0 / dy, 0.0, 1.0)
             onda = math.sin(tiempo * 0.5 + dy * 2.2 + i * 1.7) * m.w * 0.010
-            x = m.fx + m.w * dy * NAT_VASO * frac + onda
+            x = m.en_x(dy, frac * NAT_VASO) + onda
             grosor = max(1, int(m.w * dy * 0.012))
             lz.fill(int(x), y, int(x) + grosor, y + PASO,
                     con_alfa(iluminar(nivel.techo, luz), 0.26 + 0.16 * lej))
@@ -991,8 +1111,8 @@ def nat_calles(lz, m, nivel, luz, tiempo) -> None:
 def nat_escalerilla(lz, m, nivel, luz) -> None:
     """Dos barandas curvas asomando del agua. La escala se lee con esto."""
     dy = 1.95
-    y = m.fy + m.h * dy
-    x = m.fx + m.w * dy * NAT_VASO
+    y = m.suelo_en(1.0 * dy)
+    x = m.der(1.0 * dy * NAT_VASO)
     if x > m.ancho + 24 or y > m.alto + 24:
         return
     alto = m.h * dy * 0.30
@@ -1018,7 +1138,7 @@ def nat_azulejo(lz, m, nivel, luz) -> None:
             continue
         lej = limitar(1.0 / dx, 0.0, 1.0)
         at = atenuar(luz, lej)
-        y = m.fy - m.h * dx * 0.16
+        y = m.techo_en(1.0 * dx * 0.16)
         alto = max(1, int(m.h * dx * 0.075))
         lz.fill(x, int(y), x + PASO, int(y) + alto,
                 con_alfa(iluminar(velar(nivel.junta, nivel.niebla, lej, 0.5), at), 0.55))
@@ -1095,7 +1215,7 @@ def color_presencia(nivel) -> int:
     return VANO
 
 
-def presencia(lz, nivel, fx, fy, w, h, visible, luz, segunda=False, tiempo=0.0,
+def presencia(lz, nivel, m, visible, luz, segunda=False, tiempo=0.0,
               piso=0.94) -> None:
     """Lo que a veces esta al fondo del recinto.
 
@@ -1109,9 +1229,10 @@ def presencia(lz, nivel, fx, fy, w, h, visible, luz, segunda=False, tiempo=0.0,
         return
 
     lado = -0.34 if segunda else 0.41
-    x = fx + w * lado
-    base = fy + h * piso
-    altura = h * ALTURA_PRESENCIA
+    x = m.en_x(1.0, lado)
+    w = m.w
+    base = m.fy + m.hb * piso
+    altura = m.h * ALTURA_PRESENCIA
     vaiven = math.sin(tiempo * 0.55) * (w * 0.012)
 
     alfa = ALFA_MAXIMO_PRESENCIA * visible

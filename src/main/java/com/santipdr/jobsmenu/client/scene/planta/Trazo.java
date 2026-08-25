@@ -100,10 +100,10 @@ public final class Trazo {
      */
     public static void fondo(GuiGraphics grafico, Marco m, Nivel nivel, float luz,
                              Integer testero, float fuerza) {
-        int x0 = Math.round(m.fx() - m.w());
-        int x1 = Math.round(m.fx() + m.w());
-        int y0 = Math.round(m.fy() - m.h());
-        int y1 = Math.round(m.fy() + m.h());
+        int x0 = Math.round(m.izq(1.0F));
+        int x1 = Math.round(m.der(1.0F));
+        int y0 = Math.round(m.techoEn(1.0F));
+        int y1 = Math.round(m.sueloEn(1.0F));
         int color = testero == null ? nivel.fondo : testero;
 
         grafico.fillGradient(x0, y0, x1, y1,
@@ -123,11 +123,11 @@ public final class Trazo {
      */
     public static void plano(GuiGraphics grafico, Marco m, boolean arriba,
                              int cerca, int lejos, int niebla, float luz, float velo) {
-        int desde = arriba ? 0 : Math.round(m.fy() + m.h());
-        int hasta = arriba ? Math.round(m.fy() - m.h()) : m.alto();
+        int desde = arriba ? 0 : Math.round(m.sueloEn(1.0F));
+        int hasta = arriba ? Math.round(m.techoEn(1.0F)) : m.alto();
 
         for (int y = desde; y < hasta; y += PASO) {
-            float dy = Math.abs(y + PASO * 0.5F - m.fy()) / m.h();
+            float dy = m.dy(y + PASO * 0.5F);
             if (dy <= 1.0F) {
                 continue;
             }
@@ -151,13 +151,13 @@ public final class Trazo {
         for (int j = 1; j <= tramos; j++) {
             float dy = profundidad(j, tramos);
             float lej = limitar(1.0F / dy, 0.0F, 1.0F);
-            float y = arriba ? m.fy() - m.h() * dy : m.fy() + m.h() * dy;
+            float y = arriba ? m.techoEn(dy) : m.sueloEn(dy);
             if (y < -4 || y > m.alto() + 4) {
                 continue;
             }
             int grosor = Math.max(1, Math.min((int) (m.h() * 0.09F), (int) (m.h() * dy * 0.010F)));
-            int x0 = Math.round(m.fx() - m.w() * dy);
-            int x1 = Math.round(m.fx() + m.w() * dy);
+            int x0 = Math.round(m.izq(dy));
+            int x1 = Math.round(m.der(dy));
             grafico.fill(Math.max(0, x0), (int) y, Math.min(m.ancho(), x1), (int) y + grosor,
                     Paleta.conAlfa(Paleta.iluminar(velar(color, niebla, lej, 0.55F),
                             atenuar(luz, lej)), alfa * lej + 0.10F));
@@ -209,7 +209,7 @@ public final class Trazo {
             int y1 = (int) m.sueloEn(dx);
 
             for (int signo = -1; signo <= 1; signo += 2) {
-                float x = m.fx() + signo * m.w() * dx * lateral;
+                float x = m.lado(signo, dx * lateral);
                 if (x >= -grosor && x <= m.ancho() + grosor) {
                     grafico.fill((int) x, y0, (int) x + grosor, y1, color);
                 }
@@ -228,7 +228,7 @@ public final class Trazo {
         for (int i = 0; i < total; i++) {
             float dx = 1.15F + pseudo(i * 3) * (tramos * 0.42F);
             int signo = pseudo(i * 3 + 1) < 0.5F ? -1 : 1;
-            float x = m.fx() + signo * m.w() * dx;
+            float x = m.lado(signo, dx);
             if (x < -40 || x > m.ancho() + 40) {
                 continue;
             }
@@ -250,7 +250,7 @@ public final class Trazo {
     }
 
     /**
-     * Una luminaria colgada del cielorraso, centrada en la fuga.
+     * Una luminaria colgada del cielorraso, centrada en el recinto.
      *
      * La usan los cuatro recintos con distinta forma y distinta cantidad, pero
      * la cuenta -donde cae, cuanto mide, cuanto derrama- es la misma.
@@ -262,8 +262,9 @@ public final class Trazo {
     public static void luminaria(GuiGraphics grafico, Marco m, Nivel nivel,
                                  float dx, float altura, float largo, float derrame, float luz) {
         float lej = limitar(1.0F / dx, 0.0F, 1.0F);
-        float y = m.fy() - m.h() * dx * altura;
-        float medio = Math.max(1.0F, m.w() * dx * largo);
+        float y = m.techoEn(dx * altura);
+        float cx = m.centro(dx);
+        float medio = Math.max(1.0F, Math.abs(m.anchoEn(dx)) * 0.5F * largo);
         float grueso = Math.max(1.0F, m.h() * dx * 0.026F);
         float fuerza = luz * (0.45F + 0.55F * lej);
 
@@ -273,13 +274,13 @@ public final class Trazo {
                 float t = k / (float) pasos;
                 float ex = medio * (1.0F + t * 1.5F);
                 float ey = grueso * (1.0F + t * 5.0F);
-                grafico.fill((int) (m.fx() - ex), (int) (y - ey), (int) (m.fx() + ex), (int) (y + ey),
+                grafico.fill((int) (cx - ex), (int) (y - ey), (int) (cx + ex), (int) (y + ey),
                         Paleta.conAlfa(nivel.luz, 0.055F * derrame * fuerza * (1.0F - t * 0.5F)));
             }
         }
 
-        grafico.fill((int) (m.fx() - medio), (int) (y - grueso),
-                (int) (m.fx() + medio), (int) (y + grueso),
+        grafico.fill((int) (cx - medio), (int) (y - grueso),
+                (int) (cx + medio), (int) (y + grueso),
                 Paleta.conAlfa(Paleta.iluminar(nivel.luz, Math.min(1.0F, fuerza * 1.25F)), 0.92F));
     }
 }

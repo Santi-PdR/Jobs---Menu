@@ -64,11 +64,13 @@ public final class Sala implements Planta {
      * sigue del otro lado y esta es solo una de muchas.
      */
     private static void puertasFondo(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
-        float sueloFondo = m.fy() + m.h();
+        float sueloFondo = m.sueloEn(1.0F);
         float alto = m.h() * 1.30F;
 
         for (int i = 0; i < 3; i++) {
-            float centro = m.fx() + m.w() * (i - 1) * 0.56F;
+            float centro = m.fx()
+                    + (i > 1 ? m.der(1.0F) - m.fx() : m.fx() - m.izq(1.0F))
+                    * (i - 1) * 0.56F;
             float medio = m.w() * 0.13F;
             boolean abierta = i != 1;
 
@@ -109,13 +111,13 @@ public final class Sala implements Planta {
             float frac = (i / (float) PLACAS) * 2.0F - 1.0F;
             // Cada longitudinal es una recta que pasa por la fuga: se dibuja
             // fila por fila porque en pantalla no es vertical ni horizontal.
-            for (int y = 0; y < m.fy() - m.h(); y += Trazo.PASO) {
-                float dy = Math.abs(y + Trazo.PASO * 0.5F - m.fy()) / m.h();
+            for (int y = 0; y < m.techoEn(1.0F); y += Trazo.PASO) {
+                float dy = m.dy(y + Trazo.PASO * 0.5F);
                 if (dy <= 1.0F) {
                     continue;
                 }
                 float lej = Trazo.limitar(1.0F / dy, 0.0F, 1.0F);
-                float x = m.fx() + m.w() * dy * frac;
+                float x = m.enX(dy, frac);
                 int grosor = Math.max(1, (int) (m.w() * dy * 0.006F));
                 grafico.fill((int) x, y, (int) x + grosor, y + Trazo.PASO,
                         Paleta.conAlfa(Paleta.iluminar(
@@ -148,8 +150,8 @@ public final class Sala implements Planta {
      * concentra donde la gente camina, y eso es una banda difusa por el eje.
      */
     private static void alfombra(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
-        for (int y = Math.round(m.fy() + m.h()); y < m.alto(); y += Trazo.PASO) {
-            float dy = Math.abs(y + Trazo.PASO * 0.5F - m.fy()) / m.h();
+        for (int y = Math.round(m.sueloEn(1.0F)); y < m.alto(); y += Trazo.PASO) {
+            float dy = m.dy(y + Trazo.PASO * 0.5F);
             if (dy <= 1.0F) {
                 continue;
             }
@@ -192,15 +194,15 @@ public final class Sala implements Planta {
             int signo = Trazo.pseudo(860 + j) < 0.5F ? -1 : 1;
             float lej = Trazo.limitar(1.0F / dxA, 0.0F, 1.0F);
 
-            int x0 = (int) Math.min(m.fx() + signo * m.w() * dxA, m.fx() + signo * m.w() * dxB);
-            int x1 = (int) Math.max(m.fx() + signo * m.w() * dxA, m.fx() + signo * m.w() * dxB);
+            int x0 = (int) Math.min(m.lado(signo, dxA), m.lado(signo, dxB));
+            int x1 = (int) Math.max(m.lado(signo, dxA), m.lado(signo, dxB));
             if (x1 <= 0 || x0 >= m.ancho() || x1 - x0 < 3) {
                 continue;
             }
 
             for (int col = Math.max(0, x0); col < Math.min(m.ancho(), x1); col++) {
                 float dxc = m.dx(col + 0.5F);
-                float centro = m.fy() - m.h() * dxc * 0.30F;
+                float centro = m.techoEn(dxc * 0.30F);
                 float medio = m.h() * dxc * 0.22F;
                 grafico.fill(col, (int) (centro - medio), col + 1, (int) (centro + medio),
                         Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, luz), 0.16F * lej + 0.06F));

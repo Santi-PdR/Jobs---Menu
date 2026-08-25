@@ -24,11 +24,19 @@ import net.minecraft.client.gui.GuiGraphics;
  *
  * ENCUADRE
  *
- * La pared del fondo es un rectangulo centrado en la fuga, de semiancho w y
- * semialto h. Todas las aristas del recinto son rectas que pasan por la fuga,
- * asi que en pantalla todo se reduce a dos variables, dx y dy, que valen 1
- * sobre la pared del fondo y crecen hacia la camara. La cuenta esta en
- * {@link Marco}; las primitivas comunes, en {@link Trazo}.
+ * Todas las aristas del recinto son rectas que pasan por la fuga, asi que en
+ * pantalla todo se reduce a dos variables, dx y dy, que valen 1 sobre la pared
+ * del fondo y crecen hacia la camara. La cuenta esta en {@link Marco}; las
+ * primitivas comunes, en {@link Trazo}.
+ *
+ * Cada nivel trae su propia camara y no la comparte con nadie: fuga propia y
+ * cuatro semiejes independientes -izquierda, derecha, arriba y abajo-. Esa es
+ * la pieza que faltaba. Mientras el marco tuvo un solo semiancho y un solo
+ * semialto, las dos paredes laterales estaban obligadas a converger igual y
+ * los cuatro niveles salian siendo el mismo tunel simetrico por mas plantas
+ * distintas que se les dibujaran encima. Hoy la sala se ve desde una esquina,
+ * la nave desde el suelo, el natatorio desde el borde largo y el servicio
+ * sigue siendo el unico pasillo, que para eso es el de servicio.
  *
  * Su espejo en Python es tools/vista_previa.py. Si se toca una, se toca la otra.
  */
@@ -36,12 +44,6 @@ public final class EscenaNivel {
 
     private EscenaNivel() {
     }
-
-    /** Punto de fuga, en fraccion del ancho. Corrido a la derecha por la hoja. */
-    private static final float FUGA_X = 0.545F;
-
-    /** Punto de fuga, en fraccion del alto. */
-    private static final float FUGA_Y = 0.520F;
 
     /** Motas de polvo suspendidas. */
     private static final int MOTAS = 70;
@@ -72,17 +74,17 @@ public final class EscenaNivel {
         }
         luz = Trazo.limitar(luz, 0.0F, 1.0F);
 
-        float fx = ancho * FUGA_X;
-        float fy = alto * FUGA_Y;
-        float w = ancho * nivel.semiancho;
-        float h = w * nivel.proporcion;
-        Marco marco = new Marco(ancho, alto, fx, fy, w, h);
+        float fx = ancho * nivel.fugaX;
+        float fy = alto * nivel.fugaY;
+        Marco marco = new Marco(ancho, alto, fx, fy,
+                ancho * nivel.semiIzq, ancho * nivel.semiDer,
+                ancho * nivel.semiAlto, ancho * nivel.semiBajo);
 
         Planta planta = nivel.planta;
         planta.dibujar(grafico, marco, nivel, luz, tiempo);
 
         if (movimiento) {
-            Presencia.dibujar(grafico, nivel, fx, fy, w, h, luz, planta.pisoPresencia());
+            Presencia.dibujar(grafico, nivel, marco, luz, planta.pisoPresencia());
             motas(grafico, ancho, alto, tiempo, luz);
         }
         vineta(grafico, ancho, alto, penumbra);

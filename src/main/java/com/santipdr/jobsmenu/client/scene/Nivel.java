@@ -61,11 +61,28 @@ public final class Nivel {
     /** Lo que se ve por la abertura del fondo. Nunca se aclara. */
     public final int fondo;
 
-    /** Alto del corredor dividido su ancho. Menor de 1 = pasillo achatado. */
-    public final float proporcion;
+    // ---- La camara del recinto -------------------------------------------
+    // Cuatro semiejes independientes y fuga propia. Es lo que hace que un
+    // nivel no sea otro repintado: ver Marco para el detalle de por que dos
+    // semiejes no alcanzaban.
 
-    /** Semiancho de la abertura del fondo, en fraccion del ancho de pantalla. */
-    public final float semiancho;
+    /** Fuga horizontal, en fraccion del ancho de pantalla. */
+    public final float fugaX;
+
+    /** Fuga vertical, en fraccion del alto de pantalla. */
+    public final float fugaY;
+
+    /** Cuanto se abre el recinto hacia la izquierda, en fraccion del ancho. */
+    public final float semiIzq;
+
+    /** Cuanto se abre el recinto hacia la derecha, en fraccion del ancho. */
+    public final float semiDer;
+
+    /** Cuanto se abre el recinto hacia arriba, en fraccion del ancho. */
+    public final float semiAlto;
+
+    /** Cuanto se abre el recinto hacia abajo, en fraccion del ancho. */
+    public final float semiBajo;
 
     /** Cuanta luz devuelve el suelo, de 0.0 a 1.0. */
     public final float reflejo;
@@ -76,7 +93,8 @@ public final class Nivel {
     private Nivel(String clave, Planta planta, int paredAlta, int paredBaja, int junta,
                   int suelo, int sueloLejos, int sueloJunta,
                   int techo, int techoJunta, int niebla, int luz, int fondo,
-                  float proporcion, float semiancho, float reflejo, float humedad) {
+                  float fugaX, float fugaY, float semiIzq, float semiDer,
+                  float semiAlto, float semiBajo, float reflejo, float humedad) {
         this.clave = clave;
         this.planta = planta;
         this.paredAlta = paredAlta;
@@ -90,8 +108,12 @@ public final class Nivel {
         this.niebla = niebla;
         this.luz = luz;
         this.fondo = fondo;
-        this.proporcion = proporcion;
-        this.semiancho = semiancho;
+        this.fugaX = fugaX;
+        this.fugaY = fugaY;
+        this.semiIzq = semiIzq;
+        this.semiDer = semiDer;
+        this.semiAlto = semiAlto;
+        this.semiBajo = semiBajo;
         this.reflejo = reflejo;
         this.humedad = humedad;
     }
@@ -109,7 +131,11 @@ public final class Nivel {
                     0xFF8A7638, 0xFF6E5C2A, 0xFF4C401E,
                     0xFFD5CB9B, 0xFF8E8760,
                     0xFFC9B455, 0xFFFFF7D2, 0xFF0D0B07,
-                    0.62F, 0.150F, 0.16F, 1.00F),
+                    // Vista desde una esquina: la fuga esta corrida a la
+                    // derecha, la pared izquierda domina el cuadro y la
+                    // derecha se va rapido. Lo contrario de un pasillo.
+                    0.680F, 0.470F, 0.330F, 0.105F, 0.150F, 0.135F,
+                    0.16F, 1.00F),
 
             // Nivel 1 - El deposito. Hormigon, altura y demasiado espacio para
             // uno solo. Nave con pilares, cerchas y campanas a medio prender.
@@ -118,7 +144,11 @@ public final class Nivel {
                     0xFF80847A, 0xFF5A5E54, 0xFF3C4036,
                     0xFF9EA298, 0xFF5C6055,
                     0xFF6E7268, 0xFFE8F0FF, 0xFF171B1D,
-                    0.50F, 0.115F, 0.30F, 0.35F),
+                    // Mirada desde el suelo: horizonte muy bajo y techo
+                    // lejisimos. Se abre casi igual a los dos lados porque es
+                    // un volumen, no un corredor.
+                    0.505F, 0.720F, 0.235F, 0.255F, 0.300F, 0.098F,
+                    0.30F, 0.35F),
 
             // Nivel 2 - Servicio. Estrecho, caliente, con las canerias a la
             // vista. El unico que sigue siendo un pasillo, y dobla.
@@ -127,7 +157,11 @@ public final class Nivel {
                     0xFF413025, 0xFF2A1F16, 0xFF1B120C,
                     0xFF4A3520, 0xFF2A1C0E,
                     0xFF54371C, 0xFFFFB65E, 0xFF0B0703,
-                    1.35F, 0.058F, 0.22F, 0.75F),
+                    // El unico que SI es un pasillo, y se permite serlo:
+                    // estrecho, alto y con la fuga descentrada a la izquierda
+                    // porque el haz de canerias dobla hacia alla.
+                    0.395F, 0.505F, 0.062F, 0.078F, 0.108F, 0.098F,
+                    0.22F, 0.75F),
 
             // Nivel 3 - Las piscinas. Azulejo, agua tibia y un eco que tarda de
             // mas. Aca la mitad de abajo de la escena no es suelo: es agua.
@@ -136,7 +170,11 @@ public final class Nivel {
                     0xFF63B6B4, 0xFF2F7E82, 0xFF3E9A9A,
                     0xFFE8F2F0, 0xFFB2CCC9,
                     0xFFBEDCD9, 0xFFF4FFFD, 0xFF08171A,
-                    0.62F, 0.118F, 0.62F, 0.15F),
+                    // Recinto ancho y de techo bajo, visto desde el borde del
+                    // agua: se abre mucho a lo ancho y poco a lo alto, y el
+                    // vaso ocupa casi todo el cuadro inferior.
+                    0.455F, 0.330F, 0.300F, 0.270F, 0.080F, 0.124F,
+                    0.62F, 0.15F),
     };
 
     /** Cuantos niveles hay en la rotacion. */

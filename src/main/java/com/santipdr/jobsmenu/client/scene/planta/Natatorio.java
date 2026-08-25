@@ -57,11 +57,11 @@ public final class Natatorio implements Planta {
 
     @Override
     public void dibujar(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
-        // El fondo va casi a plena luz: aca el testero es azulejo blanco y esta
-        // tan iluminado como el resto. Dejarlo en penumbra lo convertiria en el
-        // agujero negro que arruina la lectura del sitio.
+        // El fondo va bien iluminado: aca el testero es azulejo blanco. Pero
+        // con el recinto ancho, la fuerza que servia para un vano chico lo lava
+        // entero y lo deja como una chapa blanca, asi que va mas contenida.
         Trazo.fondo(grafico, m, nivel, luz,
-                Paleta.mezclar(nivel.paredBaja, nivel.techo, 0.55F), 2.6F);
+                Paleta.mezclar(nivel.paredBaja, nivel.techo, 0.70F), 2.15F);
         testero(grafico, m, nivel, luz);
 
         Trazo.plano(grafico, m, true, nivel.techo,
@@ -90,10 +90,31 @@ public final class Natatorio implements Planta {
      * otro lado. El vidrio esta oscuro: ahi no hay luz encendida.
      */
     private static void testero(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
-        float suelo = m.fy() + m.h() * CABECERA;
+        // Azulejo del testero, antes que la puerta. Con el recinto ancho la
+        // pared del fondo es una superficie grande: si queda lisa se lee como
+        // una chapa gris pegada en medio del cuadro, no como el fondo de un
+        // natatorio. Las hiladas se juntan hacia el zocalo, como en la obra.
+        int fx0 = Math.round(m.izq(1.0F));
+        int fx1 = Math.round(m.der(1.0F));
+        int fy0 = Math.round(m.techoEn(1.0F));
+        int fy1 = Math.round(m.sueloEn(1.0F));
+        int hiladas = 9;
+        for (int k = 1; k < hiladas; k++) {
+            float f = (float) Math.pow((float) k / hiladas, 1.25F);
+            int y = (int) (fy0 + (fy1 - fy0) * f);
+            grafico.fill(fx0, y, fx1, y + 1,
+                    Paleta.conAlfa(Paleta.iluminar(nivel.junta, luz * 0.9F), 0.30F));
+        }
+        for (float f : new float[] {0.32F, 0.68F}) {
+            int x = (int) (fx0 + (fx1 - fx0) * f);
+            grafico.fill(x, fy0, x + 1, fy1,
+                    Paleta.conAlfa(Paleta.iluminar(nivel.junta, luz * 0.9F), 0.20F));
+        }
+
+        float suelo = m.sueloEn(CABECERA);
         float alto = m.h() * 1.05F;
-        int x0 = Math.round(m.fx() - m.w() * 0.30F);
-        int x1 = Math.round(m.fx() + m.w() * 0.30F);
+        int x0 = Math.round(m.izq(0.30F));
+        int x1 = Math.round(m.der(0.30F));
         int y0 = Math.round(suelo - alto);
         int y1 = Math.round(suelo);
 
@@ -111,8 +132,8 @@ public final class Natatorio implements Planta {
             grafico.fill(vx0, vy, vx1, vy + altoVidrio, Paleta.conAlfa(Paleta.VANO, 0.70F));
         }
         // La junta de baldosa al pie, corrida de pared a pared.
-        grafico.fill(Math.round(m.fx() - m.w() * CABECERA), y1 - 2,
-                Math.round(m.fx() + m.w() * CABECERA), y1,
+        grafico.fill(Math.round(m.izq(CABECERA)), y1 - 2,
+                Math.round(m.der(CABECERA)), y1,
                 Paleta.conAlfa(Paleta.iluminar(nivel.junta, luz), 0.40F));
     }
 
@@ -129,8 +150,8 @@ public final class Natatorio implements Planta {
 
     /** La baldosa de la orilla. Ocupa todo el suelo; el agua se le apoya. */
     private static void borde(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
-        for (int y = Math.round(m.fy() + m.h()); y < m.alto(); y += Trazo.PASO) {
-            float dy = Math.abs(y + Trazo.PASO * 0.5F - m.fy()) / m.h();
+        for (int y = Math.round(m.sueloEn(1.0F)); y < m.alto(); y += Trazo.PASO) {
+            float dy = m.dy(y + Trazo.PASO * 0.5F);
             if (dy <= 1.0F) {
                 continue;
             }
@@ -151,14 +172,13 @@ public final class Natatorio implements Planta {
      * son dos pixeles y son la mitad de la lectura del efecto.
      */
     private static void agua(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
-        int desde = Math.round(m.fy() + m.h() * CABECERA);
+        int desde = Math.round(m.sueloEn(CABECERA));
 
         for (int y = desde; y < m.alto(); y += Trazo.PASO) {
-            float dy = Math.abs(y + Trazo.PASO * 0.5F - m.fy()) / m.h();
+            float dy = m.dy(y + Trazo.PASO * 0.5F);
             float lej = Trazo.limitar(1.0F / dy, 0.0F, 1.0F);
-            float medio = m.w() * dy * VASO;
-            int x0 = (int) (m.fx() - medio);
-            int x1 = (int) (m.fx() + medio);
+            int x0 = (int) m.enX(dy, -VASO);
+            int x1 = (int) m.enX(dy, VASO);
             if (x1 <= 0 || x0 >= m.ancho()) {
                 continue;
             }
@@ -175,9 +195,8 @@ public final class Natatorio implements Planta {
         }
 
         // La cabecera del vaso, al fondo.
-        float medioFondo = m.w() * CABECERA * VASO;
-        grafico.fill((int) (m.fx() - medioFondo), desde - 2,
-                (int) (m.fx() + medioFondo), desde + 1,
+        grafico.fill((int) m.enX(CABECERA, -VASO), desde - 2,
+                (int) m.enX(CABECERA, VASO), desde + 1,
                 Paleta.conAlfa(Paleta.iluminar(nivel.techo, luz), 0.70F));
 
         // El reflejo del techo, deshecho por una ondulacion lentisima.
@@ -185,10 +204,10 @@ public final class Natatorio implements Planta {
         int hasta = Math.min(m.alto(), desde + (int) largo);
         for (int y = desde; y < hasta; y += Trazo.PASO) {
             float t = (y - desde) / largo;
-            float dy = Math.abs(y - m.fy()) / m.h();
-            float ancho = m.w() * dy * VASO * 0.70F;
+            float dy = m.dy(y);
             float onda = (float) Math.sin(tiempo * 0.45F + t * 7.0F) * m.w() * 0.012F;
-            grafico.fill((int) (m.fx() - ancho + onda), y, (int) (m.fx() + ancho + onda), y + Trazo.PASO,
+            grafico.fill((int) (m.enX(dy, -VASO * 0.70F) + onda), y,
+                    (int) (m.enX(dy, VASO * 0.70F) + onda), y + Trazo.PASO,
                     Paleta.conAlfa(nivel.techo, 0.22F * (1.0F - t) * (1.0F - t) * luz));
         }
     }
@@ -200,14 +219,14 @@ public final class Natatorio implements Planta {
      * si salieran rectas el agua dejaria de existir.
      */
     private static void calles(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
-        int desde = Math.round(m.fy() + m.h() * CABECERA);
+        int desde = Math.round(m.sueloEn(CABECERA));
         for (int i = 1; i < CALLES; i++) {
             float frac = (i / (float) CALLES) * 2.0F - 1.0F;
             for (int y = desde; y < m.alto(); y += Trazo.PASO) {
-                float dy = Math.abs(y + Trazo.PASO * 0.5F - m.fy()) / m.h();
+                float dy = m.dy(y + Trazo.PASO * 0.5F);
                 float lej = Trazo.limitar(1.0F / dy, 0.0F, 1.0F);
                 float onda = (float) Math.sin(tiempo * 0.5F + dy * 2.2F + i * 1.7F) * m.w() * 0.010F;
-                float x = m.fx() + m.w() * dy * VASO * frac + onda;
+                float x = m.enX(dy, frac * VASO) + onda;
                 int grosor = Math.max(1, (int) (m.w() * dy * 0.012F));
                 grafico.fill((int) x, y, (int) x + grosor, y + Trazo.PASO,
                         Paleta.conAlfa(Paleta.iluminar(nivel.techo, luz), 0.26F + 0.16F * lej));
@@ -223,8 +242,8 @@ public final class Natatorio implements Planta {
      */
     private static void escalerilla(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
         float dy = 1.95F;
-        float y = m.fy() + m.h() * dy;
-        float x = m.fx() + m.w() * dy * VASO;
+        float y = m.sueloEn(dy);
+        float x = m.der(dy * VASO);
         if (x > m.ancho() + 24 || y > m.alto() + 24) {
             return;
         }
@@ -256,7 +275,7 @@ public final class Natatorio implements Planta {
             }
             float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
             float at = Trazo.atenuar(luz, lej);
-            float y = m.fy() - m.h() * dx * 0.16F;
+            float y = m.techoEn(dx * 0.16F);
             int alto = Math.max(1, (int) (m.h() * dx * 0.075F));
             grafico.fill(x, (int) y, x + Trazo.PASO, (int) y + alto,
                     Paleta.conAlfa(Paleta.iluminar(

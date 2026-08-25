@@ -59,7 +59,7 @@ public final class Nave implements Planta {
     @Override
     public void dibujar(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
         Trazo.fondo(grafico, m, nivel, luz,
-                Paleta.mezclar(nivel.paredBaja, nivel.niebla, 0.30F), 1.0F);
+                Paleta.mezclar(nivel.paredBaja, nivel.niebla, 0.42F), 1.35F);
         porton(grafico, m, nivel, luz);
 
         Trazo.plano(grafico, m, true, Paleta.mezclar(nivel.techo, Paleta.VANO, 0.30F),
@@ -86,25 +86,27 @@ public final class Nave implements Planta {
      * No se abre nunca y no hace falta que se abra.
      */
     private static void porton(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
-        float suelo = m.fy() + m.h();
-        float alto = m.h() * 1.15F;
-        int x0 = Math.round(m.fx() - m.w() * 0.55F);
-        int x1 = Math.round(m.fx() + m.w() * 0.55F);
+        float suelo = m.sueloEn(1.0F);
+        float alto = m.ha() * 1.05F;
+        int x0 = Math.round(m.izq(0.62F));
+        int x1 = Math.round(m.der(0.62F));
         int y0 = Math.round(suelo - alto);
         int y1 = Math.round(suelo);
 
+        // La chapa devuelve algo de luz. Si se va a negro, la nave termina en
+        // un agujero y se pierde toda la profundidad que arman las cerchas.
         grafico.fillGradient(x0, y0, x1, y1,
-                Paleta.iluminar(Paleta.mezclar(nivel.paredBaja, nivel.junta, 0.45F), luz * 0.42F),
-                Paleta.iluminar(Paleta.mezclar(nivel.junta, Paleta.VANO, 0.30F), luz * 0.24F));
+                Paleta.iluminar(Paleta.mezclar(nivel.paredBaja, nivel.junta, 0.35F), luz * 0.95F),
+                Paleta.iluminar(Paleta.mezclar(nivel.junta, nivel.paredBaja, 0.40F), luz * 0.62F));
 
-        // El acanalado: catorce nervios verticales. Es lo que lo vuelve chapa.
-        int paso = Math.max(2, (x1 - x0) / 14);
+        // El acanalado: los nervios verticales son lo que lo vuelve chapa.
+        int paso = Math.max(2, (x1 - x0) / 18);
         for (int x = x0 + paso; x < x1; x += paso) {
-            grafico.fill(x, y0, x + 1, y1, Paleta.conAlfa(Paleta.VANO, 0.22F));
+            grafico.fill(x, y0, x + 1, y1, Paleta.conAlfa(Paleta.VANO, 0.16F));
         }
-        for (int k = 1; k < 4; k++) {
-            int y = y0 + (y1 - y0) * k / 4;
-            grafico.fill(x0, y, x1, y + 1, Paleta.conAlfa(Paleta.VANO, 0.26F));
+        for (int k = 1; k < 5; k++) {
+            int y = y0 + (y1 - y0) * k / 5;
+            grafico.fill(x0, y, x1, y + 1, Paleta.conAlfa(Paleta.VANO, 0.20F));
         }
         grafico.fill(x0 - 1, y0 - 1, x1 + 1, y0 + 1,
                 Paleta.iluminar(Paleta.mezclar(nivel.junta, nivel.paredAlta, 0.25F), luz * 0.60F));
@@ -120,13 +122,13 @@ public final class Nave implements Planta {
     private static void losas(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
         for (int lado = 0; lado < 2; lado++) {
             float frac = lado == 0 ? -0.55F : 0.55F;
-            for (int y = Math.round(m.fy() + m.h()); y < m.alto(); y += Trazo.PASO) {
-                float dy = Math.abs(y + Trazo.PASO * 0.5F - m.fy()) / m.h();
+            for (int y = Math.round(m.sueloEn(1.0F)); y < m.alto(); y += Trazo.PASO) {
+                float dy = m.dy(y + Trazo.PASO * 0.5F);
                 if (dy <= 1.0F) {
                     continue;
                 }
                 float lej = Trazo.limitar(1.0F / dy, 0.0F, 1.0F);
-                float x = m.fx() + m.w() * dy * frac;
+                float x = m.enX(dy, frac);
                 int grosor = Math.max(1, (int) (m.w() * dy * 0.005F));
                 grafico.fill((int) x, y, (int) x + grosor, y + Trazo.PASO,
                         Paleta.conAlfa(Paleta.iluminar(nivel.sueloJunta, Trazo.atenuar(luz, lej)),
@@ -152,13 +154,13 @@ public final class Nave implements Planta {
             float at = Trazo.atenuar(luz, lej) * 0.78F;
             int color = Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, lej, 0.45F), at);
 
-            float ySup = m.fy() - m.h() * dx * 0.98F;
-            float yInf = m.fy() - m.h() * dx * CORDON;
+            float ySup = m.techoEn(dx * 0.98F);
+            float yInf = m.techoEn(dx * CORDON);
             if (yInf < -6) {
                 continue;
             }
-            int x0 = Math.max(0, (int) (m.fx() - m.w() * dx));
-            int x1 = Math.min(m.ancho(), (int) (m.fx() + m.w() * dx));
+            int x0 = Math.max(0, (int) (m.izq(dx)));
+            int x1 = Math.min(m.ancho(), (int) (m.der(dx)));
             if (x1 - x0 < 6) {
                 continue;
             }
@@ -198,8 +200,8 @@ public final class Nave implements Planta {
             }
             float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
             float at = Trazo.atenuar(luz, lej);
-            float yTecho = m.fy() - m.h() * dx * CORDON;
-            float yLampara = m.fy() - m.h() * dx * (CORDON - 0.14F);
+            float yTecho = m.techoEn(dx * CORDON);
+            float yLampara = m.techoEn(dx) * (CORDON - 0.14F);
             float medio = Math.max(1.5F, m.w() * dx * 0.038F);
             if (yLampara > m.alto()) {
                 continue;
@@ -246,11 +248,11 @@ public final class Nave implements Planta {
             float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
             float at = Trazo.atenuar(luz, lej);
             float ancho = Math.max(1.5F, m.w() * dx * 0.040F);
-            float yTecho = m.fy() - m.h() * dx * CORDON;
-            float ySuelo = m.fy() + m.h() * dx;
+            float yTecho = m.techoEn(dx * CORDON);
+            float ySuelo = m.sueloEn(dx);
 
             for (int signo = -1; signo <= 1; signo += 2) {
-                float x = m.fx() + signo * m.w() * dx * HILERA;
+                float x = m.lado(signo, dx * HILERA);
                 if (x < -ancho * 2 || x > m.ancho() + ancho * 2) {
                     continue;
                 }
