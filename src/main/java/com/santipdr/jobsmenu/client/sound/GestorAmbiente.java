@@ -283,13 +283,37 @@ public final class GestorAmbiente {
         }
     }
 
-    /** El sonido de la figura, una sola vez por manifestacion. */
+    /**
+     * El sonido de la figura, una sola vez por manifestacion.
+     *
+     * El volumen y el tono salen del modo, no son fijos. Si suena siempre
+     * igual, el oido aprende el sonido y deja de creerle a la imagen: lo que
+     * se ve cambia y lo que se escucha no. Cada modo suena como se ve.
+     */
     private static void atenderPresencia() {
         boolean hay = Presencia.presente();
         if (hay && !presenciaSonada) {
             presenciaSonada = true;
+            int modo = Presencia.modo();
+
+            // Corte: seco y un punto mas agudo, como el sonido se recorta con
+            // la imagen. Sumergida: apagado y grave, porque viene del agua y
+            // no de algo parado ahi. Doble: mas cuerpo, son dos.
+            float volumen = MezclaAudio.FIGURA;
+            float tono = 1.0F;
+            if (modo == Presencia.MODO_CORTE) {
+                volumen *= 0.82F;
+                tono = 1.045F;
+            } else if (modo == Presencia.MODO_SUMERGIDA) {
+                volumen *= 0.66F;
+                tono = 0.94F;
+            } else if (modo == Presencia.MODO_DOBLE) {
+                volumen *= 1.12F;
+                tono = 0.978F;
+            }
+
             MezclaAudio.ambiental(SonidosNivel.FIGURA_PRESENCIA,
-                    MezclaAudio.FIGURA * ConfigTurno.volumenAmbiente(), 1.0F);
+                    volumen * ConfigTurno.volumenAmbiente(), tono);
         } else if (!hay && Presencia.avance() < 0.0F) {
             presenciaSonada = false;
         }

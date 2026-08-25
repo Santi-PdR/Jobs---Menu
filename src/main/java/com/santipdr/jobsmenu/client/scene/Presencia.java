@@ -1,5 +1,6 @@
 package com.santipdr.jobsmenu.client.scene;
 
+import com.santipdr.jobsmenu.client.scene.planta.Trazo;
 import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
@@ -36,6 +37,24 @@ import net.minecraft.client.gui.GuiGraphics;
  * figura se muestra, se va, y unos segundos despues vuelve corrida unos pixeles
  * hacia un lado. El jugador no llega a estar seguro de que se movio.
  *
+ * LO QUE LE FALTABA: MODOS
+ *
+ * Con todo lo anterior la figura seguia teniendo un defecto de fondo, y no era
+ * el dibujo: era que SIEMPRE PASABA LO MISMO. Se asomaba de la misma forma, con
+ * la misma silueta y el mismo desvanecido, cada 71 segundos. A la tercera vez
+ * el ojo ya sabe que esperar y deja de mirar. Lo que provoca el "que acabo de
+ * ver" no es la silueta: es no poder anticipar QUE va a pasar.
+ *
+ * Por eso cada ciclo elige un modo distinto, sesgado para que lo raro sea raro:
+ *
+ *   QUIETA     esta ahi y se desvanece. La de siempre, algo mas de la mitad.
+ *   CORTE      aparece y desaparece dentro de un parpadeo, apenas unos cuadros.
+ *              Da tiempo a registrarla y no a mirarla.
+ *   SUMERGIDA  solo el reflejo en el agua; arriba no hay nada parado. Es el que
+ *              mas incomoda: hay reflejo de algo que no esta.
+ *   DOBLE      dos siluetas a la vez en los dos costados, la segunda mas tenue
+ *              y mas baja. No son gemelas: es una, y otra cosa que se le parece.
+ *
  * Todo se calcula desde el reloj del sistema, igual que la rotacion de niveles:
  * sin estado mutable y sin temporizadores propios.
  */
@@ -58,6 +77,18 @@ public final class Presencia {
 
     /** Ventana completa de la manifestacion. */
     private static final long TOTAL_MS = PRIMERA_MS + HUECO_MS + SEGUNDA_MS;
+
+    /** Esta ahi y se desvanece: el modo de siempre. */
+    public static final int MODO_QUIETA = 0;
+
+    /** Existe solo en el pico de la campana, unos pocos cuadros. */
+    public static final int MODO_CORTE = 1;
+
+    /** Solo el reflejo: arriba no hay nada parado. */
+    public static final int MODO_SUMERGIDA = 2;
+
+    /** Dos siluetas a la vez, una a cada lado del vano. */
+    public static final int MODO_DOBLE = 3;
 
     /** Lo mas opaca que llega a estar. Apenas mas oscura que el vano. */
     private static final float ALFA_MAXIMO = 0.52F;
@@ -122,6 +153,30 @@ public final class Presencia {
         return 0.0F;
     }
 
+    /**
+     * Que modo le toca a la manifestacion en curso.
+     *
+     * Se deriva del numero de ciclo, no de un sorteo por cuadro: durante los
+     * 71 segundos que dura el ciclo la respuesta no cambia, asi que la figura
+     * no muta a mitad de aparicion. El sesgo esta puesto a mano -mas de la
+     * mitad de las veces es la manifestacion comun- porque un modo raro deja
+     * de ser raro si sale una de cada cuatro veces.
+     */
+    public static int modo() {
+        long ciclo = Math.floorDiv(System.currentTimeMillis(), PERIODO_MS);
+        float r = Trazo.pseudo((int) (ciclo * 31L + 7L));
+        if (r < 0.52F) {
+            return MODO_QUIETA;
+        }
+        if (r < 0.74F) {
+            return MODO_CORTE;
+        }
+        if (r < 0.90F) {
+            return MODO_SUMERGIDA;
+        }
+        return MODO_DOBLE;
+    }
+
     /** Si estamos en la segunda aparicion, la que esta corrida de lugar. */
     private static boolean esSegunda() {
         long fase = Math.floorMod(System.currentTimeMillis(), PERIODO_MS);
@@ -165,30 +220,58 @@ public final class Presencia {
             return;
         }
 
+        int modo = modo();
+
+        // En el modo corte la campana se estrangula: la figura solo existe en
+        // el pico y los flancos se comen todo el resto de la aparicion.
+        if (modo == MODO_CORTE) {
+            visible = Trazo.limitar((visible - 0.72F) / 0.28F, 0.0F, 1.0F);
+            if (visible <= 0.01F) {
+                return;
+            }
+        }
+
         // Nunca en el centro exacto del vano: siempre corrida hacia un costado,
         // como si estuviera parada contra una de las paredes del fondo.
         float lado = esSegunda() ? -0.34F : 0.41F;
-        float x = m.enX(1.0F, lado);
         float w = m.w();
 
         // Los pies apoyan donde este el piso de este recinto, no en el aire.
         float base = m.fy() + m.hb() * piso;
         float altura = m.h() * ALTURA;
 
-        // Respiracion: un pixel largo, muy lento. Basta para que no se lea como
-        // un elemento pintado sobre la pared.
         float t = System.currentTimeMillis() / 1000.0F;
-        float vaiven = (float) Math.sin(t * 0.55F) * (w * 0.012F);
-
         float alfa = ALFA_MAXIMO * visible;
         int tinte = tinte(nivel);
-        dibujarCuerpo(grafico, x + vaiven, base, altura, w, alfa, tinte);
 
-        // El reflejo. En las piscinas es la mitad del efecto: se ve antes el
-        // borron en el suelo que la figura misma.
-        if (nivel.reflejo > 0.20F) {
-            dibujarReflejo(grafico, x + vaiven, base, altura, w,
-                    alfa * nivel.reflejo * 0.85F, tinte);
+        // En el modo doble hay dos siluetas; en los demas, una.
+        float[][] posiciones = modo == MODO_DOBLE
+                ? new float[][] {{lado, 1.0F, 1.0F}, {-lado * 0.86F, 0.62F, 0.88F}}
+                : new float[][] {{lado, 1.0F, 1.0F}};
+
+        for (float[] pos : posiciones) {
+            float x = m.enX(1.0F, pos[0]);
+            float peso = pos[1];
+            float escala = pos[2];
+
+            // Respiracion: un pixel largo, muy lento. Basta para que no se lea
+            // como un elemento pintado sobre la pared.
+            float vaiven = (float) Math.sin(t * 0.55F + pos[0]) * (w * 0.012F);
+
+            // En sumergida no hay cuerpo: solo lo que devuelve el agua.
+            if (modo != MODO_SUMERGIDA) {
+                dibujarCuerpo(grafico, x + vaiven, base, altura * escala, w,
+                        alfa * peso, tinte);
+            }
+
+            // El reflejo. En las piscinas es la mitad del efecto: se ve antes
+            // el borron en el suelo que la figura misma. Cuando es lo unico que
+            // hay, se lo sube: tiene que sostener la escena solo.
+            if (nivel.reflejo > 0.20F) {
+                float fuerza = modo == MODO_SUMERGIDA ? 1.35F : 0.85F;
+                dibujarReflejo(grafico, x + vaiven, base, altura * escala, w,
+                        alfa * peso * nivel.reflejo * fuerza, tinte);
+            }
         }
     }
 

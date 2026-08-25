@@ -508,7 +508,7 @@ def arranque_tubo(avance: float) -> float:
 # --------------------------------------------------------------------------
 def dibujar(lz: Lienzo, nivel: Nivel, tiempo: float = 3.0, penumbra: float = 0.0,
             luz_global: float = 1.0, presencia_v: float = 0.0,
-            presencia_segunda: bool = False,
+            presencia_segunda: bool = False, presencia_modo: int = 0,
             polvo: bool = True, destellos: bool = True,
             primer_plano: bool = True) -> None:
     fx = lz.ancho * nivel.fuga_x
@@ -532,7 +532,8 @@ def dibujar(lz: Lienzo, nivel: Nivel, tiempo: float = 3.0, penumbra: float = 0.0
 
     if presencia_v > 0.0:
         presencia(lz, nivel, m, presencia_v, luz,
-                  presencia_segunda, tiempo, PISO_PRESENCIA[nivel.planta])
+                  presencia_segunda, tiempo, PISO_PRESENCIA[nivel.planta],
+                  presencia_modo)
     if polvo:
         motas(lz, fx, fy, tiempo, luz)
     vineta(lz, nivel, penumbra, luz)
@@ -1461,33 +1462,74 @@ def color_presencia(nivel) -> int:
     return VANO
 
 
-def presencia(lz, nivel, m, visible, luz, segunda=False, tiempo=0.0,
-              piso=0.94) -> None:
-    """Lo que a veces esta al fondo del recinto.
+# Modos de manifestacion. El defecto de la version anterior no era el dibujo
+# sino que SIEMPRE PASABA LO MISMO: la figura se asomaba de la misma forma, con
+# la misma silueta y el mismo desvanecido, cada 71 segundos. A la tercera vez el
+# ojo ya sabe que esperar y deja de mirar. Lo que provoca el "que acabo de ver"
+# no es la silueta: es no poder anticipar QUE va a pasar.
+#
+#   0 QUIETA      esta ahi y se desvanece. La de siempre, la mas frecuente.
+#   1 CORTE       aparece y desaparece dentro de un parpadeo del fluorescente,
+#                 tres o cuatro cuadros. Apenas alcanza a registrarse.
+#   2 SUMERGIDA   solo el reflejo en el agua. Arriba no hay nada parado. Es el
+#                 modo que mas incomoda: hay reflejo de algo que no esta.
+#   3 DOBLE       dos siluetas a la vez, en los dos costados del vano.
+MODO_QUIETA, MODO_CORTE, MODO_SUMERGIDA, MODO_DOBLE = 0, 1, 2, 3
 
-    `visible` va de 0 a 1 y es lo que Presencia.visibilidad() devuelve en el
-    juego. `segunda` elige el costado: la reaparicion sale corrida hacia el
-    otro lado, que es el recurso central de todo el efecto. `piso` lo dicta la
-    planta: en el natatorio los pies quedan en la orilla, no abajo de todo.
-    """
+
+def modo_presencia(ciclo: int) -> int:
+    """Que modo toca en este ciclo. Sesgado: lo raro tiene que ser raro."""
+    r = pseudo(ciclo * 31 + 7)
+    if r < 0.52:
+        return MODO_QUIETA
+    if r < 0.74:
+        return MODO_CORTE
+    if r < 0.90:
+        return MODO_SUMERGIDA
+    return MODO_DOBLE
+
+
+def presencia(lz, nivel, m, visible, luz, segunda=False, tiempo=0.0,
+              piso=0.94, modo=MODO_QUIETA) -> None:
+    """Lo que a veces esta al fondo del recinto."""
     visible = limitar(visible * luz, 0.0, 1.0)
     if visible <= 0.01:
         return
 
+    # En el modo corte la campana se estrangula: la figura solo existe en el
+    # pico y los flancos se comen todo lo demas.
+    if modo == MODO_CORTE:
+        visible = limitar((visible - 0.72) / 0.28, 0.0, 1.0)
+        if visible <= 0.01:
+            return
+
     lado = -0.34 if segunda else 0.41
-    x = m.en_x(1.0, lado)
     w = m.w
     base = m.fy + m.hb * piso
     altura = m.h * ALTURA_PRESENCIA
-    vaiven = math.sin(tiempo * 0.55) * (w * 0.012)
-
     alfa = ALFA_MAXIMO_PRESENCIA * visible
     tinte = color_presencia(nivel)
-    cuerpo_presencia(lz, x + vaiven, base, altura, w, alfa, tinte)
 
-    if nivel.reflejo > 0.20:
-        reflejo_presencia(lz, x + vaiven, base, altura, w,
-                          alfa * nivel.reflejo * 0.85, tiempo, tinte)
+    if modo == MODO_DOBLE:
+        # Dos siluetas, la segunda mas tenue y mas baja: no son gemelas, es
+        # una y "otra cosa" que se le parece.
+        posiciones = ((lado, 1.0, 1.0), (-lado * 0.86, 0.62, 0.88))
+    else:
+        posiciones = ((lado, 1.0, 1.0),)
+
+    for frac, peso, escala in posiciones:
+        x = m.en_x(1.0, frac)
+        vaiven = math.sin(tiempo * 0.55 + frac) * (w * 0.012)
+
+        # En sumergida no hay cuerpo: solo lo que devuelve el agua.
+        if modo != MODO_SUMERGIDA:
+            cuerpo_presencia(lz, x + vaiven, base, altura * escala, w,
+                             alfa * peso, tinte)
+
+        if nivel.reflejo > 0.20:
+            fuerza = 0.85 if modo != MODO_SUMERGIDA else 1.35
+            reflejo_presencia(lz, x + vaiven, base, altura * escala, w,
+                              alfa * peso * nivel.reflejo * fuerza, tiempo, tinte)
 
 
 def cuerpo_presencia(lz, x, base, altura, w, alfa, tinte) -> None:
@@ -1644,14 +1686,17 @@ def main() -> int:
                 indice = int(b.split("=")[1]) if "=" in b else 3
         nv = NIVELES[indice % len(NIVELES)]
 
-        pasos = [(0.15, False), (0.55, False), (1.00, False),
-                 (0.40, False), (0.00, False), (0.85, True)]
+        # Una fila por modo de manifestacion, en su pico y a media entrada.
+        pasos = [(1.00, False, MODO_QUIETA), (0.62, False, MODO_QUIETA),
+                 (1.00, False, MODO_CORTE), (1.00, False, MODO_SUMERGIDA),
+                 (1.00, False, MODO_DOBLE), (0.85, True, MODO_DOBLE)]
         ancho, alto = 420, 236
         tira = Lienzo(ancho * 3, alto * 2)
-        for i, (visible, segunda) in enumerate(pasos):
+        for i, (visible, segunda, modo) in enumerate(pasos):
             sub = render(ancho, alto, nv, con_hoja=not desnudo,
                          tiempo=3.0 + i * 0.7,
-                         presencia_v=visible, presencia_segunda=segunda)
+                         presencia_v=visible, presencia_segunda=segunda,
+                         presencia_modo=modo)
             ox = (i % 3) * ancho
             oy = (i // 3) * alto
             for y in range(alto):

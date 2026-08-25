@@ -89,9 +89,21 @@ public class PantallaNivel extends Screen {
         int ancho = ANCHO_HOJA - 24;
         int salto = ALTO_RENGLON + SEPARACION;
 
+        // ORDEN DE LOS RENGLONES
+        //
+        // No es el orden en que se fueron escribiendo: es por cuantas veces se
+        // usa cada uno. A este menu se entra a jugar, asi que unirse a una
+        // cuadrilla va primero y solo. Las condiciones -las opciones del
+        // juego- se tocan seguido, sobre todo el volumen, asi que van segundas.
+        // El registro de intervenciones -la lista de mods- se abre una vez cada
+        // tantas sesiones: va tercero, no segundo como estaba.
+        //
+        // Renunciar queda separado por HUECO_APARTE y marcado como terminal. Es
+        // la unica accion de la hoja que no se puede deshacer, y en un tablon
+        // de verdad tampoco estaria pegada al resto.
         agregar(x, y, ancho, "01", "jobsmenu.tablon.cuadrilla", this::abrirCuadrilla, false);
-        agregar(x, y + salto, ancho, "02", "jobsmenu.tablon.registro", this::abrirRegistro, false);
-        agregar(x, y + 2 * salto, ancho, "03", "jobsmenu.tablon.condiciones", this::abrirCondiciones, false);
+        agregar(x, y + salto, ancho, "02", "jobsmenu.tablon.condiciones", this::abrirCondiciones, false);
+        agregar(x, y + 2 * salto, ancho, "03", "jobsmenu.tablon.registro", this::abrirRegistro, false);
         agregar(x, y + 3 * salto + HUECO_APARTE, ancho, "04", "jobsmenu.tablon.renunciar", this::renunciar, true);
 
         // El aviso del pie es un widget y no un dibujo: se puede pasar a mano y
