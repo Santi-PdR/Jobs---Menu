@@ -41,11 +41,11 @@ public final class ConfigTurno {
                 .define("menu_propio", true);
 
         this.escenaViva = builder
-                .comment("Animar el pasillo del nivel. En false la composicion queda estatica.")
+                .comment("Animar el recinto del nivel. En false la composicion queda estatica.")
                 .define("escena_viva", true);
 
         this.movimientoReducido = builder
-                .comment("Apagar el polvo en suspension y lo que se ve al fondo del pasillo.")
+                .comment("Apagar el polvo en suspension y lo que se ve al fondo del recinto.")
                 .define("movimiento_reducido", false);
 
         this.destellosReducidos = builder

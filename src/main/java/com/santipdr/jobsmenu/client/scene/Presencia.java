@@ -153,10 +153,12 @@ public final class Presencia {
      * @param fy  punto de fuga vertical
      * @param w   semiancho de la abertura del fondo
      * @param h   semialto de la abertura del fondo
-     * @param luz luz disponible; con el pasillo apagado tampoco se la ve
+     * @param luz  luz disponible; con el recinto apagado tampoco se la ve
+     * @param piso a que fraccion del semialto apoya, segun el recinto: en el
+     *             natatorio apoya en el borde del agua y no en el suelo
      */
     public static void dibujar(GuiGraphics grafico, Nivel nivel,
-                               float fx, float fy, float w, float h, float luz) {
+                               float fx, float fy, float w, float h, float luz, float piso) {
         float visible = visibilidad() * luz;
         if (visible <= 0.01F) {
             return;
@@ -167,8 +169,8 @@ public final class Presencia {
         float lado = esSegunda() ? -0.34F : 0.41F;
         float x = fx + w * lado;
 
-        // Los pies apoyan en la linea del suelo del fondo, no en el aire.
-        float base = fy + h * 0.94F;
+        // Los pies apoyan donde este el piso de este recinto, no en el aire.
+        float base = fy + h * piso;
         float altura = h * ALTURA;
 
         // Respiracion: un pixel largo, muy lento. Basta para que no se lea como

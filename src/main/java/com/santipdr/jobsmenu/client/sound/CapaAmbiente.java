@@ -66,6 +66,21 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
         return this.nivel;
     }
 
+    /**
+     * Autoriza a nacer en silencio.
+     *
+     * Es la linea de la que dependia todo el ambiente del menu. El motor de
+     * sonido descarta cualquier instancia cuyo volumen sea cero en el momento
+     * de arrancar, y no la vuelve a mirar nunca: se pierde en el mismo
+     * fotograma en que se la crea. Como esta capa entra siempre desde cero
+     * para poder subir sin escalon, sin esto no llegaba a sonar jamas, por muy
+     * bien registrada que estuviera en sounds.json.
+     */
+    @Override
+    public boolean canStartSilent() {
+        return true;
+    }
+
     /** Si ya se apago del todo y se puede tirar. */
     public boolean agotada() {
         return this.isStopped();

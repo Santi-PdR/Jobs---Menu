@@ -91,6 +91,20 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         return activa != null && !activa.isStopped();
     }
 
+    /**
+     * Autoriza a nacer en silencio.
+     *
+     * El tema entra con veinte segundos de subida desde cero, y el motor de
+     * sonido descarta al instante toda instancia que arranque muda. Sin esto
+     * la musica quedaba registrada, empaquetada dentro del jar y correctamente
+     * mezclada, pero no se escuchaba una sola nota: el motor la tiraba antes
+     * de que la subida empezara.
+     */
+    @Override
+    public boolean canStartSilent() {
+        return true;
+    }
+
     @Override
     public void tick() {
         this.edad++;

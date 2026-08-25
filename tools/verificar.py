@@ -428,6 +428,9 @@ def verificar_simbolos() -> None:
         # SoundInstance / AbstractTickableSoundInstance.
         "stop", "isStopped", "getSound", "getLocation", "getSource",
         "getVolume", "getPitch", "canPlaySound", "isLooping", "getDelay",
+        "canStartSilent", "isRelative", "getAttenuation",
+        # Planta: el contrato de las tipologias de recinto.
+        "dibujar", "tramos", "pisoPresencia",
         # Registros diferidos y utilidades varias.
         "register", "get", "create", "forUI", "isHoveredOrFocused",
         "renderWidget", "updateWidgetNarration", "shouldCloseOnEsc",
