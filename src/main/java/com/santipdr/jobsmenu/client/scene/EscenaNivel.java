@@ -211,6 +211,35 @@ public final class EscenaNivel {
         }
     }
 
+    /**
+     * Brillo general de la instalacion electrica del nivel.
+     *
+     * No es el parpadeo de un tubo suelto (de eso se ocupa {@link #tropiezo}),
+     * sino el pulso de todo el pasillo a la vez: la corriente nunca termina de
+     * ser estable. Cada tanto la tension cae un instante y el nivel entero se
+     * apaga un poco, sin llegar a apagarse nunca del todo.
+     *
+     * @param tiempo    segundos transcurridos, ciclicos
+     * @param destellos si el ocupante acepta las variaciones de luz
+     * @return factor de 0.45 a 1.0
+     */
+    private static float brilloFluorescente(float tiempo, boolean destellos) {
+        if (!destellos) {
+            return 0.90F;
+        }
+
+        float base = 0.90F
+                + 0.035F * (float) Math.sin(tiempo * 1.7F)
+                + 0.020F * (float) Math.sin(tiempo * 5.9F + 1.3F);
+
+        // Bajon de tension: breve, regular, imposible de anticipar desde adentro.
+        if (Math.floorMod((long) (tiempo * 3.0F), 97L) == 0L) {
+            base *= 0.62F;
+        }
+
+        return Math.max(0.45F, Math.min(1.0F, base));
+    }
+
     /** Parpadeo propio de cada tubo. Devuelve un factor de 0.3 a 1.0. */
     private static float tropiezo(float tiempo, int indice) {
         float desfase = pseudo(indice * 31 + 3) * 6.28F;

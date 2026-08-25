@@ -216,6 +216,11 @@ toque el servidor. **La tarifa del menú es decorativa**: no lee el dinero real 
 8. **La escena se mira antes de entregar**: `python3 tools/vista_previa.py`. Si se toca `EscenaNivel.java`,
    **se toca el espejo también** — están sincronizados a mano y esa es su única debilidad.
 9. **Cada entrega cierra con el bloque PowerShell** de actualizar + compilar + desplegar.
+10. **Todo metodo que se llama, se declara.** El bloque 7 de `verificar.py` reproduce el
+    `cannot find symbol` de `javac` sin compilar. Nacio de un fallo real: la reescritura
+    Backrooms se llevo `brilloFluorescente()` y dejo la llamada en pie; el mod no compilo
+    en el PC del owner. Si se borra o renombra un metodo privado, hay que seguirle el rastro
+    a sus llamadas.
 
 ---
 
@@ -223,7 +228,7 @@ toque el servidor. **La tarifa del menú es decorativa**: no lee el dinero real 
 
 | Archivo | Para qué |
 |---|---|
-| `tools/verificar.py` | Sustituto del compilador ausente: versiones sincronizadas, paridad y validez de los `lang`, claves usadas vs. existentes, ASCII puro en `.java`, balance de llaves, `pack_format`. |
+| `tools/verificar.py` | Sustituto del compilador ausente, en 7 bloques: versiones sincronizadas, sustituciones de `mods.toml`, paridad y validez de los `lang`, claves usadas vs. existentes, ASCII puro y balance de delimitadores en `.java`, **metodos llamados que la clase no declara**, y recursos (`pack_format`, archivos de Gradle). |
 | `tools/vista_previa.py` | Espejo en Python de la escena. Dibuja el menú a PNG sin Minecraft para revisar composición, perspectiva y paleta. Escribe el PNG a mano con `zlib` (no necesita Pillow). |
 
 ---

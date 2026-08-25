@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sello de verificacion estatica del mod Jobs - Menu de Turno.
+"""Sello de verificacion estatica del mod Jobs - Aviso a los ocupantes.
 
 No sustituye a `gradlew build`, pero atrapa las erratas que cuestan una vuelta
 entera de compilacion: versiones desincronizadas, claves de idioma faltantes,
@@ -260,6 +260,71 @@ def verificar_recursos() -> None:
         aviso("gradle/wrapper/gradle-wrapper.jar no esta presente; el despliegue lo descarga.")
 
 
+# --------------------------------------------------------------------------
+# 7. Metodos propios que se llaman y no existen
+# --------------------------------------------------------------------------
+# Palabras que van seguidas de parentesis y no son llamadas a metodos.
+PALABRAS_CLAVE = {
+    "if", "for", "while", "switch", "catch", "return", "new", "this", "super",
+    "do", "else", "try", "assert", "instanceof", "throw", "synchronized",
+    "case", "break", "continue", "yield",
+}
+
+DECLARACION = re.compile(
+    r"^\s*(?:@\w+\s+)*"
+    r"(?:public|private|protected|static|final|abstract|default|synchronized|\s)*"
+    r"[\w$<>\[\],.\s?]+?\s+(\w+)\s*\([^;]*?\)\s*(?:throws [\w,\s.]+)?\{",
+    re.MULTILINE,
+)
+
+
+def verificar_simbolos() -> None:
+    """Atrapa las llamadas sin receptor a metodos que la clase no declara.
+
+    Es el error que `javac` reporta como 'cannot find symbol' y que cuesta una
+    vuelta entera de compilacion. Solo mira llamadas simples (sin punto
+    delante), que por definicion tienen que estar declaradas en la propia
+    clase o heredadas; las heredadas de Screen y compania se declaran en
+    HEREDADAS para no gritar de mas.
+    """
+    heredadas = {
+        # Screen / GuiComponent / AbstractWidget de Minecraft.
+        "addRenderableWidget", "renderBackground", "renderTransparentBackground",
+        "addWidget", "addRenderableOnly", "removeWidget", "clearWidgets",
+        "onClose", "minecraft", "setFocused", "getFocused", "isFocused",
+        "setTooltip", "setMessage", "getMessage", "visitWidgets", "rebuildWidgets",
+        "width", "height", "getX", "getY", "getWidth", "getHeight",
+        "isHovered", "isActive", "active", "playDownSound", "setX", "setY",
+        "defaultButtonNarrationText", "createNarrationMessage", "getRectangle",
+        "font", "children", "init", "tick", "render", "onPress",
+    }
+
+    for ruta in archivos_java():
+        relativa = ruta.relative_to(RAIZ)
+        limpio = despojar(leer(ruta))
+
+        declaradas = set(DECLARACION.findall(limpio))
+        llamadas: set[str] = set()
+
+        for coincidencia in re.finditer(r"(?<![.\w$])(\w+)\s*\(", limpio):
+            nombre = coincidencia.group(1)
+            if nombre in PALABRAS_CLAVE or nombre in heredadas:
+                continue
+            # Los constructores y los tipos empiezan en mayuscula.
+            if nombre[0].isupper():
+                continue
+            antes = limpio[max(0, coincidencia.start() - 6):coincidencia.start()]
+            if re.search(r"\bnew\s+$", antes):
+                continue
+            llamadas.add(nombre)
+
+        for nombre in sorted(llamadas - declaradas):
+            fallo(
+                f"{relativa}: se llama a '{nombre}()' y la clase no lo declara "
+                f"(javac diria 'cannot find symbol')."
+            )
+
+
 def main() -> int:
     props = propiedades()
     verificar_versiones(props)
@@ -267,6 +332,7 @@ def main() -> int:
     es = verificar_idiomas()
     verificar_claves(es)
     verificar_java()
+    verificar_simbolos()
     verificar_recursos()
 
     for mensaje in AVISOS:

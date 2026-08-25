@@ -167,11 +167,29 @@ def tropiezo(tiempo: float, indice: int) -> float:
     return max(0.30, min(1.0, base))
 
 
-def dibujar(lz: Lienzo, tiempo: float = 3.0, penumbra: float = 0.0, silueta_t: float | None = 0.5) -> None:
+def brillo_fluorescente(tiempo: float, destellos: bool = True) -> float:
+    """Espejo de EscenaNivel.brilloFluorescente."""
+    import math
+
+    if not destellos:
+        return 0.90
+
+    base = (
+        0.90
+        + 0.035 * math.sin(tiempo * 1.7)
+        + 0.020 * math.sin(tiempo * 5.9 + 1.3)
+    )
+    if int(tiempo * 3.0) % 97 == 0:
+        base *= 0.62
+    return max(0.45, min(1.0, base))
+
+
+def dibujar(lz: Lienzo, tiempo: float = 3.0, penumbra: float = 0.0, silueta_t: float | None = 0.5,
+            destellos: bool = True) -> None:
     import math
 
     ancho, alto = lz.ancho, lz.alto
-    luz = 0.90 * (1.0 - 0.55 * penumbra)
+    luz = brillo_fluorescente(tiempo, destellos) * (1.0 - 0.55 * penumbra)
 
     fuga_x = int(ancho * 0.63)
     fuga_y = int(alto * 0.54)
