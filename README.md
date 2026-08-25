@@ -14,18 +14,33 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
 
 | | |
 |---|---|
-| Versión | **0.4.0** |
+| Versión | **0.6.0** |
 | Minecraft | 1.20.1 |
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente (el servidor no necesita el mod) |
 
-## Qué trae la 0.4.0
+## Qué trae la 0.6.0
 
-Cuatro correcciones sobre la entrega anterior, todas pedidas después de probarla en el juego: los fondos
-dejaron de ser el mismo recinto pintado de otro color, la interfaz cambió de sonido por cuarta vez, el
-fondo dejó de callarse entre evento y evento, y el ambiente ya no se apaga a sí mismo por un detalle del
-motor de sonido.
+Una pasada fina sobre todo, hecha midiendo el conjunto en vez de revisando archivos sueltos. Es de donde
+salieron los hallazgos que importan.
+
+**La familia de sonidos de interfaz se rehízo entera, por sexta vez, y esta vez el diagnóstico fue
+numérico:** siete de los ocho gestos tenían el centroide entre 374 y 649 Hz, los ocho tenían cero energía
+por encima de 4 kHz y los ocho tenían la misma envolvente de golpe-y-cola. Era un solo sonido con ocho
+alturas. La causa era que toda la materia prima eran impactos, y el oído clasifica por envolvente antes que
+por material. Ahora hay **cinco clases de gesto distintas** —roce, trinquete, pestillo, posar con peso,
+succión— y el centroide va de 264 a 5080 Hz. El parentesco lo cargan la sala común y que ningún ataque sea
+instantáneo, no la altura.
+
+**Dos errores de mezcla que llevaban versiones sin detectarse.** El sesgo de las esperas entre eventos
+estaba invertido —hacía `sesgo*sesgo`, que acerca a cero— así que el ambiente sonaba al doble de densidad de
+lo diseñado. Y `ambiente/nivel2` tenía el **100 % de su energía por debajo de 60 Hz**: en auriculares
+normales ese nivel no tenía ambiente.
+
+**La música ya no pide nada:** dejás un `.ogg` en una carpeta y suena. **Los textos ya no se solapan:** la
+hoja se mide de arriba abajo en vez de tener dos anclajes que chocaban. Y en los fondos se rehicieron los
+tres elementos que todavía parecían pegatinas.
 
 ### Cuatro recintos, no cuatro paletas
 
@@ -144,7 +159,7 @@ Requiere JDK 17 instalado.
 .\gradlew build
 ```
 
-El `.jar` queda en `build\libs\jobsmenu-0.4.0.jar` y se copia a la carpeta `mods` de la instancia.
+El `.jar` queda en `build\libs\jobsmenu-0.6.0.jar` y se copia a la carpeta `mods` de la instancia.
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 

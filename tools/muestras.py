@@ -18,12 +18,12 @@ Asi que la cadena cambia de raiz:
 
 LA MATERIA PRIMA
 
-En tools/crudo/ hay 46 grabaciones reales, en dos tandas.
+En tools/crudo/ hay 33 grabaciones reales, en dos tandas.
 
-Las primeras 28 son objetos fisicos siendo golpeados: madera, tablon, metal,
+Las 21 primeras son objetos fisicos siendo golpeados: madera, tablon, metal,
 chapa, hojalata, vidrio, hormigon, material blando.
 
-Las 18 restantes se sumaron en 0.6.0 y son de otras CLASES de gesto, no de
+Las 12 restantes se sumaron en 0.6.0 y son de otras CLASES de gesto, no de
 otros materiales: roces (roceCorto, roceLargo, roceSuave, roceTela),
 trinquetes, pestillos que deslizan y enganchan, y objetos que se posan.
 
@@ -40,7 +40,7 @@ redistribucion permitida, atribucion no obligatoria. El texto de la licencia
 esta archivado en tools/crudo/LICENCIA.txt. Se acreditan igual, en el README y
 en los creditos del mod, porque corresponde aunque la licencia no lo exija.
 
-Estan versionadas dentro del repo a proposito. Son 2.6 MB y garantizan que
+Estan versionadas dentro del repo a proposito. Son 1.8 MB y garantizan que
 cualquiera pueda reconstruir el audio del mod sin depender de que una URL siga
 viva dentro de dos anos.
 
