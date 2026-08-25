@@ -18,15 +18,29 @@ Asi que la cadena cambia de raiz:
 
 LA MATERIA PRIMA
 
-En tools/crudo/ hay 28 grabaciones reales de objetos fisicos siendo golpeados:
-madera, tablon, metal, chapa, hojalata, vidrio, hormigon, material blando.
-Son del paquete Impact Sounds de Kenney (kenney.nl), publicado bajo
+En tools/crudo/ hay 46 grabaciones reales, en dos tandas.
+
+Las primeras 28 son objetos fisicos siendo golpeados: madera, tablon, metal,
+chapa, hojalata, vidrio, hormigon, material blando.
+
+Las 18 restantes se sumaron en 0.6.0 y son de otras CLASES de gesto, no de
+otros materiales: roces (roceCorto, roceLargo, roceSuave, roceTela),
+trinquetes, pestillos que deslizan y enganchan, y objetos que se posan.
+
+Esa segunda tanda existe porque la familia de sonidos de interfaz habia
+fracasado dos veces por la misma razon de fondo: toda la materia prima eran
+impactos, y un impacto siempre tiene la misma envolvente -transitorio y
+decaimiento- por mucho que cambie el material. El oido clasifica por envolvente
+antes que por material, asi que ocho impactos suenan a un solo sonido con ocho
+alturas. Faltaban clases de gesto, no mas materiales.
+
+Todas son del mismo origen: paquetes de Kenney (kenney.nl), publicados bajo
 **Creative Commons Zero (CC0 1.0)**: dominio publico, uso comercial permitido,
 redistribucion permitida, atribucion no obligatoria. El texto de la licencia
 esta archivado en tools/crudo/LICENCIA.txt. Se acreditan igual, en el README y
 en los creditos del mod, porque corresponde aunque la licencia no lo exija.
 
-Estan versionadas dentro del repo a proposito. Son 1.7 MB y garantizan que
+Estan versionadas dentro del repo a proposito. Son 2.6 MB y garantizan que
 cualquiera pueda reconstruir el audio del mod sin depender de que una URL siga
 viva dentro de dos anos.
 

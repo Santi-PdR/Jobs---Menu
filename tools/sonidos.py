@@ -235,7 +235,16 @@ def escribir(nombre: str, datos: np.ndarray, pico: float = 0.85) -> None:
     """
     ruta = DESTINO / f"{nombre}.ogg"
     ruta.parent.mkdir(parents=True, exist_ok=True)
-    datos = normalizar(np.asarray(datos, dtype=np.float64), pico)
+    datos = np.asarray(datos, dtype=np.float64)
+    # Techo, no destino. Antes esto normalizaba SIEMPRE al pico de la familia,
+    # y por lo tanto igualaba el volumen de las ocho piezas de interfaz por
+    # mucho que cada una se hubiera mezclado a un nivel distinto a proposito.
+    # El balance de la familia -que pasar suene mucho mas bajo que confirmar,
+    # porque suena treinta veces mas seguido- moria justo aca, en la ultima
+    # linea de la cadena. Ahora solo se baja lo que se pasa del techo.
+    actual = float(np.max(np.abs(datos)))
+    if actual > pico:
+        datos = normalizar(datos, pico)
     bloque = SR * 4
     with sf.SoundFile(ruta, "w", samplerate=SR, channels=1,
                       format="OGG", subtype="VORBIS") as archivo:
@@ -248,63 +257,87 @@ def escribir(nombre: str, datos: np.ndarray, pico: float = 0.85) -> None:
 # ==========================================================================
 # 1. Interfaz
 # ==========================================================================
-# QUINTA GENERACION, Y LA PRIMERA QUE NO SINTETIZA NADA.
+# SEXTA GENERACION. LA QUINTA ERA OCHO VARIANTES DEL MISMO GESTO.
 #
-# Van cuatro descartadas. Conviene dejar escrito por que, porque el error de
-# fondo fue siempre el mismo y es facil volver a cometerlo:
+# La quinta ya no sintetizaba nada -eso estaba bien y se conserva- pero fallo
+# por otro lado, y el diagnostico salio de medir los ocho archivos juntos en
+# vez de escucharlos de a uno:
 #
-#   1a. Clics comunes. Sonaban a interfaz de computadora.
-#   2a. Clics mejores -sellos, interruptores, ruedas dentadas-. El problema no
-#       era la calidad de cada pieza sino la categoria: un clic es un objeto
-#       que se manipula, y aca no hay ningun objeto que manipular.
-#   3a. Sin transitorio, todo con sumas de senoidales sobre 50 Hz. El concepto
-#       era correcto -que suene el edificio, no la interfaz- pero una pila de
-#       senoidales es justo lo que el oido reconoce como "sintetizador".
-#   4a. Sintesis modal: resonadores inarmonicos excitados con ruido. Es la
-#       tecnica con la que se modelan objetos fisicos, y aun asi fallo.
+#   pieza        dur    centroide   ataque   energia >4kHz
+#   pasar       0.140     649 Hz     19 ms       0.0 %
+#   elegir      0.200     374 Hz      9 ms       0.0 %
+#   alternar    0.130    1021 Hz     13 ms       0.0 %
+#   confirmar   0.460     539 Hz     11 ms       0.0 %
+#   volver      0.340     511 Hz     10 ms       0.0 %
+#   abrir       0.320     390 Hz    234 ms       0.0 %
+#   cerrar      0.400     384 Hz     11 ms       0.0 %
+#   negado      0.300     423 Hz      6 ms       0.0 %
 #
-# La leccion de la cuarta es la importante: el problema NO era la tecnica. Era
-# el metodo. Un golpe real trae cosas que ningun modelo pone porque no se le
-# ocurren: el roce de la mano una milesima antes del impacto, la resonancia
-# irregular de una pieza que no es perfecta, el aire de la habitacion donde se
-# grabo, una cola que no cae en linea recta, y suciedad. Un modelo produce lo
-# que el que lo escribio penso en poner; una grabacion trae ademas todo lo que
-# no penso. Eso es lo que separa "objeto" de "sintetizador".
+# Siete de ocho entre 374 y 649 Hz. Cero energia por encima de 4 kHz en LOS
+# OCHO. Todos con la misma forma: golpe al principio y cola que cae. Eso es,
+# literalmente, un solo sonido con ocho alturas y ocho duraciones, que es
+# exactamente lo que se dijo que no habia que hacer.
 #
-# Asi que la cadena cambia de raiz:
+# Tres causas, todas mias:
 #
-#   ANTES:  ruido -> sintesis -> filtro -> "sonido de boton"
-#   AHORA:  grabacion real -> diseno sonoro -> sonido final
+#   1. TODA la materia prima eran impactos. Madera, chapa, vidrio, hojalata:
+#      materiales distintos, pero un impacto siempre tiene la misma envolvente
+#      -transitorio y decaimiento- y el oido clasifica por envolvente antes que
+#      por material. Ocho impactos son ocho impactos.
+#   2. _acabado() aplastaba las diferencias que quedaban. Pasabajos a 4 kHz o
+#      menos para los ocho, la misma sala para los ocho, normalizado al mismo
+#      pico para los ocho. Cada regla era defendible por separado; juntas
+#      funcionaban como una prensa.
+#   3. "Techo en 5 kHz" era una sobrecorreccion de la primera generacion, que
+#      sonaba a plastico por brillo digital. Pero un roce de papel VIVE en los
+#      6-10 kHz. Sin esa banda no hay papel: hay un golpe sordo mas.
 #
-# La materia prima esta en tools/crudo/: 28 grabaciones reales de objetos
-# fisicos golpeados -madera, tablon, metal, chapa, hojalata, vidrio, hormigon,
-# material blando-, del paquete Impact Sounds de Kenney, CC0 / dominio publico.
-# Detalle de la licencia y de la cadena de edicion en tools/muestras.py.
+# QUE CAMBIA
 #
-# NADA SE USA CRUDO. Usar una muestra de libreria tal cual se oye enseguida:
-# suena a libreria. Cada gesto se construye con una o dos grabaciones que se
-# recortan, se bajan de altura, se les quita el brillo que las delata, se
-# mezclan por capas, a veces se invierten, y siempre pasan por la misma sala.
+# La familia ya no se define por el material ni por la altura. Se define por
+# el SITIO -una sala comun, en distinta cantidad- y por la MANO -que ningun
+# gesto ataque en seco-. Dentro de eso, cada gesto tiene una forma propia:
 #
-# El reparto de materiales sigue el criterio de que el oido tiene que poder
-# distinguir confirmar de volver sin pensarlo:
+#   gesto      clase de gesto      forma                     banda    dur
+#   pasar      roce                sin ataque, corto         media    100
+#   elegir     trinquete           dos tiempos: uno y otro   alta     170
+#   alternar   pestillo            desliza y engancha        media    210
+#   confirmar  posar con peso      presion, apoyo, sala      grave    520
+#   volver     roce a la inversa   crece y se detiene        media    300
+#   abrir      succion             el aire entra             baja     360
+#   cerrar     apoyo y sello       cae y se cierra           baja     420
+#   negado     nada resuena        golpe seco, y silencio    media    240
 #
-#   pasar      hormigon lejano, casi solo aire     (roce, no golpe)
-#   elegir     madera del tablon, seca             (el dedo sobre la hoja)
-#   alternar   vidrio corto, muy amortiguado       (la chincheta girando)
-#   confirmar  madera grave + chapa lejana         (el sello sobre la hoja)
-#   volver     el mismo cuerpo, mas hueco y suave  (pariente de confirmar)
-#   abrir      chapa invertida: el aire entra      (succion, no golpe)
-#   cerrar     chapa pesada apagandose             (el aire se va)
-#   negado     dos golpes sordos sobre algo firme  (nada resuena)
+# Cinco clases distintas de gesto en vez de una. Un roce no tiene transitorio;
+# un trinquete tiene DOS transitorios separados; un pestillo tiene ruido antes
+# del enganche; una succion tiene la energia al final. Esas son diferencias que
+# el oido no puede confundir aunque las alturas se toquen.
 #
-# Reglas duras que sobreviven a las cuatro generaciones porque eran correctas,
-# y que ahora se cumplen editando en vez de sintetizando:
-#   - Ningun ataque por debajo de 6 ms. Se redondea con suavizar_ataque().
-#   - Techo de energia en 5 kHz. Todo lo de arriba suena a plastico.
-#   - Componente grave presente en todos: si no hay graves no hay tamano.
-#   - Una sola sala comun a los ocho, para que pertenezcan al mismo sitio.
-#   - Entre 90 y 700 ms.
+# TRAS CINCUENTA REPETICIONES
+#
+# Es el criterio que se pidio y cambia las decisiones. pasar suena cientos de
+# veces por sesion: se le quito el cuerpo entero y quedo en 100 ms de aire con
+# grano, mas bajo que todo lo demas. confirmar suena tres o cuatro veces:
+# puede permitirse 520 ms y una cola de sala. La regla es que el volumen y la
+# duracion de cada gesto son inversamente proporcionales a su frecuencia de
+# uso, y por eso hay dieciseis dB entre el gesto mas repetido y el mas raro.
+#
+# El silencio tambien se diseno: negado termina en seco a proposito, sin cola
+# de sala, porque la informacion esta en que el sitio no responde.
+#
+# MATERIA PRIMA
+#
+# Sigue sin sintetizarse nada. A las 28 grabaciones de impacto se sumaron 18
+# de otras clases -roces, trinquetes, pestillos, objetos que se posan- del
+# mismo origen CC0. Eran justamente las clases que faltaban.
+#
+# Reglas que sobreviven, porque estas si eran correctas:
+#   - Ningun ataque instantaneo. Se redondea con suavizar_ataque().
+#   - Una sola sala para los ocho. Es lo unico que los emparenta ahora.
+#   - Componente grave en los gestos con peso. Sin graves no hay tamano.
+# Reglas eliminadas:
+#   - El techo unico en 5 kHz. Ahora cada gesto tiene el suyo, de 1.4 a 11 kHz.
+#   - El pico unico. Ahora cada gesto se normaliza a lo que le toca sonar.
 
 from muestras import (  # noqa: E402
     altura,
@@ -324,7 +357,8 @@ from muestras import (  # noqa: E402
 )
 
 # La sala de la interfaz es la del recinto donde esta clavada la hoja: chica,
-# seca, con un poco de cola. No es un efecto: es el sitio.
+# seca, con un poco de cola. No es un efecto: es el sitio. Es lo unico que
+# comparten los ocho gestos, y por eso ahora carga con todo el parentesco.
 UI = impulso(0.40, 0.005, 2_800.0, 0.9)
 
 # La red electrica. Ya no construye los gestos: solo los apoya, muy por debajo,
@@ -346,171 +380,259 @@ def _red(dur: float, armonicos, decaimiento: float) -> np.ndarray:
     return x * np.exp(-t / decaimiento)
 
 
-def _acabado(x: np.ndarray, dur: float, mezcla: float, ataque: float = 7.0,
-             techo: float = 4_600.0) -> np.ndarray:
-    """Acabado comun a los ocho gestos.
+def _gesto(x: np.ndarray, dur: float, mezcla: float, ataque: float,
+           pico: float, corte_bajo: float = 0.0, techo: float = 0.0,
+           cierre: float = 0.05) -> np.ndarray:
+    """Acabado comun, pero sin aplastar.
 
-    Recorta a la duracion pedida, redondea el ataque, quita el brillo que
-    delata la muestra de libreria, mete la pieza en la sala del mod y cierra
-    con fundidos. Que los ocho pasen por aqui es lo que los vuelve una familia.
+    La version anterior de esta funcion era la culpable de que los ocho gestos
+    se parecieran: imponia el mismo techo de frecuencia y el mismo pico a
+    todos. Ahora el techo y el pico son argumentos, y el techo puede no
+    aplicarse. Lo unico obligatorio para los ocho es la sala y que el ataque no
+    sea instantaneo, que es de donde tiene que venir el parentesco.
+
+    El pico distinto por gesto es deliberado: es el balance de la familia. Un
+    gesto que suena trescientas veces por sesion no puede pesar lo mismo que
+    uno que suena tres.
     """
     n = muestras(dur)
     if len(x) < n:
         x = np.concatenate([x, np.zeros(n - len(x))])
     x = x[:n]
     x = suavizar_ataque(x, ataque)
-    x = pb_m(x, techo, 4)
-    x = sala(x, UI, mezcla)[:n]
-    return fundido(norm_m(x, 0.9), 0.005, 0.05)
+    if corte_bajo > 0.0:
+        x = pa_m(x, corte_bajo, 2)
+    if techo > 0.0:
+        x = pb_m(x, techo, 4)
+    if mezcla > 0.0:
+        x = sala(x, UI, mezcla)[:n]
+    return fundido(norm_m(x, pico), 0.004, cierre)
 
 
 def ui_pasar() -> np.ndarray:
-    """Recorrer los renglones del aviso.
+    """Recorrer los renglones del aviso. El gesto mas repetido de todos.
 
-    Es el gesto que mas veces se oye en una sesion, asi que es el que menos
-    tiene que pesar: si tuviera cuerpo, cansaria a los treinta segundos. Se
-    parte de una pisada de hormigon, se le quita el impacto entero y se deja
-    solo el aire que la pisada movio, cinco octavas de reverberacion mas lejos.
-    No es un golpe: es el desplazamiento de aire de un golpe que ocurrio en
-    otra parte.
+    Es un ROCE, no un golpe: no tiene transitorio. El oido lo distingue de los
+    otros siete antes de identificar de que material es, porque la ausencia de
+    ataque es una diferencia de categoria, no de grado.
+
+    Concretamente: el canto de la hoja de papel contra el tablon cuando la
+    vista baja un renglon. Se hace con dos roces reales cruzados, uno con grano
+    y otro suave, filtrados a la banda del papel -1.8 a 9 kHz- que es
+    exactamente la banda que la version anterior recortaba. Cien milisegundos,
+    y el pico mas bajo de la familia por bastante: 0.34 contra 0.9 de antes.
+    Tres veces mas bajo, porque suena treinta veces mas seguido.
+
+    Casi sin sala: un roce de papel a treinta centimetros no reverbera.
     """
-    base = cargar("footstep_concrete_000")
-    aire = cola(base, 0.012)              # fuera el impacto: solo lo que queda
-    aire = altura(aire, 0.55)             # mas grave y mas largo: mas lejos
-    aire = pb_m(aire, 1_400.0, 4) * 0.5
-    roce = pa_m(cargar("footstep_carpet_000"), 900.0) * 0.16
-    roce = altura(roce, 0.8)
-    x = apilar((aire, 1.0), (roce, 0.5))
-    return _acabado(x, 0.14, 0.30, ataque=9.0, techo=2_600.0)
+    grano = pa_m(cargar("roceCorto_001"), 1_800.0, 2)
+    grano = recortar(grano, 0.004, 0.075)
+    grano = pb_m(grano, 6_200.0, 4)
+    suave = altura(cargar("roceSuave_000"), 1.25)
+    suave = pa_m(pb_m(suave, 6_000.0), 900.0, 2)
+    suave = recortar(suave, 0.0, 0.09) * 0.55
+    # Sin ataque: la envolvente sube y baja sin pico. Es lo que separa un roce
+    # de un golpe, y es toda la identidad de este gesto.
+    x = apilar((grano, 0.75), (suave, 1.0))
+    n = len(x)
+    forma = np.sin(np.linspace(0.0, np.pi, n)) ** 0.8
+    return _gesto(x * forma, 0.100, 0.06, ataque=12.0, pico=0.21,
+                  corte_bajo=700.0, techo=7_000.0, cierre=0.035)
 
 
 def ui_elegir() -> np.ndarray:
     """Marcar un renglon.
 
-    La madera del tablon donde esta clavada la hoja. Seca, corta, con el
-    cuerpo justo para que se note que algo solido acaba de recibir un toque.
-    Dos capas de la misma familia a alturas distintas: la de abajo pone el
-    tamano de la tabla, la de arriba el contacto del dedo.
+    Un TRINQUETE: dos transitorios separados por veintiocho milisegundos. Esa
+    separacion es la identidad del gesto -un diente que sube y cae- y es algo
+    que un impacto no puede imitar por mucho que se le cambie la altura.
+
+    El primero es el diente, corto y agudo. El segundo es el asiento, mas
+    grave y mas flojo, con una pizca de madera del tablon debajo para que el
+    mecanismo este montado en algo y no flotando. Lleva brillo hasta 11 kHz: es
+    el gesto mas agudo de los ocho y tiene que serlo, porque es el que confirma
+    que el dedo acerto.
     """
-    tabla = altura(cargar("impactWood_medium_000"), 0.88)
-    tabla = realzar(tabla, 240.0, 1.1, 1.3)
-    # El contacto del dedo vive entre 900 y 2500 Hz: sin esa banda la madera
-    # deja de leerse como madera y pasa a ser un golpe sordo sin material.
-    toque = altura(cargar("impactWood_light_000"), 1.15)
-    toque = realzar(pa_m(toque, 700.0), 1_500.0, 0.8, 2.2) * 0.85
-    # El retumbe por debajo de 120 Hz no es la madera: es el microfono. Se
-    # quita para que el golpe suene a tabla y no a bombo.
-    tabla = pa_m(tabla, 120.0, 2)
-    x = apilar((tabla, 1.0), (toque, 1.15))
-    return _acabado(x, 0.20, 0.24, ataque=6.5, techo=4_200.0)
+    diente = recortar(cargar("trinquete_000"), 0.0, 0.020)
+    diente = pa_m(diente, 1_200.0, 2)
+    asiento = altura(cargar("trinquete_001"), 0.82)
+    asiento = recortar(asiento, 0.010, 0.065)
+    asiento = pb_m(asiento, 7_000.0) * 0.62
+    tabla = altura(cargar("impactWood_light_000"), 0.9)
+    tabla = pb_m(pa_m(tabla, 260.0, 2), 2_400.0) * 0.30
+    x = apilar((diente, 1.0),
+               (retrasar(asiento, 0.028), 0.85),
+               (retrasar(tabla, 0.028), 0.5))
+    return _gesto(x, 0.170, 0.14, ataque=2.5, pico=0.52, techo=11_000.0)
 
 
 def ui_alternar() -> np.ndarray:
     """Pasar de un aviso a otro.
 
-    La chincheta que sujeta la hoja, girando en su agujero. Vidrio corto y muy
-    amortiguado: se le corta la cola casi entera para que quede el contacto y
-    nada mas. Es el gesto mas breve de los ocho, porque alternar es un
-    movimiento, no una decision.
+    Un PESTILLO: ruido de deslizamiento primero, enganche despues. La forma es
+    al reves que la de un impacto -la energia esta al final, no al principio- y
+    eso solo se consigue con material que de verdad se desliza.
+
+    Alternar es un movimiento lateral, y esto lo dice sin metaforas: algo corre
+    y se traba. La chincheta que sujetaba la hoja, girando en su agujero, ya no
+    hace falta: era una explicacion bonita para un sonido que no la contaba.
     """
-    pieza = recortar(cargar("impactGlass_light_001"), 0.0, 0.055)
-    pieza = altura(pieza, 0.62)
-    pieza = pb_m(pieza, 3_100.0, 4)
-    cuerpo = altura(cargar("impactWood_light_002"), 0.55) * 0.30
-    x = apilar((pieza, 1.0), (cuerpo, 0.7))
-    return _acabado(x, 0.13, 0.20, ataque=6.0, techo=3_400.0)
+    corre = recortar(cargar("pestillo_000"), 0.0, 0.085)
+    corre = pa_m(pb_m(corre, 6_500.0), 1_100.0, 2)
+    # La rampa es el gesto: el ruido de deslizamiento crece hacia el enganche.
+    corre *= np.linspace(0.25, 1.0, len(corre)) ** 1.4
+    traba = recortar(cargar("trinquete_002"), 0.0, 0.045)
+    traba = pb_m(pa_m(traba, 700.0, 2), 8_000.0)
+    cuerpo = altura(cargar("impactWood_light_002"), 0.62)
+    cuerpo = pb_m(cuerpo, 1_500.0) * 0.28
+    x = apilar((corre, 0.7),
+               (retrasar(traba, 0.086), 1.0),
+               (retrasar(cuerpo, 0.088), 0.55))
+    return _gesto(x, 0.210, 0.16, ataque=4.0, pico=0.62, techo=8_500.0)
 
 
 def ui_confirmar() -> np.ndarray:
-    """Aceptar el turno. El gesto con mas peso del menu.
+    """Aceptar el turno. El gesto con mas peso, y el que menos veces suena.
 
-    El sello sobre la hoja: primero la madera grave -el cuerpo del sello contra
-    la mesa- y, unos milisegundos despues, una chapa lejana que responde al
-    golpe desde el fondo del recinto. Esa segunda capa retrasada es la que da
-    la sensacion de que el sitio es grande y de que la decision tuvo
-    consecuencias en algun lugar que no se ve.
+    No es un golpe: es POSAR ALGO PESADO. Hay presion antes del apoyo -el peso
+    llegando- y sala despues. Tres tiempos: el roce del canto del sello al
+    entrar en contacto, el apoyo con todo el cuerpo, y la chapa lejana que
+    responde desde el fondo del recinto cuarenta y cinco milisegundos despues.
+
+    Esa tercera capa retrasada es la que dice que el sitio es grande y que la
+    decision se oyo en algun lugar que no se ve. Es el unico gesto con reverbe
+    generosa -0.40 de mezcla- porque es el unico que se puede permitir ocupar
+    medio segundo sin cansar: suena tres o cuatro veces por sesion.
     """
-    sello = altura(cargar("impactWood_medium_003"), 0.66)
-    sello = realzar(sello, 140.0, 0.9, 1.6)
-    sello = realzar(sello, 1_200.0, 0.7, 1.35)
-    chapa = altura(cargar("impactPlate_medium_001"), 0.42)
-    chapa = pb_m(chapa, 1_900.0, 4)
-    chapa = retrasar(chapa, 0.045) * 0.34
-    sello = pa_m(sello, 90.0, 2)
-    grave = _red(0.30, ((1, 0.5), (2, 0.2)), 0.11) * 0.10
-    x = apilar((sello, 1.0), (chapa, 0.8), (grave, 0.9))
-    return _acabado(x, 0.46, 0.34, ataque=7.0, techo=3_600.0)
+    canto = pa_m(cargar("roceCorto_000"), 2_000.0, 2)
+    canto = recortar(canto, 0.0, 0.030) * 0.30
+    apoyo = altura(cargar("posar_001"), 0.58)
+    apoyo = realzar(apoyo, 150.0, 0.9, 1.7)
+    apoyo = realzar(apoyo, 1_100.0, 0.8, 1.25)
+    apoyo = pa_m(apoyo, 80.0, 2)
+    peso = altura(cargar("impactSoft_heavy_001"), 0.5)
+    peso = pb_m(peso, 320.0, 4) * 0.55
+    chapa = altura(cargar("impactPlate_medium_001"), 0.40)
+    chapa = pb_m(chapa, 1_700.0, 4)
+    chapa = retrasar(chapa, 0.045) * 0.30
+    grave = _red(0.34, ((1, 0.5), (2, 0.18)), 0.13) * 0.09
+    x = apilar((canto, 0.8), (retrasar(apoyo, 0.022), 1.0),
+               (retrasar(peso, 0.024), 0.7), (chapa, 0.8), (grave, 0.9))
+    return _gesto(x, 0.520, 0.40, ataque=6.0, pico=0.72, techo=5_200.0,
+                  cierre=0.14)
 
 
 def ui_volver() -> np.ndarray:
     """Retroceder.
 
-    Pariente directo de confirmar -el mismo cuerpo de madera- pero una quinta
-    mas abajo, sin la chapa del fondo y con el ataque mas redondeado. Que se
-    reconozca la familia es deliberado: volver es confirmar al reves, y el oido
-    tiene que emparentarlos sin confundirlos.
+    Un ROCE AL REVES: crece y se detiene, en vez de golpear y caer. Es el unico
+    gesto de la familia cuya envolvente va hacia arriba, y por eso se lee de
+    inmediato como "hacia atras" sin necesidad de ser mas grave que confirmar
+    ni de imitarlo.
+
+    Aca estaba el peor error de la version anterior: volver era literalmente
+    confirmar una quinta mas abajo, con el mismo archivo de origen. El
+    parentesco era tan estrecho que sonaba a error de programacion. Ahora son
+    gestos opuestos que comparten unicamente la sala.
+
+    La hoja de papel despegandose del tablon y volviendo a apoyarse. Termina en
+    un apoyo blando, sin cola: retroceder no resuena.
     """
-    cuerpo = altura(cargar("impactWood_medium_003"), 0.60)
-    cuerpo = realzar(cuerpo, 320.0, 1.0, 1.2)
-    # Un poco de tablon aporta la madera que se reconoce; sin el, el gesto se
-    # hunde por debajo de donde los parlantes chicos ya no llegan.
-    veta = altura(cargar("impactPlank_medium_002"), 0.70)
-    veta = pb_m(pa_m(veta, 600.0), 3_000.0) * 0.70
-    hueco = altura(cargar("impactSoft_medium_000"), 0.8) * 0.35
-    cuerpo = pa_m(cuerpo, 95.0, 2)
-    x = apilar((cuerpo, 1.0), (veta, 1.0), (hueco, 0.45))
-    return _acabado(x, 0.34, 0.30, ataque=9.0, techo=3_200.0)
+    roce = altura(cargar("roceLargo_000"), 0.78)
+    roce = pa_m(pb_m(roce, 5_500.0), 600.0, 2)
+    roce = recortar(roce, 0.0, 0.175)
+    # Envolvente creciente: la que hace que el gesto vaya hacia atras.
+    roce *= np.linspace(0.10, 1.0, len(roce)) ** 1.25
+    apoyo = altura(cargar("posar_000"), 0.72)
+    apoyo = pb_m(pa_m(apoyo, 180.0, 2), 2_600.0)
+    hueco = altura(cargar("impactSoft_medium_000"), 0.85)
+    hueco = pb_m(hueco, 900.0) * 0.32
+    x = apilar((roce, 0.62), (retrasar(apoyo, 0.176), 1.0),
+               (retrasar(hueco, 0.178), 0.6))
+    return _gesto(x, 0.300, 0.20, ataque=8.0, pico=0.46, techo=6_000.0,
+                  cierre=0.09)
 
 
 def ui_abrir() -> np.ndarray:
     """Abrir el aviso.
 
-    Una chapa invertida. Al dar la vuelta a una grabacion, la cola de
-    resonancia pasa a ir hacia adelante y el golpe queda al final: el sonido
-    entra en vez de salir. Es exactamente la sensacion de un recinto que se
-    abre y se llena de aire. El golpe final se recorta casi del todo para que
-    no haya impacto, solo la llegada.
+    Una SUCCION: la energia esta al final. Al invertir una grabacion, la cola
+    de resonancia pasa a ir hacia adelante y el golpe queda al final, asi que
+    el sonido entra en vez de salir. Es exactamente la sensacion de un recinto
+    que se abre y se llena de aire.
+
+    Esta idea ya estaba en la version anterior y era la unica de las ocho que
+    tenia forma propia -234 ms de ataque frente a 6-19 del resto-, asi que se
+    conserva y se le agrega lo que le faltaba: aire con grano en la banda alta,
+    que es lo que convierte una chapa invertida en una puerta que se abre.
+    El golpe final se recorta casi entero para que no haya impacto, solo la
+    llegada.
     """
     chapa = invertir(cargar("impactPlate_light_002"))
     chapa = altura(chapa, 0.48)
-    chapa = pb_m(chapa, 2_200.0, 4)
-    chapa = recortar(chapa, 0.0, 0.30)
+    chapa = pb_m(chapa, 2_400.0, 4)
+    chapa = recortar(chapa, 0.0, 0.32)
     aire = invertir(cola(cargar("footstep_concrete_002"), 0.010))
-    aire = altura(aire, 0.5) * 0.4
-    x = apilar((chapa, 1.0), (aire, 0.6))
-    return _acabado(x, 0.32, 0.36, ataque=14.0, techo=2_800.0)
+    aire = altura(aire, 0.5) * 0.40
+    # El grano invertido en la banda alta: el aire que entra por el hueco.
+    grano = invertir(pa_m(cargar("roceLargo_000"), 2_500.0, 2))
+    grano = pb_m(grano, 9_500.0)
+    grano = recortar(grano, 0.0, 0.30) * 0.22
+    x = apilar((chapa, 1.0), (aire, 0.6), (grano, 0.8))
+    return _gesto(x, 0.360, 0.34, ataque=16.0, pico=0.47, techo=9_500.0,
+                  cierre=0.10)
 
 
 def ui_cerrar() -> np.ndarray:
     """Cerrar el aviso. El reverso de abrir: el aire se va.
 
-    La misma chapa, ahora en su sentido natural, bajada y con la cola alargada
-    hacia el silencio. Termina mas abajo de donde empezo.
+    Dos tiempos, en el orden contrario al de abrir: primero la chapa pesada
+    que cae, despues el sello de aire que la sigue. Termina mas grave de lo
+    que empieza -es el unico gesto que baja de altura mientras suena- y eso es
+    lo que lo cierra.
     """
-    chapa = altura(cargar("impactPlate_heavy_000"), 0.40)
-    chapa = pb_m(chapa, 1_700.0, 4)
-    fondo = altura(cargar("impactSoft_heavy_001"), 0.85) * 0.45
-    x = apilar((chapa, 1.0), (fondo, 0.7))
-    return _acabado(x, 0.40, 0.32, ataque=8.0, techo=2_200.0)
+    chapa = altura(cargar("impactPlate_heavy_000"), 0.44)
+    chapa = pb_m(chapa, 1_800.0, 4)
+    chapa = realzar(chapa, 190.0, 0.9, 1.35)
+    sello = pb_m(pa_m(cargar("roceSuave_000"), 800.0, 2), 4_200.0)
+    sello = recortar(sello, 0.0, 0.11)
+    sello *= np.linspace(1.0, 0.15, len(sello)) ** 1.1
+    fondo = altura(cargar("impactSoft_heavy_001"), 0.46)
+    fondo = pb_m(fondo, 260.0, 4) * 0.42
+    x = apilar((chapa, 1.0), (retrasar(sello, 0.055), 0.42),
+               (retrasar(fondo, 0.030), 0.7))
+    return _gesto(x, 0.420, 0.30, ataque=9.0, pico=0.56, corte_bajo=70.0,
+                  techo=4_400.0, cierre=0.13)
 
 
 def ui_negado() -> np.ndarray:
     """Accion invalida.
 
     Sin pitido, sin nota triste, sin nada que parezca un error de sistema
-    operativo. Dos golpes sordos sobre algo que no cede: el segundo mas flojo
-    que el primero, y ninguno de los dos resuena. La informacion esta en que no
-    pasa nada. El material se elige muerto a proposito -blando, sin cola-
-    porque es la unica forma de que "no" se lea como "no".
+    operativo. Un golpe sordo sobre algo que no cede, y despues nada.
+
+    Dos decisiones sobre el silencio, que es lo que hace funcionar este gesto:
+
+    La primera es que se paso de dos golpes a uno. Dos golpes son un patron, y
+    un patron se vuelve un tic despues de la quinta vez que se pulsa algo
+    bloqueado. Uno solo, seguido de nada, dice lo mismo y no se gasta.
+
+    La segunda es que es el UNICO de los ocho sin sala: mezcla cero. Los otros
+    siete devuelven el recinto; este no devuelve nada. La informacion esta ahi,
+    en que el sitio no responde. Que rompa la regla de familia es el sentido de
+    la regla: el gesto que dice que no es el que no pertenece.
     """
-    seco = altura(cargar("impactSoft_medium_000"), 0.78)
-    # Se le suma un roce mate: "no" tiene que oirse tambien en un portatil, y
-    # para eso hace falta algo por encima de los 500 Hz aunque sea sin brillo.
-    mate = pb_m(pa_m(altura(cargar("footstep_carpet_000"), 0.7), 500.0), 2_000.0)
-    seco = apilar((pa_m(pb_m(seco, 1_100.0, 4), 110.0, 2), 1.0), (mate, 0.55))
-    seco = recortar(seco, 0.0, 0.10)
-    x = apilar((seco, 1.0), (retrasar(seco, 0.082), 0.52))
-    return _acabado(x, 0.30, 0.18, ataque=7.0, techo=1_600.0)
+    seco = altura(cargar("impactoSordo_000"), 0.74)
+    seco = pa_m(pb_m(seco, 1_000.0, 4), 105.0, 2)
+    seco = recortar(seco, 0.0, 0.115)
+    # Un roce mate encima: "no" tiene que oirse tambien en un portatil, y para
+    # eso hace falta algo por encima de 500 Hz aunque sea sin ningun brillo.
+    mate = pb_m(pa_m(altura(cargar("roceTela_000"), 0.7), 520.0, 2), 2_100.0)
+    mate = recortar(mate, 0.0, 0.06)
+    x = apilar((seco, 1.0), (mate, 0.42))
+    # Sala cero y cierre corto: despues del golpe no queda nada.
+    return _gesto(x, 0.240, 0.0, ataque=7.0, pico=0.40, techo=1_900.0,
+                  cierre=0.06)
 
 
 # ==========================================================================
