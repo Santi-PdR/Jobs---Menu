@@ -1,12 +1,15 @@
 package com.santipdr.jobsmenu.client.ui;
 
+import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvent;
 
 /**
  * Un renglon del listado de turnos, tal como esta impreso en el aviso.
@@ -31,23 +34,43 @@ public class RenglonTablon extends AbstractButton {
 
     private float foco;
 
+    /** Para no repetir el roce de papel en cada fotograma que el cursor este encima. */
+    private boolean sonaba;
+
     public RenglonTablon(int x, int y, int ancho, int alto, String orden, Component etiqueta, Runnable accion) {
         super(x, y, ancho, alto, etiqueta);
         this.orden = orden;
         this.accion = accion;
         this.foco = 0.0F;
+        this.sonaba = false;
     }
 
     @Override
     public void onPress() {
+        sonar(SonidosNivel.MARCAR.get(), 0.65F);
         this.accion.run();
+    }
+
+    /** Un sonido corto, sin posicion en el mundo, solo si el jugador los quiere. */
+    private static void sonar(SoundEvent evento, float volumen) {
+        if (!ConfigTurno.sonidoBotones()) {
+            return;
+        }
+        Minecraft.getInstance().getSoundManager()
+                .play(SimpleSoundInstance.forUI(evento, 1.0F, volumen));
     }
 
     @Override
     public void renderWidget(GuiGraphics grafico, int ratonX, int ratonY, float parcial) {
         Minecraft cliente = Minecraft.getInstance();
 
-        float objetivo = this.isHoveredOrFocused() ? 1.0F : 0.0F;
+        boolean encima = this.isHoveredOrFocused();
+        if (encima && !this.sonaba) {
+            sonar(SonidosNivel.RECORRER.get(), 0.55F);
+        }
+        this.sonaba = encima;
+
+        float objetivo = encima ? 1.0F : 0.0F;
         if (ConfigTurno.movimientoReducido() || !ConfigTurno.escenaViva()) {
             this.foco = objetivo;
         } else {

@@ -2,6 +2,10 @@ package com.santipdr.jobsmenu.client.screen;
 
 import com.santipdr.jobsmenu.JobsMenu;
 import com.santipdr.jobsmenu.client.scene.EscenaNivel;
+import com.santipdr.jobsmenu.client.scene.Nivel;
+import com.santipdr.jobsmenu.client.scene.RotacionNiveles;
+import com.santipdr.jobsmenu.client.sound.SonidosNivel;
+import com.santipdr.jobsmenu.client.sound.ZumbidoNivel;
 import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.santipdr.jobsmenu.client.ui.RelojAparicion;
 import com.santipdr.jobsmenu.client.ui.RenglonTablon;
@@ -9,11 +13,13 @@ import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvent;
 
 /**
  * Pantalla de titulo: el aviso pegado a la pared del nivel.
@@ -33,16 +39,33 @@ public class PantallaNivel extends Screen {
     private static final int ALTO_RENGLON = 20;
     private static final int SEPARACION = 3;
 
+    /** Cuanto tarda el rotulo del nivel nuevo en terminar de aparecer. */
+    private static final long ENTRADA_ROTULO_MS = 900L;
+
     private int hojaX;
     private int hojaY;
     private int hojaAlto;
 
+    /** Ultimo nivel visto, para saber cuando cambio sin llevar temporizadores. */
+    private int nivelVisto;
+
+    /** Si ya sono el apagon de la transicion en curso. */
+    private boolean apagonSonado;
+
+    /** Momento en que se instalo el nivel actual, para la entrada del rotulo. */
+    private long desdeCambio;
+
     public PantallaNivel() {
         super(Component.translatable("jobsmenu.pantalla.nivel"));
+        this.nivelVisto = RotacionNiveles.indiceActual();
+        this.apagonSonado = false;
+        this.desdeCambio = System.currentTimeMillis();
     }
 
     @Override
     protected void init() {
+        arrancarAmbiente();
+
         this.hojaX = Math.max(14, (int) (this.width * 0.07F));
         this.hojaY = Math.max(16, (int) (this.height * 0.13F));
         this.hojaAlto = Math.min(this.height - this.hojaY - 16, 208);
@@ -62,17 +85,37 @@ public class PantallaNivel extends Screen {
                 x, y, ancho, ALTO_RENGLON, orden, Component.translatable(clave), accion));
     }
 
+    /** El zumbido del pasillo, si no hay uno sonando ya. */
+    private void arrancarAmbiente() {
+        if (!ConfigTurno.sonidoAmbiente()) {
+            return;
+        }
+        Minecraft.getInstance().getSoundManager().play(new ZumbidoNivel());
+    }
+
+    /** Interruptor de pared: se usa al saltar a cualquier pantalla de Minecraft. */
+    private void sonarPesado() {
+        if (!ConfigTurno.sonidoBotones()) {
+            return;
+        }
+        Minecraft.getInstance().getSoundManager()
+                .play(SimpleSoundInstance.forUI(SonidosNivel.PESADO.get(), 1.0F, 0.60F));
+    }
+
     private void abrirTurno() {
+        sonarPesado();
         Minecraft cliente = Minecraft.getInstance();
         cliente.setScreen(new SelectWorldScreen(this));
     }
 
     private void abrirCuadrilla() {
+        sonarPesado();
         Minecraft cliente = Minecraft.getInstance();
         cliente.setScreen(new JoinMultiplayerScreen(this));
     }
 
     private void abrirCondiciones() {
+        sonarPesado();
         Minecraft cliente = Minecraft.getInstance();
         cliente.setScreen(new OptionsScreen(this, cliente.options));
     }
@@ -83,6 +126,7 @@ public class PantallaNivel extends Screen {
 
     @Override
     public void render(GuiGraphics grafico, int ratonX, int ratonY, float parcial) {
+        seguirTransicion();
         this.renderBackground(grafico);
 
         if (!ConfigTurno.interfazMinima()) {
@@ -99,8 +143,69 @@ public class PantallaNivel extends Screen {
             aviso(grafico);
         }
         if (!ConfigTurno.interfazMinima()) {
+            rotuloNivel(grafico);
             sello(grafico);
         }
+    }
+
+    /**
+     * Acompana el cambio de nivel con sonido.
+     *
+     * Nadie anuncia el cambio: se apaga la luz, se oye el tubo rendirse y,
+     * cuando vuelve, el pasillo ya es otro. Los dos golpes se disparan una
+     * sola vez por transicion.
+     */
+    private void seguirTransicion() {
+        boolean cambiando = RotacionNiveles.enTransicion();
+
+        if (cambiando && !this.apagonSonado) {
+            this.apagonSonado = true;
+            sonarNivel(SonidosNivel.APAGON.get(), 0.55F);
+        }
+        if (!cambiando) {
+            this.apagonSonado = false;
+        }
+
+        int ahora = RotacionNiveles.indiceActual();
+        if (ahora != this.nivelVisto) {
+            this.nivelVisto = ahora;
+            this.desdeCambio = System.currentTimeMillis();
+            sonarNivel(SonidosNivel.ENCENDIDO.get(), 0.50F);
+        }
+    }
+
+    private void sonarNivel(SoundEvent evento, float volumen) {
+        if (!ConfigTurno.sonidoAmbiente()) {
+            return;
+        }
+        Minecraft.getInstance().getSoundManager()
+                .play(SimpleSoundInstance.forUI(evento, 1.0F, volumen));
+    }
+
+    /**
+     * El nombre del nivel donde esta parado el jugador, abajo a la izquierda.
+     * Aparece con la luz nueva y se queda: es un cartel de pared, no un aviso.
+     */
+    private void rotuloNivel(GuiGraphics grafico) {
+        Nivel nivel = RotacionNiveles.actual();
+
+        float entrada = (System.currentTimeMillis() - this.desdeCambio) / (float) ENTRADA_ROTULO_MS;
+        entrada = Math.max(0.0F, Math.min(1.0F, entrada));
+        float alfa = entrada * RotacionNiveles.luzDisponible();
+        if (alfa <= 0.02F) {
+            return;
+        }
+
+        Component nombre = Component.translatable("jobsmenu." + nivel.clave + ".nombre");
+        Component nota = Component.translatable("jobsmenu." + nivel.clave + ".nota");
+
+        int x = 12;
+        int y = this.height - 30;
+
+        grafico.drawString(this.font, nombre, x, y,
+                Paleta.conAlfa(Paleta.PAPEL, 0.85F * alfa), false);
+        grafico.drawString(this.font, nota, x, y + 11,
+                Paleta.conAlfa(Paleta.PAPEL, 0.45F * alfa), false);
     }
 
     @Override

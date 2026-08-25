@@ -1,0 +1,47 @@
+{
+  "ambiente.zumbido": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.zumbido",
+    "sounds": [
+      {
+        "name": "jobsmenu:zumbido",
+        "stream": false
+      }
+    ]
+  },
+  "aviso.recorrer": {
+    "category": "master",
+    "subtitle": "jobsmenu.subtitulo.recorrer",
+    "sounds": [
+      "jobsmenu:recorrer"
+    ]
+  },
+  "aviso.marcar": {
+    "category": "master",
+    "subtitle": "jobsmenu.subtitulo.marcar",
+    "sounds": [
+      "jobsmenu:marcar"
+    ]
+  },
+  "aviso.pesado": {
+    "category": "master",
+    "subtitle": "jobsmenu.subtitulo.pesado",
+    "sounds": [
+      "jobsmenu:pesado"
+    ]
+  },
+  "nivel.apagon": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.apagon",
+    "sounds": [
+      "jobsmenu:apagon"
+    ]
+  },
+  "nivel.encendido": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.encendido",
+    "sounds": [
+      "jobsmenu:encendido"
+    ]
+  }
+}

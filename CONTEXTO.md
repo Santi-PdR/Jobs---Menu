@@ -10,7 +10,7 @@
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
 | Paquete Java | `com.santipdr.jobsmenu` |
-| Versión actual | **0.1.0** |
+| Versión actual | **0.2.0** |
 | Plataforma | Minecraft **1.20.1** · Forge **47.x** · Java **17** |
 | Alcance | Menús (Title / Pause / Options), escena viva, audio, lore. **Sin gameplay.** |
 | Lado | **Cliente**. El mod no toca el servidor ni exige instalarse en él. |
@@ -125,7 +125,7 @@ Implementados en `client/screen/PantallaNivel.java`.
 | Hoja, cuerpo | Los cuatro renglones del formulario |
 | Hoja, pie | **Avisos rotativos** (cambian cada 7 s, con ajuste de línea) |
 | Esquina superior derecha | **Cuenta regresiva a la próxima ronda**, sobre placa oscura |
-| Esquina inferior derecha | Sello: `jobsmenu 0.1.0` |
+| Esquina inferior derecha | Sello: `jobsmenu 0.2.0` |
 
 Renglones del formulario:
 
@@ -149,22 +149,80 @@ Es deliberadamente inútil: no podés hacer nada al respecto. Ese es el punto.
 
 ### 3.2 Escena viva
 
-`client/scene/EscenaNivel.java`, todo procedural (cero texturas en 0.1.0):
+`client/scene/EscenaNivel.java`, todo procedural (cero texturas). Reescrita entera en 0.2.0: la primera
+versión apilaba rectángulos que no convergían y se leía como una escalera, no como un pasillo.
 
-1. **Perspectiva de un punto**: 11 tramos de pasillo que convergen, con curva cuadrática (`escala()`) para
-   que los tramos cercanos ocupen mucho más que los lejanos.
-2. Paredes, cielorraso y alfombra por tramo, con la luz cayendo según la distancia.
-3. Manchas de humedad deterministas (semilla fija: siempre el mismo pasillo).
-4. Hilera de fluorescentes, **cada uno con su propio parpadeo desfasado** — nunca fallan todos a la vez.
-5. Halo sobre las placas y reflejo pálido en la alfombra.
-6. **El vano** al fondo, con su marco, y la silueta que lo cruza cada ~47 s.
-7. Polvo suspendido, más visible a la altura de los tubos.
-8. Viñeta perimetral.
+**La geometría sale de un solo punto.** Fuga en `(0.545·ancho, 0.520·alto)` — descentrada a propósito, un
+pasillo perfectamente simétrico parece una maqueta. La abertura del fondo mide `w = ancho·semiancho` y
+`h = w·proporcion`, ambos del nivel activo. De ahí salen las cuatro aristas a las esquinas de la pantalla.
 
-Las capas 4, 7 y la silueta responden a *movimiento reducido* y *destellos reducidos*.
+**La clave es que las tres superficies comparten la serie de profundidades.** `PANELES = 26` tramos, cada
+uno a `profundidadPanel(j) = 26/j`. Suelo, cielorraso y paredes recorren la misma serie, así que sus juntas
+caen alineadas y el ojo cierra la caja. Con series distintas —el error de la 0.1.0— el pasillo se despega.
+
+Cada punto conoce su distancia al eje: `dx = |x - fugaX| / w`, y de ahí `lejos = clamp(1/dx, 0, 1)`. Eso
+gradúa la luz (paredes `0.52 + 0.48·lejos`, techo `0.60 + 0.40·lejos`, suelo `0.55 + 0.45·lejos`) y la
+opacidad de cada junta, que se desvanece hacia la cámara en vez de cortarse en un marco rectangular.
+
+Los grosores llevan tope: transversales `max(1, min(h·0.075, h·dx·0.010))`. Sin ese tope, los tramos
+cercanos se dibujaban como escalones enormes.
+
+Encima de la caja: humedades deterministas (semilla fija — siempre el mismo pasillo), hilera de
+fluorescentes con parpadeo desfasado, reflejo en el suelo según el material del nivel, zócalo, tuberías o
+marcos según corresponda, el vano del fondo, polvo y viñeta perimetral.
+
+**La silueta** cruza la abertura del fondo cada 47 s durante 2.6 s: cabeza, hombros y piernas que alternan.
+Un solo rectángulo parecía un poste; con tres partes ya camina.
+
+### 3.3 Los cuatro niveles
+
+`client/scene/Nivel.java` es el catálogo. Cada nivel cambia proporción, ancho, colores, reflejo y qué cosas
+cuelgan de las paredes:
+
+| Clave | Nivel | Proporción | Semiancho | Reflejo | Señas |
+|---|---|---|---|---|---|
+| `nivel0` | Sección administrativa | 0.92 | 0.082 | 0.16 | Papel mural amarillo, zócalo, humedad total |
+| `nivel1` | Depósito | 0.98 | 0.132 | 0.30 | Hormigón, mucho más ancho, neblina |
+| `nivel2` | Pasillos de servicio | 0.78 | 0.070 | 0.22 | Estrecho y alto, óxido, tuberías |
+| `nivel3` | Las piscinas | 1.02 | 0.098 | 0.62 | Azulejo, casi cuadrado, todo se refleja |
+
+### 3.4 La transición
+
+`client/scene/RotacionNiveles.java`. **El nivel no se funde con el siguiente: se apaga la luz.** Estancia de
+24 s, transición de 2.6 s, ciclo de 26.6 s derivado del reloj del sistema (sin estado que sincronizar).
+
+El primer 42 % de la transición apaga con `1 - t²`, con dos titileos de agonía por el camino. El índice del
+nivel salta **a mitad del apagón**, cuando no se ve nada. El 58 % restante enciende con `arranqueTubo`: no
+es una rampa, es un tubo fluorescente costándole arrancar — `0.55`, cae a `0.05`, salta a `0.80`, cae a
+`0.10`, se estabiliza en `0.35` y recién ahí sube parejo.
+
+Cuando la luz vuelve, el pasillo es otro. Nadie lo comenta.
+
+Con *destellos reducidos*, la subida es lineal y sin titileos. Con *movimiento reducido* no hay polvo ni
+silueta. Cualquiera de los dos deja la escena legible.
 
 > **Nota técnica que costó un bug:** `GuiGraphics#fillGradient` interpola **sólo en vertical**. Las viñetas
 > laterales se dibujan columna por columna con `fill`, no con `fillGradient`.
+
+### 3.5 Sonido
+
+Seis piezas, **todas sintetizadas para el mod** con `tools/sonidos.py` (numpy + soundfile): no hay muestras
+de terceros, así que no hay licencias de por medio. Mono, 44.1 kHz, OGG Vorbis, 144 kB en total.
+
+| Evento | Qué es | Dónde suena |
+|---|---|---|
+| `ambiente.zumbido` | Fluorescente: 50/100/150/200 Hz, siseo, aire y carraspeos | En bucle, todo el menú |
+| `aviso.recorrer` | Roce de papel | Al pasar el foco por un renglón |
+| `aviso.marcar` | Sello y clic | Al marcar la casilla |
+| `aviso.pesado` | Interruptor de pared | Al saltar a otra pantalla |
+| `nivel.apagon` | El tubo se rinde | Al empezar la transición |
+| `nivel.encendido` | Chispazos y arranque | Cuando el nivel nuevo se instala |
+
+El zumbido es un `AbstractTickableSoundInstance` en `SoundSource.AMBIENT` sin atenuación. **Su volumen
+sigue a la luz de la escena** (`0.35 + 0.65·luz`, suavizado a 0.08 por tick) y su tono cambia con el nivel:
+cuando la luz cae en la transición, el zumbido cae con ella. El silencio del apagón es parte del efecto.
+
+`nivel.encendido` está sincronizado con `arranqueTubo`: los chispazos caen donde la luz titila.
 
 ---
 
@@ -181,6 +239,11 @@ Las capas 4, 7 y la silueta responden a *movimiento reducido* y *destellos reduc
 | `interfaz_minima` | `false` | Deja sólo la cabecera y los renglones: sin hoja, sin avisos, sin reloj. |
 | `mostrar_cuenta_regresiva` | `true` | Control fino del reloj de ronda. |
 | `avisos_rotativos` | `true` | Control fino de la línea de avisos. |
+| `rotar_niveles` | `true` | En `false`, el fondo se queda en un solo nivel. |
+| `nivel_fijo` | `0` | Qué nivel mostrar cuando la rotación está apagada (0–3). |
+| `sonido_botones` | `true` | Roce, sello e interruptor de los renglones. |
+| `sonido_ambiente` | `true` | Zumbido del fluorescente y los golpes de la transición. |
+| `volumen_ambiente` | `55` | Volumen del zumbido, 0–100. |
 
 Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y legible**, nunca uno roto.
 
@@ -191,8 +254,8 @@ Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y
 | Fase | Contenido | Estado |
 |---|---|---|
 | **0.1.0** | Esqueleto Forge, config, paleta, pasillo procedural, aviso, renglones, reloj de ronda | **Entregado** |
-| 0.2.0 | Pausa ("Estancia en suspenso") y opciones con la misma piel | Pendiente |
-| 0.3.0 | Audio: zumbido del fluorescente, silencio en la ronda, golpe seco | Pendiente |
+| **0.2.0** | Escena rehecha, cuatro niveles rotando con apagón, audio completo, rótulo de nivel | **Entregado** |
+| 0.3.0 | Pausa ("Estancia en suspenso") y opciones con la misma piel | Pendiente |
 | 0.4.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
 | 0.5.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |
 | 1.0.0 | Pulido, accesibilidad completa, empaquetado para repartir | Pendiente |
@@ -233,8 +296,9 @@ toque el servidor. **La tarifa del menú es decorativa**: no lee el dinero real 
 
 | Archivo | Para qué |
 |---|---|
-| `tools/verificar.py` | Sustituto del compilador ausente, en 7 bloques: versiones sincronizadas, **`mods.toml` parseado y validado contra el esquema de Forge 47**, paridad y validez de los `lang`, claves usadas vs. existentes, ASCII puro y balance de delimitadores en `.java`, **metodos llamados que la clase no declara**, y recursos (`pack_format`, archivos de Gradle). |
-| `tools/vista_previa.py` | Espejo en Python de la escena. Dibuja el menú a PNG sin Minecraft para revisar composición, perspectiva y paleta. Escribe el PNG a mano con `zlib` (no necesita Pillow). |
+| `tools/verificar.py` | Sustituto del compilador ausente, en 9 bloques: versiones sincronizadas, **`mods.toml` parseado y validado contra el esquema de Forge 47**, paridad y validez de los `lang`, claves usadas vs. existentes, ASCII puro y balance de delimitadores en `.java`, **metodos llamados que la clase no declara**, recursos (`pack_format`, archivos de Gradle), **coherencia del audio** (los `.ogg` existen, arrancan con la firma `OggS`, `sounds.json` los nombra y Java los registra) y **los niveles** (cada uno con su nombre y su nota traducidos, y `nivel_fijo` con el rango correcto). |
+| `tools/vista_previa.py` | Espejo en Python de la escena. Dibuja el menú a PNG sin Minecraft para revisar composición, perspectiva y paleta. Acepta `--nivel=N` y `--contacto salida.png` (los cuatro niveles en una tira). Escribe el PNG a mano con `zlib` (no necesita Pillow). **Se sincroniza a mano con `EscenaNivel.java`: si cambia uno, cambia el otro.** |
+| `tools/sonidos.py` | Genera los seis `.ogg` desde cero con numpy y soundfile. Requiere un entorno con esas dos bibliotecas; escribe directo en `assets/jobsmenu/sounds/`. Ninguna pieza viene de una muestra ajena. |
 
 ---
 

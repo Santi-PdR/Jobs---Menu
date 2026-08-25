@@ -1,21 +1,16 @@
 {
   "jobsmenu.pantalla.nivel": "Notice to occupants",
-
   "jobsmenu.titulo": "JOBS",
   "jobsmenu.subtitulo": "NOTICE TO OCCUPANTS OF THIS LEVEL",
-
   "jobsmenu.nivel.actual": "You are currently on Level 0.",
   "jobsmenu.nivel.tarifa": "Exit to Level 1: fare unpaid.",
-
   "jobsmenu.tablon.turno": "Clock in",
   "jobsmenu.tablon.cuadrilla": "Join a crew",
   "jobsmenu.tablon.condiciones": "Terms of stay",
   "jobsmenu.tablon.renunciar": "Give up on this level",
-
   "jobsmenu.reloj.proxima": "Next patrol",
   "jobsmenu.reloj.inminente": "PATROL IMMINENT",
   "jobsmenu.reloj.encurso": "PATROL IN PROGRESS",
-
   "jobsmenu.aviso.0": "The exit is real. It costs what it costs.",
   "jobsmenu.aviso.1": "No refunds on a shift. What is worked stays worked.",
   "jobsmenu.aviso.2": "Money is worthless here. It is only good for leaving.",
@@ -23,5 +18,19 @@
   "jobsmenu.aviso.4": "Executors do not charge, do not bargain and do not tire.",
   "jobsmenu.aviso.5": "Please do not count the levels out loud.",
   "jobsmenu.aviso.6": "Whoever crosses the doorway unpaid comes back in the way they left.",
-  "jobsmenu.aviso.7": "Thank you for your continued stay. It is involuntary, but appreciated."
+  "jobsmenu.aviso.7": "Thank you for your continued stay. It is involuntary, but appreciated.",
+  "jobsmenu.nivel0.nombre": "LEVEL 0 · Administrative section",
+  "jobsmenu.nivel0.nota": "No exit is signposted. The wallpaper never ends.",
+  "jobsmenu.nivel1.nombre": "LEVEL 1 · Warehouse",
+  "jobsmenu.nivel1.nota": "There is far too much room here for one person.",
+  "jobsmenu.nivel2.nombre": "LEVEL 2 · Service corridors",
+  "jobsmenu.nivel2.nota": "The pipes are still hot. Nobody turned them on.",
+  "jobsmenu.nivel3.nombre": "LEVEL 3 · The pools",
+  "jobsmenu.nivel3.nota": "The water is warm. The echo takes too long to come back.",
+  "jobsmenu.subtitulo.zumbido": "Fluorescent humming",
+  "jobsmenu.subtitulo.recorrer": "Paper brushing",
+  "jobsmenu.subtitulo.marcar": "Box ticked",
+  "jobsmenu.subtitulo.pesado": "Wall switch",
+  "jobsmenu.subtitulo.apagon": "The light cuts out",
+  "jobsmenu.subtitulo.encendido": "The tube starts up"
 }

@@ -19,6 +19,11 @@ public final class ConfigTurno {
     public final ForgeConfigSpec.BooleanValue interfazMinima;
     public final ForgeConfigSpec.BooleanValue mostrarCuentaRegresiva;
     public final ForgeConfigSpec.BooleanValue avisosRotativos;
+    public final ForgeConfigSpec.BooleanValue rotarNiveles;
+    public final ForgeConfigSpec.IntValue nivelFijo;
+    public final ForgeConfigSpec.BooleanValue sonidoBotones;
+    public final ForgeConfigSpec.BooleanValue sonidoAmbiente;
+    public final ForgeConfigSpec.IntValue volumenAmbiente;
 
     static {
         Pair<ConfigTurno, ForgeConfigSpec> par = new ForgeConfigSpec.Builder().configure(ConfigTurno::new);
@@ -57,6 +62,26 @@ public final class ConfigTurno {
                 .comment("Mostrar los avisos de la administracion al pie de la hoja.")
                 .define("avisos_rotativos", true);
 
+        this.rotarNiveles = builder
+                .comment("Ir cambiando de nivel solo, con el apagon entre uno y otro.")
+                .define("rotar_niveles", true);
+
+        this.nivelFijo = builder
+                .comment("Nivel a mostrar cuando la rotacion esta apagada. 0 es el papel mural.")
+                .defineInRange("nivel_fijo", 0, 0, 3);
+
+        this.sonidoBotones = builder
+                .comment("Sonar la casilla al recorrer y al marcar los renglones del aviso.")
+                .define("sonido_botones", true);
+
+        this.sonidoAmbiente = builder
+                .comment("Dejar el zumbido del fluorescente sonando de fondo en el menu.")
+                .define("sonido_ambiente", true);
+
+        this.volumenAmbiente = builder
+                .comment("Volumen del zumbido de fondo, de 0 a 100.")
+                .defineInRange("volumen_ambiente", 55, 0, 100);
+
         builder.pop();
     }
 
@@ -93,5 +118,32 @@ public final class ConfigTurno {
 
     public static boolean avisosRotativos() {
         return !interfazMinima() && leer(INSTANCE.avisosRotativos, true);
+    }
+
+    public static boolean rotarNiveles() {
+        return escenaViva() && leer(INSTANCE.rotarNiveles, true);
+    }
+
+    public static int nivelFijo() {
+        if (!SPEC.isLoaded()) {
+            return 0;
+        }
+        return INSTANCE.nivelFijo.get();
+    }
+
+    public static boolean sonidoBotones() {
+        return leer(INSTANCE.sonidoBotones, true);
+    }
+
+    public static boolean sonidoAmbiente() {
+        return leer(INSTANCE.sonidoAmbiente, true);
+    }
+
+    /** Volumen del ambiente ya convertido a la escala 0.0 - 1.0 del motor. */
+    public static float volumenAmbiente() {
+        if (!SPEC.isLoaded()) {
+            return 0.55F;
+        }
+        return INSTANCE.volumenAmbiente.get() / 100.0F;
     }
 }

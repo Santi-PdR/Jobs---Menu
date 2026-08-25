@@ -22,6 +22,10 @@ FALLOS: list[str] = []
 AVISOS: list[str] = []
 
 
+# Subtitulos declarados por sounds.json, que tambien deben estar traducidos.
+SUBTITULOS: set[str] = set()
+
+
 def fallo(mensaje: str) -> None:
     FALLOS.append(mensaje)
 
@@ -381,6 +385,13 @@ def verificar_simbolos() -> None:
         "isHovered", "isActive", "active", "playDownSound", "setX", "setY",
         "defaultButtonNarrationText", "createNarrationMessage", "getRectangle",
         "font", "children", "init", "tick", "render", "onPress",
+        # SoundInstance / AbstractTickableSoundInstance.
+        "stop", "isStopped", "getSound", "getLocation", "getSource",
+        "getVolume", "getPitch", "canPlaySound", "isLooping", "getDelay",
+        # Registros diferidos y utilidades varias.
+        "register", "get", "create", "forUI", "isHoveredOrFocused",
+        "renderWidget", "updateWidgetNarration", "shouldCloseOnEsc",
+        "isPauseScreen",
     }
 
     for ruta in archivos_java():
@@ -409,6 +420,107 @@ def verificar_simbolos() -> None:
             )
 
 
+# --------------------------------------------------------------------------
+# 8. Audio: sounds.json, archivos ogg y registros de Java
+# --------------------------------------------------------------------------
+def verificar_audio() -> None:
+    """Cruza las tres listas que tienen que decir lo mismo.
+
+    Un sonido vive en tres lugares a la vez: el archivo .ogg, la entrada de
+    sounds.json que lo nombra, y el RegistryObject de Java que lo pide. Si
+    alguno de los tres falta, Minecraft no avisa: simplemente no suena, o
+    peor, escupe un error de recurso en mitad del menu.
+
+    Ademas exige OGG de verdad. Minecraft NO reproduce wav ni mp3: si el
+    archivo no arranca con la firma 'OggS', el sonido no existe.
+    """
+    base = RAIZ / "src/main/resources/assets/jobsmenu"
+    manifiesto = base / "sounds.json"
+    carpeta = base / "sounds"
+
+    if not manifiesto.exists():
+        fallo("Falta assets/jobsmenu/sounds.json: ningun sonido va a cargar.")
+        return
+
+    try:
+        datos = json.loads(leer(manifiesto))
+    except json.JSONDecodeError as error:
+        fallo(f"sounds.json no es JSON valido: {error}")
+        return
+
+    # Los nombres de archivo que reclama el manifiesto.
+    reclamados: set[str] = set()
+    for evento, cuerpo in datos.items():
+        entradas = cuerpo.get("sounds", [])
+        if not entradas:
+            fallo(f"sounds.json: el evento '{evento}' no lista ningun sonido.")
+        for entrada in entradas:
+            nombre = entrada["name"] if isinstance(entrada, dict) else entrada
+            if not nombre.startswith("jobsmenu:"):
+                fallo(f"sounds.json: '{nombre}' no lleva el prefijo jobsmenu:.")
+                continue
+            reclamados.add(nombre.split(":", 1)[1])
+
+        subtitulo = cuerpo.get("subtitle")
+        if subtitulo:
+            SUBTITULOS.add(subtitulo)
+
+    # Los archivos que existen de verdad, y que sean OGG.
+    presentes: set[str] = set()
+    if carpeta.is_dir():
+        for ruta in sorted(carpeta.glob("*.ogg")):
+            presentes.add(ruta.stem)
+            if ruta.read_bytes()[:4] != b"OggS":
+                fallo(f"{ruta.relative_to(RAIZ)} no es un OGG: Minecraft no lo va a reproducir.")
+            if ruta.stat().st_size == 0:
+                fallo(f"{ruta.relative_to(RAIZ)} esta vacio.")
+
+    for nombre in sorted(reclamados - presentes):
+        fallo(f"sounds.json reclama '{nombre}' y no existe sounds/{nombre}.ogg.")
+    for nombre in sorted(presentes - reclamados):
+        aviso(f"sounds/{nombre}.ogg no lo nombra ningun evento de sounds.json.")
+
+    # Los eventos que Java registra tienen que existir en el manifiesto.
+    registro = RAIZ / "src/main/java/com/santipdr/jobsmenu/client/sound/SonidosNivel.java"
+    if registro.exists():
+        pedidos = set(re.findall(r'registrar\("([^"]+)"\)', leer(registro)))
+        for evento in sorted(pedidos - set(datos)):
+            fallo(f"SonidosNivel registra '{evento}' y sounds.json no lo define.")
+        for evento in sorted(set(datos) - pedidos):
+            aviso(f"sounds.json define '{evento}' y ningun codigo lo registra.")
+
+
+# --------------------------------------------------------------------------
+# 9. Niveles de la escena
+# --------------------------------------------------------------------------
+def verificar_niveles(es: dict[str, str]) -> None:
+    """Cada nivel del catalogo necesita su nombre y su nota en los dos idiomas."""
+    ruta = RAIZ / "src/main/java/com/santipdr/jobsmenu/client/scene/Nivel.java"
+    if not ruta.exists():
+        fallo("Falta Nivel.java: la escena no tiene catalogo de niveles.")
+        return
+
+    claves = re.findall(r'new Nivel\("([^"]+)"', leer(ruta))
+    if not claves:
+        fallo("Nivel.java no declara ningun nivel en CATALOGO.")
+        return
+
+    for clave in claves:
+        for sufijo in ("nombre", "nota"):
+            necesaria = f"jobsmenu.{clave}.{sufijo}"
+            if necesaria not in es:
+                fallo(f"El nivel '{clave}' no tiene la cadena {necesaria}.")
+
+    # nivel_fijo tiene que poder apuntar a cualquiera de ellos.
+    config = leer(RAIZ / "src/main/java/com/santipdr/jobsmenu/config/ConfigTurno.java")
+    tope = re.search(r'defineInRange\("nivel_fijo", \d+, \d+, (\d+)\)', config)
+    if tope and int(tope.group(1)) != len(claves) - 1:
+        fallo(
+            f"config nivel_fijo llega hasta {tope.group(1)} y hay {len(claves)} "
+            f"niveles (deberia llegar a {len(claves) - 1})."
+        )
+
+
 def main() -> int:
     props = propiedades()
     verificar_versiones(props)
@@ -417,7 +529,14 @@ def main() -> int:
     verificar_claves(es)
     verificar_java()
     verificar_simbolos()
+    verificar_audio()
+    verificar_niveles(es)
     verificar_recursos()
+
+    # Los subtitulos que declara sounds.json tambien son cadenas traducibles.
+    for clave in sorted(SUBTITULOS):
+        if clave not in es:
+            fallo(f"sounds.json usa el subtitulo '{clave}' y no esta en es_es.json.")
 
     for mensaje in AVISOS:
         print(f"  aviso  | {mensaje}")

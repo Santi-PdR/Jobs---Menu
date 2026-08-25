@@ -1,21 +1,16 @@
 {
   "jobsmenu.pantalla.nivel": "Aviso a los ocupantes",
-
   "jobsmenu.titulo": "JOBS",
   "jobsmenu.subtitulo": "AVISO A LOS OCUPANTES DEL NIVEL",
-
   "jobsmenu.nivel.actual": "Se encuentra usted en el Nivel 0.",
   "jobsmenu.nivel.tarifa": "Salida al Nivel 1: tarifa pendiente de abono.",
-
   "jobsmenu.tablon.turno": "Fichar turno",
   "jobsmenu.tablon.cuadrilla": "Unirse a una cuadrilla",
   "jobsmenu.tablon.condiciones": "Condiciones de estancia",
   "jobsmenu.tablon.renunciar": "Renunciar al nivel",
-
   "jobsmenu.reloj.proxima": "Próxima ronda",
   "jobsmenu.reloj.inminente": "RONDA INMINENTE",
   "jobsmenu.reloj.encurso": "RONDA EN CURSO",
-
   "jobsmenu.aviso.0": "La salida existe. Cuesta lo que cuesta.",
   "jobsmenu.aviso.1": "No se admiten devoluciones de jornada. Lo trabajado, trabajado está.",
   "jobsmenu.aviso.2": "El dinero no sirve de nada aquí. Sólo sirve para irse.",
@@ -23,5 +18,19 @@
   "jobsmenu.aviso.4": "Los Executores no cobran, no negocian y no se cansan.",
   "jobsmenu.aviso.5": "Se ruega no contar los niveles en voz alta.",
   "jobsmenu.aviso.6": "Quien cruza el vano sin abonar vuelve a entrar por donde salió.",
-  "jobsmenu.aviso.7": "Gracias por su permanencia. Es involuntaria, pero se agradece igual."
+  "jobsmenu.aviso.7": "Gracias por su permanencia. Es involuntaria, pero se agradece igual.",
+  "jobsmenu.nivel0.nombre": "NIVEL 0 · Sección administrativa",
+  "jobsmenu.nivel0.nota": "Sin salida señalizada. El papel mural no termina nunca.",
+  "jobsmenu.nivel1.nombre": "NIVEL 1 · Depósito",
+  "jobsmenu.nivel1.nota": "Hay demasiado espacio para una sola persona.",
+  "jobsmenu.nivel2.nombre": "NIVEL 2 · Pasillos de servicio",
+  "jobsmenu.nivel2.nota": "Las cañerías siguen calientes. Nadie las encendió.",
+  "jobsmenu.nivel3.nombre": "NIVEL 3 · Las piscinas",
+  "jobsmenu.nivel3.nota": "El agua está tibia. El eco tarda de más en volver.",
+  "jobsmenu.subtitulo.zumbido": "Fluorescente zumbando",
+  "jobsmenu.subtitulo.recorrer": "Papel rozando",
+  "jobsmenu.subtitulo.marcar": "Casilla marcada",
+  "jobsmenu.subtitulo.pesado": "Interruptor de pared",
+  "jobsmenu.subtitulo.apagon": "La luz se corta",
+  "jobsmenu.subtitulo.encendido": "El tubo arranca"
 }
