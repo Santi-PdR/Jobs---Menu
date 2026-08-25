@@ -125,9 +125,16 @@ pantalla y **sigue sonando durante el apagón**. El archivo empaquetado es una p
 el mod, así que se puede repartir sin arrastrar derechos de nadie.
 
 La pista que pediste es **REQUIEM, de Emmy Z: la banda sonora de un juego comercial**, y no se puede meter
-dentro del JAR sin permiso escrito de la autora. No está integrada y no voy a decir que lo está. Lo que sí
-quedó hecho es el camino legal para usarla: se carga con un paquete de recursos, sin tocar código ni
-recompilar, y el archivo nunca sale de tu máquina. Está todo explicado en **`docs/musica.md`**.
+dentro del JAR sin permiso escrito de la autora. No está integrada y no voy a decir que lo está.
+
+Lo que sí quedó hecho, y en 0.6.0 quedó terminado de verdad, es que poner tu propia copia sea trivial:
+
+> **Dejá tu archivo `.ogg` en `.minecraft/jobsmenu-musica/`. Eso es todo.**
+
+No hay que renombrarlo, no hay que crear carpetas y **no hay que activar nada en Opciones**. El mod crea la
+carpeta, detecta el archivo sea cual sea su nombre, lo instala en un paquete de recursos, lo activa solo y
+recarga en caliente para que suene en el acto. Si dejás un archivo que no es OGG, te lo dice en el log en
+vez de quedarse mudo. Está todo explicado en **`docs/musica.md`**.
 
 ## Compilar
 
@@ -148,7 +155,7 @@ python tools\verificar.py       # versiones, idiomas, JSON, ASCII, llaves, símb
 python tools\vista_previa.py    # dibuja el menú a PNG para revisar la escena
 python tools\vista_previa.py --contacto docs\vista_previa.png   # los cuatro niveles juntos
 python tools\vista_previa.py --presencia docs\presencia.png     # la manifestación del fondo, paso a paso
-python tools\sonidos.py         # regenera las 34 piezas de audio (requiere numpy, scipy y soundfile)
+python tools\sonidos.py         # regenera las 38 piezas de audio (requiere numpy, scipy y soundfile)
 ```
 
 ## Documentación
