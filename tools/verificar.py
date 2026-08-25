@@ -74,16 +74,100 @@ def verificar_versiones(props: dict[str, str]) -> None:
 # --------------------------------------------------------------------------
 # 2. Sustituciones de mods.toml
 # --------------------------------------------------------------------------
+# Claves validas de una dependencia en Forge 1.20.1 (rama 47.x).
+# OJO: 'type' es sintaxis de NeoForge y de Forge posteriores; aqui NO existe.
+# Forge 47 exige 'mandatory' y aborta con "Missing required field mandatory".
+DEP_OBLIGATORIAS = {"modId", "mandatory"}
+DEP_OPCIONALES = {"versionRange", "ordering", "side", "referralUrl"}
+DEP_AJENAS = {"type", "reason"}
+
+ORDENAMIENTOS = {"NONE", "BEFORE", "AFTER"}
+LADOS = {"BOTH", "CLIENT", "SERVER"}
+PRUEBAS_PANTALLA = {"MATCH_VERSION", "IGNORE_SERVER_VERSION", "IGNORE_ALL_VERSION", "NONE"}
+
+
 def verificar_mods_toml(props: dict[str, str]) -> None:
+    """Valida el mods.toml de verdad: sustituye las variables y lo parsea.
+
+    Buscar cadenas sueltas no alcanzaba. Una vez se colo type="required"
+    (sintaxis de NeoForge) donde Forge 47 quiere mandatory=true: compilaba
+    perfecto y el juego rechazaba el jar al arrancar.
+    """
     ruta = RAIZ / "src/main/resources/META-INF/mods.toml"
     texto = leer(ruta)
+
     for clave in sorted(set(re.findall(r"\$\{(\w+)\}", texto))):
         if clave not in props:
             fallo(f"mods.toml usa ${{{clave}}} y gradle.properties no lo define.")
 
+    # Sustitucion igual a la que hace Gradle, para poder parsearlo.
+    resuelto = re.sub(r"\$\{(\w+)\}", lambda m: props.get(m.group(1), ""), texto)
+
+    try:
+        import tomllib
+    except ModuleNotFoundError:
+        aviso("Sin tomllib (Python < 3.11): no se pudo parsear mods.toml.")
+        return
+
+    try:
+        datos = tomllib.loads(resuelto)
+    except Exception as error:
+        fallo(f"mods.toml no es TOML valido una vez sustituido: {error}")
+        return
+
+    for clave in ("modLoader", "loaderVersion", "license"):
+        if clave not in datos:
+            fallo(f"mods.toml no declara '{clave}'.")
+
+    mods = datos.get("mods", [])
+    if not mods:
+        fallo("mods.toml no declara ningun bloque [[mods]].")
+        return
+
     mod_id = props.get("mod_id", "")
-    if mod_id and f'modId="{mod_id}"' not in texto and "${mod_id}" not in texto:
-        fallo("mods.toml no declara el modId del proyecto.")
+    declarados = {m.get("modId") for m in mods}
+    if mod_id and mod_id not in declarados:
+        fallo(f"mods.toml no declara el modId '{mod_id}'.")
+
+    for mod in mods:
+        prueba = mod.get("displayTest")
+        if prueba is not None and prueba not in PRUEBAS_PANTALLA:
+            fallo(f"mods.toml: displayTest='{prueba}' no es un valor valido.")
+
+    dependencias = datos.get("dependencies", {})
+    for duenio, lista in dependencias.items():
+        if duenio not in declarados:
+            fallo(f"mods.toml: [[dependencies.{duenio}]] no corresponde a ningun mod declarado.")
+        for dep in lista:
+            nombre = dep.get("modId", "?")
+
+            for ajena in sorted(DEP_AJENAS & set(dep)):
+                fallo(
+                    f"mods.toml: la dependencia '{nombre}' usa '{ajena}', que es sintaxis de "
+                    f"NeoForge. Forge 1.20.1 exige mandatory=true/false."
+                )
+
+            for obligatoria in sorted(DEP_OBLIGATORIAS - set(dep)):
+                fallo(
+                    f"mods.toml: la dependencia '{nombre}' no declara '{obligatoria}' "
+                    f"(Forge aborta con 'Missing required field {obligatoria} in dependency')."
+                )
+
+            if "mandatory" in dep and not isinstance(dep["mandatory"], bool):
+                fallo(f"mods.toml: 'mandatory' de '{nombre}' debe ser true o false, sin comillas.")
+
+            for sobrante in sorted(set(dep) - DEP_OBLIGATORIAS - DEP_OPCIONALES - DEP_AJENAS):
+                aviso(f"mods.toml: la dependencia '{nombre}' declara '{sobrante}', que Forge ignora.")
+
+            if dep.get("ordering", "NONE") not in ORDENAMIENTOS:
+                fallo(f"mods.toml: ordering='{dep.get('ordering')}' de '{nombre}' no es valido.")
+
+            if dep.get("side", "BOTH") not in LADOS:
+                fallo(f"mods.toml: side='{dep.get('side')}' de '{nombre}' no es valido.")
+
+        for necesaria in ("forge", "minecraft"):
+            if not any(d.get("modId") == necesaria for d in lista):
+                aviso(f"mods.toml: '{duenio}' no declara dependencia de '{necesaria}'.")
 
 
 # --------------------------------------------------------------------------

@@ -11,17 +11,20 @@ authors="${mod_authors}"
 description='''
 ${mod_description}
 '''
+# Mod de cliente: el servidor no lo necesita ni se entera de que existe.
+# Sin esto, Forge marcaria como incompatible cualquier servidor que no lo tenga.
+displayTest="IGNORE_ALL_VERSION"
 
 [[dependencies.${mod_id}]]
     modId="forge"
-    type="required"
+    mandatory=true
     versionRange="${forge_version_range}"
     ordering="NONE"
     side="CLIENT"
 
 [[dependencies.${mod_id}]]
     modId="minecraft"
-    type="required"
+    mandatory=true
     versionRange="${minecraft_version_range}"
     ordering="NONE"
     side="CLIENT"
