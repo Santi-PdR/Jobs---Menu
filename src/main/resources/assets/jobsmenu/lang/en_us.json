@@ -4,17 +4,14 @@
   "jobsmenu.subtitulo": "NOTICE TO THE OCCUPANTS OF THIS LEVEL",
   "jobsmenu.nivel.actual": "You are currently on Level 0.",
   "jobsmenu.nivel.tarifa": "Exit to Level 1: fee outstanding.",
-
   "jobsmenu.tablon.cuadrilla": "Join a crew",
   "jobsmenu.tablon.registro": "Record of interventions",
   "jobsmenu.tablon.condiciones": "Terms of stay",
   "jobsmenu.tablon.renunciar": "Resign from the level",
   "jobsmenu.tablon.atajo": "Individual shift: Control + S.",
-
   "jobsmenu.reloj.proxima": "Next round",
   "jobsmenu.reloj.inminente": "ROUND IMMINENT",
   "jobsmenu.reloj.encurso": "ROUND IN PROGRESS",
-
   "jobsmenu.aviso.0": "The exit exists. It costs what it costs.",
   "jobsmenu.aviso.1": "No refunds on a shift worked. What is done is done.",
   "jobsmenu.aviso.2": "Money is worthless here. It is only good for leaving.",
@@ -23,7 +20,6 @@
   "jobsmenu.aviso.5": "Occupants are asked not to count the levels out loud.",
   "jobsmenu.aviso.6": "Whoever crosses the doorway unpaid comes back in the way they left.",
   "jobsmenu.aviso.7": "Thank you for your continued stay. It is involuntary, but appreciated all the same.",
-
   "jobsmenu.nivel0.nombre": "LEVEL 0 · Administrative section",
   "jobsmenu.nivel0.nota": "No marked exit. The wallpaper never ends.",
   "jobsmenu.nivel1.nombre": "LEVEL 1 · Storage",
@@ -32,7 +28,6 @@
   "jobsmenu.nivel2.nota": "The pipes are still warm. Nobody turned them on.",
   "jobsmenu.nivel3.nombre": "LEVEL 3 · The pools",
   "jobsmenu.nivel3.nota": "The water is lukewarm. The echo takes too long to come back.",
-
   "jobsmenu.subtitulo.ui.pasar": "Paper brushing",
   "jobsmenu.subtitulo.ui.elegir": "Box ticked",
   "jobsmenu.subtitulo.ui.confirmar": "Stamp pressed",
@@ -41,12 +36,14 @@
   "jobsmenu.subtitulo.ui.abrir": "Folder opening",
   "jobsmenu.subtitulo.ui.cerrar": "Folder closing",
   "jobsmenu.subtitulo.ui.negado": "Request refused",
-
   "jobsmenu.subtitulo.ambiente.nivel0": "Empty offices",
   "jobsmenu.subtitulo.ambiente.nivel1": "Storage breathing",
   "jobsmenu.subtitulo.ambiente.nivel2": "Service pipework",
   "jobsmenu.subtitulo.ambiente.nivel3": "Water in a vast room",
-
+  "jobsmenu.subtitulo.caracter.nivel0": "Office air handling",
+  "jobsmenu.subtitulo.caracter.nivel1": "Draught through the hall",
+  "jobsmenu.subtitulo.caracter.nivel2": "Water circulating",
+  "jobsmenu.subtitulo.caracter.nivel3": "The pool basin",
   "jobsmenu.subtitulo.evento.nivel0_tubo": "The tube complains",
   "jobsmenu.subtitulo.evento.nivel0_placa": "A ceiling tile settles",
   "jobsmenu.subtitulo.evento.nivel0_puerta": "A door gives way",
@@ -60,11 +57,9 @@
   "jobsmenu.subtitulo.evento.nivel3_ondas": "The water moves on its own",
   "jobsmenu.subtitulo.evento.nivel3_ventilacion": "Distant ventilation",
   "jobsmenu.subtitulo.evento.nivel3_lejano": "Echo from the far end",
-
   "jobsmenu.subtitulo.nivel.titileo": "The light hesitates",
   "jobsmenu.subtitulo.nivel.apagon": "The power cuts out",
   "jobsmenu.subtitulo.nivel.encendido": "The tube starts up",
-
   "jobsmenu.subtitulo.figura.presencia": "Something at the far end",
   "jobsmenu.subtitulo.musica.tema": "Notice to occupants"
 }

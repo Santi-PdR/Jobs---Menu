@@ -4,17 +4,14 @@
   "jobsmenu.subtitulo": "AVISO A LOS OCUPANTES DEL NIVEL",
   "jobsmenu.nivel.actual": "Se encuentra usted en el Nivel 0.",
   "jobsmenu.nivel.tarifa": "Salida al Nivel 1: tarifa pendiente de abono.",
-
   "jobsmenu.tablon.cuadrilla": "Unirse a una cuadrilla",
   "jobsmenu.tablon.registro": "Registro de intervenciones",
   "jobsmenu.tablon.condiciones": "Condiciones de estancia",
   "jobsmenu.tablon.renunciar": "Renunciar al nivel",
   "jobsmenu.tablon.atajo": "Turno individual: Control + S.",
-
   "jobsmenu.reloj.proxima": "Próxima ronda",
   "jobsmenu.reloj.inminente": "RONDA INMINENTE",
   "jobsmenu.reloj.encurso": "RONDA EN CURSO",
-
   "jobsmenu.aviso.0": "La salida existe. Cuesta lo que cuesta.",
   "jobsmenu.aviso.1": "No se admiten devoluciones de jornada. Lo trabajado, trabajado está.",
   "jobsmenu.aviso.2": "El dinero no sirve de nada aquí. Sólo sirve para irse.",
@@ -23,7 +20,6 @@
   "jobsmenu.aviso.5": "Se ruega no contar los niveles en voz alta.",
   "jobsmenu.aviso.6": "Quien cruza el vano sin abonar vuelve a entrar por donde salió.",
   "jobsmenu.aviso.7": "Gracias por su permanencia. Es involuntaria, pero se agradece igual.",
-
   "jobsmenu.nivel0.nombre": "NIVEL 0 · Sección administrativa",
   "jobsmenu.nivel0.nota": "Sin salida señalizada. El papel mural no termina nunca.",
   "jobsmenu.nivel1.nombre": "NIVEL 1 · Depósito",
@@ -32,7 +28,6 @@
   "jobsmenu.nivel2.nota": "Las cañerías siguen calientes. Nadie las encendió.",
   "jobsmenu.nivel3.nombre": "NIVEL 3 · Las piscinas",
   "jobsmenu.nivel3.nota": "El agua está tibia. El eco tarda de más en volver.",
-
   "jobsmenu.subtitulo.ui.pasar": "Papel rozando",
   "jobsmenu.subtitulo.ui.elegir": "Casilla marcada",
   "jobsmenu.subtitulo.ui.confirmar": "Sello estampado",
@@ -41,12 +36,14 @@
   "jobsmenu.subtitulo.ui.abrir": "Carpeta abriéndose",
   "jobsmenu.subtitulo.ui.cerrar": "Carpeta cerrándose",
   "jobsmenu.subtitulo.ui.negado": "Trámite rechazado",
-
   "jobsmenu.subtitulo.ambiente.nivel0": "Oficinas vacías",
   "jobsmenu.subtitulo.ambiente.nivel1": "Depósito respirando",
   "jobsmenu.subtitulo.ambiente.nivel2": "Cañerías de servicio",
   "jobsmenu.subtitulo.ambiente.nivel3": "Agua en un recinto enorme",
-
+  "jobsmenu.subtitulo.caracter.nivel0": "Aire de las oficinas",
+  "jobsmenu.subtitulo.caracter.nivel1": "Corriente en la nave",
+  "jobsmenu.subtitulo.caracter.nivel2": "Circulación de agua",
+  "jobsmenu.subtitulo.caracter.nivel3": "El vaso de la pileta",
   "jobsmenu.subtitulo.evento.nivel0_tubo": "El tubo protesta",
   "jobsmenu.subtitulo.evento.nivel0_placa": "Una placa se asienta",
   "jobsmenu.subtitulo.evento.nivel0_puerta": "Una puerta cede",
@@ -60,11 +57,9 @@
   "jobsmenu.subtitulo.evento.nivel3_ondas": "El agua se mueve sola",
   "jobsmenu.subtitulo.evento.nivel3_ventilacion": "Ventilación distante",
   "jobsmenu.subtitulo.evento.nivel3_lejano": "Eco en el fondo del recinto",
-
   "jobsmenu.subtitulo.nivel.titileo": "La luz duda",
   "jobsmenu.subtitulo.nivel.apagon": "Se corta la corriente",
   "jobsmenu.subtitulo.nivel.encendido": "El tubo arranca",
-
   "jobsmenu.subtitulo.figura.presencia": "Algo al fondo del recinto",
   "jobsmenu.subtitulo.musica.tema": "Aviso a los ocupantes"
 }

@@ -11,7 +11,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 
 /**
- * El room tone de un nivel, sonando en bucle mientras ese nivel este a la vista.
+ * Una cama de sonido continuo de un nivel, en bucle mientras el nivel este a la vista.
  *
  * Hay una instancia viva por nivel, no una sola que cambia de archivo: asi los
  * cuatro ambientes pueden solaparse durante la transicion y el pasillo nuevo
@@ -26,6 +26,15 @@ import net.minecraft.util.RandomSource;
  *   - agacharse cuando hay una presencia al fondo.
  *
  * Se apaga sola y se descarta cuando termino de bajar del todo.
+ *
+ * DOS CAMAS POR NIVEL
+ *
+ * Cada nivel monta dos instancias de esta clase, con papeles distintos (ver
+ * {@link Papel}). No es una capa duplicada: es la unica forma barata de que el
+ * fondo no se vuelva reconocible. Un bucle solo, por largo que sea, termina
+ * aprendiendose; dos bucles de duracion prima entre si -por ejemplo 24 y 43
+ * segundos- tardan mas de un cuarto de hora en volver a sonar en la misma
+ * combinacion, y en ese rato el oyente nunca escucha dos veces lo mismo.
  */
 public class CapaAmbiente extends AbstractTickableSoundInstance {
 
@@ -35,15 +44,63 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
     /** Bajar es mas rapido que subir, pero no tanto como para que se note. */
     private static final float SUAVIZADO_BAJADA = 0.055F;
 
+    /**
+     * Que papel cumple esta cama dentro del nivel.
+     *
+     * La diferencia no es solo de volumen. La BASE es la nota del sitio: el
+     * volumen de aire, la sala, el zumbido de la instalacion, y depende mucho
+     * de la luz porque casi todo lo que la produce esta enchufado. El CARACTER
+     * es lo que se mueve -el aire corriendo, el agua desplazandose, el goteo- y
+     * apenas depende de la luz, porque el agua sigue moviendose a oscuras. Que
+     * las dos reaccionen distinto al apagon es lo que hace que la transicion
+     * suene a corte de corriente y no a bajada de volumen general.
+     */
+    public enum Papel {
+
+        // Los pesos no suman uno ni tienen por que: dos ruidos que no estan
+        // relacionados se suman en potencia, no en amplitud. Con 0.82 y 0.66 el
+        // conjunto queda en la raiz de 0.82^2+0.66^2, o sea 1.05, que es
+        // practicamente el mismo volumen que tenia la cama unica de antes. Con
+        // los valores intuitivos -1.00 y 0.82- el ambiente subia casi un tercio
+        // y se comia la musica.
+
+        /** La cama estable. Sostiene el sitio. */
+        BASE(0.82F, 0.30F, 0.083F, 0.06F),
+
+        /** La cama viva. Sostiene la sensacion de que el lugar funciona. */
+        CARACTER(0.66F, 0.72F, 0.061F, 0.09F);
+
+        /** Cuanto pesa esta cama dentro de la mezcla de ambiente del nivel. */
+        private final float peso;
+
+        /** Que fraccion del volumen sobrevive con la luz apagada del todo. */
+        private final float pisoSinLuz;
+
+        /** Velocidad de la respiracion lenta del volumen. */
+        private final float respiracion;
+
+        /** Cuanto se mueve esa respiracion. */
+        private final float vaiven;
+
+        Papel(float peso, float pisoSinLuz, float respiracion, float vaiven) {
+            this.peso = peso;
+            this.pisoSinLuz = pisoSinLuz;
+            this.respiracion = respiracion;
+            this.vaiven = vaiven;
+        }
+    }
+
     private final int nivel;
+    private final Papel papel;
     private float actual;
 
     /** Ticks vividos, para la respiracion lenta del volumen. */
     private int edad;
 
-    public CapaAmbiente(SoundEvent evento, int nivel) {
+    public CapaAmbiente(SoundEvent evento, int nivel, Papel papel) {
         super(evento, SoundSource.AMBIENT, RandomSource.create());
         this.nivel = nivel;
+        this.papel = papel;
         this.looping = true;
         this.delay = 0;
         this.volume = 0.0F;
@@ -59,6 +116,19 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
         // ligeramente distinto por nivel hace que no se perciba que las cuatro
         // capas salen del mismo generador.
         this.pitch = 0.96F + 0.03F * nivel;
+
+        // Las dos camas del mismo nivel no arrancan con la misma edad. Si lo
+        // hicieran, sus respiraciones subirian y bajarian juntas y el conjunto
+        // volveria a tener un pulso unico y audible.
+        if (papel == Papel.CARACTER) {
+            this.edad = 617;
+            this.pitch *= 0.995F;
+        }
+    }
+
+    /** El papel que cumple esta cama. */
+    public Papel papel() {
+        return this.papel;
     }
 
     /** El nivel al que pertenece esta capa. */
@@ -97,17 +167,17 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
 
         float objetivo = 0.0F;
         if (permitido) {
-            objetivo = ConfigTurno.volumenAmbiente() * MezclaAudio.AMBIENTE;
+            objetivo = ConfigTurno.volumenAmbiente() * MezclaAudio.AMBIENTE * this.papel.peso;
 
-            // La instalacion depende de la luz. Nunca llega a cero del todo:
-            // aun sin corriente queda el aire moviendose por los conductos.
+            // La instalacion depende de la luz, y cada papel a su manera: la
+            // base se va casi del todo con el apagon, el caracter aguanta.
             float luz = RotacionNiveles.luzDisponible();
-            objetivo *= 0.30F + 0.70F * luz;
+            objetivo *= this.papel.pisoSinLuz + (1.0F - this.papel.pisoSinLuz) * luz;
 
             // Respiracion muy lenta, del orden del minuto. Es lo que impide que
             // un bucle de veinte segundos se sienta como un bucle.
             float t = this.edad / 20.0F;
-            objetivo *= 1.0F + 0.06F * (float) Math.sin(t * 0.083F)
+            objetivo *= 1.0F + this.papel.vaiven * (float) Math.sin(t * this.papel.respiracion)
                     + 0.03F * (float) Math.sin(t * 0.031F + 1.7F);
 
             // Algo al fondo del pasillo: el ambiente se retira.

@@ -60,6 +60,26 @@ public final class SonidosNivel {
     public static final RegistryObject<SoundEvent> AMBIENTE_NIVEL2 = registrar("ambiente.nivel2");
     public static final RegistryObject<SoundEvent> AMBIENTE_NIVEL3 = registrar("ambiente.nivel3");
 
+    // ---- Capa de caracter -----------------------------------------------
+    // La segunda cama continua de cada nivel. Suena siempre, a la vez que la
+    // base, y dura distinto que ella a proposito: como los dos bucles no son
+    // multiplos, la combinacion que se oye tarda cuartos de hora en repetirse.
+
+    public static final RegistryObject<SoundEvent> CARACTER_NIVEL0 = registrar("caracter.nivel0");
+    public static final RegistryObject<SoundEvent> CARACTER_NIVEL1 = registrar("caracter.nivel1");
+    public static final RegistryObject<SoundEvent> CARACTER_NIVEL2 = registrar("caracter.nivel2");
+    public static final RegistryObject<SoundEvent> CARACTER_NIVEL3 = registrar("caracter.nivel3");
+
+    /** La cama de caracter del nivel pedido. */
+    public static SoundEvent caracter(int nivel) {
+        return switch (nivel) {
+            case 1 -> CARACTER_NIVEL1.get();
+            case 2 -> CARACTER_NIVEL2.get();
+            case 3 -> CARACTER_NIVEL3.get();
+            default -> CARACTER_NIVEL0.get();
+        };
+    }
+
     // ---- Eventos --------------------------------------------------------
     // Se disparan solos, con separacion y volumen variables.
 

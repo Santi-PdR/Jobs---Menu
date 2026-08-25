@@ -23,12 +23,16 @@ import java.util.Random;
  * vuelven a alinearse igual:
  *
  *   1. BASE. Un bucle largo por nivel (18 a 24 s, ninguno igual a otro), con
- *      su volumen respirando en ciclos de mas de un minuto. La lleva
- *      CapaAmbiente, una instancia por nivel.
- *   2. EVENTOS. Tres o cuatro sonidos sueltos por nivel que se disparan con
+ *      su volumen respirando en ciclos de mas de un minuto: la nota del sitio.
+ *   2. CARACTER. Una segunda cama, tambien continua y tambien siempre
+ *      encendida, con lo que se mueve: el aire corriendo, el agua del vaso, la
+ *      circulacion de las canerias. Dura distinto que la base a proposito
+ *      (25 a 36 s), asi que las dos nunca se vuelven a alinear igual. Las dos
+ *      las lleva CapaAmbiente, que cambia de comportamiento segun el papel.
+ *   3. EVENTOS. Tres o cuatro sonidos sueltos por nivel que se disparan con
  *      separacion aleatoria dentro de una ventana, cada uno con su peso, su
  *      volumen y su tono variables. Los lleva esta clase.
- *   3. TRANSICION Y FIGURA. Sonidos puntuales enganchados a lo que pasa en
+ *   4. TRANSICION Y FIGURA. Sonidos puntuales enganchados a lo que pasa en
  *      pantalla. Los llama la pantalla, no el reloj.
  *
  * Con la separacion aleatoria, el volumen aleatorio y el tono aleatorio, dos
@@ -103,7 +107,7 @@ public final class GestorAmbiente {
 
     private static final Random AZAR = new Random();
 
-    /** Las bases que estan sonando ahora. Puede haber dos durante el cambio. */
+    /** Las camas que estan sonando. Dos por nivel, y hasta cuatro en el cambio. */
     private static final List<CapaAmbiente> CAPAS = new ArrayList<>();
 
     /** Cuando toca el proximo evento, en milisegundos del reloj del sistema. */
@@ -169,30 +173,43 @@ public final class GestorAmbiente {
         }
 
         int nivel = RotacionNiveles.indiceActual();
-        asegurarBase(nivel);
+        asegurarCamas(nivel);
         atenderTransicion();
         atenderPresencia();
         atenderEventos(nivel);
     }
 
-    /** Si el nivel a la vista no tiene su bucle sonando, se lo pone a sonar. */
-    private static void asegurarBase(int nivel) {
+    /**
+     * Se asegura de que las dos camas continuas del nivel a la vista esten
+     * sonando, y las levanta si falta alguna.
+     *
+     * Se comprueban por separado porque no nacen juntas necesariamente: si el
+     * jugador desactiva y reactiva el sonido de ambiente en medio de un cambio
+     * de nivel, puede quedar una viva y la otra apagada.
+     */
+    private static void asegurarCamas(int nivel) {
+        boolean cambio = nivelSonando != nivel;
+
+        asegurarCama(nivel, CapaAmbiente.Papel.BASE, baseDe(nivel));
+        asegurarCama(nivel, CapaAmbiente.Papel.CARACTER, caracterDe(nivel));
+
+        if (cambio) {
+            nivelSonando = nivel;
+            reprogramarEvento(nivel);
+        }
+    }
+
+    private static void asegurarCama(int nivel, CapaAmbiente.Papel papel,
+                                     RegistryObject<SoundEvent> sonido) {
         for (CapaAmbiente capa : CAPAS) {
-            if (capa.nivel() == nivel) {
-                if (nivelSonando != nivel) {
-                    nivelSonando = nivel;
-                    reprogramarEvento(nivel);
-                }
+            if (capa.nivel() == nivel && capa.papel() == papel) {
                 return;
             }
         }
 
-        CapaAmbiente capa = new CapaAmbiente(baseDe(nivel).get(), nivel);
+        CapaAmbiente capa = new CapaAmbiente(sonido.get(), nivel, papel);
         CAPAS.add(capa);
         Minecraft.getInstance().getSoundManager().play(capa);
-
-        nivelSonando = nivel;
-        reprogramarEvento(nivel);
     }
 
     private static RegistryObject<SoundEvent> baseDe(int nivel) {
@@ -205,6 +222,19 @@ public final class GestorAmbiente {
                 return SonidosNivel.AMBIENTE_NIVEL3;
             default:
                 return SonidosNivel.AMBIENTE_NIVEL0;
+        }
+    }
+
+    private static RegistryObject<SoundEvent> caracterDe(int nivel) {
+        switch (nivel) {
+            case 1:
+                return SonidosNivel.CARACTER_NIVEL1;
+            case 2:
+                return SonidosNivel.CARACTER_NIVEL2;
+            case 3:
+                return SonidosNivel.CARACTER_NIVEL3;
+            default:
+                return SonidosNivel.CARACTER_NIVEL0;
         }
     }
 

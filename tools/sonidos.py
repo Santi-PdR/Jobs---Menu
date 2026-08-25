@@ -245,132 +245,202 @@ def escribir(nombre: str, datos: np.ndarray, pico: float = 0.85) -> None:
 # ==========================================================================
 # 1. Interfaz
 # ==========================================================================
-# Criterio: nada por encima de 6 kHz, nada mas corto que 40 ms, y todo pasado
-# por la misma sala chica para que los ocho sonidos pertenezcan al mismo lugar.
-# Un clic de UI sin sala suena pegado a la cara y delata que es un archivo.
+# TERCERA GENERACION. Las dos anteriores se descartaron enteras y conviene
+# dejar escrito por que, porque el error es facil de repetir.
+#
+# La primera version eran clics. La segunda eran clics mejores: sellos,
+# interruptores, ruedas dentadas. Suenan bien sueltos y siguen sin funcionar,
+# porque el problema no era la calidad de cada pieza sino la categoria. Un
+# clic es un objeto que se manipula, y aca no hay ningun objeto: hay una hoja
+# clavada en una pared y un edificio alrededor. Cada vez que sonaba un
+# mecanismo, el menu delataba que era una interfaz.
+#
+# Lo que hace esta generacion: la interfaz NO tiene sonido propio. Lo que se
+# oye cuando se mueve el cursor es el EDIFICIO reaccionando. La instalacion
+# electrica que se entera, el aire que se mueve, el papel que responde. Todos
+# los gestos salen del mismo material que los ambientes -zumbido de red,
+# conducto, azulejo, chapa- y por eso pertenecen al lugar en vez de estar
+# apoyados encima.
+#
+# Reglas duras de esta familia:
+#   - Sin transitorio. Ningun ataque por debajo de 8 ms. Un ataque instantaneo
+#     es lo que el oido lee como "clic de computadora".
+#   - Techo en 5 kHz. Todo lo que pasa de ahi es plastico.
+#   - Cuerpo grave presente: cada gesto apoya en algun grave, aunque sea corto.
+#   - Todo por la misma sala. Distinta cantidad, misma sala.
+#   - Nada dura menos de 90 ms ni mas de 700.
 
-UI = impulso(0.22, 0.003, 3_400.0, 0.6)
+# La sala de la interfaz es la del recinto donde esta clavada la hoja: chica,
+# seca y con un poco de cola. No es una sala de efectos: es el sitio.
+UI = impulso(0.40, 0.005, 2_800.0, 0.9)
+
+# La red electrica. Todo gesto de la interfaz esta enchufado a esta nota, que
+# es la misma que zumba en los ambientes. Es lo que los cose entre si.
+RED = 50.0
 
 
-def ui_pasar() -> np.ndarray:
-    """Roce al pasar por un renglon. Papel, casi nada.
+def _red(dur: float, armonicos, decaimiento: float) -> np.ndarray:
+    """Un pedacito de zumbido de red con caida propia.
 
-    Es el sonido que mas veces se va a escuchar en toda la sesion, asi que es
-    el que menos tiene que existir: sin transitorio duro y sin agudos.
+    Es el ladrillo de toda la familia. Cambiando que armonicos entran y cuanto
+    duran salen ocho gestos distintos que siguen siendo el mismo material.
     """
-    dur = 0.085
-    n = muestras(dur)
-    fibra = pasabanda(rosa(dur), 700.0, 3_200.0, 2)
-    fibra *= envolvente(n, 0.012, 0.030, 3.0)
-    cuerpo = pasabajos(rosa(dur), 500.0, 2) * envolvente(n, 0.008, 0.045, 2.5) * 0.5
-    x = saturar(fibra * 0.7 + cuerpo, 1.1)
-    return rampa(reverberar(x, UI, 0.22), 0.004, 0.02)
-
-
-def ui_elegir() -> np.ndarray:
-    """Se marca la casilla. Sello de goma sobre papel apoyado en madera."""
-    dur = 0.20
-    n = muestras(dur)
-    t = tiempo(dur)
-
-    golpe = pasabajos(blanco(dur), 1_500.0, 2) * envolvente(n, 0.0006, 0.018, 6.0)
-    madera = (np.sin(2 * np.pi * 188.0 * t) + 0.5 * np.sin(2 * np.pi * 331.0 * t))
-    madera *= envolvente(n, 0.001, 0.055, 5.0) * 0.55
-    tinta = pasabanda(rosa(dur), 900.0, 2_600.0, 2) * envolvente(n, 0.004, 0.040, 4.0) * 0.30
-
-    x = saturar(golpe * 0.9 + madera + tinta, 1.4)
-    return rampa(reverberar(x, UI, 0.26), 0.001, 0.03)
-
-
-def ui_confirmar() -> np.ndarray:
-    """Se acepta y se cambia de pantalla. Interruptor de pared, dos tiempos.
-
-    Un interruptor real hace dos ruidos: el dedo venciendo el resorte y el
-    contacto cerrando. Separarlos ~35 ms es lo que lo vuelve creible.
-    """
-    dur = 0.34
-    n = muestras(dur)
-    t = tiempo(dur)
-
-    resorte = pasabanda(blanco(dur), 1_200.0, 4_000.0, 2) * envolvente(n, 0.0004, 0.012, 8.0) * 0.45
-
-    retardo = muestras(0.035)
-    contacto = np.zeros(n)
-    largo = n - retardo
-    tc = np.arange(largo) / SR
-    golpe = pasabajos(RNG.normal(0, 1, largo), 900.0, 2) * np.exp(-tc / 0.020)
-    tono = (np.sin(2 * np.pi * 96.0 * tc) * 0.7 + np.sin(2 * np.pi * 152.0 * tc) * 0.3)
-    tono *= np.exp(-tc / 0.055)
-    contacto[retardo:] = golpe * 1.0 + tono * 0.6
-
-    x = saturar(resorte + contacto, 1.6)
-    return rampa(reverberar(x, UI, 0.30), 0.001, 0.04)
-
-
-def ui_volver() -> np.ndarray:
-    """Volver atras: el mismo interruptor, soltado. Mas apagado y sin resorte."""
-    dur = 0.26
-    n = muestras(dur)
-    t = tiempo(dur)
-    golpe = pasabajos(blanco(dur), 700.0, 2) * envolvente(n, 0.0008, 0.024, 5.0)
-    tono = np.sin(2 * np.pi * 74.0 * t) * envolvente(n, 0.002, 0.050, 4.0) * 0.5
-    x = saturar(golpe * 0.8 + tono, 1.3)
-    return rampa(reverberar(x, UI, 0.28), 0.001, 0.04)
-
-
-def ui_alternar() -> np.ndarray:
-    """Cambiar el valor de una opcion. Rueda dentada, un diente."""
-    dur = 0.13
-    n = muestras(dur)
-    t = tiempo(dur)
-    diente = pasabanda(blanco(dur), 1_600.0, 5_000.0, 2) * envolvente(n, 0.0005, 0.010, 7.0)
-    cuerpo = np.sin(2 * np.pi * 420.0 * t) * envolvente(n, 0.001, 0.022, 6.0) * 0.35
-    x = saturar(diente * 0.7 + cuerpo, 1.2)
-    return rampa(reverberar(x, UI, 0.24), 0.001, 0.02)
-
-
-def ui_abrir() -> np.ndarray:
-    """Se abre el aviso. Papel despegandose de la pared, hacia arriba."""
-    dur = 0.55
-    n = muestras(dur)
-    t = tiempo(dur)
-    barrido = pasabanda(rosa(dur), 400.0, 2_800.0, 2)
-    barrido *= np.clip(t / 0.18, 0.0, 1.0) * np.exp(-t / 0.22)
-    aire = pasabajos(rosa(dur), 260.0, 2) * np.exp(-t / 0.30) * 0.6
-    x = saturar(barrido * 0.8 + aire, 1.1)
-    return rampa(reverberar(x, UI, 0.32), 0.02, 0.10)
-
-
-def ui_cerrar() -> np.ndarray:
-    """Se cierra. La hoja vuelve a apoyarse contra la pared."""
-    dur = 0.42
-    n = muestras(dur)
-    t = tiempo(dur)
-    caida = pasabanda(rosa(dur), 300.0, 1_900.0, 2) * np.exp(-t / 0.14)
-    palmada = pasabajos(blanco(dur), 800.0, 2) * envolvente(n, 0.0008, 0.030, 5.0) * 0.7
-    x = saturar(caida * 0.7 + palmada, 1.2)
-    return rampa(reverberar(x, UI, 0.30), 0.004, 0.08)
-
-
-def ui_negado() -> np.ndarray:
-    """Accion invalida. Un rele que intenta cerrar y no engancha.
-
-    Sin pitido descendente, sin nota triste: la maquina simplemente no hizo
-    lo que le pidieron.
-    """
-    dur = 0.30
     n = muestras(dur)
     t = tiempo(dur)
     x = np.zeros(n)
-    for retardo, fuerza in ((0.0, 1.0), (0.045, 0.55)):
+    for multiplo, nivel in armonicos:
+        fase = RNG.uniform(0, 2 * np.pi)
+        x += nivel * np.sin(2 * np.pi * RED * multiplo * t + fase)
+    return x * np.exp(-t / decaimiento)
+
+
+def ui_pasar() -> np.ndarray:
+    """Pasar por encima de un renglon.
+
+    Es el sonido que mas veces se va a oir en la sesion, asi que casi no es un
+    sonido: es un soplo de aire desplazado, como cuando la mano pasa cerca de
+    una hoja de papel sin llegar a tocarla. Sin ataque, sin cuerpo, sin cola.
+
+    Si al escucharlo suelto parece que falta algo, esta bien. En su sitio, con
+    el ambiente debajo, se percibe como que la hoja se entero.
+    """
+    dur = 0.16
+    n = muestras(dur)
+    aire = pasabanda(rosa(dur), 240.0, 1_900.0, 2)
+    aire *= envolvente(n, 0.030, 0.085, 1.6)
+    # La red, apenas insinuada, para que el roce este enchufado al lugar.
+    zumba = _red(dur, ((1, 0.5), (2, 0.35)), 0.055) * 0.12
+    x = aire * 0.55 + zumba
+    return rampa(reverberar(x, UI, 0.20), 0.012, 0.045)
+
+
+def ui_elegir() -> np.ndarray:
+    """Queda marcado un renglon.
+
+    Un contacto de rele cerrando, pero visto desde el otro lado de la pared:
+    lo que llega no es el golpe del contacto sino el escalon de corriente que
+    provoca. Por eso el grave entra ANTES que cualquier otra cosa y lo agudo
+    apenas asoma.
+    """
+    dur = 0.28
+    n = muestras(dur)
+    cuerpo = _red(dur, ((1, 0.55), (2, 1.0), (3, 0.30), (4, 0.20)), 0.075)
+    cuerpo *= envolvente(n, 0.010, 0.090, 1.8)
+    # El herraje: banda estrecha y corta, nunca por encima de 3 kHz.
+    herraje = pasabanda(blanco(dur), 900.0, 2_800.0, 2) * envolvente(n, 0.009, 0.030, 3.5) * 0.22
+    x = saturar(cuerpo * 0.85 + herraje, 1.15)
+    return rampa(reverberar(x, UI, 0.26), 0.008, 0.055)
+
+
+def ui_confirmar() -> np.ndarray:
+    """Se acepta y se cambia de pantalla.
+
+    Es el unico gesto de la interfaz con consecuencia, y se resuelve al reves
+    que los demas: no es algo que suena, es algo que DEJA de sonar. La red se
+    tensa medio segundo y despues cae. El vacio que queda es la confirmacion.
+    """
+    dur = 0.62
+    n = muestras(dur)
+    t = tiempo(dur)
+
+    carga = _red(dur, ((1, 0.60), (2, 1.0), (3, 0.45), (6, 0.14)), 0.30)
+    # La tension: la red sube un poco antes de soltar. Trece centesimas.
+    carga *= np.clip(t / 0.13, 0.0, 1.0) * (1.0 + 0.35 * np.exp(-t / 0.10))
+    caida = np.exp(-np.clip(t - 0.16, 0.0, None) / 0.14)
+    carga *= caida
+
+    conducto = pasabajos(marron(dur), 300.0, 3) * 3.0 * envolvente(n, 0.040, 0.240, 1.4) * 0.55
+    x = saturar(carga * 0.75 + conducto, 1.25)
+    return rampa(reverberar(x, UI, 0.34), 0.010, 0.130)
+
+
+def ui_volver() -> np.ndarray:
+    """Volver atras.
+
+    El mismo material que confirmar pero sin la tension previa y una octava mas
+    abajo: la corriente se retira en vez de cortarse. Que sean parientes claros
+    es deliberado; ir y volver tienen que sonar al mismo par.
+    """
+    dur = 0.42
+    n = muestras(dur)
+    t = tiempo(dur)
+    cuerpo = _red(dur, ((0.5, 0.85), (1, 0.60), (2, 0.22)), 0.13)
+    cuerpo *= envolvente(n, 0.018, 0.170, 1.5)
+    aire = pasabajos(marron(dur), 240.0, 3) * 2.6 * np.exp(-t / 0.11) * 0.4
+    x = saturar(cuerpo * 0.80 + aire, 1.15)
+    return rampa(reverberar(x, UI, 0.30), 0.012, 0.100)
+
+
+def ui_alternar() -> np.ndarray:
+    """Cambiar el valor de una opcion.
+
+    El gesto mas chico que existe: un salto de la red medio tono arriba y de
+    vuelta, en doce centesimas. No hay mecanismo, no hay diente, no hay rueda.
+    Cambio algo y la instalacion lo acuso.
+    """
+    dur = 0.19
+    n = muestras(dur)
+    t = tiempo(dur)
+    barrido = np.sin(2 * np.pi * (RED * 2.0 * (1.0 + 0.06 * np.exp(-t / 0.045))) * t)
+    barrido += 0.35 * np.sin(2 * np.pi * RED * 4.0 * t)
+    barrido *= envolvente(n, 0.012, 0.075, 2.2)
+    roce = pasabanda(rosa(dur), 600.0, 2_400.0, 2) * envolvente(n, 0.015, 0.050, 2.0) * 0.20
+    x = saturar(barrido * 0.55 + roce, 1.1)
+    return rampa(reverberar(x, UI, 0.22), 0.010, 0.048)
+
+
+def ui_abrir() -> np.ndarray:
+    """Se abre el menu.
+
+    Una instalacion entera arrancando: el conducto empieza a mover aire, la red
+    engancha, y todo eso sube desde nada a lo largo de casi medio segundo. Es
+    el gesto mas largo de la familia porque es el que abre el lugar.
+    """
+    dur = 0.70
+    n = muestras(dur)
+    t = tiempo(dur)
+    arranque = pasabajos(marron(dur), 380.0, 3) * 3.4
+    arranque *= np.clip(t / 0.34, 0.0, 1.0) * np.exp(-np.clip(t - 0.34, 0.0, None) / 0.26)
+    engancha = _red(dur, ((1, 0.7), (2, 1.0), (4, 0.18)), 0.34)
+    engancha *= np.clip(t / 0.22, 0.0, 1.0) * 0.55
+    x = saturar(arranque * 0.55 + engancha, 1.15)
+    return rampa(reverberar(x, UI, 0.36), 0.030, 0.170)
+
+
+def ui_cerrar() -> np.ndarray:
+    """Se cierra el menu. Lo de arriba, al reves y mas rapido."""
+    dur = 0.52
+    n = muestras(dur)
+    t = tiempo(dur)
+    frena = pasabajos(marron(dur), 320.0, 3) * 3.0 * np.exp(-t / 0.15)
+    # La red desafinandose hacia abajo mientras pierde alimentacion.
+    suelta = np.sin(2 * np.pi * RED * 2.0 * (1.0 - 0.10 * np.clip(t / 0.30, 0, 1)) * t)
+    suelta *= np.exp(-t / 0.13) * 0.55
+    x = saturar(frena * 0.55 + suelta, 1.15)
+    return rampa(reverberar(x, UI, 0.32), 0.014, 0.140)
+
+
+def ui_negado() -> np.ndarray:
+    """Accion invalida.
+
+    Sin pitido, sin nota triste, sin nada que parezca un mensaje de error de
+    sistema operativo. La red intenta cerrar el circuito dos veces, no engancha
+    ninguna, y se queda como estaba. La informacion esta en que no pasa nada.
+    """
+    dur = 0.36
+    n = muestras(dur)
+    x = np.zeros(n)
+    for retardo, fuerza in ((0.0, 1.0), (0.075, 0.50)):
         d = muestras(retardo)
         largo = n - d
+        if largo <= 0:
+            continue
         tc = np.arange(largo) / SR
-        golpe = pasabanda(RNG.normal(0, 1, largo), 200.0, 1_400.0, 2) * np.exp(-tc / 0.016)
-        x[d:] += golpe * fuerza
-    zumbido = np.sin(2 * np.pi * 100.0 * t) * np.exp(-t / 0.10) * 0.25
-    x = saturar(x + zumbido, 1.5)
-    return rampa(reverberar(x, UI, 0.28), 0.001, 0.05)
+        intento = np.sin(2 * np.pi * RED * 2.0 * tc) + 0.4 * np.sin(2 * np.pi * RED * tc)
+        intento *= envolvente(largo, 0.009, 0.038, 3.0)
+        sordo = pasabajos(RNG.normal(0, 1, largo), 700.0, 2) * np.exp(-tc / 0.022) * 0.35
+        x[d:] += (intento * 0.6 + sordo) * fuerza
+    return rampa(reverberar(saturar(x, 1.3), UI, 0.28), 0.010, 0.075)
 
 
 # ==========================================================================
@@ -494,6 +564,160 @@ def base_nivel3(dur: float = 30.0) -> np.ndarray:
 
     x = clima * 0.10 + rejilla * 0.05 + agua * 0.075 + electrico
     return reverberar(x, SALAS["piscinas"], 0.52)
+
+
+# ==========================================================================
+# 2b. Capa de caracter: la segunda cama, tambien continua
+# ==========================================================================
+# El pedido fue explicito: tiene que haber sonido de fondo A TODA HORA -aire,
+# agua- y no solo eventos espaciados. La base de arriba ya es continua, pero
+# una sola cama tiene un problema: por muy bien empalmado que este el bucle,
+# a los tres o cuatro pases el oido aprende el archivo y lo empieza a
+# reconocer. No se oye la junta, se oye el patron.
+#
+# La solucion no es alargar el archivo, es poner DOS camas de duracion prima
+# entre si. Una de 24 s y otra de 37 s vuelven a alinearse cada quince minutos;
+# una de 28 y otra de 41, cada diecinueve. Durante toda la sesion el oyente
+# escucha combinaciones que no se repiten, con dos archivos chicos.
+#
+# La division de material no es arbitraria: en la BASE va lo estable -la nota
+# del sitio, el zumbido, el volumen de aire- y aca va lo que se mueve -el aire
+# corriendo, el agua desplazandose, el goteo lejano-. Por eso esta capa es la
+# que se oye "viva" y la que sostiene la sensacion de que el lugar sigue
+# funcionando aunque no pase nada.
+
+def caracter_nivel0(dur: float = 37.0) -> np.ndarray:
+    """Nivel 0. El aire acondicionado de la seccion administrativa.
+
+    Nunca se apaga y nunca esta del todo estable: el motor tiene una batida
+    lenta, de esas que solo se notan cuando uno lleva un rato en la oficina.
+    """
+    t = tiempo(dur)
+
+    # El conducto. Es lo unico que hay, y por eso tiene que respirar.
+    conducto = pasabajos(marron(dur), 300.0, 3) * 4.2
+    conducto *= 0.75 + 0.25 * deriva(dur, 0.023, 1.0)
+
+    # La batida del motor: dos frecuencias muy cercanas que van y vienen.
+    batida = (np.sin(2 * np.pi * 24.0 * t) + np.sin(2 * np.pi * 24.7 * t)) * 0.5
+    batida *= 0.06
+
+    # La reja de retorno, banda media, filtrada por un barrido lentisimo.
+    reja = pasabanda(rosa(dur), 700.0, 2_600.0, 2) * 0.20 * deriva(dur, 0.047, 0.55)
+
+    x = conducto * 0.085 + batida + reja * 0.045
+    return reverberar(x, SALAS["oficina"], 0.24)
+
+
+def caracter_nivel1(dur: float = 41.0) -> np.ndarray:
+    """Nivel 1. La nave respirando.
+
+    Un galpon de este tamano tiene corrientes de aire propias, y la chapa del
+    techo se dilata y se contrae todo el dia. No hay maquinas: hay estructura.
+    """
+    t = tiempo(dur)
+
+    # Corriente de aire cruzando la nave, muy grave y muy lenta.
+    corriente = pasabajos(marron(dur), 90.0, 3) * 5.5
+    corriente *= 0.6 + 0.4 * deriva(dur, 0.013, 1.0)
+
+    # Silbido de la corriente colandose por algun hueco alto. Va y viene.
+    silbido = pasabanda(rosa(dur), 900.0, 2_200.0, 2)
+    ventana = np.clip(np.sin(2 * np.pi * 0.021 * t - 0.7), 0.0, None) ** 2
+    silbido *= ventana * 0.30
+
+    # La chapa: crujidos de dilatacion, muy separados y muy suaves. Estan aca y
+    # no en los eventos porque no son sucesos, son el estado del edificio.
+    chapa = np.zeros(len(t))
+    for _ in range(7):
+        pos = muestras(RNG.uniform(1.0, dur - 3.0))
+        largo = muestras(RNG.uniform(0.6, 1.8))
+        if pos + largo > len(t):
+            continue
+        tc = np.arange(largo) / SR
+        cru = pasabanda(RNG.normal(0, 1, largo), 140.0, 800.0, 2)
+        cru *= np.sin(np.pi * tc / (largo / SR)) ** 3 * RNG.uniform(0.10, 0.28)
+        chapa[pos:pos + largo] += cru
+
+    x = corriente * 0.075 + silbido * 0.035 + chapa * 0.5
+    return reverberar(x, SALAS["deposito"], 0.50)
+
+
+def caracter_nivel2(dur: float = 29.0) -> np.ndarray:
+    """Nivel 2. El haz de canerias trabajando.
+
+    El unico nivel donde hay maquinaria de verdad del otro lado de la pared.
+    Circulacion de agua caliente dentro del cano, la bomba lejos, y el cano
+    mismo transmitiendo todo por contacto.
+    """
+    t = tiempo(dur)
+
+    # Agua circulando: ruido de banda estrecha resonado en el diametro del cano.
+    flujo = pasabanda(rosa(dur), 400.0, 2_000.0, 2) * 0.55
+    flujo = resonar(flujo, 620.0, 12.0, 1.6)
+    flujo = resonar(flujo, 940.0, 16.0, 1.2)
+    flujo *= 0.7 + 0.3 * deriva(dur, 0.061, 1.0)
+
+    # La bomba, dos paredes mas alla: pulso lento y sordo.
+    pulso = np.clip(np.sin(2 * np.pi * 1.45 * t), 0.0, None) ** 4
+    bomba = pasabajos(marron(dur), 150.0, 3) * 3.0 * (0.55 + 0.45 * pulso)
+
+    # Goteo continuo, sin ser un evento: un ritmo que casi es un ritmo.
+    goteo = np.zeros(len(t))
+    paso = 2.7
+    pos = 0.6
+    while pos < dur - 0.4:
+        i = muestras(pos)
+        largo = muestras(0.16)
+        if i + largo < len(t):
+            tc = np.arange(largo) / SR
+            g = np.sin(2 * np.pi * RNG.uniform(1_500, 2_400) * tc) * np.exp(-tc / 0.012)
+            g += pasabajos(RNG.normal(0, 1, largo), 900.0, 2) * np.exp(-tc / 0.020) * 0.5
+            goteo[i:i + largo] += g * RNG.uniform(0.20, 0.42)
+        pos += paso * RNG.uniform(0.75, 1.35)
+
+    x = flujo * 0.055 + bomba * 0.055 + goteo * 0.22
+    return reverberar(x, SALAS["servicio"], 0.40)
+
+
+def caracter_nivel3(dur: float = 43.0) -> np.ndarray:
+    """Nivel 3. El agua del natatorio, siempre.
+
+    Es la capa mas importante de las ocho: es la que el pedido nombraba por su
+    nombre. Un complejo de piletas vacio no suena a chapoteo, suena a masa de
+    agua quieta en un recinto enorme de azulejo, con el rebalse corriendo por
+    la canaleta perimetral y la climatizacion que no para nunca.
+    """
+    t = tiempo(dur)
+
+    # La canaleta de rebalse: agua corriendo constante, filtrada y lejana. Es
+    # el hilo que no se corta jamas, y es lo que hace que el sitio este vivo.
+    canaleta = pasabanda(rosa(dur), 700.0, 3_400.0, 2) * 0.42
+    canaleta *= 0.72 + 0.28 * deriva(dur, 0.053, 1.0)
+
+    # La masa de agua: olas lentisimas contra el borde del vaso, casi infrasonido.
+    masa = pasabajos(marron(dur), 110.0, 3) * 4.6
+    ola = 0.62 + 0.38 * (np.sin(2 * np.pi * 0.055 * t) * 0.6
+                         + np.sin(2 * np.pi * 0.037 * t + 2.1) * 0.4)
+    masa *= ola
+
+    # Lengüetazos del agua en la canaleta, sueltos, sin periodo reconocible.
+    lame = np.zeros(len(t))
+    for _ in range(22):
+        pos = muestras(RNG.uniform(0.4, dur - 1.2))
+        largo = muestras(RNG.uniform(0.20, 0.75))
+        if pos + largo > len(t):
+            continue
+        tc = np.arange(largo) / SR
+        l = pasabanda(RNG.normal(0, 1, largo), 350.0, 2_600.0, 2)
+        l *= np.sin(np.pi * tc / (largo / SR)) ** 2 * RNG.uniform(0.14, 0.40)
+        lame[pos:pos + largo] += l
+
+    # Climatizacion del recinto, la unica capa completamente estable.
+    clima = pasabajos(marron(dur), 240.0, 3) * 3.6 * (0.85 + 0.15 * deriva(dur, 0.019, 1.0))
+
+    x = canaleta * 0.050 + masa * 0.070 + lame * 0.30 + clima * 0.045
+    return reverberar(x, SALAS["piscinas"], 0.56)
 
 
 # ==========================================================================
@@ -913,6 +1137,13 @@ PIEZAS = {
     "ambiente/nivel2": lambda: bucle_suave(base_nivel2(), 4.0),
     "ambiente/nivel3": lambda: bucle_suave(base_nivel3(), 6.0),
 
+    # Capa de caracter, tambien en bucle. Duraciones primas con las bases para
+    # que las dos camas de cada nivel no vuelvan a alinearse en toda la sesion.
+    "caracter/nivel0": lambda: bucle_suave(caracter_nivel0(), 5.0),
+    "caracter/nivel1": lambda: bucle_suave(caracter_nivel1(), 6.0),
+    "caracter/nivel2": lambda: bucle_suave(caracter_nivel2(), 4.0),
+    "caracter/nivel3": lambda: bucle_suave(caracter_nivel3(), 7.0),
+
     # Eventos
     "evento/nivel0_tubo": ev_nivel0_tubo,
     "evento/nivel0_placa": ev_nivel0_placa,
@@ -944,6 +1175,7 @@ PIEZAS = {
 PICOS = {
     "ui/": 0.55,
     "ambiente/": 0.70,
+    "caracter/": 0.66,
     "evento/": 0.72,
     "nivel/": 0.80,
     "figura/": 0.60,
