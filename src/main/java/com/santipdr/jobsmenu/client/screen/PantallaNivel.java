@@ -18,6 +18,7 @@ import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraftforge.client.gui.ModListScreen;
 
 /**
@@ -53,12 +54,57 @@ public class PantallaNivel extends Screen {
     /** Hueco extra que aisla el ultimo renglon del bloque de arriba. */
     private static final int HUECO_APARTE = 10;
 
+    // ---- Metrica de la hoja ----------------------------------------------
+    // Todas las distancias verticales salen de aca. Estan agrupadas porque la
+    // proporcion entre ellas es lo que hace que la hoja se lea como un
+    // documento y no como una lista de botones: el aire entre bloques distintos
+    // tiene que ser mayor que el aire dentro de un bloque, siempre.
+
+    /** Margen de papel entre el borde de la hoja y lo impreso. */
+    private static final int MARGEN_HOJA = 12;
+
+    /** Alto de una linea de texto normal. */
+    private static final int ALTO_LINEA = 11;
+
+    /** Alto del titulo, que va al doble de escala. */
+    private static final int ALTO_TITULO = 18;
+
+    /** Aire entre el titulo y el subtitulo: pertenecen al mismo bloque. */
+    private static final int AIRE_TITULO = 4;
+
+    /** Aire a cada lado de la regla horizontal. */
+    private static final int AIRE_REGLA = 7;
+
+    /** Aire entre la cabecera y el primer renglon: cambia de bloque. */
+    private static final int AIRE_CABECERA = 14;
+
+    /** Aire entre el ultimo renglon y la letra chica del pie. */
+    private static final int AIRE_PIE = 16;
+
+    /** Alto de la linea del atajo. */
+    private static final int ALTO_ATAJO = 10;
+
+    /** Aire entre el atajo y la nota rotativa. */
+    private static final int SEPARACION_AVISO = 6;
+
+    /** Margen minimo entre la hoja y el borde de la pantalla. */
+    private static final int MARGEN_PANTALLA = 12;
+
     /** Cuanto tarda el rotulo del nivel nuevo en terminar de aparecer. */
     private static final long ENTRADA_ROTULO_MS = 900L;
 
     private int hojaX;
     private int hojaY;
     private int hojaAlto;
+
+    /** Alto medido de la cabecera con el idioma actual. */
+    private int altoCabecera;
+
+    /** Alto reservado para la nota rotativa, o 0 si esta desactivada. */
+    private int altoAviso;
+
+    /** Donde va la linea del atajo, calculada en init(). */
+    private int atajoY;
 
     /** Ultimo nivel visto, para saber cuando cambio sin llevar temporizadores. */
     private int nivelVisto;
@@ -81,13 +127,46 @@ public class PantallaNivel extends Screen {
         GestorMusica.asegurar();
 
         this.hojaX = Math.max(14, (int) (this.width * 0.07F));
-        this.hojaY = Math.max(16, (int) (this.height * 0.13F));
-        this.hojaAlto = Math.min(this.height - this.hojaY - 16, 216);
 
-        int x = this.hojaX + 12;
-        int y = this.hojaY + 88;
-        int ancho = ANCHO_HOJA - 24;
+        // La hoja se mide de arriba hacia abajo, sumando lo que ocupa cada
+        // bloque, y solo despues se decide donde empieza. Antes se hacia al
+        // reves -alto fijo de 216 px y el pie colgado del borde de abajo-, y
+        // por eso la nota al pie caia encima del ultimo renglon en TODAS las
+        // resoluciones: dos anclajes independientes dentro de la misma caja
+        // siempre terminan chocando. Aca solo hay un anclaje, el de arriba.
+        this.altoCabecera = medirCabecera();
+
         int salto = ALTO_RENGLON + SEPARACION;
+        int altoLista = 3 * salto + HUECO_APARTE + ALTO_RENGLON;
+
+        this.altoAviso = ConfigTurno.avisosRotativos() ? medirAviso() : 0;
+
+        int altoPie = MARGEN_HOJA
+                + this.altoCabecera
+                + AIRE_CABECERA
+                + altoLista
+                + AIRE_PIE
+                + ALTO_ATAJO
+                + (this.altoAviso > 0 ? SEPARACION_AVISO + this.altoAviso : 0)
+                + MARGEN_HOJA;
+
+        this.hojaAlto = altoPie;
+
+        // Si la ventana es tan baja que la hoja no entra, se sube el margen
+        // superior en vez de recortar la hoja: es preferible que asome por
+        // arriba a que el contenido se pise. Con GUI scale 4 en una ventana
+        // chica esto pasa de verdad.
+        int disponible = this.height - 2 * MARGEN_PANTALLA;
+        if (this.hojaAlto > disponible) {
+            this.hojaY = MARGEN_PANTALLA;
+        } else {
+            this.hojaY = Math.max(MARGEN_PANTALLA,
+                    Math.min((int) (this.height * 0.13F), this.height - MARGEN_PANTALLA - this.hojaAlto));
+        }
+
+        int x = this.hojaX + MARGEN_HOJA;
+        int ancho = ANCHO_HOJA - 2 * MARGEN_HOJA;
+        int y = this.hojaY + MARGEN_HOJA + this.altoCabecera + AIRE_CABECERA;
 
         // ORDEN DE LOS RENGLONES
         //
@@ -104,13 +183,58 @@ public class PantallaNivel extends Screen {
         agregar(x, y, ancho, "01", "jobsmenu.tablon.cuadrilla", this::abrirCuadrilla, false);
         agregar(x, y + salto, ancho, "02", "jobsmenu.tablon.condiciones", this::abrirCondiciones, false);
         agregar(x, y + 2 * salto, ancho, "03", "jobsmenu.tablon.registro", this::abrirRegistro, false);
-        agregar(x, y + 3 * salto + HUECO_APARTE, ancho, "04", "jobsmenu.tablon.renunciar", this::renunciar, true);
+        agregar(x, y + 3 * salto + HUECO_APARTE, ancho, "04", "jobsmenu.tablon.renunciar",
+                this::renunciar, true);
+
+        this.atajoY = y + altoLista + AIRE_PIE;
 
         // El aviso del pie es un widget y no un dibujo: se puede pasar a mano y
         // entra en el recorrido del tabulador como cualquier otro renglon.
-        if (ConfigTurno.avisosRotativos()) {
-            this.addRenderableWidget(new NotaAviso(x, this.hojaY + this.hojaAlto - 26, ancho, 20));
+        if (this.altoAviso > 0) {
+            this.addRenderableWidget(new NotaAviso(
+                    x, this.atajoY + ALTO_ATAJO + SEPARACION_AVISO, ancho, this.altoAviso));
         }
+    }
+
+    /**
+     * Cuanto alto necesita la cabecera con el idioma que este puesto.
+     *
+     * Se mide, no se supone. El subtitulo en ingles -NOTICE TO THE OCCUPANTS OF
+     * THIS LEVEL- son 205 px contra los 190 que tiene la hoja de ancho, asi que
+     * ocupa dos lineas y no una; la tarifa en espanol tampoco entra en una.
+     * Con las alturas escritas a mano, cualquiera de las dos se comia el
+     * renglon de abajo. Preguntarle al motor cuantas lineas van a salir es lo
+     * unico que aguanta un idioma nuevo sin volver a tocar numeros.
+     */
+    private int medirCabecera() {
+        int ancho = ANCHO_HOJA - 2 * MARGEN_HOJA;
+        int alto = ALTO_TITULO + AIRE_TITULO;
+        alto += lineas("jobsmenu.subtitulo", ancho) * ALTO_LINEA;
+        alto += AIRE_REGLA + 1 + AIRE_REGLA;
+        alto += lineas("jobsmenu.nivel.actual", ancho) * ALTO_LINEA;
+        alto += lineas("jobsmenu.nivel.tarifa", ancho) * ALTO_LINEA;
+        return alto;
+    }
+
+    /**
+     * Cuanto alto reservar para la nota rotativa.
+     *
+     * Se toma el aviso MAS LARGO de los ocho y no el que toca ahora: si se
+     * midiera el actual, la hoja cambiaria de tamano sola cada siete segundos
+     * al rotar el texto, y los renglones bailarian debajo del cursor.
+     */
+    private int medirAviso() {
+        int ancho = ANCHO_HOJA - 2 * MARGEN_HOJA;
+        int maximo = 1;
+        for (int i = 0; i < NotaAviso.AVISOS; i++) {
+            maximo = Math.max(maximo, lineas("jobsmenu.aviso." + i, ancho));
+        }
+        return maximo * ALTO_LINEA + 2;
+    }
+
+    /** En cuantas lineas parte el motor esta clave con el ancho dado. */
+    private int lineas(String clave, int ancho) {
+        return Math.max(1, this.font.split(Component.translatable(clave), ancho).size());
     }
 
     private void agregar(int x, int y, int ancho, String orden, String clave,
@@ -238,10 +362,18 @@ public class PantallaNivel extends Screen {
         grafico.fill(centro - cinta, y0 - 4, centro + cinta, y0 + 4, Paleta.conAlfa(papel, 0.45F));
     }
 
-    /** Titulo del aviso, nivel actual y tarifa de salida. */
+    /**
+     * Titulo del aviso, nivel actual y tarifa de salida.
+     *
+     * Dibuja siguiendo exactamente la misma metrica que midio medirCabecera(),
+     * y parte los textos largos con font.split en vez de confiar en que
+     * entren. La tarifa en espanol son 217 px sobre una hoja de 190: sin
+     * partir, se salia por el borde derecho del papel.
+     */
     private void cabecera(GuiGraphics grafico) {
-        int x = this.hojaX + 12;
-        int y = this.hojaY + 12;
+        int x = this.hojaX + MARGEN_HOJA;
+        int ancho = ANCHO_HOJA - 2 * MARGEN_HOJA;
+        int y = this.hojaY + MARGEN_HOJA;
         float tinta = tinta();
 
         grafico.pose().pushPose();
@@ -251,16 +383,28 @@ public class PantallaNivel extends Screen {
                 Paleta.conAlfa(Paleta.TINTA, tinta), false);
         grafico.pose().popPose();
 
-        grafico.drawString(this.font, Component.translatable("jobsmenu.subtitulo"), x, y + 20,
-                Paleta.conAlfa(Paleta.TINTA_TENUE, tinta), false);
+        y += ALTO_TITULO + AIRE_TITULO;
+        y = parrafo(grafico, "jobsmenu.subtitulo", x, y, ancho,
+                Paleta.conAlfa(Paleta.TINTA_TENUE, tinta));
 
-        grafico.fill(x, y + 33, x + ANCHO_HOJA - 24, y + 34,
+        y += AIRE_REGLA;
+        grafico.fill(x, y, x + ancho, y + 1,
                 Paleta.conAlfa(Paleta.TINTA_TENUE, 0.45F * tinta));
+        y += 1 + AIRE_REGLA;
 
-        grafico.drawString(this.font, Component.translatable("jobsmenu.nivel.actual"), x, y + 42,
-                Paleta.conAlfa(Paleta.TINTA_TENUE, tinta), false);
-        grafico.drawString(this.font, Component.translatable("jobsmenu.nivel.tarifa"), x, y + 54,
-                Paleta.conAlfa(Paleta.TINTA, tinta), false);
+        y = parrafo(grafico, "jobsmenu.nivel.actual", x, y, ancho,
+                Paleta.conAlfa(Paleta.TINTA_TENUE, tinta));
+        parrafo(grafico, "jobsmenu.nivel.tarifa", x, y, ancho,
+                Paleta.conAlfa(Paleta.TINTA, tinta));
+    }
+
+    /** Dibuja un texto partido al ancho de la hoja y devuelve donde termino. */
+    private int parrafo(GuiGraphics grafico, String clave, int x, int y, int ancho, int color) {
+        for (FormattedCharSequence linea : this.font.split(Component.translatable(clave), ancho)) {
+            grafico.drawString(this.font, linea, x, y, color, false);
+            y += ALTO_LINEA;
+        }
+        return y;
     }
 
     /**
@@ -271,9 +415,8 @@ public class PantallaNivel extends Screen {
      * esta escrito en ningun lado no existe para nadie.
      */
     private void atajo(GuiGraphics grafico) {
-        int x = this.hojaX + 12;
-        int y = this.hojaY + this.hojaAlto - 40;
-        grafico.drawString(this.font, Component.translatable("jobsmenu.tablon.atajo"), x, y,
+        grafico.drawString(this.font, Component.translatable("jobsmenu.tablon.atajo"),
+                this.hojaX + MARGEN_HOJA, this.atajoY,
                 Paleta.conAlfa(Paleta.TINTA_TENUE, 0.70F * tinta()), false);
     }
 
@@ -325,6 +468,26 @@ public class PantallaNivel extends Screen {
 
         int x = 12;
         int y = this.height - 30;
+
+        // El cartel de pared va abajo a la izquierda, que es justo donde cae la
+        // hoja cuando la ventana es baja: con la hoja midiendo 285 px y una
+        // ventana de 300, el papel llegaba hasta y=297 y el rotulo se dibujaba
+        // encima. Si no hay sitio libre debajo de la hoja, el rotulo se corre a
+        // la derecha del papel en vez de superponerse. Es la clase de choque
+        // que solo aparece en resoluciones que casi nadie prueba, y que arruina
+        // la escena para quien las usa.
+        int finHoja = this.hojaY + this.hojaAlto;
+        if (!ConfigTurno.interfazMinima() && y < finHoja + 4) {
+            x = this.hojaX + ANCHO_HOJA + 14;
+            y = Math.max(12, this.height - 30);
+
+            // Si tampoco cabe al costado, el cartel no se dibuja. Un rotulo
+            // ilegible pisado por otra cosa informa menos que ninguno.
+            int anchoNecesario = Math.max(this.font.width(nombre), this.font.width(nota));
+            if (x + anchoNecesario > this.width - 12) {
+                return;
+            }
+        }
 
         grafico.drawString(this.font, nombre, x, y,
                 Paleta.conAlfa(Paleta.PAPEL, 0.85F * alfa), false);

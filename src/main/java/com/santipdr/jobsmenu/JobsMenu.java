@@ -1,7 +1,10 @@
 package com.santipdr.jobsmenu;
 
+import com.mojang.logging.LogUtils;
 import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.config.ConfigTurno;
+
+import org.slf4j.Logger;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -20,6 +23,16 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 public class JobsMenu {
 
     public static final String MOD_ID = "jobsmenu";
+
+    /**
+     * Registro del mod.
+     *
+     * Existe para una sola cosa: cuando el jugador deja una pista de musica
+     * que Minecraft no puede reproducir, hay que poder decirselo. Un mod que
+     * se queda mudo sin explicar por que obliga a adivinar, y adivinar es
+     * exactamente lo que este sistema tiene que evitar.
+     */
+    public static final Logger LOG = LogUtils.getLogger();
 
     /** Version visible en el sello del menu. Se sincroniza a mano con gradle.properties. */
     public static final String VERSION = "0.4.0";

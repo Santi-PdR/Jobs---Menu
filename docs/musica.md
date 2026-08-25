@@ -41,36 +41,46 @@ redimensionar la ventana, bucle natural, entrada de veinte segundos, volumen
 propio en la config, y continuidad durante el apagón cediendo un 22 % para que
 el corte eléctrico tenga el frente.
 
-## Cómo poner la pista que quieras: el mod ya te dejó el hueco hecho
+## Cómo poner la pista que quieras: una carpeta, un archivo, nada más
 
-Esto cambió en 0.5.0. Antes esta sección te explicaba cómo armar un paquete de
-recursos a mano, con su estructura exacta de carpetas. Era correcto y era una
-molestia: si te equivocabas en el nombre de una carpeta, no sonaba nada y no
-había ningún mensaje de error que te dijera por qué.
+Esto volvió a cambiar en 0.6.0, y ahora sí está terminado.
 
-**Ahora lo arma el mod solo.** La primera vez que abrís el menú, el mod crea en
-la carpeta `resourcepacks` de tu instancia un paquete completo y válido:
+En 0.5.0 el mod te dejaba el paquete de recursos armado, pero todavía te pedía
+tres cosas: renombrar el archivo a un nombre exacto, meterlo en la carpeta
+correcta y activar el paquete en Opciones. Tres oportunidades de equivocarte en
+silencio —si el nombre no era exacto, no sonaba y no había mensaje—. Eso ya no
+existe.
+
+**Ahora es esto:**
 
 ```
-resourcepacks/
-└── jobsmenu-musica/
-    ├── pack.mcmeta          ← ya creado, ya válido
-    ├── LEEME.txt            ← las instrucciones, ahí mismo
-    └── assets/jobsmenu/sounds/musica/
-        └── (acá va tu defecto.ogg)
+.minecraft/
+└── jobsmenu-musica/        ← el mod crea esta carpeta solo
+    ├── LEEME.txt           ← las mismas instrucciones, ahí mismo
+    └── tu-pista.ogg        ← soltás el archivo acá. Fin.
 ```
 
-Todo está hecho menos una cosa, que es justamente la que no puedo hacer yo:
-poner el archivo. Vos:
+Una carpeta, en la raíz de la instancia, junto a `mods` y `saves`. Soltás
+dentro tu archivo `.ogg` y listo. **No hay que renombrarlo** —el nombre da
+igual—, no hay que crear ninguna carpeta, y **no hay que activar nada en
+Opciones**.
 
-1. Conseguís tu copia de la pista (ver abajo).
-2. La convertís a **OGG Vorbis, 44 100 Hz**.
-3. La renombrás a `defecto.ogg`.
-4. La soltás en la carpeta `musica` que ya existe.
-5. Activás el paquete en Opciones → Paquetes de recursos.
+Lo que hace el mod al arrancar:
 
-Y suena, con el mismo volumen, el mismo bucle y el mismo comportamiento durante
-el apagón que la pista propia.
+1. Crea la carpeta si no existe, con el `LEEME.txt` dentro.
+2. Busca un archivo de audio (si hay varios, el primero por orden alfabético).
+3. Lo copia al paquete de recursos interno con el nombre que hace falta.
+4. Registra el paquete y **lo activa solo**, sin pasar por Opciones.
+5. Recarga los recursos, así suena en el acto y no al siguiente arranque.
+
+Si no hay archivo, suena la pista propia del mod y no pasa nada. Para cambiar
+de pista, reemplazás el archivo. Para volver a la del mod, lo sacás.
+
+**El único requisito es el formato: OGG Vorbis.** Es el único que Minecraft
+sabe decodificar; un MP3 renombrado a `.ogg` no suena. Y acá va otra cosa que
+antes faltaba: si dejás un archivo que no es OGG, el mod **te lo dice en el
+log** en vez de quedarse mudo. La copia se rehace solo si el archivo cambió, así
+que no se paga tiempo de arranque de más.
 
 **Por qué esto es legal y meterla en el JAR no.** Un mod que lee un archivo que
 vos pusiste en tu carpeta no distribuye nada: la obra nunca sale de tu máquina.

@@ -1616,12 +1616,47 @@ def vineta(lz, nivel, penumbra, luz) -> None:
 # Hoja del aviso: bloque aproximado, solo para juzgar la composicion
 # --------------------------------------------------------------------------
 def hoja(lz: Lienzo) -> None:
-    ancho_hoja = 214
+    """La hoja con la metrica REAL de PantallaNivel, no una aproximacion.
+
+    Los numeros de aca son los mismos que los de la pantalla Java. Cuando eran
+    distintos -alto fijo de 208, renglones cada 23 px- esta vista previa decia
+    que la composicion estaba bien mientras en el juego la nota al pie caia
+    encima del ultimo boton. Una vista previa que miente es peor que no tenerla.
+    """
+    ANCHO_HOJA = 214
+    MARGEN = 12
+    LINEA = 11
+    ALTO_TITULO = 18
+    AIRE_TITULO = 4
+    AIRE_REGLA = 7
+    AIRE_CABECERA = 14
+    AIRE_PIE = 16
+    ALTO_ATAJO = 10
+    SEP_AVISO = 6
+    ALTO_RENGLON = 20
+    SEPARACION = 3
+    HUECO_APARTE = 10
+    MARGEN_PANTALLA = 12
+
+    # Cabecera: titulo + subtitulo (2 lineas en ingles) + regla + dos parrafos.
+    cabecera = ALTO_TITULO + AIRE_TITULO + 2 * LINEA + AIRE_REGLA + 1 + AIRE_REGLA
+    cabecera += LINEA + 2 * LINEA
+    salto = ALTO_RENGLON + SEPARACION
+    lista = 3 * salto + HUECO_APARTE + ALTO_RENGLON
+    aviso = 3 * LINEA + 2
+    alto_hoja = (MARGEN + cabecera + AIRE_CABECERA + lista + AIRE_PIE
+                 + ALTO_ATAJO + SEP_AVISO + aviso + MARGEN)
+
     x0 = max(14, int(lz.ancho * 0.07))
-    y0 = max(16, int(lz.alto * 0.13))
-    alto_hoja = min(lz.alto - y0 - 16, 208)
-    x1 = x0 + ancho_hoja
+    disponible = lz.alto - 2 * MARGEN_PANTALLA
+    if alto_hoja > disponible:
+        y0 = MARGEN_PANTALLA
+    else:
+        y0 = max(MARGEN_PANTALLA,
+                 min(int(lz.alto * 0.13), lz.alto - MARGEN_PANTALLA - alto_hoja))
+    x1 = x0 + ANCHO_HOJA
     y1 = y0 + alto_hoja
+    ancho_util = ANCHO_HOJA - 2 * MARGEN
 
     lz.fill(x0 + 3, y0 + 4, x1 + 3, y1 + 4, con_alfa(VANO, 0.30))
     lz.fill(x0, y0, x1, y1, con_alfa(PAPEL, 0.94))
@@ -1631,15 +1666,41 @@ def hoja(lz: Lienzo) -> None:
     centro = (x0 + x1) // 2
     lz.fill(centro - 22, y0 - 4, centro + 22, y0 + 4, con_alfa(PAPEL, 0.45))
 
-    lz.fill(x0 + 12, y0 + 12, x0 + 12 + 58, y0 + 12 + 16, con_alfa(TINTA, 0.92))
-    lz.fill(x0 + 12, y0 + 32, x1 - 12, y0 + 33, con_alfa(TINTA_TENUE, 0.45))
-    lz.fill(x0 + 12, y0 + 42, x0 + 150, y0 + 50, con_alfa(TINTA_TENUE, 0.55))
-    lz.fill(x0 + 12, y0 + 54, x0 + 170, y0 + 62, con_alfa(TINTA, 0.70))
+    x = x0 + MARGEN
+    y = y0 + MARGEN
+    lz.fill(x, y, x + 46, y + ALTO_TITULO - 2, con_alfa(TINTA, 0.92))
+    y += ALTO_TITULO + AIRE_TITULO
+    for i in range(2):
+        ancho_linea = ancho_util if i == 0 else int(ancho_util * 0.32)
+        lz.fill(x, y + 1, x + ancho_linea, y + 8, con_alfa(TINTA_TENUE, 0.55))
+        y += LINEA
+    y += AIRE_REGLA
+    lz.fill(x, y, x + ancho_util, y + 1, con_alfa(TINTA_TENUE, 0.45))
+    y += 1 + AIRE_REGLA
+    lz.fill(x, y + 1, x + int(ancho_util * 0.88), y + 8, con_alfa(TINTA_TENUE, 0.55))
+    y += LINEA
+    for i in range(2):
+        ancho_linea = ancho_util if i == 0 else int(ancho_util * 0.18)
+        lz.fill(x, y + 1, x + ancho_linea, y + 8, con_alfa(TINTA, 0.70))
+        y += LINEA
+
+    y = y0 + MARGEN + cabecera + AIRE_CABECERA
     for i in range(4):
-        y = y0 + 88 + i * 23
-        lz.fill(x0 + 12, y + 6, x0 + 19, y + 13, con_alfa(TINTA_TENUE, 0.70))
-        lz.fill(x0 + 44, y + 6, x0 + 150, y + 14, con_alfa(TINTA_TENUE, 0.75))
-    lz.fill(x0 + 12, y1 - 26, x1 - 20, y1 - 18, con_alfa(TINTA_TENUE, 0.55))
+        fy = y + i * salto + (HUECO_APARTE if i == 3 else 0)
+        lz.fill(x, fy + 6, x + 7, fy + 13, con_alfa(TINTA_TENUE, 0.70))
+        lz.fill(x + 32, fy + 6, x + 32 + 110, fy + 14, con_alfa(TINTA_TENUE, 0.75))
+        px = x + 32 + 114
+        while px < x + ancho_util - 2:
+            lz.fill(px, fy + 12, px + 1, fy + 13, con_alfa(TINTA_TENUE, 0.30))
+            px += 3
+
+    y_atajo = y + lista + AIRE_PIE
+    lz.fill(x, y_atajo + 1, x + 143, y_atajo + 8, con_alfa(TINTA_TENUE, 0.50))
+    y_aviso = y_atajo + ALTO_ATAJO + SEP_AVISO
+    for i in range(3):
+        ancho_linea = ancho_util if i < 2 else int(ancho_util * 0.55)
+        lz.fill(x, y_aviso + i * LINEA + 1, x + ancho_linea,
+                y_aviso + i * LINEA + 8, con_alfa(TINTA_TENUE, 0.42))
 
 
 # --------------------------------------------------------------------------
