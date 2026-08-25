@@ -127,8 +127,14 @@ public final class GestorAmbiente {
     /** El nivel que sonaba la ultima vez que se miro. */
     private static int nivelSonando = -1;
 
-    /** Si ya se disparo el aviso previo de la transicion en curso. */
-    private static boolean titileoSonado;
+    /**
+     * Cual fue el ultimo parpadeo que se sono, para no repetirlo.
+     *
+     * Guarda el indice y no un booleano porque los parpadeos son varios y hay
+     * que poder distinguir uno del siguiente: con una bandera, el segundo
+     * chispazo de la misma fase no llegaba a sonar nunca.
+     */
+    private static int ultimoChispazo = -1;
 
     /** Si ya se disparo el apagon de la transicion en curso. */
     private static boolean apagonSonado;
@@ -148,7 +154,7 @@ public final class GestorAmbiente {
     public static void abrir() {
         nivelSonando = -1;
         proximoEvento = System.currentTimeMillis() + 6_000L;
-        titileoSonado = false;
+        ultimoChispazo = -1;
         apagonSonado = false;
         encendidoSonado = false;
         presenciaSonada = false;
@@ -269,25 +275,16 @@ public final class GestorAmbiente {
      * la cosa avisada no avisa nada.
      */
     private static void atenderTransicion() {
+        // Cada parpadeo que se VE se OYE, y en el mismo fotograma. La imagen y
+        // el sonido ya no llevan cada uno su cuenta: los dos preguntan por el
+        // mismo chispazo a RotacionNiveles, que es quien tiene la tabla.
+        atenderChispazos();
+
         if (!RotacionNiveles.enTransicion()) {
             apagonSonado = false;
             encendidoSonado = false;
-
-            // El titileo va en el ultimo tramo de la estancia, antes de que la
-            // luz empiece a caer: un aviso que llega junto con la cosa avisada
-            // no avisa nada.
-            if (RotacionNiveles.porTransicionar()) {
-                if (!titileoSonado) {
-                    titileoSonado = true;
-                    MezclaAudio.ambiental(SonidosNivel.NIVEL_TITILEO,
-                            MezclaAudio.TRANSICION * 0.45F * ConfigTurno.volumenAmbiente(), 1.0F);
-                }
-            } else {
-                titileoSonado = false;
-            }
             return;
         }
-        titileoSonado = false;
 
         float avance = RotacionNiveles.avanceTransicion();
 
@@ -303,6 +300,37 @@ public final class GestorAmbiente {
             MezclaAudio.ambiental(SonidosNivel.NIVEL_ENCENDIDO,
                     MezclaAudio.TRANSICION * 0.90F * ConfigTurno.volumenAmbiente(), 1.0F);
         }
+    }
+
+    /**
+     * Un chasquido por parpadeo, exactamente cuando se ve.
+     *
+     * Antes esto era un unico titileo disparado al entrar en la ventana de
+     * aviso: se veian cuatro bajones de luz y se oia uno solo, y ni siquiera
+     * en el momento de ninguno de ellos. El ojo y el oido se contradecian, y
+     * una contradiccion asi se nota aunque no se sepa senalar.
+     *
+     * El volumen sale del peso del parpadeo -un bajon leve suena leve- y el
+     * tono sube un poco en los chispazos del corte: ahi el tubo ya no esta
+     * dudando, se esta yendo.
+     */
+    private static void atenderChispazos() {
+        int chispazo = RotacionNiveles.chispazoActual();
+        if (chispazo < 0) {
+            ultimoChispazo = -1;
+            return;
+        }
+        if (chispazo == ultimoChispazo) {
+            return;
+        }
+        ultimoChispazo = chispazo;
+
+        float peso = RotacionNiveles.pesoChispazo(chispazo);
+        boolean enCorte = chispazo >= 10;
+        float volumen = MezclaAudio.TRANSICION * (0.30F + 0.55F * peso)
+                * ConfigTurno.volumenAmbiente();
+        float tono = enCorte ? 1.06F : 0.98F;
+        MezclaAudio.ambiental(SonidosNivel.NIVEL_TITILEO, volumen, tono);
     }
 
     /**

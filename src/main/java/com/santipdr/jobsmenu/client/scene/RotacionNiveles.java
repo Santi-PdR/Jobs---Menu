@@ -33,6 +33,25 @@ public final class RotacionNiveles {
     /** Un ciclo entero: un nivel quieto mas su salida. */
     private static final long CICLO_MS = ESTANCIA_MS + TRANSICION_MS;
 
+    /**
+     * Los parpadeos del aviso: {desde, hasta, cuanta luz queda}.
+     *
+     * Es la unica definicion de cuando titila la luz antes del corte. La lee
+     * el dibujo, para bajar la luz, y la lee el audio, para sonar en el mismo
+     * fotograma. Tocar un numero de aca mueve la imagen y el sonido a la vez,
+     * que es la unica forma de que no se separen con el tiempo.
+     */
+    private static final float[][] AVISO_CHISPAZOS = {
+            {0.28F, 0.34F, 0.72F},
+            {0.66F, 0.71F, 0.55F},
+    };
+
+    /** Los parpadeos de la caida, en fraccion de lo que ya cayo la luz. */
+    private static final float[][] CORTE_CHISPAZOS = {
+            {0.35F, 0.44F, 0.25F},
+            {0.62F, 0.68F, 0.40F},
+    };
+
     /** Indice del nivel que se esta mostrando ahora mismo. */
     public static int indiceActual() {
         if (!ConfigTurno.rotarNiveles()) {
@@ -77,11 +96,13 @@ public final class RotacionNiveles {
             // Se va yendo: primero titila, despues se rinde.
             float t = (float) transcurrido / (float) apagado;
             float caida = 1.0F - t * t;
-            if (t > 0.35F && t < 0.44F) {
-                caida *= 0.25F;
-            }
-            if (t > 0.62F && t < 0.68F) {
-                caida *= 0.40F;
+            if (!ConfigTurno.destellosReducidos()) {
+                for (int i = 0; i < CORTE_CHISPAZOS.length; i++) {
+                    float[] c = CORTE_CHISPAZOS[i];
+                    if (t > c[0] && t < c[1]) {
+                        caida *= c[2];
+                    }
+                }
             }
             return Math.max(0.0F, caida);
         }
@@ -109,14 +130,81 @@ public final class RotacionNiveles {
             return 1.0F;
         }
         float t = 1.0F - falta / (float) AVISO_MS;
-        if (t > 0.28F && t < 0.34F) {
-            return 0.72F;
-        }
-        if (t > 0.66F && t < 0.71F) {
-            return 0.55F;
+        for (int i = 0; i < AVISO_CHISPAZOS.length; i++) {
+            float[] c = AVISO_CHISPAZOS[i];
+            if (t > c[0] && t < c[1]) {
+                return c[2];
+            }
         }
         // Entre chispazo y chispazo la luz baja apenas, sin que se note.
         return 1.0F - 0.06F * t;
+    }
+
+    /**
+     * Cual de los parpadeos se esta viendo ahora mismo, o -1 si ninguno.
+     *
+     * Existe para que el audio pueda mirar exactamente lo mismo que la imagen.
+     * Antes el sonido electrico se disparaba una sola vez por transicion, con
+     * su propio criterio, mientras la luz pegaba cuatro bajones en momentos
+     * calculados aparte: se veian cuatro parpadeos y se oia uno, y encima
+     * ninguno de los dos caia donde el otro. Ahora los dos leen esta tabla, y
+     * si algo se ve, se oye.
+     *
+     * Los indices no se reutilizan entre fases -los del aviso van del 0 al 1 y
+     * los del corte del 10 en adelante- para que quien los siga pueda
+     * distinguir un parpadeo nuevo de otro sin llevar la cuenta de la fase.
+     */
+    public static int chispazoActual() {
+        if (!ConfigTurno.rotarNiveles() || ConfigTurno.destellosReducidos()) {
+            return -1;
+        }
+        long dentro = posicionEnCiclo();
+
+        if (dentro < ESTANCIA_MS) {
+            long falta = ESTANCIA_MS - dentro;
+            if (falta > AVISO_MS) {
+                return -1;
+            }
+            float t = 1.0F - falta / (float) AVISO_MS;
+            for (int i = 0; i < AVISO_CHISPAZOS.length; i++) {
+                float[] c = AVISO_CHISPAZOS[i];
+                if (t > c[0] && t < c[1]) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        long transcurrido = dentro - ESTANCIA_MS;
+        long apagado = (long) (TRANSICION_MS * REPARTO_APAGADO);
+        if (transcurrido >= apagado) {
+            return -1;
+        }
+        float t = (float) transcurrido / (float) apagado;
+        for (int i = 0; i < CORTE_CHISPAZOS.length; i++) {
+            float[] c = CORTE_CHISPAZOS[i];
+            if (t > c[0] && t < c[1]) {
+                return 10 + i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Cuanto pesa el parpadeo que se esta viendo, de 0 a 1.
+     *
+     * Un bajon del 28 por ciento no puede sonar igual que uno que deja el
+     * recinto casi a oscuras. El audio usa esto para el volumen del chasquido.
+     */
+    public static float pesoChispazo(int indice) {
+        if (indice < 0) {
+            return 0.0F;
+        }
+        if (indice >= 10) {
+            int i = indice - 10;
+            return i < CORTE_CHISPAZOS.length ? 1.0F - CORTE_CHISPAZOS[i][2] : 0.0F;
+        }
+        return indice < AVISO_CHISPAZOS.length ? 1.0F - AVISO_CHISPAZOS[indice][2] : 0.0F;
     }
 
     /**
