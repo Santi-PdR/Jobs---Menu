@@ -236,14 +236,25 @@ def escribir(nombre: str, datos: np.ndarray, pico: float = 0.85) -> None:
     ruta = DESTINO / f"{nombre}.ogg"
     ruta.parent.mkdir(parents=True, exist_ok=True)
     datos = np.asarray(datos, dtype=np.float64)
-    # Techo, no destino. Antes esto normalizaba SIEMPRE al pico de la familia,
-    # y por lo tanto igualaba el volumen de las ocho piezas de interfaz por
-    # mucho que cada una se hubiera mezclado a un nivel distinto a proposito.
-    # El balance de la familia -que pasar suene mucho mas bajo que confirmar,
-    # porque suena treinta veces mas seguido- moria justo aca, en la ultima
-    # linea de la cadena. Ahora solo se baja lo que se pasa del techo.
+
+    # Dos politicas distintas, y la diferencia importa.
+    #
+    # Para la interfaz el pico es un TECHO: cada gesto se mezcla al nivel que
+    # le toca sonar y aca solo se baja si se paso. Si se normalizara siempre,
+    # las ocho piezas terminarian al mismo volumen y el balance de la familia
+    # -que pasar suene siete decibelios por debajo de confirmar, porque suena
+    # treinta veces mas seguido- moriria en la ultima linea de la cadena.
+    #
+    # Para todo lo demas el pico es un DESTINO, como siempre. Las camas de
+    # ambiente se construyen sumando capas de amplitud muy chica y su nivel
+    # final no significa nada: sin normalizar, base_nivel2 quedaba cincuenta
+    # decibelios por debajo de base_nivel0 y directamente no se oia. Ahi el
+    # volumen relativo lo fija MezclaAudio en Java, no el generador.
     actual = float(np.max(np.abs(datos)))
-    if actual > pico:
+    if nombre.startswith("ui/"):
+        if actual > pico:
+            datos = normalizar(datos, pico)
+    elif actual > 0.0:
         datos = normalizar(datos, pico)
     bloque = SR * 4
     with sf.SoundFile(ruta, "w", samplerate=SR, channels=1,
@@ -691,7 +702,7 @@ def base_nivel1(dur: float = 28.0) -> np.ndarray:
     return reverberar(x, SALAS["deposito"], 0.42)
 
 
-def base_nivel2(dur: float = 22.0) -> np.ndarray:
+def base_nivel2(dur: float = 23.0) -> np.ndarray:
     """Nivel 2, pasillos de servicio.
 
     Estrecho y caliente. Aca si hay maquinas: agua corriendo dentro de las
@@ -700,7 +711,15 @@ def base_nivel2(dur: float = 22.0) -> np.ndarray:
     """
     t = tiempo(dur)
 
-    caldera = pasabajos(marron(dur), 90.0, 3) * 6.0 * deriva(dur, 0.023, 0.35)
+    # La caldera. El ruido marron ya cae 6 dB por octava por si mismo, asi que
+    # filtrarlo a 90 Hz y multiplicarlo por seis dejaba una cama con el CIEN
+    # POR CIENTO de su energia por debajo de 60 Hz: en unos auriculares
+    # normales el nivel 2 no se oia, y lo poco que se oia era el retumbe. Se
+    # le sube el corte y se le quita la ganancia bruta.
+    caldera = pasabajos(marron(dur), 150.0, 3) * 1.6 * deriva(dur, 0.023, 0.35)
+    # Y se le quita el subgrave que solo come margen: por debajo de 35 Hz no
+    # hay informacion, hay desplazamiento de cono.
+    caldera = pasaaltos(caldera, 35.0, 2)
 
     # Agua dentro del cano: ruido de banda estrecha con resonancias afinadas.
     agua = pasabanda(rosa(dur), 260.0, 1_100.0, 2)
@@ -711,11 +730,14 @@ def base_nivel2(dur: float = 22.0) -> np.ndarray:
     # Vapor: constante, pero con techo bajo para que no raspe.
     vapor = pasabanda(rosa(dur), 2_200.0, 5_500.0, 2) * 0.28 * deriva(dur, 0.09, 0.50)
 
-    x = caldera * 0.10 + agua * 0.07 + vapor * 0.045
+    # El reparto tambien estaba mal: el agua y el vapor son lo que hace que
+    # esto suene a pasillo de servicio, y estaban veinte decibelios por debajo
+    # de una caldera que no aportaba mas que retumbe.
+    x = caldera * 0.30 + agua * 0.55 + vapor * 0.32
     return reverberar(x, SALAS["servicio"], 0.30)
 
 
-def base_nivel3(dur: float = 30.0) -> np.ndarray:
+def base_nivel3(dur: float = 31.0) -> np.ndarray:
     """Nivel 3, las piscinas. El ambiente mas trabajado de los cuatro.
 
     Tres cosas a la vez, como en un natatorio cerrado de verdad:
@@ -835,7 +857,7 @@ def caracter_nivel1(dur: float = 41.0) -> np.ndarray:
     return reverberar(x, SALAS["deposito"], 0.50)
 
 
-def caracter_nivel2(dur: float = 29.0) -> np.ndarray:
+def caracter_nivel2(dur: float = 31.0) -> np.ndarray:
     """Nivel 2. El haz de canerias trabajando.
 
     El unico nivel donde hay maquinaria de verdad del otro lado de la pared.
@@ -1040,7 +1062,7 @@ def actividad_nivel1(dur: float = 59.0) -> np.ndarray:
     return reverberar(x, SALAS["deposito"], 0.70)
 
 
-def actividad_nivel2(dur: float = 47.0) -> np.ndarray:
+def actividad_nivel2(dur: float = 49.0) -> np.ndarray:
     """Nivel 2. La instalacion del pasillo de servicio.
 
     Aca los sucesos son mas seguidos que en los otros niveles y estan mas

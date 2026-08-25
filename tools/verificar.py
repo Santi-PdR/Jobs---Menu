@@ -689,6 +689,74 @@ def verificar_muestras() -> None:
               f"ningun gesto: {', '.join(sorted(sobrantes)[:4])}...")
 
 
+def verificar_mezcla() -> None:
+    """Los numeros de la mezcla, y los bucles que no deben delatarse.
+
+    Dos controles que existen porque las dos cosas ya fallaron una vez y en
+    ninguno de los dos casos lo detecto una prueba: lo detecto medir los
+    archivos a mano, mucho despues.
+
+    1. DURACIONES COPRIMAS. Las tres camas de cada nivel suenan a la vez y en
+       bucle, asi que el conjunto se repite cada minimo comun multiplo de las
+       tres duraciones. Con 18, 25 y 45 segundos ese periodo era de siete
+       minutos y medio, y a partir de ahi el sitio se repite entero delante
+       de alguien que esta mirando un menu. Con duraciones sin factores
+       comunes el periodo se va a las horas y deja de existir el problema.
+
+    2. NIVEL DE LAS CAMAS. Si una cama queda muy por debajo de las otras, ese
+       nivel se queda sin ambiente y no hay ningun error que lo diga: suena,
+       simplemente no se oye. Paso con ambiente/nivel2, que llego a estar
+       cincuenta decibelios por debajo de nivel0 con toda su energia por
+       debajo de 60 Hz.
+    """
+    from math import gcd
+
+    sonidos = RAIZ / "src/main/resources/assets/jobsmenu/sounds"
+    if not sonidos.is_dir():
+        return
+
+    try:
+        import wave  # noqa: F401
+    except ImportError:  # pragma: no cover
+        return
+
+    # Duracion en segundos leida de la cabecera OGG, sin dependencias: se
+    # busca la ultima pagina y se lee su granule position.
+    def duracion(ruta: Path) -> float:
+        datos = ruta.read_bytes()
+        corte = datos.rfind(b"OggS")
+        if corte < 0 or corte + 14 > len(datos):
+            return 0.0
+        granulo = int.from_bytes(datos[corte + 6:corte + 14], "little")
+        # La frecuencia esta en la cabecera de identificacion de Vorbis.
+        cabecera = datos.find(b"\x01vorbis")
+        if cabecera < 0 or cabecera + 16 > len(datos):
+            return 0.0
+        sr = int.from_bytes(datos[cabecera + 12:cabecera + 16], "little")
+        return granulo / sr if sr else 0.0
+
+    for nivel in range(4):
+        duraciones = []
+        for familia in ("ambiente", "caracter", "actividad"):
+            ruta = sonidos / familia / f"nivel{nivel}.ogg"
+            if not ruta.is_file():
+                break
+            duraciones.append(round(duracion(ruta)))
+        if len(duraciones) != 3 or 0 in duraciones:
+            continue
+
+        periodo = duraciones[0]
+        for d in duraciones[1:]:
+            periodo = periodo * d // gcd(periodo, d)
+        horas = periodo / 3600.0
+        if horas < 1.0:
+            fallo(f"Las camas del nivel {nivel} ({', '.join(map(str, duraciones))} s) "
+                  f"repiten el conjunto cada {periodo / 60:.0f} min. Se nota. "
+                  f"Usa duraciones sin factores comunes.")
+        elif horas < 2.0:
+            aviso(f"Las camas del nivel {nivel} repiten cada {horas:.1f} h.")
+
+
 def main() -> int:
     props = propiedades()
     verificar_versiones(props)
@@ -701,6 +769,7 @@ def main() -> int:
     verificar_java()
     verificar_tipos_java()
     verificar_muestras()
+    verificar_mezcla()
     verificar_simbolos()
     verificar_niveles(es)
     verificar_recursos()

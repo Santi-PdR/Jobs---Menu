@@ -432,22 +432,45 @@ public final class GestorAmbiente {
     /**
      * Fija cuando toca el proximo evento.
      *
-     * La espera no es uniforme sino sesgada hacia el final de la ventana: se
-     * eleva la tirada al cuadrado. Asi las pausas largas son mas frecuentes que
-     * las cortas, que es como se comporta un edificio de verdad, y ademas se
-     * evita el goteo constante de eventos que arruina cualquier ambiente.
+     * EL SESGO ESTABA AL REVES
+     *
+     * Aca habia un error que llevaba varias versiones sin detectarse porque el
+     * comentario decia lo correcto y el codigo hacia lo contrario. La linea era
+     * "sesgo = sesgo * sesgo" sobre una tirada uniforme entre 0 y 1, y elevar
+     * al cuadrado un numero menor que uno lo ACERCA A CERO: el 75 % de las
+     * tiradas caia por debajo de 0.5. O sea que la espera tendia al minimo de
+     * la ventana y los eventos salian mas seguido de lo previsto, justo lo
+     * contrario de lo que el comentario prometia.
+     *
+     * Ese era, en buena medida, el motivo de que el ambiente sonara mas lleno
+     * de lo que se habia disenado. La correccion es una raiz en vez de un
+     * cuadrado.
+     *
+     * EL SILENCIO COMO DECISION
+     *
+     * Ademas de esperar mas, ahora el sitio se calla a proposito. Una de cada
+     * cinco veces se abre un respiro de entre dos y cuatro ventanas enteras sin
+     * un solo suceso. No es una pausa mas larga: es un hueco que se nota, y
+     * hace falta que se note.
+     *
+     * El motivo es que un edificio que produce un ruido cada veinte segundos,
+     * puntualmente, deja de ser un edificio y pasa a ser un metronomo. El oido
+     * aprende el intervalo en tres o cuatro repeticiones y a partir de ahi ya
+     * no escucha: espera. Un silencio largo rompe esa cuenta y devuelve al
+     * siguiente suceso todo el peso que tenia el primero.
      */
     private static void reprogramarEvento(int nivel) {
         Repertorio repertorio = REPERTORIOS[Math.floorMod(nivel, REPERTORIOS.length)];
-        float sesgo = AZAR.nextFloat();
-        sesgo = sesgo * sesgo;
-        long espera = repertorio.esperaMin()
-                + (long) (sesgo * (repertorio.esperaMax() - repertorio.esperaMin()));
 
-        // Uno de cada seis silencios es el doble de largo. Los huecos raros son
-        // lo que mantiene despierto al oido.
-        if (AZAR.nextInt(6) == 0) {
-            espera *= 2;
+        // Raiz, no cuadrado: ahora si la tirada tiende al final de la ventana
+        // y las pausas largas son mas frecuentes que las cortas.
+        float sesgo = (float) Math.sqrt(AZAR.nextFloat());
+        long ventana = repertorio.esperaMax() - repertorio.esperaMin();
+        long espera = repertorio.esperaMin() + (long) (sesgo * ventana);
+
+        if (AZAR.nextInt(5) == 0) {
+            // El respiro. Entre dos y cuatro ventanas sin nada.
+            espera += ventana * (2 + AZAR.nextInt(3));
         }
         proximoEvento = System.currentTimeMillis() + espera;
     }

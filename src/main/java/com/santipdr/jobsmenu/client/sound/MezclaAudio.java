@@ -27,20 +27,43 @@ public final class MezclaAudio {
     private MezclaAudio() {
     }
 
+    /**
+     * MARGEN DE MEZCLA
+     *
+     * Con las cifras anteriores, el peor caso -cama y caracter y actividad y
+     * musica y un evento y el apagon y un gesto de interfaz, todo cayendo en
+     * el mismo instante- llegaba a 0.94 de pico: medio decibelio de margen.
+     * Eso no es una mezcla con cabeza, es una mezcla que todavia no distorsiono
+     * de casualidad, y basta con que el jugador suba el volumen maestro o que
+     * un resource pack cambie una pieza para que empiece a recortar.
+     *
+     * Bajar tres decibelios el conjunto no se oye -el volumen maestro lo
+     * compensa- y compra el margen que hace falta para que las coincidencias
+     * raras no rompan nada.
+     */
+
     /** Tema del menu. Ambiental: acompana, no protagoniza. */
-    public static final float MUSICA = 0.42F;
+    public static final float MUSICA = 0.34F;
 
     /** Ambiente base del nivel, ya multiplicado por el volumen de la config. */
-    public static final float AMBIENTE = 0.80F;
+    public static final float AMBIENTE = 0.66F;
 
     /** Eventos ocasionales del nivel. */
-    public static final float EVENTO = 0.55F;
+    public static final float EVENTO = 0.48F;
 
-    /** Gestos de interfaz. */
-    public static final float INTERFAZ = 0.50F;
+    /**
+     * Gestos de interfaz.
+     *
+     * Se sube respecto del resto, no se baja. Las ocho piezas se remezclaron
+     * con un balance propio -pasar suena siete decibelios por debajo de
+     * confirmar porque suena treinta veces mas seguido- y ese balance ya deja
+     * los gestos frecuentes muy abajo. Aplicarles ademas la reduccion general
+     * los habria dejado por debajo del piso del ambiente.
+     */
+    public static final float INTERFAZ = 0.54F;
 
     /** Apagon y encendido. Se les permite mandar durante la transicion. */
-    public static final float TRANSICION = 0.85F;
+    public static final float TRANSICION = 0.72F;
 
     /** La figura. Apenas por encima del piso de ruido, a proposito. */
     public static final float FIGURA = 0.40F;
