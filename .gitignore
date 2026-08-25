@@ -1,0 +1,31 @@
+# Gradle
+.gradle/
+build/
+out/
+run/
+src/generated/
+
+# Wrapper binario (lo descarga el bloque de despliegue)
+gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.eclipse/
+.settings/
+.classpath
+.project
+bin/
+.vscode/
+
+# Forge
+logs/
+crash-reports/
+forge*changelog.txt
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.bundle

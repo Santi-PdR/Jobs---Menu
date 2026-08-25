@@ -1,0 +1,24 @@
+{
+  "jobsmenu.pantalla.turno": "Registro de turnos",
+
+  "jobsmenu.titulo": "JOBS",
+  "jobsmenu.subtitulo": "REGISTRO DE TURNOS",
+
+  "jobsmenu.tablon.solitario": "Turno en solitario",
+  "jobsmenu.tablon.complejo": "Presentarse al complejo",
+  "jobsmenu.tablon.contrato": "Condiciones del contrato",
+  "jobsmenu.tablon.abandonar": "Abandonar el puesto",
+
+  "jobsmenu.reloj.proxima": "Próxima aparición estimada",
+  "jobsmenu.reloj.inminente": "APARICIÓN INMINENTE",
+  "jobsmenu.reloj.aparicion": "APARICIÓN EN CURSO",
+
+  "jobsmenu.aviso.0": "La empresa no cubre desapariciones ocurridas fuera del horario.",
+  "jobsmenu.aviso.1": "Se ruega no describir lo que se vio. Ni al capataz, ni entre ustedes.",
+  "jobsmenu.aviso.2": "El material perdido durante una aparición se descuenta igual.",
+  "jobsmenu.aviso.3": "Los turnos del compañero que no ficha salida se reasignan a las 48 horas.",
+  "jobsmenu.aviso.4": "Correr no está prohibido. Tampoco recomendado.",
+  "jobsmenu.aviso.5": "El horario de aparición es orientativo. Todo aquí es orientativo.",
+  "jobsmenu.aviso.6": "Si el pasillo se queda en silencio, no era la lámpara.",
+  "jobsmenu.aviso.7": "Gracias por su compromiso. Quedan pocos como usted."
+}

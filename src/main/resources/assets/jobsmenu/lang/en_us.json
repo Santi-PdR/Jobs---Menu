@@ -1,0 +1,24 @@
+{
+  "jobsmenu.pantalla.turno": "Shift log",
+
+  "jobsmenu.titulo": "JOBS",
+  "jobsmenu.subtitulo": "SHIFT LOG",
+
+  "jobsmenu.tablon.solitario": "Solo shift",
+  "jobsmenu.tablon.complejo": "Report to the compound",
+  "jobsmenu.tablon.contrato": "Terms of the contract",
+  "jobsmenu.tablon.abandonar": "Leave your post",
+
+  "jobsmenu.reloj.proxima": "Next sighting estimated in",
+  "jobsmenu.reloj.inminente": "SIGHTING IMMINENT",
+  "jobsmenu.reloj.aparicion": "SIGHTING IN PROGRESS",
+
+  "jobsmenu.aviso.0": "The company does not cover disappearances outside working hours.",
+  "jobsmenu.aviso.1": "Please do not describe what you saw. Not to the foreman, not to each other.",
+  "jobsmenu.aviso.2": "Stock lost during a sighting is deducted all the same.",
+  "jobsmenu.aviso.3": "Shifts of a worker who does not clock out are reassigned after 48 hours.",
+  "jobsmenu.aviso.4": "Running is not forbidden. It is not advised either.",
+  "jobsmenu.aviso.5": "Sighting times are approximate. Everything here is approximate.",
+  "jobsmenu.aviso.6": "If the corridor goes quiet, it was not the lamp.",
+  "jobsmenu.aviso.7": "Thank you for your commitment. There are few of you left."
+}
