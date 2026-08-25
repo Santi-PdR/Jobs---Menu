@@ -27,6 +27,9 @@ public final class RotacionNiveles {
     /** Parte de la transicion que se va en apagar el nivel viejo. */
     private static final float REPARTO_APAGADO = 0.42F;
 
+    /** Cuanto antes del corte empieza el pasillo a dar senales. */
+    private static final long AVISO_MS = 1_400L;
+
     /** Un ciclo entero: un nivel quieto mas su salida. */
     private static final long CICLO_MS = ESTANCIA_MS + TRANSICION_MS;
 
@@ -62,10 +65,9 @@ public final class RotacionNiveles {
         if (!ConfigTurno.rotarNiveles()) {
             return 1.0F;
         }
-        long total = CICLO_MS * Nivel.cantidad();
-        long dentro = Math.floorMod(System.currentTimeMillis(), total) % CICLO_MS;
+        long dentro = posicionEnCiclo();
         if (dentro < ESTANCIA_MS) {
-            return 1.0F;
+            return preaviso(dentro);
         }
 
         long transcurrido = dentro - ESTANCIA_MS;
@@ -86,6 +88,35 @@ public final class RotacionNiveles {
 
         float t = (float) (transcurrido - apagado) / (float) (TRANSICION_MS - apagado);
         return arranqueTubo(t);
+    }
+
+    /**
+     * El pasillo dando senales antes del corte.
+     *
+     * Durante la ultima parte de la estancia la luz no esta del todo firme: dos
+     * caidas muy breves, de las que se ven de reojo. Es el primer paso del
+     * flujo completo de la transicion (alteracion, titileo, corte, negro,
+     * arranque) y sin el, el apagon aparece de la nada.
+     *
+     * Con destellos reducidos, la luz se queda quieta y el aviso desaparece.
+     */
+    private static float preaviso(long dentro) {
+        if (ConfigTurno.destellosReducidos()) {
+            return 1.0F;
+        }
+        long falta = ESTANCIA_MS - dentro;
+        if (falta > AVISO_MS) {
+            return 1.0F;
+        }
+        float t = 1.0F - falta / (float) AVISO_MS;
+        if (t > 0.28F && t < 0.34F) {
+            return 0.72F;
+        }
+        if (t > 0.66F && t < 0.71F) {
+            return 0.55F;
+        }
+        // Entre chispazo y chispazo la luz baja apenas, sin que se note.
+        return 1.0F - 0.06F * t;
     }
 
     /**
@@ -125,8 +156,40 @@ public final class RotacionNiveles {
         if (!ConfigTurno.rotarNiveles()) {
             return false;
         }
+        return posicionEnCiclo() >= ESTANCIA_MS;
+    }
+
+    /**
+     * Si falta poco para el cambio y conviene ir avisando.
+     *
+     * La ventana empieza AVISO_MS antes del corte. Sirve para que el titileo
+     * electrico se escuche mientras la luz todavia esta firme: primero se
+     * sospecha que algo va a pasar y despues pasa. Al reves no funciona.
+     */
+    public static boolean porTransicionar() {
+        if (!ConfigTurno.rotarNiveles()) {
+            return false;
+        }
+        long dentro = posicionEnCiclo();
+        return dentro >= ESTANCIA_MS - AVISO_MS && dentro < ESTANCIA_MS;
+    }
+
+    /** Cuanto de la transicion actual ya paso, de 0 a 1. Fuera de ella, 0. */
+    public static float avanceTransicion() {
+        if (!enTransicion()) {
+            return 0.0F;
+        }
+        return (posicionEnCiclo() - ESTANCIA_MS) / (float) TRANSICION_MS;
+    }
+
+    /** Que fraccion de la transicion se va en apagar el nivel viejo. */
+    public static float repartoApagado() {
+        return REPARTO_APAGADO;
+    }
+
+    /** Milisegundos transcurridos dentro del ciclo del nivel actual. */
+    private static long posicionEnCiclo() {
         long total = CICLO_MS * Nivel.cantidad();
-        long dentro = Math.floorMod(System.currentTimeMillis(), total) % CICLO_MS;
-        return dentro >= ESTANCIA_MS;
+        return Math.floorMod(System.currentTimeMillis(), total) % CICLO_MS;
     }
 }

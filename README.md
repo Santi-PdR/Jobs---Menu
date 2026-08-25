@@ -14,30 +14,64 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
 
 | | |
 |---|---|
-| Versión | **0.2.0** |
+| Versión | **0.3.0** |
 | Minecraft | 1.20.1 |
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente (el servidor no necesita el mod) |
 
-## Qué trae la 0.2.0
+## Qué trae la 0.3.0
 
-- **Corredor rehecho.** La perspectiva se calcula desde una sola variable: la abertura del fondo y las
-  cuatro aristas que salen del punto de fuga. Las juntas de pared, las del suelo y las del cielorraso usan
-  la misma serie de profundidades, así que coinciden tramo a tramo y el pasillo se lee como un pasillo.
-- **Cuatro niveles rotando.** Sección administrativa, Depósito, Pasillos de servicio y Las piscinas. Cada
-  uno con sus colores, sus proporciones, su reflejo en el suelo y sus cosas colgadas.
-- **Transición con apagón.** El nivel no se funde: la luz se corta, hay un momento en que no hay nada, y
-  cuando el tubo arranca a los tirones el pasillo ya es otro. Nadie lo anuncia.
-- **Sonido.** Zumbido de fluorescente en bucle que sigue a la luz, roce de papel al recorrer los renglones,
-  sello al marcar la casilla, interruptor de pared al cambiar de pantalla, y los dos golpes del apagón.
-  Todo sintetizado para el mod: sin muestras de terceros.
-- Rótulo del nivel actual abajo a la izquierda, con su nota al pie.
-- Pantalla de título propia: la hoja del aviso, con nivel actual, tarifa de salida y cuatro renglones de
-  formulario con casilla marcable.
-- Cuenta regresiva a la próxima ronda (ciclo de 13 minutos). Al llegar a cero, la luz cae.
-- Avisos rotativos de la administración.
-- Configuración de cliente con interruptores de accesibilidad, rotación de niveles y volumen del ambiente.
+Esta versión no agrega funciones sueltas: rehace el audio entero, cambia la figura del fondo y reordena
+los menús para que las cinco cosas —escena, ambiente, música, interfaz y atajos— se sientan un solo sistema.
+
+### Audio rehecho desde cero
+
+- **Treinta piezas propias**, sintetizadas para el mod. Ninguna muestra de terceros, ningún sonido de
+  librería sin adaptar.
+- **Ocho gestos de interfaz** que salen del mismo universo material: papel, contacto eléctrico, sello de
+  goma, carpeta que se abre. Cortos, sin agudos y sin clicks duros. Cada uno sale con el tono corrido un
+  dos por ciento, así que dos pulsaciones seguidas nunca suenan idénticas.
+- **Un ambiente distinto por nivel**, de veinte segundos para arriba y de duraciones desparejas, para que
+  el bucle no caiga siempre en el mismo lugar.
+- **Trece eventos ocasionales** repartidos por nivel, con probabilidad, retardo y volumen variables: la
+  tubería que protesta, la placa del cielorraso que se asienta, la válvula que suelta presión, la gota, el
+  eco del fondo del recinto.
+- **Las piscinas** no son un bucle de agua: son eco de recinto grande, ventilación lejana, goteo sobre
+  azulejo, tubería y movimiento de agua, mezclados en capas de distinta duración.
+- **Mezcla en seis niveles** —música, ambiente, eventos, interfaz, transición y presencia— con la
+  transición eléctrica tomando prioridad momentánea sobre todo lo demás.
+
+### La presencia del fondo
+
+La figura que caminaba cruzando el vano ya no está. En su lugar hay algo que **no se mueve**: aparece ya
+estando ahí, sin anatomía, contra la abertura del fondo, y lo único que hace es dejar de estar. Vuelve unos
+segundos después corrida hacia el otro lado, lo justo para que no se pueda asegurar que se movió. Mientras
+está, la escena pierde un ocho por ciento de luz y suena algo lejos. **No hay ni va a haber sustos.**
+
+### Menús
+
+- **Los renglones se reordenaron** por frecuencia de uso, no por costumbre: cuadrilla, registro de
+  intervenciones, condiciones de estancia y, apartado por un hueco, renunciar al nivel.
+- **Registro de intervenciones** abre la lista de mods, integrada como un renglón más del formulario.
+- **La partida de un jugador salió del tablón** y se abre con **Control + S**, sin repetición mientras se
+  mantiene pulsada. Se aclara al pie de la hoja, en letra chica.
+- **La línea de avisos ya no es decorado**: se puede pasar a mano con un clic, entra en el recorrido del
+  tabulador y se subraya a lápiz bajo el cursor.
+- **El apagón apaga también la hoja.** Antes el pasillo se quedaba a oscuras y el papel seguía legible,
+  flotando en la nada. Ahora la tinta, el blanco del papel y hasta la letra chica se apagan con el
+  fluorescente, y vuelven con él.
+- **Fuera el «clac» de vanilla.** Minecraft reproduce su click de madera antes de cualquier acción propia:
+  cada renglón sonaba dos veces. Ahora suena sólo el sello del mod.
+- Microdetalles en todos los renglones: la sangría se desplaza unos píxeles bajo el cursor, la casilla se
+  marca al pulsar, el renglón terminal se distingue del resto y el teclado suena igual que el ratón. El
+  renglón inactivo también contesta: un relé que intenta cerrar y no engancha.
+
+### Música
+
+El menú tiene ranura de música con su propio volumen, que arranca sola, no se reinicia al cambiar de
+pantalla y **sigue sonando durante el apagón**. Sobre el tema que pediste, leé la nota de la entrega: el
+archivo que viene empaquetado es una pieza original, y la ranura queda lista para el que autorices.
 
 ## Compilar
 
@@ -47,7 +81,7 @@ Requiere JDK 17 instalado.
 .\gradlew build
 ```
 
-El `.jar` queda en `build\libs\jobsmenu-0.2.0.jar` y se copia a la carpeta `mods` de la instancia.
+El `.jar` queda en `build\libs\jobsmenu-0.3.0.jar` y se copia a la carpeta `mods` de la instancia.
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 
@@ -57,7 +91,8 @@ El `.jar` queda en `build\libs\jobsmenu-0.2.0.jar` y se copia a la carpeta `mods
 python tools\verificar.py       # versiones, idiomas, JSON, ASCII, llaves, símbolos, audio y niveles
 python tools\vista_previa.py    # dibuja el menú a PNG para revisar la escena
 python tools\vista_previa.py --contacto docs\vista_previa.png   # los cuatro niveles juntos
-python tools\sonidos.py         # regenera los .ogg (requiere numpy y soundfile)
+python tools\vista_previa.py --presencia docs\presencia.png     # la manifestación del fondo, paso a paso
+python tools\sonidos.py         # regenera las 30 piezas de audio (requiere numpy, scipy y soundfile)
 ```
 
 ## Documentación

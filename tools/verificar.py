@@ -25,6 +25,11 @@ AVISOS: list[str] = []
 # Subtitulos declarados por sounds.json, que tambien deben estar traducidos.
 SUBTITULOS: set[str] = set()
 
+# Cuantas piezas de audio tiene la identidad sonora completa: 8 de interfaz,
+# 4 ambientes de sala, 13 eventos, 3 de transicion electrica, 1 de la figura
+# y 1 de musica. Si el numero baja, algo se perdio por el camino.
+PIEZAS_ESPERADAS = 30
+
 
 def fallo(mensaje: str) -> None:
     FALLOS.append(mensaje)
@@ -217,32 +222,67 @@ def archivos_java() -> list[Path]:
 
 
 def verificar_claves(es: dict[str, str]) -> None:
+    """Cruza las claves que pide el codigo con las que existen traducidas.
+
+    Hay tres formas de pedir una cadena y las tres cuentan:
+
+      1. literal completo, Component.translatable("jobsmenu.titulo");
+      2. compuesta con prefijo, "jobsmenu.aviso." + indice;
+      3. compuesta con prefijo Y sufijo, "jobsmenu." + clave + ".nombre".
+
+    El tercer caso importa mas de lo que parece. Si se lo trata como un simple
+    prefijo, "jobsmenu." se traga el catalogo entero y el verificador deja de
+    encontrar cadenas huerfanas para siempre. Guardando tambien el sufijo, el
+    patron solo cubre lo que de verdad puede componer.
+    """
     usadas: set[str] = set()
-    dinamicas: set[str] = set()
+    prefijos: set[str] = set()
+    horquillas: set[tuple[str, str]] = set()
 
     for ruta in archivos_java():
         texto = leer(ruta)
         for clave in re.findall(r'Component\.translatable\(\s*"([^"]+)"\s*\)', texto):
             usadas.add(clave)
+        # "prefijo" + algo + "sufijo": la horquilla completa.
+        for prefijo, sufijo in re.findall(
+            r'Component\.translatable\(\s*"([^"]+)"\s*\+[^)"]+\+\s*"([^"]+)"\s*\)', texto
+        ):
+            horquillas.add((prefijo, sufijo))
+        # "prefijo" + algo, sin sufijo literal.
         for prefijo in re.findall(r'Component\.translatable\(\s*"([^"]+)"\s*\+', texto):
-            dinamicas.add(prefijo)
+            if not any(p == prefijo for p, _ in horquillas):
+                prefijos.add(prefijo)
         # Claves pasadas como literal a metodos auxiliares del propio mod.
         for clave in re.findall(r'"(jobsmenu\.[A-Za-z0-9_.]+)"', texto):
             usadas.add(clave)
 
-    usadas -= dinamicas
+    usadas -= prefijos
+    usadas -= {p for p, _ in horquillas}
 
     for clave in sorted(usadas):
         if clave not in es:
             fallo(f"El codigo pide la clave '{clave}' y no existe en los idiomas.")
 
-    for prefijo in sorted(dinamicas):
-        if not any(k.startswith(prefijo) for k in es):
-            fallo(f"El codigo compone claves con prefijo '{prefijo}' y no hay ninguna que empiece asi.")
-
     cubiertas = set(usadas)
-    for prefijo in dinamicas:
-        cubiertas.update(k for k in es if k.startswith(prefijo))
+
+    for prefijo in sorted(prefijos):
+        alcanzadas = {k for k in es if k.startswith(prefijo)}
+        if not alcanzadas:
+            fallo(f"El codigo compone claves con prefijo '{prefijo}' y no hay ninguna que empiece asi.")
+        cubiertas |= alcanzadas
+
+    for prefijo, sufijo in sorted(horquillas):
+        alcanzadas = {k for k in es if k.startswith(prefijo) and k.endswith(sufijo)}
+        if not alcanzadas:
+            fallo(
+                f"El codigo compone claves entre '{prefijo}' y '{sufijo}' "
+                f"y no hay ninguna que encaje."
+            )
+        cubiertas |= alcanzadas
+
+    # Los subtitulos no los nombra el codigo: los declara sounds.json, y de
+    # ahi los toma Minecraft. Son cadenas usadas, aunque no aparezcan en Java.
+    cubiertas |= SUBTITULOS
 
     for clave in sorted(set(es) - cubiertas):
         aviso(f"La clave '{clave}' no la usa nadie en el codigo.")
@@ -465,15 +505,44 @@ def verificar_audio() -> None:
         if subtitulo:
             SUBTITULOS.add(subtitulo)
 
-    # Los archivos que existen de verdad, y que sean OGG.
+    # Categorias que Minecraft acepta en sounds.json. Si se escribe cualquier
+    # otra cosa, el sonido suena a volumen fijo y se escapa de los deslizadores
+    # del jugador, que es justo lo contrario de una mezcla cuidada.
+    CATEGORIAS = {
+        "master", "music", "record", "weather", "block", "hostile",
+        "neutral", "player", "ambient", "voice",
+    }
+    for evento, cuerpo in datos.items():
+        categoria = cuerpo.get("category")
+        if categoria is None:
+            fallo(f"sounds.json: el evento '{evento}' no declara category.")
+        elif categoria not in CATEGORIAS:
+            fallo(f"sounds.json: el evento '{evento}' usa la categoria desconocida '{categoria}'.")
+        if not cuerpo.get("subtitle"):
+            fallo(f"sounds.json: el evento '{evento}' no declara subtitle.")
+
+    # Los archivos que existen de verdad, y que sean OGG. Van en subcarpetas
+    # por familia (ui, ambiente, evento, nivel, figura, musica), asi que hay
+    # que recorrer el arbol entero y comparar por ruta relativa, no por nombre.
     presentes: set[str] = set()
     if carpeta.is_dir():
-        for ruta in sorted(carpeta.glob("*.ogg")):
-            presentes.add(ruta.stem)
+        for ruta in sorted(carpeta.rglob("*.ogg")):
+            presentes.add(ruta.relative_to(carpeta).with_suffix("").as_posix())
             if ruta.read_bytes()[:4] != b"OggS":
                 fallo(f"{ruta.relative_to(RAIZ)} no es un OGG: Minecraft no lo va a reproducir.")
             if ruta.stat().st_size == 0:
                 fallo(f"{ruta.relative_to(RAIZ)} esta vacio.")
+        for ruta in sorted(carpeta.rglob("*")):
+            if ruta.is_file() and ruta.suffix != ".ogg":
+                aviso(f"{ruta.relative_to(RAIZ)} no es un .ogg y esta en la carpeta de sonidos.")
+    else:
+        fallo("Falta assets/jobsmenu/sounds/: no hay ningun sonido que empaquetar.")
+
+    if len(presentes) != PIEZAS_ESPERADAS:
+        fallo(
+            f"Hay {len(presentes)} archivos de sonido y la identidad sonora "
+            f"tiene {PIEZAS_ESPERADAS} piezas. Regenerar con tools/sonidos.py."
+        )
 
     for nombre in sorted(reclamados - presentes):
         fallo(f"sounds.json reclama '{nombre}' y no existe sounds/{nombre}.ogg.")
@@ -526,10 +595,12 @@ def main() -> int:
     verificar_versiones(props)
     verificar_mods_toml(props)
     es = verificar_idiomas()
+    # El audio va antes que las claves: es quien llena SUBTITULOS, y sin esa
+    # lista el control de cadenas huerfanas denunciaria los 30 subtitulos.
+    verificar_audio()
     verificar_claves(es)
     verificar_java()
     verificar_simbolos()
-    verificar_audio()
     verificar_niveles(es)
     verificar_recursos()
 

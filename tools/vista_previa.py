@@ -22,7 +22,9 @@ Geometria del corredor (identica en ambos lados):
     por eso las tres coinciden y el pasillo se lee como un pasillo.
 
 Uso:  python3 tools/vista_previa.py [ancho] [alto] [salida.png] [--nivel N]
+                                    [--figura=0.0..1.0]
       python3 tools/vista_previa.py --contacto docs/contacto.png
+      python3 tools/vista_previa.py --presencia docs/presencia.png [--nivel N]
 """
 
 from __future__ import annotations
@@ -256,7 +258,8 @@ def arranque_tubo(avance: float) -> float:
 
 
 def dibujar(lz: Lienzo, nivel: Nivel, tiempo: float = 3.0, penumbra: float = 0.0,
-            luz_global: float = 1.0, silueta_t: float | None = 0.5,
+            luz_global: float = 1.0, presencia_v: float = 0.0,
+            presencia_segunda: bool = False,
             polvo: bool = True, destellos: bool = True) -> None:
     ancho = lz.ancho
     alto = lz.alto
@@ -267,6 +270,9 @@ def dibujar(lz: Lienzo, nivel: Nivel, tiempo: float = 3.0, penumbra: float = 0.0
     h = w * nivel.proporcion
 
     luz = brillo_fluorescente(tiempo, destellos) * (1.0 - 0.55 * penumbra) * luz_global
+    # La presencia le saca hasta un ocho por ciento a la escena mientras esta,
+    # igual que Presencia.sombra(). Nadie lo puede senalar; todo el mundo lo nota.
+    luz *= 1.0 - 0.08 * limitar(presencia_v, 0.0, 1.0)
     luz = limitar(luz, 0.0, 1.0)
 
     fondo(lz, nivel, fx, fy, w, h, luz)
@@ -277,8 +283,9 @@ def dibujar(lz: Lienzo, nivel: Nivel, tiempo: float = 3.0, penumbra: float = 0.0
     paredes(lz, nivel, fx, fy, w, h, luz, tiempo)
     if nivel.tuberias:
         canos(lz, nivel, fx, fy, w, h, luz)
-    if silueta_t is not None:
-        silueta(lz, nivel, fx, fy, w, h, silueta_t, luz)
+    if presencia_v > 0.0:
+        presencia(lz, nivel, fx, fy, w, h, presencia_v, luz,
+                  presencia_segunda, tiempo)
     if polvo:
         motas(lz, fx, fy, tiempo, luz)
     vineta(lz, nivel, penumbra, luz)
@@ -511,42 +518,118 @@ def manchas(lz, nivel, fx, fy, w, h, luz) -> None:
                     con_alfa(iluminar(nivel.junta, luz), a))
 
 
-def silueta(lz, nivel, fx, fy, w, h, avance, luz) -> None:
-    """Algo cruza la abertura del fondo. No se detiene, no mira.
+# --------------------------------------------------------------------------
+# La presencia del fondo: espejo de Presencia.java
+# --------------------------------------------------------------------------
+# La figura vieja caminaba de un lado al otro del vano con las piernas
+# alternando. Se leia como un personaje, cruzaba el centro de la composicion y
+# a la tercera pasada dejaba de dar impresion. La que la reemplaza no se mueve,
+# no tiene anatomia, esta lejos y entra y sale con una campana lenta.
+#
+# Aca solo se replica el dibujo. El reloj de 71 segundos que decide cuando
+# aparece vive en Java: la vista previa recibe la visibilidad ya calculada,
+# para poder mirar el instante que interese sin esperarlo.
 
-    Es una figura, no un poste: cabeza, hombros y dos piernas que alternan.
-    Se dibuja recortada contra el vano, asi que sale casi en negro puro.
+SEGMENTOS_PRESENCIA = 14
+ALFA_MAXIMO_PRESENCIA = 0.52
+# Proporciones del cuerpo, en fracciones de la abertura del fondo. Un
+# rectangulo de 1:14 se lee como una grieta en la pared; 1:5 se lee como algo
+# que podria estar parado ahi. La ambiguedad esta en esa proporcion.
+ANCHO_PRESENCIA = 0.26
+ALTURA_PRESENCIA = 1.35
+
+
+def luminancia(color: int) -> float:
+    r = (color >> 16) & 0xFF
+    g = (color >> 8) & 0xFF
+    b = color & 0xFF
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
+
+
+def color_presencia(nivel) -> int:
+    """De que color es algo que esta contra un fondo negro.
+
+    Pintarla siempre de negro parecia lo correcto y no lo es: en los niveles
+    con la abertura del fondo casi negra (el 0 y el 2) la figura se pierde por
+    completo, y en los claros se lee como una grieta en la pared. La respuesta
+    es no fijar el color sino derivarlo del vano de cada nivel: contra un
+    fondo oscuro la presencia es un poco MAS clara que el, como una silueta a
+    contraluz; contra un fondo claro es mas oscura. En los dos casos el
+    contraste es el mismo y en ninguno se la ve del todo.
     """
-    if avance is None or avance < 0.0 or avance > 1.0:
+    if luminancia(nivel.fondo) < 0.16:
+        return mezclar(nivel.fondo, nivel.niebla, 0.30)
+    return VANO
+
+
+def presencia(lz, nivel, fx, fy, w, h, visible, luz, segunda=False, tiempo=0.0) -> None:
+    """Lo que a veces esta al fondo del corredor.
+
+    `visible` va de 0 a 1 y es lo que Presencia.visibilidad() devuelve en el
+    juego. `segunda` elige el costado: la reaparicion sale corrida hacia el
+    otro lado, que es el recurso central de todo el efecto.
+    """
+    visible = limitar(visible * luz, 0.0, 1.0)
+    if visible <= 0.01:
         return
 
-    altura = h * 1.05
-    hombro = max(2.0, w * 0.20)
-    x = fx - w * 0.95 + (1.9 * w) * avance
-    y_base = fy + h * 0.80
-    borde = 1.0 - abs(avance - 0.5) * 2.0
-    a = limitar(borde * 2.2, 0.0, 0.88)
-    if a <= 0.02:
-        return
+    lado = -0.34 if segunda else 0.41
+    x = fx + w * lado
+    base = fy + h * 0.94
+    altura = h * ALTURA_PRESENCIA
+    vaiven = math.sin(tiempo * 0.55) * (w * 0.012)
 
-    color = con_alfa(VANO, a)
-    tronco = hombro * 0.62
+    alfa = ALFA_MAXIMO_PRESENCIA * visible
+    tinte = color_presencia(nivel)
+    cuerpo_presencia(lz, x + vaiven, base, altura, w, alfa, tinte)
 
-    # Tronco, angosto en la cintura
-    lz.fill(int(x - hombro * 0.5), int(y_base - altura * 0.86),
-            int(x + hombro * 0.5), int(y_base - altura * 0.52), color)
-    lz.fill(int(x - tronco * 0.5), int(y_base - altura * 0.52),
-            int(x + tronco * 0.5), int(y_base - altura * 0.40), color)
-    # Cabeza
-    cab = hombro * 0.42
-    lz.fill(int(x - cab), int(y_base - altura), int(x + cab), int(y_base - altura * 0.86), color)
-    # Piernas: una adelantada segun el avance
-    paso = math.sin(avance * math.pi * 6.0) * hombro * 0.30
-    pierna = max(1.0, hombro * 0.24)
-    lz.fill(int(x - pierna - paso * 0.5), int(y_base - altura * 0.42),
-            int(x - paso * 0.5), int(y_base), color)
-    lz.fill(int(x + paso * 0.5), int(y_base - altura * 0.42),
-            int(x + pierna + paso * 0.5), int(y_base), color)
+    if nivel.reflejo > 0.20:
+        reflejo_presencia(lz, x + vaiven, base, altura, w,
+                          alfa * nivel.reflejo * 0.85, tiempo, tinte)
+
+
+def cuerpo_presencia(lz, x, base, altura, w, alfa, tinte) -> None:
+    """Una columna que se afina hacia arriba. Sin cabeza y sin hombros."""
+    ancho_pie = max(3.0, w * ANCHO_PRESENCIA)
+
+    for i in range(SEGMENTOS_PRESENCIA):
+        desde = i / SEGMENTOS_PRESENCIA
+        hasta = (i + 1) / SEGMENTOS_PRESENCIA
+
+        y0 = base - altura * hasta
+        y1 = base - altura * desde
+        if y1 - y0 < 1.0:
+            y1 = y0 + 1.0
+
+        estrechez = 1.0 - 0.55 * desde ** 1.6
+        ancho = max(1.4, ancho_pie * estrechez)
+        torcion = math.sin(desde * 2.2 + 0.6) * ancho_pie * 0.10
+        desvanecido = alfa * (1.0 - 0.42 * desde ** 2.2)
+
+        lz.fill(round(x - ancho * 0.5 + torcion), round(y0),
+                round(x + ancho * 0.5 + torcion), round(y1),
+                con_alfa(tinte, min(0.95, desvanecido)))
+
+
+def reflejo_presencia(lz, x, base, altura, w, alfa, tiempo, tinte) -> None:
+    """El reflejo en el suelo mojado: estirado, deshecho y mucho mas tenue."""
+    largo = altura * 0.70
+    tramos = 9
+
+    for i in range(tramos):
+        desde = i / tramos
+        y0 = base + largo * desde
+        y1 = base + largo * (i + 1) / tramos
+
+        ondulacion = math.sin(tiempo * 1.3 + i * 0.9) * w * 0.05 * desde
+        ancho = max(1.4, w * ANCHO_PRESENCIA * (1.0 + desde * 0.8))
+        desvanecido = alfa * (1.0 - desde) * (1.0 - desde)
+        if desvanecido < 0.01:
+            continue
+
+        lz.fill(round(x - ancho * 0.5 + ondulacion), round(y0),
+                round(x + ancho * 0.5 + ondulacion), round(max(y1, y0 + 1)),
+                con_alfa(tinte, desvanecido))
 
 
 def motas(lz, fx, fy, tiempo, luz) -> None:
@@ -632,7 +715,10 @@ def main() -> int:
         ancho, alto = 480, 270
         tira = Lienzo(ancho * 2, alto * 2)
         for i, nv in enumerate(NIVELES):
-            sub = render(ancho, alto, nv, tiempo=3.0 + i, silueta_t=0.5 if i == 0 else None)
+            # La presencia se muestra en el nivel 3, que es donde mas se
+            # nota por el reflejo, y no en el 0, que es la postal del servidor.
+            sub = render(ancho, alto, nv, tiempo=3.0 + i,
+                         presencia_v=1.0 if i == 3 else 0.0)
             ox = (i % 2) * ancho
             oy = (i // 2) * alto
             for y in range(alto):
@@ -643,15 +729,45 @@ def main() -> int:
         print(f"{salida}  {tira.ancho}x{tira.alto}  ({len(NIVELES)} niveles)")
         return 0
 
+    if "--presencia" in banderas:
+        # Tira de la manifestacion completa: los seis instantes de la campana,
+        # para poder juzgar la entrada y la salida sin esperar 71 segundos.
+        salida = Path(args[0]) if args else Path("docs/presencia.png")
+        indice = 3
+        for b in banderas:
+            if b.startswith("--nivel"):
+                indice = int(b.split("=")[1]) if "=" in b else 3
+        nv = NIVELES[indice % len(NIVELES)]
+
+        pasos = [(0.15, False), (0.55, False), (1.00, False),
+                 (0.40, False), (0.00, False), (0.85, True)]
+        ancho, alto = 420, 236
+        tira = Lienzo(ancho * 3, alto * 2)
+        for i, (visible, segunda) in enumerate(pasos):
+            sub = render(ancho, alto, nv, tiempo=3.0 + i * 0.7,
+                         presencia_v=visible, presencia_segunda=segunda)
+            ox = (i % 3) * ancho
+            oy = (i // 3) * alto
+            for y in range(alto):
+                for x in range(ancho):
+                    tira.pix[(oy + y) * tira.ancho + ox + x] = sub.pix[y * ancho + x]
+        salida.parent.mkdir(parents=True, exist_ok=True)
+        tira.png(salida)
+        print(f"{salida}  {tira.ancho}x{tira.alto}  presencia sobre {nv.clave}")
+        return 0
+
     ancho = int(args[0]) if len(args) > 0 else 854
     alto = int(args[1]) if len(args) > 1 else 480
     salida = Path(args[2]) if len(args) > 2 else Path("docs/vista_previa.png")
     indice = 0
+    visible = 0.0
     for b in banderas:
         if b.startswith("--nivel"):
             indice = int(b.split("=")[1]) if "=" in b else 0
+        if b.startswith("--figura"):
+            visible = float(b.split("=")[1]) if "=" in b else 1.0
 
-    lz = render(ancho, alto, NIVELES[indice % len(NIVELES)])
+    lz = render(ancho, alto, NIVELES[indice % len(NIVELES)], presencia_v=visible)
     salida.parent.mkdir(parents=True, exist_ok=True)
     lz.png(salida)
     print(f"{salida}  {ancho}x{alto}  nivel={NIVELES[indice % len(NIVELES)].clave}")

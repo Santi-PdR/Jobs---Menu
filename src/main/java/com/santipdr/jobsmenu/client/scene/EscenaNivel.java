@@ -49,12 +49,6 @@ public final class EscenaNivel {
     /** Semilla del ruido. Deletrea JOBS en hexadecimal. */
     private static final int SEMILLA = 0x4A4F4253;
 
-    /** Cada cuanto cruza algo por la abertura del fondo. */
-    private static final long PERIODO_SILUETA_MS = 47_000L;
-
-    /** Cuanto tarda en cruzar. */
-    private static final long DURACION_SILUETA_MS = 2_600L;
-
     // ----------------------------------------------------------------------
     // Entrada
     // ----------------------------------------------------------------------
@@ -73,6 +67,12 @@ public final class EscenaNivel {
         float luz = brilloFluorescente(tiempo, destellos)
                 * (1.0F - 0.55F * penumbra)
                 * RotacionNiveles.luzDisponible();
+
+        // Cuando hay algo al fondo, el pasillo entero baja un punto. Es tan
+        // poco que no se ve como un efecto: se siente como que la luz cede.
+        if (movimiento) {
+            luz *= Presencia.sombra();
+        }
         luz = limitar(luz, 0.0F, 1.0F);
 
         float fx = ancho * FUGA_X;
@@ -90,7 +90,7 @@ public final class EscenaNivel {
             canos(grafico, nivel, ancho, fx, fy, w, h, luz);
         }
         if (movimiento) {
-            silueta(grafico, nivel, fx, fy, w, h, luz);
+            Presencia.dibujar(grafico, nivel, fx, fy, w, h, luz);
             motas(grafico, ancho, alto, tiempo, luz);
         }
         vineta(grafico, ancho, alto, penumbra);
@@ -369,48 +369,6 @@ public final class EscenaNivel {
                         Paleta.conAlfa(Paleta.iluminar(nivel.junta, luz), a));
             }
         }
-    }
-
-    /**
-     * Algo cruza la abertura del fondo. No se detiene, no mira.
-     * Es una figura, no un poste: cabeza, hombros y dos piernas que alternan.
-     */
-    private static void silueta(GuiGraphics grafico, Nivel nivel,
-                                float fx, float fy, float w, float h, float luz) {
-        long fase = System.currentTimeMillis() % PERIODO_SILUETA_MS;
-        if (fase > DURACION_SILUETA_MS) {
-            return;
-        }
-        float avance = fase / (float) DURACION_SILUETA_MS;
-
-        float altura = h * 1.05F;
-        float hombro = Math.max(2.0F, w * 0.20F);
-        float x = fx - w * 0.95F + (1.9F * w) * avance;
-        float yBase = fy + h * 0.80F;
-        float borde = 1.0F - Math.abs(avance - 0.5F) * 2.0F;
-        float a = limitar(borde * 2.2F, 0.0F, 0.88F);
-        if (a <= 0.02F) {
-            return;
-        }
-
-        int color = Paleta.conAlfa(Paleta.VANO, a);
-        float tronco = hombro * 0.62F;
-
-        grafico.fill((int) (x - hombro * 0.5F), (int) (yBase - altura * 0.86F),
-                (int) (x + hombro * 0.5F), (int) (yBase - altura * 0.52F), color);
-        grafico.fill((int) (x - tronco * 0.5F), (int) (yBase - altura * 0.52F),
-                (int) (x + tronco * 0.5F), (int) (yBase - altura * 0.40F), color);
-
-        float cab = hombro * 0.42F;
-        grafico.fill((int) (x - cab), (int) (yBase - altura),
-                (int) (x + cab), (int) (yBase - altura * 0.86F), color);
-
-        float paso = (float) Math.sin(avance * Math.PI * 6.0) * hombro * 0.30F;
-        float pierna = Math.max(1.0F, hombro * 0.24F);
-        grafico.fill((int) (x - pierna - paso * 0.5F), (int) (yBase - altura * 0.42F),
-                (int) (x - paso * 0.5F), (int) yBase, color);
-        grafico.fill((int) (x + paso * 0.5F), (int) (yBase - altura * 0.42F),
-                (int) (x + pierna + paso * 0.5F), (int) yBase, color);
     }
 
     /** Polvo suspendido, subiendo muy despacio. */

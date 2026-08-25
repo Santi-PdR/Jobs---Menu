@@ -24,6 +24,8 @@ public final class ConfigTurno {
     public final ForgeConfigSpec.BooleanValue sonidoBotones;
     public final ForgeConfigSpec.BooleanValue sonidoAmbiente;
     public final ForgeConfigSpec.IntValue volumenAmbiente;
+    public final ForgeConfigSpec.BooleanValue musicaMenu;
+    public final ForgeConfigSpec.IntValue volumenMusica;
 
     static {
         Pair<ConfigTurno, ForgeConfigSpec> par = new ForgeConfigSpec.Builder().configure(ConfigTurno::new);
@@ -43,7 +45,7 @@ public final class ConfigTurno {
                 .define("escena_viva", true);
 
         this.movimientoReducido = builder
-                .comment("Apagar el polvo y la silueta que cruza el vano.")
+                .comment("Apagar el polvo en suspension y lo que se ve al fondo del pasillo.")
                 .define("movimiento_reducido", false);
 
         this.destellosReducidos = builder
@@ -75,12 +77,20 @@ public final class ConfigTurno {
                 .define("sonido_botones", true);
 
         this.sonidoAmbiente = builder
-                .comment("Dejar el zumbido del fluorescente sonando de fondo en el menu.")
+                .comment("Dejar sonando el ambiente del nivel: el fondo, sus ruidos y la instalacion.")
                 .define("sonido_ambiente", true);
 
         this.volumenAmbiente = builder
-                .comment("Volumen del zumbido de fondo, de 0 a 100.")
+                .comment("Volumen del ambiente del nivel, de 0 a 100.")
                 .defineInRange("volumen_ambiente", 55, 0, 100);
+
+        this.musicaMenu = builder
+                .comment("Dejar sonando el tema del menu por debajo de todo lo demas.")
+                .define("musica_menu", true);
+
+        this.volumenMusica = builder
+                .comment("Volumen del tema del menu, de 0 a 100.")
+                .defineInRange("volumen_musica", 70, 0, 100);
 
         builder.pop();
     }
@@ -137,6 +147,18 @@ public final class ConfigTurno {
 
     public static boolean sonidoAmbiente() {
         return leer(INSTANCE.sonidoAmbiente, true);
+    }
+
+    public static boolean musicaMenu() {
+        return leer(INSTANCE.musicaMenu, true);
+    }
+
+    /** Volumen del tema del menu, ya convertido a la escala 0.0 - 1.0 del motor. */
+    public static float volumenMusica() {
+        if (!SPEC.isLoaded()) {
+            return 0.70F;
+        }
+        return INSTANCE.volumenMusica.get() / 100.0F;
     }
 
     /** Volumen del ambiente ya convertido a la escala 0.0 - 1.0 del motor. */

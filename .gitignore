@@ -29,3 +29,7 @@ forge*changelog.txt
 .DS_Store
 Thumbs.db
 *.bundle
+
+# Herramientas
+__pycache__/
+*.pyc
