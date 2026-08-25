@@ -250,6 +250,20 @@ def escribir(nombre: str, datos: np.ndarray, pico: float = 0.85) -> None:
     # final no significa nada: sin normalizar, base_nivel2 quedaba cincuenta
     # decibelios por debajo de base_nivel0 y directamente no se oia. Ahi el
     # volumen relativo lo fija MezclaAudio en Java, no el generador.
+    # Quitar la componente continua ANTES de normalizar.
+    #
+    # Varias camas salian con un desplazamiento de hasta 0.135, o sea que la
+    # onda entera estaba corrida respecto del cero. Eso no se oye por si mismo
+    # -es una frecuencia de cero hercios- pero hace tres cosas malas: se come
+    # ese porcentaje del margen antes de que suene una sola nota, produce un
+    # golpe seco al arrancar y al parar la pieza, y al sumarse varias capas con
+    # desplazamientos distintos el resultado recorta antes de lo que dicen los
+    # picos. Viene de filtrar y reverberar ruido de baja frecuencia; se corrige
+    # restando la media y con un pasaaltos muy bajo que no toca nada audible.
+    if len(datos) > 32:
+        datos = datos - float(np.mean(datos))
+        datos = pasaaltos(datos, 18.0, 2)
+
     actual = float(np.max(np.abs(datos)))
     if nombre.startswith("ui/"):
         if actual > pico:
