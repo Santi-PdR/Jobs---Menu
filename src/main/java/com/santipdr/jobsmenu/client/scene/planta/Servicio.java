@@ -243,4 +243,10 @@ public final class Servicio implements Planta {
             }
         }
     }
+
+    /** El primer plano de este recinto: los canos que pasan por encima de la camara. */
+    @Override
+    public void primerPlano(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
+        PrimerPlano.servicio(grafico, m, nivel, luz, tiempo);
+    }
 }

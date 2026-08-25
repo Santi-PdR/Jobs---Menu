@@ -82,6 +82,9 @@ public final class EscenaNivel {
 
         Planta planta = nivel.planta;
         planta.dibujar(grafico, marco, nivel, luz, tiempo);
+        // Lo que esta mas cerca que la camara va despues del recinto: tapa lo
+        // lejano y le da al cuadro la profundidad que un tubo no tiene.
+        planta.primerPlano(grafico, marco, nivel, luz, tiempo);
 
         if (movimiento) {
             Presencia.dibujar(grafico, nivel, marco, luz, planta.pisoPresencia());

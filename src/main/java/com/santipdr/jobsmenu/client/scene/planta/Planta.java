@@ -42,6 +42,21 @@ public interface Planta {
     int tramos();
 
     /**
+     * Lo que esta mas cerca que la camara.
+     *
+     * Se dibuja despues del recinto y antes de la presencia: lo cercano tapa
+     * lo lejano, y lo que se aparece vive dentro del recinto, no delante del
+     * mostrador. Ver {@link PrimerPlano} para por que esto existe -en dos
+     * palabras: sin nada cerca, cualquier recinto se lee como un tubo-.
+     *
+     * Una planta que no tenga primer plano puede no implementarlo, pero
+     * deberia tenerlo: es lo que la distingue de un pasillo.
+     */
+    default void primerPlano(GuiGraphics grafico, Marco marco, Nivel nivel,
+                             float luz, float tiempo) {
+    }
+
+    /**
      * A que altura del vano del fondo apoya lo que se aparece.
      *
      * En un recinto con el suelo seco la figura apoya casi en la linea del

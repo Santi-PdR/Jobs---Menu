@@ -304,4 +304,10 @@ public final class Nave implements Planta {
             }
         }
     }
+
+    /** El primer plano de este recinto: la columna de hormigon cortada por el borde. */
+    @Override
+    public void primerPlano(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
+        PrimerPlano.nave(grafico, m, nivel, luz, tiempo);
+    }
 }

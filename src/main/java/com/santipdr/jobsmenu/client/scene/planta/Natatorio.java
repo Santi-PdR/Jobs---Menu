@@ -316,4 +316,10 @@ public final class Natatorio implements Planta {
             }
         }
     }
+
+    /** El primer plano de este recinto: el trampolin que entra desde arriba. */
+    @Override
+    public void primerPlano(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
+        PrimerPlano.natatorio(grafico, m, nivel, luz, tiempo);
+    }
 }

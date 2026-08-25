@@ -3,6 +3,7 @@ package com.santipdr.jobsmenu.client;
 import com.santipdr.jobsmenu.JobsMenu;
 import com.santipdr.jobsmenu.client.screen.PantallaNivel;
 import com.santipdr.jobsmenu.client.sound.MezclaAudio;
+import com.santipdr.jobsmenu.client.sound.MusicaPropia;
 import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
@@ -53,6 +54,10 @@ public final class EscuchaCliente {
         if (ConfigTurno.menuPropio()
                 && siguiente instanceof TitleScreen
                 && !(siguiente instanceof PantallaNivel)) {
+            // El hueco para la musica propia se prepara la primera vez que se
+            // entra al menu, no al cargar el mod: asi no se toca el disco en
+            // el arranque del juego, que es donde mas duele.
+            MusicaPropia.preparar();
             siguiente = new PantallaNivel();
             evento.setNewScreen(siguiente);
         }

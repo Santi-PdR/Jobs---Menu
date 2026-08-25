@@ -509,7 +509,8 @@ def arranque_tubo(avance: float) -> float:
 def dibujar(lz: Lienzo, nivel: Nivel, tiempo: float = 3.0, penumbra: float = 0.0,
             luz_global: float = 1.0, presencia_v: float = 0.0,
             presencia_segunda: bool = False,
-            polvo: bool = True, destellos: bool = True) -> None:
+            polvo: bool = True, destellos: bool = True,
+            primer_plano: bool = True) -> None:
     fx = lz.ancho * nivel.fuga_x
     fy = lz.alto * nivel.fuga_y
     m = Marco(lz.ancho, lz.alto, fx, fy,
@@ -523,6 +524,11 @@ def dibujar(lz: Lienzo, nivel: Nivel, tiempo: float = 3.0, penumbra: float = 0.0
     luz = limitar(luz, 0.0, 1.0)
 
     PLANTAS[nivel.planta](lz, m, nivel, luz, tiempo)
+
+    # El primer plano va despues del recinto y antes de la presencia: lo que
+    # esta cerca tapa lo que esta lejos, y la figura vive dentro del recinto.
+    if primer_plano:
+        PRIMEROS_PLANOS[nivel.planta](lz, m, nivel, luz, tiempo)
 
     if presencia_v > 0.0:
         presencia(lz, nivel, m, presencia_v, luz,
@@ -1165,6 +1171,246 @@ def nat_caustica(lz, m, nivel, luz, tiempo) -> None:
             ondul = math.sin(x * 0.06 + tiempo * 0.7 + b) * 0.5 + 0.5
             lz.fill(x, int(y), x + PASO * 2, int(y) + grueso,
                     con_alfa(nivel.luz, a * (0.35 + 0.65 * ondul) * (0.4 + 0.6 * lej)))
+
+
+# --------------------------------------------------------------------------
+# Primer plano: lo que esta MAS CERCA que la camara
+# --------------------------------------------------------------------------
+# Aca esta la razon de fondo por la que los cuatro niveles se seguian leyendo
+# como el mismo pasillo aunque cada uno tuviera su arquitectura, su paleta y su
+# camara descentrada.
+#
+# Las cuatro escenas estaban dibujadas ENTERAS entre la fuga y el borde del
+# cuadro. Todo lo que se veia estaba lejos y se iba haciendo chico hacia el
+# centro. Un encuadre asi solo puede leerse de una manera: como un tubo. Da
+# igual que el tubo tenga pileta o estanterias.
+#
+# Lo que hace que un cuadro se lea como un LUGAR y no como un tunel es que haya
+# algo mas cerca que la camara: un montante que corta el borde, una viga que
+# entra por arriba, el canto de una mesa. Dos cosas pasan de golpe:
+#
+#   1. Se rompe el marco. El recinto deja de estar contenido dentro de la
+#      pantalla y pasa a continuar fuera de ella, que es como funciona la
+#      vision real: uno nunca ve una habitacion entera de una vez.
+#   2. Aparece el paralaje. Si lo cercano se mueve mas que lo lejano, el ojo
+#      deduce profundidad de verdad, no profundidad dibujada.
+#
+# Cada planta pone lo suyo. No son adornos: son el elemento que dice desde
+# donde se esta mirando. En la sala, el canto del mostrador -se mira desde
+# detras del mostrador-. En la nave, una columna cortada -se mira desde detras
+# de una columna-. En el servicio, los caños pasan POR ENCIMA de la camara -se
+# esta metido en el pasillo tecnico-. En el natatorio, el trampolin entra desde
+# arriba -se esta debajo del trampolin, al borde del agua-.
+
+def desvio(tiempo: float, amplitud: float, velocidad: float) -> float:
+    """Balanceo lentisimo de la camara.
+
+    No es viento ni temblor: es que nadie sostiene una camara perfectamente
+    quieta. Amplitud de pocos pixeles y periodo largo. Se nota si se mira
+    fijo diez minutos, y no se nota si se mira diez segundos, que es
+    exactamente lo que se busca.
+    """
+    return math.sin(tiempo * velocidad) * amplitud
+
+
+def pp_sala(lz, m, nivel, luz, tiempo) -> None:
+    """El canto del mostrador, cruzando el borde inferior.
+
+    Se mira la sala desde detras del mostrador de recepcion, que es lo que
+    justifica la altura y el descentrado de la camara. Para que se lea como un
+    mostrador y no como una sombra en el piso necesita las tres cosas que tiene
+    cualquier mueble mirado de cerca: una tapa horizontal que recibe luz
+    cenital, un frente vertical en sombra, y un filo entre las dos.
+    """
+    balance = desvio(tiempo, 3.0, 0.09)
+    tapa_y = int(lz.alto * 0.80 + balance)
+    x0 = int(lz.ancho * 0.30 + balance * 1.6)
+
+    frente = mezclar(nivel.pared_baja, 0x000000, 0.58)
+    tapa = mezclar(nivel.suelo, 0x000000, 0.20)
+
+    # Frente: cae del filo hasta el borde del cuadro, y se oscurece abajo.
+    lz.fill_gradient(x0, tapa_y, lz.ancho, lz.alto,
+                     iluminar(frente, 0.34 + 0.20 * luz),
+                     iluminar(frente, 0.12 + 0.10 * luz))
+    # Tapa: una banda horizontal clara. Es lo que dice "esto es un mueble".
+    espesor = max(4, int(lz.alto * 0.030))
+    lz.fill_gradient(x0, tapa_y - espesor, lz.ancho, tapa_y,
+                     iluminar(tapa, 0.62 + 0.34 * luz),
+                     iluminar(tapa, 0.44 + 0.26 * luz))
+    # Filo iluminado por los tubos del techo.
+    lz.fill(x0, tapa_y - espesor, lz.ancho, tapa_y - espesor + 2,
+            con_alfa(0xFFFFF3D8, 0.16 + 0.24 * luz))
+    # Canto lateral izquierdo: cierra el mueble y deja ver el piso detras.
+    lz.fill(x0, tapa_y - espesor, x0 + 3, lz.alto,
+            con_alfa(iluminar(frente, 0.20 + 0.14 * luz), 0.9))
+    # Una carpeta olvidada sobre la tapa, de canto.
+    cx = int(lz.ancho * 0.58 + balance * 1.6)
+    lz.fill(cx, tapa_y - espesor - 6, cx + int(lz.ancho * 0.11), tapa_y - espesor,
+            con_alfa(iluminar(nivel.pared_alta, 0.66 + 0.30 * luz), 0.88))
+    lz.fill(cx, tapa_y - espesor - 6, cx + int(lz.ancho * 0.11), tapa_y - espesor - 5,
+            con_alfa(0xFFFFF3D8, 0.20 * luz))
+
+
+def pp_nave(lz, m, nivel, luz, tiempo) -> None:
+    """Una columna de hormigon cortada por el borde izquierdo.
+
+    La nave es el sitio mas grande de los cuatro y el tamano solo se percibe
+    por comparacion: sin nada cerca, una nave de treinta metros y un pasillo de
+    tres se dibujan igual. La primera version ponia una franja fina y oscura
+    contra el borde y no se leia -parecia vineta-. Una columna que convence
+    tiene que ser ANCHA (ocupa un sexto del cuadro), tiene que estar CORTADA
+    por el borde, y tiene que tener una cara iluminada y otra en sombra, porque
+    es un prisma y no una linea.
+    """
+    balance = desvio(tiempo, 4.5, 0.07)
+    # Ancha de verdad. La nave esta llena de pilares verticales a media
+    # distancia; una columna de ancho parecido se confunde con ellos y no
+    # aporta profundidad. Lo que la delata como cercana es el CONTRASTE DE
+    # ESCALA: tiene que ser varias veces mas ancha que los pilares del fondo y
+    # taparlos al pasar por delante.
+    ancho = int(lz.ancho * 0.235)
+    x0 = int(-ancho * 0.16 + balance)
+    x1 = x0 + ancho
+    # La cara que da a las luminarias es la derecha; el quiebre esta a dos
+    # tercios, no en el medio, porque la columna no se ve de frente.
+    quiebre = int(x0 + ancho * 0.62)
+
+    # La columna cae dentro de la franja donde la vineta oscurece el cuadro,
+    # asi que si se pinta con los valores "realistas" del hormigon en sombra
+    # desaparece. Se pinta clara a proposito: esta a un metro de la camara y a
+    # un metro las luminarias del techo pegan de lleno.
+    hormigon = mezclar(nivel.pared_baja, 0xFFFFFF, 0.22)
+    # Cara en sombra: media, no negra.
+    lz.fill_gradient(x0, 0, quiebre, lz.alto,
+                     iluminar(mezclar(hormigon, 0x000000, 0.34), 0.62 + 0.26 * luz),
+                     iluminar(mezclar(hormigon, 0x000000, 0.52), 0.42 + 0.20 * luz))
+    # Cara iluminada: la mas clara del cuadro entero.
+    lz.fill_gradient(quiebre, 0, x1, lz.alto,
+                     iluminar(mezclar(hormigon, 0xFFFFFF, 0.10), 0.86 + 0.14 * luz),
+                     iluminar(hormigon, 0.60 + 0.24 * luz))
+    # Arista viva entre las dos caras.
+    lz.fill(quiebre, 0, quiebre + 2, lz.alto,
+            con_alfa(0xFFD9E4EC, 0.10 + 0.16 * luz))
+    # Borde derecho: sombra proyectada de la columna sobre lo que hay detras.
+    # Sin esto la columna flota; con esto se apoya en el espacio.
+    lz.fill(x1, 0, x1 + max(3, int(lz.ancho * 0.010)), lz.alto,
+            con_alfa(VANO, 0.34))
+    lz.fill(x1 - 1, 0, x1, lz.alto, con_alfa(VANO, 0.50))
+
+    # Junta de encofrado horizontal: da escala y dice "esto es hormigon".
+    paso = max(10, int(lz.alto * 0.17))
+    y = paso // 2
+    while y < lz.alto:
+        lz.fill(x0, y, x1, y + 1, con_alfa(VANO, 0.20))
+        lz.fill(x0, y + 1, x1, y + 2, con_alfa(0xFFD9E4EC, 0.05 + 0.05 * luz))
+        y += paso
+
+    # Numero de columna estarcido, ilegible pero reconocible como marca.
+    cy = int(lz.alto * 0.30)
+    lz.fill(quiebre + 6, cy, x1 - 5, cy + int(lz.alto * 0.09),
+            con_alfa(iluminar(nivel.junta, 0.60 + 0.34 * luz), 0.55))
+
+    # Mancha de humedad subiendo desde el pie: la nave esta abandonada.
+    hy = int(lz.alto * 0.72)
+    lz.fill_gradient(x0, hy, x1, lz.alto, con_alfa(VANO, 0.0), con_alfa(VANO, 0.34))
+
+
+def pp_servicio(lz, m, nivel, luz, tiempo) -> None:
+    """Los caños que pasan por encima de la camara.
+
+    En el pasillo tecnico la camara no mira el pasillo: esta DENTRO. Dos caños
+    cruzan el borde superior de lado a lado, muy cerca, casi en silueta. Son
+    los mismos caños que se ven alejarse al fondo, y esa continuidad es la que
+    mete al que mira dentro del recinto.
+    """
+    balance = desvio(tiempo, 2.0, 0.11)
+    for indice, (altura, grosor, tono) in enumerate((
+            (0.045, 0.052, 0.30),
+            (0.125, 0.034, 0.16),
+    )):
+        y0 = int(lz.alto * altura + balance * (1.0 + indice * 0.4))
+        y1 = y0 + int(lz.alto * grosor)
+        cuerpo = mezclar(nivel.junta, 0x000000, 0.55 + tono * 0.4)
+        lz.fill_gradient(0, y0, lz.ancho, y1,
+                         iluminar(cuerpo, 0.42 + 0.26 * luz),
+                         iluminar(cuerpo, 0.16 + 0.12 * luz))
+        # Reflejo especular corrido: el caño es redondo.
+        lz.fill(0, y0 + 1, lz.ancho, y0 + 2, con_alfa(0xFFE8E2CE, 0.06 + 0.12 * luz))
+        # Abrazaderas cada tanto.
+        paso = int(lz.ancho * 0.27)
+        x = int(lz.ancho * 0.08)
+        while x < lz.ancho:
+            lz.fill(x, y0 - 2, x + 6, y1 + 2,
+                    con_alfa(iluminar(cuerpo, 0.30 + 0.20 * luz), 0.95))
+            x += paso
+
+
+def pp_natatorio(lz, m, nivel, luz, tiempo) -> None:
+    """El trampolin, entrando desde el borde superior izquierdo.
+
+    Es el elemento que convierte "un pasillo con agua" en "una pileta". La
+    primera version salia un trapecio gris colgado del techo en el medio: no se
+    leia como nada. Un trampolin se reconoce por otras cosas -que entra desde
+    fuera del cuadro, que esta ARRIBA del agua y no del piso, que tiene el
+    canto en sombra y la cara superior clara, y que termina en el aire-. Eso es
+    lo que se dibuja aca.
+    """
+    balance = desvio(tiempo, 2.6, 0.06)
+    # Entra por arriba a la izquierda y avanza hacia el centro-derecha: una
+    # diagonal, no una simetria. La diagonal es la que rompe la caja.
+    x_ini, y_ini = -lz.ancho * 0.04, lz.alto * 0.10 + balance
+    x_fin, y_fin = lz.ancho * 0.46, lz.alto * 0.36 + balance * 0.4
+
+    pasos = 20
+    espesor_ini, espesor_fin = lz.alto * 0.055, lz.alto * 0.022
+    for i in range(pasos):
+        t_ = i / (pasos - 1)
+        x = x_ini + (x_fin - x_ini) * t_
+        y = y_ini + (y_fin - y_ini) * t_
+        esp = espesor_ini + (espesor_fin - espesor_ini) * t_
+        ancho_paso = (x_fin - x_ini) / pasos + 2
+
+        # Cara superior: chapa clara, se va apagando con la distancia.
+        cara = mezclar(nivel.pared_alta, 0x000000, 0.10 + 0.30 * t_)
+        lz.fill(int(x), int(y), int(x + ancho_paso), int(y + esp * 0.42),
+                iluminar(cara, 0.70 + 0.26 * luz * (1.0 - t_ * 0.4)))
+        # Canto en sombra: es lo que le da espesor de plancha.
+        canto = mezclar(nivel.pared_baja, 0x000000, 0.58 + 0.20 * t_)
+        lz.fill(int(x), int(y + esp * 0.42), int(x + ancho_paso), int(y + esp),
+                iluminar(canto, 0.30 + 0.20 * luz))
+
+    # Punta del trampolin: remate mas oscuro, colgando sobre el agua.
+    lz.fill(int(x_fin - 4), int(y_fin), int(x_fin + 3), int(y_fin + espesor_fin),
+            con_alfa(mezclar(nivel.pared_baja, 0x000000, 0.70), 0.9))
+
+    # Baranda: dos tubos que arrancan del borde y mueren a media plancha.
+    for alt in (0.16, 0.30):
+        for i in range(pasos // 2):
+            t_ = i / (pasos // 2 - 1)
+            x = x_ini + (x_fin - x_ini) * t_ * 0.55
+            y = y_ini + (y_fin - y_ini) * t_ * 0.55 - lz.alto * alt * (1.0 - t_ * 0.35)
+            lz.fill(int(x), int(y), int(x + (x_fin - x_ini) / pasos + 2), int(y + 2),
+                    con_alfa(iluminar(nivel.junta, 0.60 + 0.30 * luz), 0.75))
+    # Montantes verticales de la baranda.
+    for t_ in (0.06, 0.30, 0.54):
+        x = x_ini + (x_fin - x_ini) * t_ * 0.55
+        y = y_ini + (y_fin - y_ini) * t_ * 0.55
+        lz.fill(int(x), int(y - lz.alto * 0.30), int(x + 2), int(y),
+                con_alfa(iluminar(nivel.junta, 0.55 + 0.28 * luz), 0.7))
+
+    # Sombra de la plancha sobre el agua: lo que la ancla al lugar.
+    sy = int(lz.alto * 0.74)
+    lz.fill(int(x_ini), sy, int(x_fin * 0.92), sy + int(lz.alto * 0.05),
+            con_alfa(VANO, 0.16 + 0.06 * luz))
+
+
+PRIMEROS_PLANOS = {
+    "sala": pp_sala,
+    "nave": pp_nave,
+    "servicio": pp_servicio,
+    "natatorio": pp_natatorio,
+}
 
 
 PLANTAS = {"sala": sala, "nave": nave, "servicio": servicio, "natatorio": natatorio}

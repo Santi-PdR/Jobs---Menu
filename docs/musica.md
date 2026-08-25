@@ -41,60 +41,69 @@ redimensionar la ventana, bucle natural, entrada de veinte segundos, volumen
 propio en la config, y continuidad durante el apagón cediendo un 22 % para que
 el corte eléctrico tenga el frente.
 
-## Cómo poner la pista que quieras, sin tocar código
+## Cómo poner la pista que quieras: el mod ya te dejó el hueco hecho
 
-El sistema está preparado para recibir otro archivo. **No hace falta compilar
-nada ni modificar el mod**: se hace con un paquete de recursos, que es el
-mecanismo que Minecraft tiene justamente para esto.
+Esto cambió en 0.5.0. Antes esta sección te explicaba cómo armar un paquete de
+recursos a mano, con su estructura exacta de carpetas. Era correcto y era una
+molestia: si te equivocabas en el nombre de una carpeta, no sonaba nada y no
+había ningún mensaje de error que te dijera por qué.
 
-1. Conseguí el archivo de forma legítima (ver más abajo).
-2. Convertilo a **OGG Vorbis mono o estéreo, 44 100 Hz**.
-3. Nombralo `defecto.ogg`.
-4. Armá esta estructura dentro de la carpeta `resourcepacks` de tu instancia:
+**Ahora lo arma el mod solo.** La primera vez que abrís el menú, el mod crea en
+la carpeta `resourcepacks` de tu instancia un paquete completo y válido:
 
 ```
 resourcepacks/
-└── musica-jobs/
-    ├── pack.mcmeta
-    └── assets/
-        └── jobsmenu/
-            └── sounds/
-                └── musica/
-                    └── defecto.ogg
+└── jobsmenu-musica/
+    ├── pack.mcmeta          ← ya creado, ya válido
+    ├── LEEME.txt            ← las instrucciones, ahí mismo
+    └── assets/jobsmenu/sounds/musica/
+        └── (acá va tu defecto.ogg)
 ```
 
-Con este `pack.mcmeta`:
+Todo está hecho menos una cosa, que es justamente la que no puedo hacer yo:
+poner el archivo. Vos:
 
-```json
-{
-  "pack": {
-    "pack_format": 15,
-    "description": "Musica del menu Jobs"
-  }
-}
-```
+1. Conseguís tu copia de la pista (ver abajo).
+2. La convertís a **OGG Vorbis, 44 100 Hz**.
+3. La renombrás a `defecto.ogg`.
+4. La soltás en la carpeta `musica` que ya existe.
+5. Activás el paquete en Opciones → Paquetes de recursos.
 
-5. Activalo en Opciones → Paquetes de recursos.
+Y suena, con el mismo volumen, el mismo bucle y el mismo comportamiento durante
+el apagón que la pista propia.
 
-El menú va a usar tu archivo en lugar del sintetizado, con el mismo volumen, el
-mismo bucle y el mismo comportamiento en la transición. Y como el paquete vive
-en tu instancia y no dentro del JAR, **el mod se sigue pudiendo repartir sin
-problemas legales**: el archivo con derechos nunca sale de tu máquina.
-
-El bloque de PowerShell de esta entrega te deja la carpeta `musica-jobs` ya
-creada con su `pack.mcmeta` puesto. Sólo falta que dejes el `.ogg` adentro.
+**Por qué esto es legal y meterla en el JAR no.** Un mod que lee un archivo que
+vos pusiste en tu carpeta no distribuye nada: la obra nunca sale de tu máquina.
+Es el mismo principio por el que un emulador es legal aunque no venga con
+juegos. Lo que no se puede es que el `.ogg` viaje dentro del JAR.
 
 ## Cómo conseguir esa pista legalmente
 
 Por orden de facilidad:
 
-1. **Pedísela a la autora.** Es la vía real y es más viable de lo que parece:
-   Emmy Z es una música independiente, tiene canal propio (`@EmmyNoiz`) y ya
-   dio permiso explícito para que sus temas se subieran a la wiki de Forsaken,
-   así que no es alguien cerrado a que le usen la obra si se le pregunta.
-   Escribile por el canal, contale que es para el menú de un server privado de
-   Minecraft sin fines de lucro y pedile permiso por escrito. Si te dice que sí,
-   guardá ese mensaje: eso es tu licencia.
+1. **Pedísela a la autora. Esta es la vía real, y la investigación de esta
+   ronda dice que está más abierta de lo que parecía.** Los hechos:
+
+   - Emmy Z **ya dio permiso explícito** para que sus temas se subieran a la
+     wiki de Forsaken. Está dicho por la propia wiki.
+   - El equipo de Forsaken ha recibido permisos condicionados para reponer
+     temas retirados —por ejemplo, con la condición de que fueran más baratos
+     o gratuitos—. O sea: negocia, y pone condiciones en vez de decir que no.
+   - También ha **retirado** permisos cuando no le gustó el uso. Eso confirma
+     lo mismo desde el otro lado: es alguien que gestiona activamente su obra
+     y a quien tiene sentido preguntarle.
+
+   Es una música independiente con canal propio (`@EmmyNoiz`), no un sello con
+   departamento legal. Escribile, contale que es para el menú de un server
+   privado de Minecraft sin fines de lucro, y pedile permiso por escrito. Si
+   dice que sí, guardá el mensaje: **eso es tu licencia**, y con eso el `.ogg`
+   pasa al JAR y la clase `MusicaPropia` se borra entera.
+
+   Un aviso que sale de la misma investigación: hay terceros reclamando
+   derechos sobre temas de Forsaken en YouTube, y la cuenta oficial del equipo
+   en las plataformas de streaming estuvo secuestrada. O sea que hay ruido
+   alrededor de esta banda sonora. Razón de más para tener el permiso por
+   escrito de la autora y no fiarse de ninguna otra fuente.
 2. **Compralo** si lo publica en Bandcamp o similar. Ojo: comprar suele dar
    derecho de uso personal, no de redistribución. Para un server privado con el
    paquete de recursos en tu propia instancia, alcanza; para repartir el JAR, no.

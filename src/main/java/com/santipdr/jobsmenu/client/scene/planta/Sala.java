@@ -209,4 +209,10 @@ public final class Sala implements Planta {
             }
         }
     }
+
+    /** El primer plano de este recinto: el canto del mostrador desde el que se mira la sala. */
+    @Override
+    public void primerPlano(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
+        PrimerPlano.sala(grafico, m, nivel, luz, tiempo);
+    }
 }
