@@ -245,45 +245,67 @@ def escribir(nombre: str, datos: np.ndarray, pico: float = 0.85) -> None:
 # ==========================================================================
 # 1. Interfaz
 # ==========================================================================
-# TERCERA GENERACION. Las dos anteriores se descartaron enteras y conviene
-# dejar escrito por que, porque el error es facil de repetir.
+# CUARTA GENERACION. Van tres descartadas y conviene dejar escrito por que,
+# porque cada error es facil de repetir.
 #
-# La primera version eran clics. La segunda eran clics mejores: sellos,
-# interruptores, ruedas dentadas. Suenan bien sueltos y siguen sin funcionar,
-# porque el problema no era la calidad de cada pieza sino la categoria. Un
-# clic es un objeto que se manipula, y aca no hay ningun objeto: hay una hoja
-# clavada en una pared y un edificio alrededor. Cada vez que sonaba un
-# mecanismo, el menu delataba que era una interfaz.
+#   1a. Clics comunes. Sonaban a interfaz de computadora.
+#   2a. Clics mejores: sellos, interruptores, ruedas dentadas. El problema no
+#       era la calidad de cada pieza sino la categoria: un clic es un objeto
+#       que se manipula, y aca no hay ningun objeto que manipular.
+#   3a. Sin transitorio, todo construido con _red(): sumas de senoidales a
+#       multiplos de 50 Hz. El concepto era correcto -que suene el edificio y
+#       no la interfaz- pero la ejecucion lo arruinaba. Una pila de senoidales
+#       es lo que el oido reconoce como "sintetizador", y ocho gestos hechos
+#       con el mismo apilado suenan a ocho largos distintos del mismo zumbido.
 #
-# Lo que hace esta generacion: la interfaz NO tiene sonido propio. Lo que se
-# oye cuando se mueve el cursor es el EDIFICIO reaccionando. La instalacion
-# electrica que se entera, el aire que se mueve, el papel que responde. Todos
-# los gestos salen del mismo material que los ambientes -zumbido de red,
-# conducto, azulejo, chapa- y por eso pertenecen al lugar en vez de estar
-# apoyados encima.
+# QUE HACE ESTA GENERACION DISTINTO
 #
-# Reglas duras de esta familia:
-#   - Sin transitorio. Ningun ataque por debajo de 8 ms. Un ataque instantaneo
-#     es lo que el oido lee como "clic de computadora".
-#   - Techo en 5 kHz. Todo lo que pasa de ahi es plastico.
-#   - Cuerpo grave presente: cada gesto apoya en algun grave, aunque sea corto.
-#   - Todo por la misma sala. Distinta cantidad, misma sala.
+# Un objeto real no suena con senoidales armonicas: suena con MODOS. Al
+# excitarlo, unas cuantas resonancias inarmonicas arrancan juntas y cada una
+# se apaga a su propio ritmo -las agudas primero, las graves despues-. Eso es
+# lo que hace que el oido diga "chapa", "hormigon", "vidrio" en vez de "tono".
+# Aca los gestos se sintetizan filtrando ruido con resonadores afinados en
+# proporciones inarmonicas, que es sintesis modal: no hay un solo oscilador
+# senoidal en toda la familia.
+#
+# Y sobre todo: los ocho gestos NO son el mismo material. Un menu necesita
+# que el oido distinga confirmar de volver sin pensarlo, y eso no se consigue
+# con duraciones distintas del mismo timbre. Cada gesto tiene su cuerpo:
+#
+#   pasar      aire desplazado, sin cuerpo             (nada resuena)
+#   elegir     madera del tablon, seca                 (modos amortiguados)
+#   alternar   ceramica del azulejo, corta             (modos altos, breves)
+#   confirmar  hormigon, grave, con vacio detras       (modos bajos, largos)
+#   volver     el mismo hormigon una quinta abajo      (pariente de confirmar)
+#   abrir      el recinto entero llenandose de aire    (sin modos, puro ruido)
+#   cerrar     lo de arriba al reves                   (sin modos)
+#   negado     dos golpes sordos sobre algo que no cede
+#
+# Reglas duras que se mantienen de la generacion anterior porque eran buenas:
+#   - Sin transitorio duro. Ningun ataque por debajo de 6 ms.
+#   - Techo en 5 kHz. Todo lo que pasa de ahi suena a plastico.
+#   - Todo por la misma sala, para que pertenezcan al mismo sitio.
 #   - Nada dura menos de 90 ms ni mas de 700.
+#
+# Regla nueva: los modos se afinan sobre la escala del tema del menu (la
+# menor). No como melodia -no hay melodia- sino para que cuando un gesto suene
+# encima de la musica no choque nunca. Es lo que cose el audio en un sistema.
 
 # La sala de la interfaz es la del recinto donde esta clavada la hoja: chica,
 # seca y con un poco de cola. No es una sala de efectos: es el sitio.
 UI = impulso(0.40, 0.005, 2_800.0, 0.9)
 
-# La red electrica. Todo gesto de la interfaz esta enchufado a esta nota, que
-# es la misma que zumba en los ambientes. Es lo que los cose entre si.
+# La red electrica. Sigue estando, pero ya no construye los gestos: solo los
+# apoya, muy por debajo, para que esten enchufados al mismo lugar que los
+# ambientes. Es cimiento, no material.
 RED = 50.0
 
 
 def _red(dur: float, armonicos, decaimiento: float) -> np.ndarray:
     """Un pedacito de zumbido de red con caida propia.
 
-    Es el ladrillo de toda la familia. Cambiando que armonicos entran y cuanto
-    duran salen ocho gestos distintos que siguen siendo el mismo material.
+    Se conserva para el apoyo grave de algunos gestos y para la transicion.
+    Ya no es el material principal de la interfaz.
     """
     n = muestras(dur)
     t = tiempo(dur)
@@ -294,153 +316,236 @@ def _red(dur: float, armonicos, decaimiento: float) -> np.ndarray:
     return x * np.exp(-t / decaimiento)
 
 
+def modal(dur: float, modos, excitacion: float = 0.004,
+          color: float = 3_000.0) -> np.ndarray:
+    """Sintesis modal: un objeto golpeado.
+
+    Se excita un ruido muy corto -el golpe- y se lo hace pasar por un banco de
+    resonadores muy selectivos. Cada modo es (frecuencia, peso, decaimiento en
+    segundos). Como cada uno se apaga a su ritmo, el timbre cambia mientras
+    suena, que es exactamente lo que hace un objeto de verdad y lo que ninguna
+    suma de senoidales consigue.
+
+    Las frecuencias no son multiplos enteros a proposito: los objetos reales
+    son inarmonicos, y esa inarmonicidad es la que da la sensacion de material.
+    """
+    n = muestras(dur)
+    t = np.arange(n) / SR
+
+    # El golpe: ruido cortisimo, filtrado para que no meta agudo de mas.
+    golpe = RNG.normal(0.0, 1.0, n)
+    golpe *= np.exp(-t / max(excitacion, 1e-4))
+    golpe = pasabajos(golpe, color, 2)
+
+    salida = np.zeros(n)
+    for frecuencia, peso, caida in modos:
+        if frecuencia >= SR / 2.0 * 0.95:
+            continue
+        # Resonador muy estrecho: el Q sale del decaimiento pedido.
+        q = max(2.0, np.pi * frecuencia * caida)
+        b, a = signal.iirpeak(frecuencia / (SR / 2.0), q)
+        voz = signal.lfilter(b, a, golpe)
+        salida += peso * voz * np.exp(-t / caida)
+
+    return salida
+
+
+def _apoyo(dur: float, corte: float, caida: float, fuerza: float) -> np.ndarray:
+    """El grave que sostiene un gesto. Sin el, todo suena a maqueta."""
+    n = muestras(dur)
+    t = np.arange(n) / SR
+    x = pasabajos(marron(dur), corte, 3) * 3.0
+    return x * np.exp(-t / caida) * fuerza
+
+
 def ui_pasar() -> np.ndarray:
     """Pasar por encima de un renglon.
 
     Es el sonido que mas veces se va a oir en la sesion, asi que casi no es un
-    sonido: es un soplo de aire desplazado, como cuando la mano pasa cerca de
-    una hoja de papel sin llegar a tocarla. Sin ataque, sin cuerpo, sin cola.
+    sonido: es aire desplazado, como cuando la mano pasa cerca de una hoja sin
+    llegar a tocarla. No resuena nada porque no se toca nada.
 
     Si al escucharlo suelto parece que falta algo, esta bien. En su sitio, con
     el ambiente debajo, se percibe como que la hoja se entero.
     """
-    dur = 0.16
+    dur = 0.15
     n = muestras(dur)
-    aire = pasabanda(rosa(dur), 240.0, 1_900.0, 2)
-    aire *= envolvente(n, 0.030, 0.085, 1.6)
-    # La red, apenas insinuada, para que el roce este enchufado al lugar.
-    zumba = _red(dur, ((1, 0.5), (2, 0.35)), 0.055) * 0.12
-    x = aire * 0.55 + zumba
-    return rampa(reverberar(x, UI, 0.20), 0.012, 0.045)
+    aire = pasabanda(rosa(dur), 260.0, 1_800.0, 2)
+    aire *= envolvente(n, 0.028, 0.080, 1.7)
+    # Una sola resonancia bajisima: el tablon acusando el paso, casi inaudible.
+    roce = modal(dur, ((196.0, 1.0, 0.045),), 0.006, 1_400.0) * 0.10
+    x = aire * 0.60 + roce
+    return rampa(reverberar(x, UI, 0.18), 0.012, 0.045)
 
 
 def ui_elegir() -> np.ndarray:
     """Queda marcado un renglon.
 
-    Un contacto de rele cerrando, pero visto desde el otro lado de la pared:
-    lo que llega no es el golpe del contacto sino el escalon de corriente que
-    provoca. Por eso el grave entra ANTES que cualquier otra cosa y lo agudo
-    apenas asoma.
+    El tablon de madera acusando que algo se apoyo encima. Modos secos y muy
+    amortiguados: la madera no canta, responde y se calla. Es el gesto que
+    tiene que leerse como "esto quedo seleccionado" sin pedir atencion.
+
+    La afinacion base es un la grave, la misma nota que sostiene el tema.
     """
-    dur = 0.28
-    n = muestras(dur)
-    cuerpo = _red(dur, ((1, 0.55), (2, 1.0), (3, 0.30), (4, 0.20)), 0.075)
-    cuerpo *= envolvente(n, 0.010, 0.090, 1.8)
-    # El herraje: banda estrecha y corta, nunca por encima de 3 kHz.
-    herraje = pasabanda(blanco(dur), 900.0, 2_800.0, 2) * envolvente(n, 0.009, 0.030, 3.5) * 0.22
-    x = saturar(cuerpo * 0.85 + herraje, 1.15)
-    return rampa(reverberar(x, UI, 0.26), 0.008, 0.055)
+    dur = 0.26
+    # Madera: inarmonica y de decaimiento corto. Los agudos mueren primero.
+    modos = (
+        (110.0, 1.00, 0.115),
+        (178.0, 0.62, 0.080),
+        (293.0, 0.40, 0.052),
+        (447.0, 0.22, 0.034),
+        (694.0, 0.11, 0.020),
+    )
+    cuerpo = modal(dur, modos, 0.0035, 2_400.0)
+    cuerpo = normalizar(cuerpo, 0.9)
+    x = cuerpo * 0.82 + _apoyo(dur, 190.0, 0.070, 0.30)
+    return rampa(reverberar(saturar(x, 1.10), UI, 0.24), 0.007, 0.055)
 
 
 def ui_confirmar() -> np.ndarray:
     """Se acepta y se cambia de pantalla.
 
-    Es el unico gesto de la interfaz con consecuencia, y se resuelve al reves
-    que los demas: no es algo que suena, es algo que DEJA de sonar. La red se
-    tensa medio segundo y despues cae. El vacio que queda es la confirmacion.
+    El unico gesto con consecuencia, y el unico que tiene peso. Es un golpe
+    sobre hormigon: modos graves, largos, que llenan el recinto y despues lo
+    dejan vacio. La confirmacion no esta en el golpe sino en el silencio que
+    deja detras.
     """
-    dur = 0.62
+    dur = 0.60
     n = muestras(dur)
     t = tiempo(dur)
 
-    carga = _red(dur, ((1, 0.60), (2, 1.0), (3, 0.45), (6, 0.14)), 0.30)
-    # La tension: la red sube un poco antes de soltar. Trece centesimas.
-    carga *= np.clip(t / 0.13, 0.0, 1.0) * (1.0 + 0.35 * np.exp(-t / 0.10))
-    caida = np.exp(-np.clip(t - 0.16, 0.0, None) / 0.14)
-    carga *= caida
+    # Hormigon: pocas resonancias, muy graves, colas largas.
+    modos = (
+        (55.0, 1.00, 0.340),
+        (82.5, 0.70, 0.260),
+        (131.0, 0.45, 0.185),
+        (207.0, 0.24, 0.110),
+        (330.0, 0.12, 0.062),
+    )
+    cuerpo = modal(dur, modos, 0.0055, 1_800.0)
+    cuerpo = normalizar(cuerpo, 0.95)
 
-    conducto = pasabajos(marron(dur), 300.0, 3) * 3.0 * envolvente(n, 0.040, 0.240, 1.4) * 0.55
-    x = saturar(carga * 0.75 + conducto, 1.25)
-    return rampa(reverberar(x, UI, 0.34), 0.010, 0.130)
+    # El aire que se mueve detras del golpe: es lo que da tamano al recinto.
+    conducto = pasabajos(marron(dur), 300.0, 3) * 3.0
+    conducto *= envolvente(n, 0.045, 0.250, 1.4) * 0.45
+
+    # La red apenas asoma medio segundo, como si la instalacion lo acusara.
+    apunte = _red(dur, ((1, 0.5), (2, 0.30)), 0.14) * 0.10
+    apunte *= np.clip(t / 0.05, 0.0, 1.0)
+
+    x = saturar(cuerpo * 0.80 + conducto + apunte, 1.20)
+    return rampa(reverberar(x, UI, 0.34), 0.009, 0.130)
 
 
 def ui_volver() -> np.ndarray:
     """Volver atras.
 
-    El mismo material que confirmar pero sin la tension previa y una octava mas
-    abajo: la corriente se retira en vez de cortarse. Que sean parientes claros
-    es deliberado; ir y volver tienen que sonar al mismo par.
+    El mismo hormigon que confirmar pero una quinta abajo y sin la cola larga:
+    el golpe se da y se acaba. Que sean parientes evidentes es deliberado; ir y
+    volver tienen que sonar al mismo par de manos sobre la misma pared.
     """
-    dur = 0.42
-    n = muestras(dur)
-    t = tiempo(dur)
-    cuerpo = _red(dur, ((0.5, 0.85), (1, 0.60), (2, 0.22)), 0.13)
-    cuerpo *= envolvente(n, 0.018, 0.170, 1.5)
-    aire = pasabajos(marron(dur), 240.0, 3) * 2.6 * np.exp(-t / 0.11) * 0.4
-    x = saturar(cuerpo * 0.80 + aire, 1.15)
-    return rampa(reverberar(x, UI, 0.30), 0.012, 0.100)
+    dur = 0.40
+    modos = (
+        (36.7, 1.00, 0.190),
+        (55.0, 0.66, 0.150),
+        (87.3, 0.40, 0.105),
+        (138.0, 0.20, 0.066),
+        (220.0, 0.09, 0.038),
+    )
+    cuerpo = modal(dur, modos, 0.0060, 1_500.0)
+    cuerpo = normalizar(cuerpo, 0.92)
+    x = saturar(cuerpo * 0.80 + _apoyo(dur, 240.0, 0.105, 0.34), 1.12)
+    return rampa(reverberar(x, UI, 0.28), 0.011, 0.100)
 
 
 def ui_alternar() -> np.ndarray:
     """Cambiar el valor de una opcion.
 
-    El gesto mas chico que existe: un salto de la red medio tono arriba y de
-    vuelta, en doce centesimas. No hay mecanismo, no hay diente, no hay rueda.
-    Cambio algo y la instalacion lo acuso.
+    El gesto mas chico que existe. Ceramica: la una contra un azulejo. Modos
+    altos y cortisimos, sin cuerpo grave, para que se distinga al instante de
+    elegir y de confirmar sin ser mas fuerte que ellos.
+
+    Es el unico gesto de la familia con material del natatorio, y esta bien:
+    es el que se repite cuando el jugador toca opciones, y conviene que sea
+    liviano.
     """
-    dur = 0.19
-    n = muestras(dur)
-    t = tiempo(dur)
-    barrido = np.sin(2 * np.pi * (RED * 2.0 * (1.0 + 0.06 * np.exp(-t / 0.045))) * t)
-    barrido += 0.35 * np.sin(2 * np.pi * RED * 4.0 * t)
-    barrido *= envolvente(n, 0.012, 0.075, 2.2)
-    roce = pasabanda(rosa(dur), 600.0, 2_400.0, 2) * envolvente(n, 0.015, 0.050, 2.0) * 0.20
-    x = saturar(barrido * 0.55 + roce, 1.1)
-    return rampa(reverberar(x, UI, 0.22), 0.010, 0.048)
+    dur = 0.17
+    modos = (
+        (880.0, 1.00, 0.038),
+        (1_318.0, 0.58, 0.026),
+        (1_760.0, 0.30, 0.018),
+        (2_640.0, 0.14, 0.011),
+    )
+    cuerpo = modal(dur, modos, 0.0018, 4_200.0)
+    cuerpo = normalizar(cuerpo, 0.75)
+    # Un apoyo grave minimo: sin el, la ceramica sola suena a campanita.
+    x = cuerpo * 0.55 + _apoyo(dur, 260.0, 0.030, 0.26)
+    return rampa(reverberar(x, UI, 0.22), 0.006, 0.050)
 
 
 def ui_abrir() -> np.ndarray:
     """Se abre el menu.
 
-    Una instalacion entera arrancando: el conducto empieza a mover aire, la red
-    engancha, y todo eso sube desde nada a lo largo de casi medio segundo. Es
-    el gesto mas largo de la familia porque es el que abre el lugar.
+    No hay objeto: hay un recinto que se llena de aire. Una instalacion
+    arrancando, el conducto moviendose, la red enganchando. Es el gesto mas
+    largo de la familia porque es el que abre el lugar.
     """
     dur = 0.70
-    n = muestras(dur)
     t = tiempo(dur)
     arranque = pasabajos(marron(dur), 380.0, 3) * 3.4
     arranque *= np.clip(t / 0.34, 0.0, 1.0) * np.exp(-np.clip(t - 0.34, 0.0, None) / 0.26)
-    engancha = _red(dur, ((1, 0.7), (2, 1.0), (4, 0.18)), 0.34)
-    engancha *= np.clip(t / 0.22, 0.0, 1.0) * 0.55
-    x = saturar(arranque * 0.55 + engancha, 1.15)
+    # El recinto respondiendo: dos modos muy graves y largos, apenas audibles.
+    recinto = modal(dur, ((55.0, 1.0, 0.42), (82.5, 0.5, 0.30)), 0.010, 1_200.0)
+    recinto = normalizar(recinto, 0.55) * np.clip(t / 0.20, 0.0, 1.0)
+    engancha = _red(dur, ((1, 0.7), (2, 0.8)), 0.34) * 0.30
+    engancha *= np.clip(t / 0.22, 0.0, 1.0)
+    x = saturar(arranque * 0.52 + recinto * 0.45 + engancha, 1.15)
     return rampa(reverberar(x, UI, 0.36), 0.030, 0.170)
 
 
 def ui_cerrar() -> np.ndarray:
     """Se cierra el menu. Lo de arriba, al reves y mas rapido."""
-    dur = 0.52
-    n = muestras(dur)
+    dur = 0.50
     t = tiempo(dur)
     frena = pasabajos(marron(dur), 320.0, 3) * 3.0 * np.exp(-t / 0.15)
-    # La red desafinandose hacia abajo mientras pierde alimentacion.
+    # El recinto vaciandose: el mismo par de modos, apagandose.
+    recinto = modal(dur, ((55.0, 1.0, 0.20), (82.5, 0.45, 0.14)), 0.010, 1_100.0)
+    recinto = normalizar(recinto, 0.50)
+    # La red perdiendo alimentacion: cae de tono mientras se apaga.
     suelta = np.sin(2 * np.pi * RED * 2.0 * (1.0 - 0.10 * np.clip(t / 0.30, 0, 1)) * t)
-    suelta *= np.exp(-t / 0.13) * 0.55
-    x = saturar(frena * 0.55 + suelta, 1.15)
+    suelta *= np.exp(-t / 0.13) * 0.32
+    x = saturar(frena * 0.52 + recinto * 0.42 + suelta, 1.15)
     return rampa(reverberar(x, UI, 0.32), 0.014, 0.140)
 
 
 def ui_negado() -> np.ndarray:
     """Accion invalida.
 
-    Sin pitido, sin nota triste, sin nada que parezca un mensaje de error de
-    sistema operativo. La red intenta cerrar el circuito dos veces, no engancha
-    ninguna, y se queda como estaba. La informacion esta en que no pasa nada.
+    Sin pitido, sin nota triste, sin nada que parezca un error de sistema
+    operativo. Dos golpes sordos sobre algo que no cede: el segundo mas flojo
+    que el primero, y ninguno de los dos resuena. La informacion esta en que no
+    pasa nada. El material esta muerto a proposito -decaimientos cortisimos-
+    porque es la unica forma de que "no" se lea como "no".
     """
-    dur = 0.36
+    dur = 0.34
     n = muestras(dur)
     x = np.zeros(n)
-    for retardo, fuerza in ((0.0, 1.0), (0.075, 0.50)):
+    modos = (
+        (98.0, 1.00, 0.038),
+        (147.0, 0.55, 0.026),
+        (233.0, 0.26, 0.017),
+    )
+    for retardo, fuerza in ((0.0, 1.0), (0.078, 0.52)):
         d = muestras(retardo)
         largo = n - d
         if largo <= 0:
             continue
+        golpe = modal(largo / SR, modos, 0.0045, 1_300.0)
+        golpe = normalizar(golpe, 0.85)
         tc = np.arange(largo) / SR
-        intento = np.sin(2 * np.pi * RED * 2.0 * tc) + 0.4 * np.sin(2 * np.pi * RED * tc)
-        intento *= envolvente(largo, 0.009, 0.038, 3.0)
-        sordo = pasabajos(RNG.normal(0, 1, largo), 700.0, 2) * np.exp(-tc / 0.022) * 0.35
-        x[d:] += (intento * 0.6 + sordo) * fuerza
-    return rampa(reverberar(saturar(x, 1.3), UI, 0.28), 0.010, 0.075)
+        sordo = pasabajos(RNG.normal(0, 1, largo), 620.0, 2) * np.exp(-tc / 0.020) * 0.30
+        x[d:d + largo] += (golpe * 0.62 + sordo) * fuerza
+    return rampa(reverberar(saturar(x, 1.25), UI, 0.26), 0.009, 0.075)
 
 
 # ==========================================================================

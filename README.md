@@ -23,7 +23,7 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
 ## Qué trae la 0.4.0
 
 Cuatro correcciones sobre la entrega anterior, todas pedidas después de probarla en el juego: los fondos
-dejaron de ser el mismo recinto pintado de otro color, la interfaz cambió de sonido por tercera vez, el
+dejaron de ser el mismo recinto pintado de otro color, la interfaz cambió de sonido por cuarta vez, el
 fondo dejó de callarse entre evento y evento, y el ambiente ya no se apaga a sí mismo por un detalle del
 motor de sonido.
 
@@ -50,20 +50,41 @@ Las dos camas de cada nivel duran distinto a propósito (por ejemplo 24 y 43 seg
 velocidades distintas: como no son múltiplos, la combinación tarda más de un cuarto de hora en repetirse.
 Ese es todo el truco para que un fondo de dos archivos chicos no se vuelva reconocible.
 
-### La interfaz, por tercera vez
+### La interfaz, por cuarta vez
 
-Las dos familias anteriores eran clics: primero clics comunes, después clics buenos —sellos, interruptores,
-ruedas dentadas—. Suenan bien sueltos y ninguna de las dos funcionaba, porque el problema no era la calidad
-de cada pieza sino la categoría. **Un clic es un objeto que se manipula, y acá no hay ningún objeto**: hay una
-hoja clavada en una pared y un edificio alrededor.
+Van tres familias descartadas y cada una falló por un motivo distinto. Las dos primeras eran clics —primero
+comunes, después buenos: sellos, interruptores, ruedas dentadas—. El problema no era la calidad de cada pieza
+sino la categoría: **un clic es un objeto que se manipula, y acá no hay ningún objeto**; hay una hoja clavada
+en una pared y un edificio alrededor.
 
-En esta generación la interfaz **no tiene sonido propio**. Lo que se oye al mover el cursor es el edificio
-enterándose: la instalación eléctrica, el aire, el papel. Los ocho gestos salen del mismo material que los
-ambientes y siguen cuatro reglas duras —ningún ataque por debajo de 8 ms, nada por encima de 5 kHz, cuerpo
-grave siempre presente, y todos por la misma sala—. Pasar el cursor es un soplo de aire; elegir es un escalón
-de corriente oído desde el otro lado de la pared; confirmar es la red que se tensa y cae, y la confirmación
-es el vacío que deja; acción inválida es el circuito intentando cerrar dos veces sin engancharse, sin un solo
-pitido de error.
+La tercera acertó el concepto —que suene el edificio, no la interfaz— y lo arruinó en la ejecución: los ocho
+gestos estaban construidos apilando senoidales sobre múltiplos de 50 Hz. **Una pila de senoidales es
+exactamente lo que el oído reconoce como sintetizador**, y ocho gestos hechos con el mismo apilado terminaban
+siendo ocho largos distintos del mismo zumbido. Por eso seguían sin gustar aunque la idea fuera correcta.
+
+Esta cuarta generación cambia el método de síntesis. Un objeto real no suena con senoidales armónicas: suena
+con **modos**, un puñado de resonancias inarmónicas que arrancan juntas y se apagan cada una a su ritmo, las
+agudas primero. Eso es lo que hace que el oído diga «chapa», «hormigón» o «cerámica» en vez de «tono». Los
+ocho gestos se sintetizan ahora filtrando ruido con resonadores afinados en proporciones inarmónicas, y no
+queda un solo oscilador senoidal en la familia.
+
+Y sobre todo, **los ocho ya no son el mismo material**. Un menú necesita que el oído distinga confirmar de
+volver sin pensarlo, y eso no se consigue con duraciones distintas del mismo timbre:
+
+| Gesto | Material | Centroide |
+|---|---|---|
+| pasar | aire desplazado, no resuena nada | 1047 Hz |
+| elegir | la madera del tablón, seca | 718 Hz |
+| alternar | cerámica del azulejo, corta | 1618 Hz |
+| confirmar | hormigón, grave, con el vacío detrás | 573 Hz |
+| volver | el mismo hormigón una quinta abajo | 411 Hz |
+| abrir | el recinto llenándose de aire | 83 Hz |
+| cerrar | lo de arriba, al revés | 325 Hz |
+| negado | dos golpes sordos sobre algo que no cede | 869 Hz |
+
+Se mantienen las reglas duras que sí eran buenas —ningún ataque por debajo de 6 ms, nada por encima de 5 kHz,
+todos por la misma sala— y se agrega una nueva: los modos se afinan sobre la escala del tema del menú, en la
+menor. No como melodía, sino para que un gesto que suene encima de la música no choque nunca.
 
 ### El ambiente que no sonaba
 
@@ -100,8 +121,13 @@ está, la escena pierde un ocho por ciento de luz y suena algo lejos. **No hay n
 ### Música
 
 El menú tiene ranura de música con su propio volumen, que arranca sola, no se reinicia al cambiar de
-pantalla y **sigue sonando durante el apagón**. Sobre el tema que pediste, leé la nota de la entrega: el
-archivo que viene empaquetado es una pieza original, y la ranura queda lista para el que autorices.
+pantalla y **sigue sonando durante el apagón**. El archivo empaquetado es una pieza original compuesta para
+el mod, así que se puede repartir sin arrastrar derechos de nadie.
+
+La pista que pediste es **REQUIEM, de Emmy Z: la banda sonora de un juego comercial**, y no se puede meter
+dentro del JAR sin permiso escrito de la autora. No está integrada y no voy a decir que lo está. Lo que sí
+quedó hecho es el camino legal para usarla: se carga con un paquete de recursos, sin tocar código ni
+recompilar, y el archivo nunca sale de tu máquina. Está todo explicado en **`docs/musica.md`**.
 
 ## Compilar
 

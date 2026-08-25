@@ -249,28 +249,50 @@ salen las cuatro familias.
 `ui/{pasar, elegir, confirmar, volver, alternar, abrir, cerrar, negado}`. `MezclaAudio.gesto` los emite con
 el tono corrido ±2 %, así que dos pulsaciones seguidas nunca suenan idénticas.
 
-**Tercera generación.** Las dos anteriores se descartaron enteras y conviene dejar escrito por qué, porque
-el error es fácil de repetir. La primera versión eran clics. La segunda eran clics mejores —sellos,
-interruptores, ruedas dentadas—. Suenan bien sueltos y siguen sin funcionar, porque el problema no era la
-calidad de cada pieza sino la categoría: **un clic es un objeto que se manipula, y acá no hay ningún
-objeto.** Hay una hoja clavada en una pared y un edificio alrededor. Cada vez que sonaba un mecanismo, el
-menú delataba que era una interfaz.
+**Cuarta generación.** Van tres descartadas y cada una falló distinto; conviene dejarlo escrito porque los
+errores son fáciles de repetir. La primera eran clics. La segunda, clics mejores —sellos, interruptores,
+ruedas dentadas—: el problema no era la calidad de cada pieza sino la categoría, porque **un clic es un
+objeto que se manipula y acá no hay ningún objeto**; hay una hoja clavada en una pared y un edificio
+alrededor.
 
-Lo que hace esta generación: **la interfaz no tiene sonido propio.** Lo que se oye al mover el cursor es el
-edificio reaccionando —la instalación eléctrica que se entera, el aire que se mueve, el papel que responde—.
-Los ocho gestos salen del mismo material que los ambientes, y por eso pertenecen al lugar en vez de estar
-apoyados encima. Todos comparten la nota de red de 50 Hz que zumba en los fondos: es lo que los cose entre
-sí.
+La tercera acertó el concepto —que suene el edificio y no la interfaz— y falló en el método: los ocho gestos
+se construían apilando senoidales sobre múltiplos de 50 Hz con `_red()`. **Una pila de senoidales es lo que
+el oído reconoce como sintetizador**, y ocho gestos hechos con el mismo apilado son ocho largos distintos del
+mismo zumbido. De ahí que siguieran sin gustar con la idea correcta.
+
+Lo que cambia en esta generación es **la síntesis**. Un objeto real no suena con senoidales armónicas: suena
+con modos, resonancias inarmónicas que arrancan juntas y se apagan cada una a su ritmo, las agudas primero.
+Esa evolución del timbre mientras suena es lo que el oído lee como material. La función `modal()` de
+`tools/sonidos.py` excita un ruido cortísimo y lo pasa por un banco de resonadores muy selectivos; el `Q` de
+cada uno sale del decaimiento pedido. No queda un solo oscilador senoidal en la familia.
+
+Y los ocho **ya no son el mismo material**, que era el fondo del problema: el menú necesita que el oído
+distinga confirmar de volver sin pensarlo.
+
+| Gesto | Material | Centroide | Ataque |
+|---|---|---|---|
+| `pasar` | aire desplazado, no resuena nada | 1047 Hz | 34 ms |
+| `elegir` | madera del tablón, seca | 718 Hz | 11 ms |
+| `alternar` | cerámica del azulejo, corta | 1618 Hz | 8 ms |
+| `confirmar` | hormigón, grave, con el vacío detrás | 573 Hz | 8 ms |
+| `volver` | el mismo hormigón una quinta abajo | 411 Hz | 41 ms |
+| `abrir` | el recinto llenándose de aire | 83 Hz | 224 ms |
+| `cerrar` | lo de arriba, al revés | 325 Hz | 13 ms |
+| `negado` | dos golpes sordos sobre algo que no cede | 869 Hz | 8 ms |
+
+`_red()` se conserva, pero degradado a lo que debía ser desde el principio: apoyo grave de algunos gestos y
+material de la transición. Es cimiento, no material.
 
 Reglas duras de la familia, todas en `tools/sonidos.py`:
 
 | Regla | Motivo |
 |---|---|
-| Ningún ataque por debajo de 8 ms | Un ataque instantáneo es lo que el oído lee como «clic de computadora» |
+| Ningún ataque por debajo de 6 ms | Un ataque instantáneo es lo que el oído lee como «clic de computadora» |
 | Techo en 5 kHz | Todo lo que pasa de ahí suena a plástico |
 | Cuerpo grave siempre presente | Sin grave, el gesto flota por encima del ambiente en vez de apoyarse |
 | Una sola sala para los ocho | Distinta cantidad de sala, misma sala: es el mismo sitio |
 | Entre 90 y 700 ms | Más corto es un clic; más largo estorba |
+| Modos afinados en la menor | La escala del tema: un gesto encima de la música no choca nunca |
 
 **Los ocho suenan; ninguno quedó de adorno.** Cada uno tiene un momento y sólo uno:
 
@@ -414,8 +436,10 @@ un tercero con copyright, así que **no se empaqueta**. Fingir que está integra
 
 - `musica/defecto.ogg`, pieza original de 67 s (La menor, 8 acordes de 9 s, crossfade de 5 s), incluida en
   el JAR y sonando de fábrica.
-- La ranura `musica/tema` queda declarada en `sounds.json`: para usar otro archivo alcanza con dejarlo en
-  `assets/jobsmenu/sounds/musica/` y apuntar la entrada, **sin tocar una línea de código**.
+- El camino legal para usar REQUIEM u otra pista: **paquete de recursos**, que sobrescribe
+  `assets/jobsmenu/sounds/musica/defecto.ogg` sin tocar código ni recompilar y sin que el archivo con
+  derechos entre nunca al JAR. Procedimiento completo, con la estructura de carpetas y el `pack.mcmeta`,
+  en **`docs/musica.md`**, junto con las tres vías para conseguir la pista con permiso.
 
 ---
 
@@ -451,7 +475,7 @@ Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y
 | **0.1.0** | Esqueleto Forge, config, paleta, pasillo procedural, aviso, renglones, reloj de ronda | **Entregado** |
 | **0.2.0** | Escena rehecha, cuatro niveles rotando con apagón, audio completo, rótulo de nivel | **Entregado** |
 | **0.3.0** | Audio rehecho (30 piezas, ambientes por capas, música), presencia nueva, Ctrl+S, tablón reordenado, registro de mods | **Entregado** |
-| **0.4.0** | Cuatro tipologías de recinto reales, interfaz de tercera generación, segunda cama continua por nivel, ambiente audible | **Entregado** |
+| **0.4.0** | Cuatro tipologías de recinto reales, interfaz de cuarta generación (síntesis modal), segunda cama continua por nivel, ambiente audible, vía legal para la música | **Entregado** |
 | 0.5.0 | Pausa ("Estancia en suspenso") y opciones con la misma piel | Pendiente |
 | 0.6.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
 | 0.7.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |
