@@ -14,33 +14,63 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
 
 | | |
 |---|---|
-| Versión | **0.3.0** |
+| Versión | **0.4.0** |
 | Minecraft | 1.20.1 |
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente (el servidor no necesita el mod) |
 
-## Qué trae la 0.3.0
+## Qué trae la 0.4.0
 
-Esta versión no agrega funciones sueltas: rehace el audio entero, cambia la figura del fondo y reordena
-los menús para que las cinco cosas —escena, ambiente, música, interfaz y atajos— se sientan un solo sistema.
+Cuatro correcciones sobre la entrega anterior, todas pedidas después de probarla en el juego: los fondos
+dejaron de ser el mismo recinto pintado de otro color, la interfaz cambió de sonido por tercera vez, el
+fondo dejó de callarse entre evento y evento, y el ambiente ya no se apaga a sí mismo por un detalle del
+motor de sonido.
 
-### Audio rehecho desde cero
+### Cuatro recintos, no cuatro paletas
 
-- **Treinta piezas propias**, sintetizadas para el mod. Ninguna muestra de terceros, ningún sonido de
-  librería sin adaptar.
-- **Ocho gestos de interfaz** que salen del mismo universo material: papel, contacto eléctrico, sello de
-  goma, carpeta que se abre. Cortos, sin agudos y sin clicks duros. Cada uno sale con el tono corrido un
-  dos por ciento, así que dos pulsaciones seguidas nunca suenan idénticas.
-- **Un ambiente distinto por nivel**, de veinte segundos para arriba y de duraciones desparejas, para que
-  el bucle no caiga siempre en el mismo lugar.
-- **Trece eventos ocasionales** repartidos por nivel, con probabilidad, retardo y volumen variables: la
-  tubería que protesta, la placa del cielorraso que se asienta, la válvula que suelta presión, la gota, el
-  eco del fondo del recinto.
-- **Las piscinas** no son un bucle de agua: son eco de recinto grande, ventilación lejana, goteo sobre
-  azulejo, tubería y movimiento de agua, mezclados en capas de distinta duración.
-- **Mezcla en seis niveles** —música, ambiente, eventos, interfaz, transición y presencia— con la
-  transición eléctrica tomando prioridad momentánea sobre todo lo demás.
+Cada nivel es ahora **un tipo de local distinto**, con su propia planta dibujada: la administración es una
+**sala** ancha de cielorraso bajo; el depósito es una **nave** de hileras altas; el servicio es un **haz de
+cañerías** estrecho que dobla; las piscinas son un **natatorio** con vaso, calles y escalerilla. No comparten
+geometría: cambian la proporción, el semiancho, la altura del horizonte, el testero del fondo y la cantidad
+de tramos en fuga. La hoja de contacto de las cuatro está en `docs/vista_previa.png`.
+
+### El fondo ya no se calla nunca
+
+El pedido era literal: tiene que haber sonido de fondo a toda hora, aire o agua, no solo eventos espaciados.
+Ahora cada nivel monta **dos camas continuas a la vez**:
+
+- la **base**, que es la nota del sitio —el volumen de aire, la sala, el zumbido de la instalación—, y que se
+  va casi del todo cuando se corta la luz porque casi todo lo que la produce está enchufado;
+- el **carácter**, que es lo que se mueve —el aire corriendo por el conducto, la masa de agua del vaso, la
+  circulación de las cañerías, el goteo— y que **aguanta el apagón**, porque el agua sigue moviéndose a
+  oscuras.
+
+Las dos camas de cada nivel duran distinto a propósito (por ejemplo 24 y 43 segundos) y respiran a
+velocidades distintas: como no son múltiplos, la combinación tarda más de un cuarto de hora en repetirse.
+Ese es todo el truco para que un fondo de dos archivos chicos no se vuelva reconocible.
+
+### La interfaz, por tercera vez
+
+Las dos familias anteriores eran clics: primero clics comunes, después clics buenos —sellos, interruptores,
+ruedas dentadas—. Suenan bien sueltos y ninguna de las dos funcionaba, porque el problema no era la calidad
+de cada pieza sino la categoría. **Un clic es un objeto que se manipula, y acá no hay ningún objeto**: hay una
+hoja clavada en una pared y un edificio alrededor.
+
+En esta generación la interfaz **no tiene sonido propio**. Lo que se oye al mover el cursor es el edificio
+enterándose: la instalación eléctrica, el aire, el papel. Los ocho gestos salen del mismo material que los
+ambientes y siguen cuatro reglas duras —ningún ataque por debajo de 8 ms, nada por encima de 5 kHz, cuerpo
+grave siempre presente, y todos por la misma sala—. Pasar el cursor es un soplo de aire; elegir es un escalón
+de corriente oído desde el otro lado de la pared; confirmar es la red que se tensa y cae, y la confirmación
+es el vacío que deja; acción inválida es el circuito intentando cerrar dos veces sin engancharse, sin un solo
+pitido de error.
+
+### El ambiente que no sonaba
+
+En la 0.3.0 el ambiente estaba bien registrado, bien mezclado y era inaudible. La causa: el motor de sonido
+**descarta cualquier sonido cuyo volumen sea cero en el instante de arrancar**, y no lo vuelve a mirar nunca.
+Todas las camas entran desde cero para poder subir sin escalón, así que se perdían en el mismo fotograma en
+que nacían. Se corrigió en las camas y en la música.
 
 ### La presencia del fondo
 
@@ -81,7 +111,7 @@ Requiere JDK 17 instalado.
 .\gradlew build
 ```
 
-El `.jar` queda en `build\libs\jobsmenu-0.3.0.jar` y se copia a la carpeta `mods` de la instancia.
+El `.jar` queda en `build\libs\jobsmenu-0.4.0.jar` y se copia a la carpeta `mods` de la instancia.
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 
@@ -92,7 +122,7 @@ python tools\verificar.py       # versiones, idiomas, JSON, ASCII, llaves, símb
 python tools\vista_previa.py    # dibuja el menú a PNG para revisar la escena
 python tools\vista_previa.py --contacto docs\vista_previa.png   # los cuatro niveles juntos
 python tools\vista_previa.py --presencia docs\presencia.png     # la manifestación del fondo, paso a paso
-python tools\sonidos.py         # regenera las 30 piezas de audio (requiere numpy, scipy y soundfile)
+python tools\sonidos.py         # regenera las 34 piezas de audio (requiere numpy, scipy y soundfile)
 ```
 
 ## Documentación

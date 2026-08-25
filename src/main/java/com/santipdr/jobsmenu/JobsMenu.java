@@ -22,7 +22,7 @@ public class JobsMenu {
     public static final String MOD_ID = "jobsmenu";
 
     /** Version visible en el sello del menu. Se sincroniza a mano con gradle.properties. */
-    public static final String VERSION = "0.3.0";
+    public static final String VERSION = "0.4.0";
 
     public JobsMenu() {
         if (FMLEnvironment.dist == Dist.CLIENT) {

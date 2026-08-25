@@ -10,7 +10,7 @@
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
 | Paquete Java | `com.santipdr.jobsmenu` |
-| Versión actual | **0.3.0** |
+| Versión actual | **0.4.0** |
 | Plataforma | Minecraft **1.20.1** · Forge **47.x** · Java **17** |
 | Alcance | Menús (Title / Pause / Options), escena viva, audio, lore. **Sin gameplay.** |
 | Lado | **Cliente**. El mod no toca el servidor ni exige instalarse en él. |
@@ -125,7 +125,7 @@ Implementados en `client/screen/PantallaNivel.java`.
 | Hoja, cuerpo | Los cuatro renglones del formulario |
 | Hoja, pie | **Avisos rotativos** (cambian cada 7 s, o a mano; con ajuste de línea) |
 | Esquina superior derecha | **Cuenta regresiva a la próxima ronda**, sobre placa oscura |
-| Esquina inferior derecha | Sello: `jobsmenu 0.3.0` |
+| Esquina inferior derecha | Sello: `jobsmenu 0.4.0` |
 
 Renglones del formulario:
 
@@ -235,8 +235,9 @@ presencia. Cualquiera de los dos deja la escena legible.
 
 ### 3.6 Sonido
 
-**Treinta piezas**, todas sintetizadas para el mod con `tools/sonidos.py` (numpy + scipy + soundfile):
-ninguna muestra de terceros, ninguna licencia de por medio. Mono, 44.1 kHz, OGG Vorbis, 838 kB en total.
+**Treinta y cuatro piezas**, todas sintetizadas para el mod con `tools/sonidos.py` (numpy + scipy +
+soundfile): ninguna muestra de terceros, ninguna licencia de por medio. Mono, 44.1 kHz, OGG Vorbis, 1.36 MB
+en total.
 Semilla fija `0x4A4F4253`, así que regenerarlas da siempre el mismo resultado.
 
 Las seis piezas de la 0.2.0 se descartaron enteras. El problema no era la mezcla: eran genéricas y se
@@ -245,9 +246,31 @@ salen las cuatro familias.
 
 #### Interfaz (8)
 
-`ui/{pasar, elegir, confirmar, volver, alternar, abrir, cerrar, negado}`. Materiales del mismo universo:
-papel, contacto eléctrico, sello de goma, carpeta. Cortos, sin agudos, sin clicks duros. `MezclaAudio.gesto`
-los emite con el tono corrido ±2 %, así que dos pulsaciones seguidas nunca suenan idénticas.
+`ui/{pasar, elegir, confirmar, volver, alternar, abrir, cerrar, negado}`. `MezclaAudio.gesto` los emite con
+el tono corrido ±2 %, así que dos pulsaciones seguidas nunca suenan idénticas.
+
+**Tercera generación.** Las dos anteriores se descartaron enteras y conviene dejar escrito por qué, porque
+el error es fácil de repetir. La primera versión eran clics. La segunda eran clics mejores —sellos,
+interruptores, ruedas dentadas—. Suenan bien sueltos y siguen sin funcionar, porque el problema no era la
+calidad de cada pieza sino la categoría: **un clic es un objeto que se manipula, y acá no hay ningún
+objeto.** Hay una hoja clavada en una pared y un edificio alrededor. Cada vez que sonaba un mecanismo, el
+menú delataba que era una interfaz.
+
+Lo que hace esta generación: **la interfaz no tiene sonido propio.** Lo que se oye al mover el cursor es el
+edificio reaccionando —la instalación eléctrica que se entera, el aire que se mueve, el papel que responde—.
+Los ocho gestos salen del mismo material que los ambientes, y por eso pertenecen al lugar en vez de estar
+apoyados encima. Todos comparten la nota de red de 50 Hz que zumba en los fondos: es lo que los cose entre
+sí.
+
+Reglas duras de la familia, todas en `tools/sonidos.py`:
+
+| Regla | Motivo |
+|---|---|
+| Ningún ataque por debajo de 8 ms | Un ataque instantáneo es lo que el oído lee como «clic de computadora» |
+| Techo en 5 kHz | Todo lo que pasa de ahí suena a plástico |
+| Cuerpo grave siempre presente | Sin grave, el gesto flota por encima del ambiente en vez de apoyarse |
+| Una sola sala para los ocho | Distinta cantidad de sala, misma sala: es el mismo sitio |
+| Entre 90 y 700 ms | Más corto es un clic; más largo estorba |
 
 **Los ocho suenan; ninguno quedó de adorno.** Cada uno tiene un momento y sólo uno:
 
@@ -278,18 +301,37 @@ redimensionar el juego. El evento, además, dice de dónde se viene, que es just
 > el relé intente cerrar y no enganche. Un renglón que no hace nada **y** no dice nada se lee como una
 > pantalla colgada, que es peor que una negativa.
 
-#### Ambiente por nivel (4)
+#### Ambiente por nivel: dos camas continuas (8)
 
-`ambiente/nivel0..3`, de 20, 23, 18 y 24 segundos. **Duraciones desparejas a propósito:** con bucles de
-igual largo el oído encuentra la costura enseguida. Cada uno es un room tone base más su capa
-característica.
+El pedido de la 0.4.0 fue literal: **tiene que haber sonido de fondo a toda hora** —aire, agua—, no sólo
+eventos espaciados. Cada nivel monta ahora **dos bucles simultáneos y permanentes**, no uno.
 
-| Nivel | Qué se oye |
-|---|---|
-| 0 · Administrativa | Zumbido de balastro, siseo de aire acondicionado, la oficina vacía |
-| 1 · Depósito | Cola de reverberación larga, estructura que trabaja, aire moviéndose en volumen grande |
-| 2 · Servicio | Tubería con presión, calor, metal cerca, espacio estrecho |
-| 3 · Piscinas | Eco de recinto enorme, agua en movimiento, ventilación distante, azulejo |
+Una sola cama tiene un problema que no se arregla alargándola: por muy bien empalmado que esté el bucle, a
+los tres o cuatro pases el oído aprende el archivo. No se oye la junta, se oye el patrón. La solución son
+**dos camas de duración prima entre sí**: 24 y 43 segundos vuelven a alinearse cada un cuarto de hora largo,
+así que durante toda la sesión se escuchan combinaciones que no se repiten, con dos archivos chicos.
+
+| Cama | Archivo | Qué lleva | Con el apagón |
+|---|---|---|---|
+| Base | `ambiente/nivel0..3` — 20, 23, 18, 24 s | Lo estable: la nota del sitio, la sala, el volumen de aire, el zumbido de la instalación | Se va casi del todo (queda 0.30): lo que la produce está enchufado |
+| Carácter | `caracter/nivel0..3` — 32, 35, 25, 36 s | Lo que se mueve: aire corriendo, agua desplazándose, circulación, goteo | **Aguanta** (queda 0.72): el agua sigue moviéndose a oscuras |
+
+Que las dos reaccionen distinto a la luz es lo que hace que la transición suene a **corte de corriente** y no
+a bajada de volumen general. Las respiraciones también corren a velocidades distintas y arrancan
+desfasadas —la de carácter nace con 617 ticks de edad—, porque si subieran y bajaran juntas el conjunto
+volvería a tener un pulso único y audible.
+
+| Nivel | Base | Carácter |
+|---|---|---|
+| 0 · Administrativa | Zumbido de balastro, siseo, la oficina vacía | Aire acondicionado con batida lenta de motor, reja de retorno |
+| 1 · Depósito | Cola larga, estructura que trabaja, volumen grande | Corriente de aire cruzando la nave, silbido por un hueco alto, chapa dilatándose |
+| 2 · Servicio | Tubería con presión, calor, metal cerca | Agua circulando resonada en el diámetro del caño, la bomba dos paredes más allá, goteo casi rítmico |
+| 3 · Piscinas | Eco de recinto enorme, ventilación distante, azulejo | Canaleta de rebalse corriendo sin parar, masa de agua en el vaso, lengüetazos sueltos, climatización |
+
+> **Los pesos no suman uno, y no tienen por qué.** Dos ruidos sin relación se suman en potencia, no en
+> amplitud. Con 0.82 y 0.66 el conjunto queda en √(0.82² + 0.66²) = 1.05, prácticamente el mismo volumen que
+> tenía la cama única. Con los valores intuitivos —1.00 y 0.82— el ambiente subía casi un tercio y se comía
+> la música.
 
 #### Eventos ocasionales (13)
 
@@ -307,10 +349,10 @@ Tres o cuatro por nivel, disparados por `CapaAmbiente` con probabilidad, retardo
 
 | Clase | Responsabilidad |
 |---|---|
-| `client/sound/SonidosNivel.java` | Registro diferido de los 30 eventos |
+| `client/sound/SonidosNivel.java` | Registro diferido de los 34 eventos |
 | `client/sound/MezclaAudio.java` | La mezcla y los gestos. Un solo lugar decide volúmenes. |
-| `client/sound/CapaAmbiente.java` | Una capa: su bucle, sus eventos, sus probabilidades |
-| `client/sound/GestorAmbiente.java` | Abre y cierra las capas, sigue la transición, dispara el titileo |
+| `client/sound/CapaAmbiente.java` | Una cama continua: su bucle, su respiración, su reacción a la luz. Dos instancias por nivel, con papel `BASE` o `CARACTER` |
+| `client/sound/GestorAmbiente.java` | Levanta las dos camas de cada nivel, sortea los eventos, sigue la transición, dispara el titileo |
 | `client/sound/GestorMusica.java` | La música: arranca sola, no se reinicia, sobrevive al cambio de pantalla |
 
 #### La mezcla
@@ -409,9 +451,10 @@ Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y
 | **0.1.0** | Esqueleto Forge, config, paleta, pasillo procedural, aviso, renglones, reloj de ronda | **Entregado** |
 | **0.2.0** | Escena rehecha, cuatro niveles rotando con apagón, audio completo, rótulo de nivel | **Entregado** |
 | **0.3.0** | Audio rehecho (30 piezas, ambientes por capas, música), presencia nueva, Ctrl+S, tablón reordenado, registro de mods | **Entregado** |
-| 0.4.0 | Pausa ("Estancia en suspenso") y opciones con la misma piel | Pendiente |
-| 0.5.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
-| 0.6.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |
+| **0.4.0** | Cuatro tipologías de recinto reales, interfaz de tercera generación, segunda cama continua por nivel, ambiente audible | **Entregado** |
+| 0.5.0 | Pausa ("Estancia en suspenso") y opciones con la misma piel | Pendiente |
+| 0.6.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
+| 0.7.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |
 | 1.0.0 | Pulido, accesibilidad completa, empaquetado para repartir | Pendiente |
 
 Fuera de alcance, explícitamente: entidades, ítems, mecánicas, comandos, economía real, cualquier cosa que
@@ -452,7 +495,7 @@ toque el servidor. **La tarifa del menú es decorativa**: no lee el dinero real 
 |---|---|
 | `tools/verificar.py` | Sustituto del compilador ausente, en 9 bloques: versiones sincronizadas, **`mods.toml` parseado y validado contra el esquema de Forge 47**, paridad y validez de los `lang`, claves usadas vs. existentes, ASCII puro y balance de delimitadores en `.java`, **metodos llamados que la clase no declara**, recursos (`pack_format`, archivos de Gradle), **coherencia del audio** (los `.ogg` existen, arrancan con la firma `OggS`, `sounds.json` los nombra y Java los registra) y **los niveles** (cada uno con su nombre y su nota traducidos, y `nivel_fijo` con el rango correcto). |
 | `tools/vista_previa.py` | Espejo en Python de la escena. Dibuja el menú a PNG sin Minecraft para revisar composición, perspectiva y paleta. Acepta `--nivel=N`, `--figura=0..1`, `--contacto salida.png` (los cuatro niveles en una tira) y `--presencia salida.png` (los seis instantes de la manifestación). Escribe el PNG a mano con `zlib` (no necesita Pillow). **Se sincroniza a mano con `EscenaNivel.java` y `Presencia.java`: si cambia uno, cambia el otro.** |
-| `tools/sonidos.py` | Genera las 30 piezas `.ogg` desde cero con numpy, scipy y soundfile (reverberación por convolución incluida). Semilla fija `0x4A4F4253`. Escribe en bloques de 4 s: `sf.write()` con OGG de más de 60 s da segfault en libsndfile 1.2.2. Ninguna pieza viene de una muestra ajena. |
+| `tools/sonidos.py` | Genera las 34 piezas `.ogg` desde cero con numpy, scipy y soundfile (reverberación por convolución incluida). Semilla fija `0x4A4F4253`. Escribe en bloques de 4 s: `sf.write()` con OGG de más de 60 s da segfault en libsndfile 1.2.2. Ninguna pieza viene de una muestra ajena. |
 
 ---
 
