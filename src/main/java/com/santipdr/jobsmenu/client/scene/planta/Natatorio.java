@@ -72,6 +72,10 @@ public final class Natatorio implements Planta {
         borde(grafico, m, nivel, luz);
         agua(grafico, m, nivel, luz, tiempo);
         calles(grafico, m, nivel, luz, tiempo);
+        // El reflejo de los tubos sobre la superficie va DESPUES de las calles:
+        // las calles estan en el fondo del vaso, bajo el agua; la luz reflejada
+        // esta sobre el agua, encima de todo lo que hay dentro.
+        reflejoLuces(grafico, m, nivel, luz, tiempo);
 
         Trazo.paredes(grafico, m, nivel, luz);
         cenefa(grafico, m, nivel, luz);
@@ -204,8 +208,6 @@ public final class Natatorio implements Planta {
         float frontera = m.sueloEn(CABECERA);
         int fyBorde = Math.round(frontera);
         if (fyBorde >= 0 && fyBorde < m.alto()) {
-            float dyBorde = m.dy(frontera);
-            float lejBorde = Trazo.limitar(1.0F / dyBorde, 0.0F, 1.0F);
             int filo = Paleta.conAlfa(Paleta.iluminar(nivel.techo, luz * 0.80F), 0.55F);
             grafico.fill(0, fyBorde, m.ancho(), fyBorde + 1, filo);
             // La fila de baldosilla inmediatamente delante del agua queda
@@ -337,6 +339,73 @@ public final class Natatorio implements Planta {
                 int grosor = Math.max(1, (int) (m.w() * dy * 0.012F));
                 grafico.fill((int) x, y, (int) x + grosor, y + Trazo.PASO,
                         Paleta.conAlfa(Paleta.iluminar(nivel.techo, luz), 0.26F + 0.16F * lej));
+            }
+        }
+    }
+
+    /**
+     * El reflejo de los tubos del techo sobre la superficie del agua.
+     *
+     * Es el detalle que mas hace que el agua se lea como agua. Un tubo
+     * encendido en el cielorraso devuelve una columna de luz alargada sobre la
+     * pileta, justo debajo de el, estirada hacia la camara porque la superficie
+     * se ve casi de canto. La columna no es recta ni continua: el agua, aunque
+     * este quieta, la parte en trozos que tiemblan cada uno a su ritmo. Un
+     * reflejo perfecto se lee como un espejo; uno roto en pedazos temblorosos
+     * se lee como una lamina de agua.
+     */
+    private static void reflejoLuces(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
+        int desde = Math.round(m.sueloEn(CABECERA));
+        for (int j = 2; j <= TRAMOS; j++) {
+            float dx = Trazo.profundidad(j, TRAMOS);
+            if (dx > 6.0F || Trazo.pseudo(1200 + j) <= 0.45F) {
+                continue;
+            }
+            // El tubo cuelga en el eje del recinto; su reflejo cae en la misma
+            // columna, sobre el agua. Solo cuenta si esa columna toca el vaso.
+            float cx = m.centro(dx);
+            if (cx < 0 || cx > m.ancho()) {
+                continue;
+            }
+            float desvio = Trazo.pseudo((int) (dx * 977.0F) + 31);
+            float cansancio = 0.80F + 0.32F * desvio;
+
+            // La columna arranca en el borde del agua y se estira hacia la
+            // camara. Cuanto mas lejos esta el tubo, mas corto y tenue el
+            // reflejo: la perspectiva lo aplasta.
+            float lejTubo = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
+            int arranque = Math.max(desde, (int) m.sueloEn(dx));
+            float largo = m.h() * (1.6F + 3.4F * lejTubo);
+            int hasta = Math.min(m.alto(), arranque + (int) largo);
+            float anchoBase = Math.max(1.5F, m.w() * dx * 0.05F);
+
+            for (int y = arranque; y < hasta; y += Trazo.PASO) {
+                float t = (y - arranque) / largo;
+                if (t >= 1.0F) {
+                    break;
+                }
+                float dy = m.dy(y + Trazo.PASO * 0.5F);
+                // El eje del reflejo sigue la columna de la fuga, no una
+                // vertical: el tubo esta sobre el centro del recinto a cada
+                // profundidad, no sobre una linea recta de pantalla.
+                float eje = m.centro(dy);
+                // El temblor del agua: dos senos desfasados parten la columna
+                // sin que llegue a moverse de sitio.
+                float temblor = ((float) Math.sin(tiempo * 1.1F + y * 0.12F + j)
+                        + 0.5F * (float) Math.sin(tiempo * 1.9F + y * 0.05F)) * m.w() * 0.006F;
+                float ancho = anchoBase * (1.0F + t * 1.4F) * (0.6F + 0.4F * (float) Math.sin(y * 0.4F + tiempo));
+                // La columna se corta en trozos: donde el seno rapido pasa por
+                // cero, el reflejo desaparece un instante. Eso es lo que la
+                // vuelve agua y no un espejo.
+                float trozo = 0.5F + 0.5F * (float) Math.sin(y * 0.55F + tiempo * 2.3F + j);
+                float alfa = 0.27F * (1.0F - t) * (1.0F - t) * trozo * luz * cansancio;
+                if (alfa <= 0.012F) {
+                    continue;
+                }
+                int x0 = Math.round(eje - ancho * 0.5F + temblor);
+                int x1 = Math.round(eje + ancho * 0.5F + temblor);
+                grafico.fill(x0, y, x1, y + Trazo.PASO,
+                        Paleta.conAlfa(Paleta.iluminar(nivel.luz, Math.min(1.0F, luz * 1.15F)), alfa));
             }
         }
     }

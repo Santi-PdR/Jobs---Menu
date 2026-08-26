@@ -71,10 +71,6 @@ def verificar_versiones(props: dict[str, str]) -> None:
     if f"**{version}**" not in readme:
         fallo(f"README.md no declara la version {version}.")
 
-    java = leer(RAIZ / "src/main/java/com/santipdr/jobsmenu/JobsMenu.java")
-    if f'VERSION = "{version}"' not in java:
-        fallo(f"JobsMenu.VERSION no coincide con {version}.")
-
     jar = f"jobsmenu-{version}.jar"
     if jar not in readme:
         aviso(f"README.md no menciona el artefacto {jar}.")

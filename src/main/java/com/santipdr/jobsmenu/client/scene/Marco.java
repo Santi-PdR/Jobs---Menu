@@ -131,15 +131,6 @@ public record Marco(int ancho, int alto, float fx, float fy,
         return Math.abs(y - this.fy) / semieje;
     }
 
-    /** Profundidad aparente de una columna, de 0 (cerca) a 1 (el fondo). */
-    public float lejosColumna(float x) {
-        float dx = dx(x);
-        if (dx <= 0.0F) {
-            return 1.0F;
-        }
-        return Math.min(1.0F, 1.0F / dx);
-    }
-
     /** Semiancho medio. Solo para escalar grosores, nunca para ubicar. */
     public float w() {
         return (this.wi + this.wd) * 0.5F;

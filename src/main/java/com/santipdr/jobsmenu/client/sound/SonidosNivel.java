@@ -70,16 +70,6 @@ public final class SonidosNivel {
     public static final RegistryObject<SoundEvent> CARACTER_NIVEL2 = registrar("caracter.nivel2");
     public static final RegistryObject<SoundEvent> CARACTER_NIVEL3 = registrar("caracter.nivel3");
 
-    /** La cama de caracter del nivel pedido. */
-    public static SoundEvent caracter(int nivel) {
-        return switch (nivel) {
-            case 1 -> CARACTER_NIVEL1.get();
-            case 2 -> CARACTER_NIVEL2.get();
-            case 3 -> CARACTER_NIVEL3.get();
-            default -> CARACTER_NIVEL0.get();
-        };
-    }
-
     // ---- Capa de actividad ----------------------------------------------
     // La tercera cama. Al reves que las otras dos, esta casi todo el tiempo en
     // silencio: es un bucle de un minuto donde cada tanto pasa algo lejos, al

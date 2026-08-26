@@ -174,7 +174,7 @@ public final class Nivel {
                     // agua: se abre mucho a lo ancho y poco a lo alto, y el
                     // vaso ocupa casi todo el cuadro inferior.
                     0.455F, 0.330F, 0.300F, 0.270F, 0.080F, 0.124F,
-                    0.62F, 0.15F),
+                    0.62F, 0.30F),
     };
 
     /** Cuantos niveles hay en la rotacion. */

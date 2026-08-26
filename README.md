@@ -14,11 +14,25 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
 
 | | |
 |---|---|
-| Versión | **0.6.0** |
+| Versión | **0.6.1** |
 | Minecraft | 1.20.1 |
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente (el servidor no necesita el mod) |
+
+## Qué trae la 0.6.1
+
+Una ronda de pulido, sin rehacer nada de lo que ya funcionaba.
+
+**El agua del natatorio ahora es agua.** Los tubos del techo se reflejan sobre la superficie de la pileta:
+una columna de luz que cae bajo cada luminaria, estirada hacia la cámara y **partida en trozos que tiemblan**
+cada uno a su ritmo. Un reflejo entero se lee como un espejo; uno roto y tembloroso se lee como una lámina de
+agua, y ese era el detalle que le faltaba a la escena. El azulejado del recinto lleva además algo más de
+humedad, que es lo propio de un natatorio cerrado.
+
+**Se quitó el sello de versión** que aparecía en la esquina: era información técnica que no le decía nada a
+quien mira el aviso. Y se retiró código muerto que se había quedado de reescrituras anteriores —un
+constructor sin uso, un par de métodos que ya nadie llamaba— sin tocar nada de lo que se ve ni se oye.
 
 ## Qué trae la 0.6.0
 
@@ -159,7 +173,7 @@ Requiere JDK 17 instalado.
 .\gradlew build
 ```
 
-El `.jar` queda en `build\libs\jobsmenu-0.6.0.jar` y se copia a la carpeta `mods` de la instancia.
+El `.jar` queda en `build\libs\jobsmenu-0.6.1.jar` y se copia a la carpeta `mods` de la instancia.
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 

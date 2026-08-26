@@ -177,7 +177,7 @@ NIVELES = [
           # centro y el vaso ocupa casi todo el cuadro inferior.
           fuga_x=0.455, fuga_y=0.330,
           semi_izq=0.300, semi_der=0.270, semi_alto=0.080, semi_bajo=0.124,
-          reflejo=0.62, humedad=0.15),
+          reflejo=0.62, humedad=0.30),
 ]
 
 
@@ -1065,6 +1065,7 @@ def natatorio(lz, m, nivel, luz, tiempo) -> None:
     nat_borde(lz, m, nivel, luz)
     nat_agua(lz, m, nivel, luz, tiempo)
     nat_calles(lz, m, nivel, luz, tiempo)
+    nat_reflejo_luces(lz, m, nivel, luz, tiempo)
     t_paredes(lz, m, nivel, luz)
     nat_escalerilla(lz, m, nivel, luz)
     nat_azulejo(lz, m, nivel, luz)
@@ -1166,8 +1167,6 @@ def nat_borde(lz, m, nivel, luz) -> None:
     frontera = m.suelo_en(1.0 * NAT_CABECERA)
     fy_borde = round(frontera)
     if 0 <= fy_borde < m.alto:
-        dy_borde = m.dy(frontera)
-        lej_borde = limitar(1.0 / dy_borde, 0.0, 1.0)
         filo = con_alfa(iluminar(nivel.techo, luz * 0.80), 0.55)
         lz.fill(0, fy_borde, m.ancho, fy_borde + 1, filo)
         # La fila de baldosilla inmediatamente delante del agua queda
@@ -1265,6 +1264,47 @@ def nat_calles(lz, m, nivel, luz, tiempo) -> None:
             grosor = max(1, int(m.w * dy * 0.012))
             lz.fill(int(x), y, int(x) + grosor, y + PASO,
                     con_alfa(iluminar(nivel.techo, luz), 0.26 + 0.16 * lej))
+
+
+def nat_reflejo_luces(lz, m, nivel, luz, tiempo) -> None:
+    """El reflejo de los tubos del techo sobre la superficie del agua.
+
+    Es el detalle que mas hace que el agua se lea como agua: una columna de luz
+    alargada bajo cada tubo, estirada hacia la camara y partida en trozos
+    temblorosos. Un reflejo entero se lee como espejo; uno roto, como agua.
+    """
+    desde = round(m.suelo_en(1.0 * NAT_CABECERA))
+    for j in range(2, NAT_TRAMOS + 1):
+        dx = profundidad(j, NAT_TRAMOS)
+        if dx > 6.0 or pseudo(1200 + j) <= 0.45:
+            continue
+        cx = m.centro(dx)
+        if cx < 0 or cx > m.ancho:
+            continue
+        desvio = pseudo(int(dx * 977.0) + 31)
+        cansancio = 0.80 + 0.32 * desvio
+        lej_tubo = limitar(1.0 / dx, 0.0, 1.0)
+        arranque = max(desde, int(m.suelo_en(dx)))
+        largo = m.h * (1.6 + 3.4 * lej_tubo)
+        hasta = min(m.alto, arranque + int(largo))
+        ancho_base = max(1.5, m.w * dx * 0.05)
+        for y in range(arranque, hasta, PASO):
+            t = (y - arranque) / largo
+            if t >= 1.0:
+                break
+            dy = m.dy(y + PASO * 0.5)
+            eje = m.centro(dy)
+            temblor = (math.sin(tiempo * 1.1 + y * 0.12 + j)
+                       + 0.5 * math.sin(tiempo * 1.9 + y * 0.05)) * m.w * 0.006
+            ancho = ancho_base * (1.0 + t * 1.4) * (0.6 + 0.4 * math.sin(y * 0.4 + tiempo))
+            trozo = 0.5 + 0.5 * math.sin(y * 0.55 + tiempo * 2.3 + j)
+            alfa = 0.27 * (1.0 - t) * (1.0 - t) * trozo * luz * cansancio
+            if alfa <= 0.012:
+                continue
+            x0 = round(eje - ancho * 0.5 + temblor)
+            x1 = round(eje + ancho * 0.5 + temblor)
+            lz.fill(x0, y, x1, y + PASO,
+                    con_alfa(iluminar(nivel.luz, min(1.0, luz * 1.15)), alfa))
 
 
 def nat_escalerilla(lz, m, nivel, luz) -> None:

@@ -61,11 +61,6 @@ public class RenglonTablon extends AbstractButton {
     private boolean sonaba;
 
     public RenglonTablon(int x, int y, int ancho, int alto, String orden,
-                         Component etiqueta, Runnable accion) {
-        this(x, y, ancho, alto, orden, etiqueta, accion, false);
-    }
-
-    public RenglonTablon(int x, int y, int ancho, int alto, String orden,
                          Component etiqueta, Runnable accion, boolean terminal) {
         super(x, y, ancho, alto, etiqueta);
         this.orden = orden;

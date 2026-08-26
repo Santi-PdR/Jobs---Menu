@@ -10,7 +10,7 @@
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
 | Paquete Java | `com.santipdr.jobsmenu` |
-| Versión actual | **0.6.0** |
+| Versión actual | **0.6.1** |
 | Plataforma | Minecraft **1.20.1** · Forge **47.x** · Java **17** |
 | Alcance | Menús (Title / Pause / Options), escena viva, audio, lore. **Sin gameplay.** |
 | Lado | **Cliente**. El mod no toca el servidor ni exige instalarse en él. |
@@ -125,7 +125,7 @@ Implementados en `client/screen/PantallaNivel.java`.
 | Hoja, cuerpo | Los cuatro renglones del formulario |
 | Hoja, pie | **Avisos rotativos** (cambian cada 7 s, o a mano; con ajuste de línea) |
 | Esquina superior derecha | **Cuenta regresiva a la próxima ronda**, sobre placa oscura |
-| Esquina inferior derecha | Sello: `jobsmenu 0.6.0` |
+| Esquina inferior izquierda | Rótulo del nivel actual (cartel de pared, aparece con la luz nueva) |
 
 Renglones del formulario:
 
@@ -478,6 +478,7 @@ Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y
 | **0.4.0** | Cuatro tipologías de recinto reales, interfaz de cuarta generación (síntesis modal), segunda cama continua por nivel, ambiente audible, vía legal para la música | **Entregado** |
 | **0.5.0** | Tercera cama de ambiente, sincronía A/V de la transición, presencia con cuatro modos, primeros planos | **Entregado** |
 | **0.6.0** | Interfaz de sexta generación (cinco clases de gesto), música con detección automática, jerarquía de UI medida, luminarias y vanos con cuerpo, sesgo de eventos corregido | **Entregado** |
+| **0.6.1** | Ronda de pulido: el agua del natatorio devuelve los tubos del techo (reflejo roto y tembloroso, el detalle que la vuelve agua), más humedad en el azulejado, sello de versión eliminado de la esquina, código muerto retirado | **Entregado** |
 | 0.7.0 | Pausa ("Estancia en suspenso") y opciones con la misma piel | Pendiente |
 | 0.8.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
 | 0.9.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |
