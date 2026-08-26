@@ -1,0 +1,38 @@
+	
+
+	Impact Sounds (1.0)
+
+	Created/distributed by Kenney (www.kenney.nl)
+	Creation date: 19-12-2019
+
+			------------------------------
+
+	License: (Creative Commons Zero, CC0)
+	http://creativecommons.org/publicdomain/zero/1.0/
+
+	This content is free to use in personal, educational and commercial projects.
+	Support us by crediting Kenney or www.kenney.nl (this is not mandatory)
+
+			------------------------------
+
+	Donate:   http://support.kenney.nl
+	Request:  http://request.kenney.nl
+	Patreon:  http://patreon.com/kenney/
+
+	Follow on Twitter for updates:
+	http://twitter.com/KenneyNL
+	------------------------------
+
+	NOTA DEL PROYECTO Jobs - Aviso a los ocupantes
+
+	Los .wav de esta carpeta son la MATERIA PRIMA del audio del mod, no
+	los sonidos finales. Ninguno se empaqueta tal cual en el JAR: todos
+	pasan por la cadena de diseno de tools/muestras.py + tools/sonidos.py
+	antes de convertirse en los .ogg de assets/jobsmenu/sounds/.
+
+	Se versionan dentro del repo para que el audio del mod se pueda
+	reconstruir entero sin depender de que una URL externa siga viva.
+
+	Licencia CC0 1.0: dominio publico, uso comercial permitido,
+	redistribucion permitida, atribucion no obligatoria. Se acredita a
+	Kenney igualmente en el README del mod.
