@@ -177,6 +177,55 @@ El `.jar` queda en `build\libs\jobsmenu-0.6.1.jar` y se copia a la carpeta `mods
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 
+## Compilar y desplegar (bloque completo)
+
+Actualiza, compila y copia el `.jar` a la carpeta `mods` de la instancia, sacando
+de paso cualquier versión vieja del mod para que no queden dos `.jar` a la vez.
+Ajustá `$repo` e `$instancia` a tu equipo — el ejemplo usa una instancia de
+SKLauncher, pero sirve igual para `.minecraft` o cualquier lanzador.
+
+```powershell
+# --- 0. Rutas --------------------------------------------------------------
+$repo      = "C:\Users\santi\Desktop\Jobs---Menu"
+$instancia = "C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1"
+$version   = "0.6.1"
+
+Set-Location $repo
+
+# --- 1. Actualizar ---------------------------------------------------------
+git fetch origin
+git checkout arena/01a03f8f-jobs-menu
+git pull origin arena/01a03f8f-jobs-menu
+
+# --- 2. Verificacion estatica (opcional; solo si tenes Python en el PATH) --
+$py = Get-Command py -ErrorAction SilentlyContinue
+if ($py) {
+    py tools\verificar.py
+    if ($LASTEXITCODE -ne 0) { Write-Error "verificar.py fallo."; return }
+} else {
+    Write-Host "Python no encontrado: salto la verificacion estatica." -ForegroundColor Yellow
+}
+
+# --- 3. Compilar -----------------------------------------------------------
+.\gradlew build
+if ($LASTEXITCODE -ne 0) { Write-Error "Build fallido."; return }
+
+# --- 4. Desplegar ----------------------------------------------------------
+$jar = Join-Path $repo "build\libs\jobsmenu-$version.jar"
+if (-not (Test-Path $jar)) { Write-Error "No aparece $jar"; return }
+
+$mods = Join-Path $instancia "mods"
+New-Item -ItemType Directory -Force -Path $mods | Out-Null
+Get-ChildItem $mods -Filter "jobsmenu-*.jar" | Remove-Item -Force -ErrorAction SilentlyContinue
+Copy-Item $jar $mods -Force
+Write-Host "Desplegado jobsmenu-$version.jar en $mods" -ForegroundColor Green
+```
+
+> El borrado de `.jar` viejos ocurre **después** de comprobar que el nuevo existe
+> (`Test-Path`), así que nunca te quedás sin ninguno si el build no llegó a
+> generar el artefacto. La instancia tiene que ser **Forge 47.x / Minecraft
+> 1.20.1**; si apunta a otra versión o a Fabric, el `.jar` no carga.
+
 ## Herramientas sin JDK
 
 ```powershell
