@@ -53,7 +53,7 @@ pantalla.
 2. Copialo al repo como **`music/requiem.ogg`** (ese nombre exacto).
 3. Compilá con `.\gradlew build`. El build detecta el archivo, lo hornea en el
    JAR reemplazando al tema sintetizado, y deja una marca interna
-   (`assets/jobsmenu/musica_creditada`) que le dice al mod que esa pista tiene
+   (`assets/jobsmenu/musica_creditada.txt`) que le dice al mod que esa pista tiene
    autor. En consola vas a ver:
    `[jobsmenu] REQUIEM horneada en el JAR desde music/requiem.ogg (con credito).`
 

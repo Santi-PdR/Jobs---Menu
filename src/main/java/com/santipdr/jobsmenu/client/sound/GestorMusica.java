@@ -135,7 +135,7 @@ public class GestorMusica extends AbstractTickableSoundInstance {
      * Se cumple en dos casos, y solo en esos dos:
      *
      *   - el JAR trae una pista horneada con credito. El build deja un recurso
-     *     marca (assets/jobsmenu/musica_creditada) cuando reemplaza el tema por
+     *     marca (assets/jobsmenu/musica_creditada.txt) cuando reemplaza el tema por
      *     REQUIEM; si no se horneo nada, el marcador no existe;
      *   - el jugador dejo su propia pista en la carpeta de runtime.
      *
@@ -161,7 +161,7 @@ public class GestorMusica extends AbstractTickableSoundInstance {
     private static boolean marcadorHorneado() {
         if (marcador < 0) {
             boolean hay = Minecraft.getInstance().getResourceManager()
-                    .getResource(new ResourceLocation("jobsmenu", "musica_creditada")).isPresent();
+                    .getResource(new ResourceLocation("jobsmenu", "musica_creditada.txt")).isPresent();
             marcador = hay ? 1 : 0;
         }
         return marcador == 1;

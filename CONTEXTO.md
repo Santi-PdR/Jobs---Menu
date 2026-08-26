@@ -442,7 +442,7 @@ incluirla. Lo que hay:
   el JAR y sonando de fábrica. No se acredita a nadie: es del mod.
 - **Vía para hornear la pista en el JAR** (0.6.2): dejar el archivo en `music/requiem.ogg` en la raíz del
   repo y compilar. El `build.gradle` lo mete dentro del `.jar` reemplazando a `defecto.ogg` y deja un
-  recurso marca (`assets/jobsmenu/musica_creditada`) que activa el **crédito en pantalla**. Pensado para un
+  recurso marca (`assets/jobsmenu/musica_creditada.txt`) que activa el **crédito en pantalla**. Pensado para un
   server entre amigos con el crédito puesto; la responsabilidad de usar esa grabación es de quien compila.
 - **El crédito** (`jobsmenu.credito.titulo` / `jobsmenu.credito.autor`, hoy *REQUIEM · Emmy Z · Forsaken
   OST*) aparece arriba a la derecha una sola vez por sesión, entrando y saliendo suave, y **sólo si hay una

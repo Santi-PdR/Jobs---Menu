@@ -93,7 +93,7 @@ tasks.named('processResources', ProcessResources).configure {
         // (REQUIEM), no el tema sintetizado. Sin el, el credito de pantalla no
         // se muestra: nunca se atribuye a un autor la pieza generada por el mod.
         def marcador = layout.buildDirectory
-                .file('resources/main/assets/jobsmenu/musica_creditada').get().asFile
+                .file('resources/main/assets/jobsmenu/musica_creditada.txt').get().asFile
         def fuente = new File(carpetaPista, 'requiem.ogg')
         if (fuente.exists()) {
             destino.parentFile.mkdirs()
