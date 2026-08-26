@@ -15,18 +15,19 @@ Fui a buscarla para integrarla y esto es lo que es:
   Reemplazó al tema anterior, *Damnation*.
 
 No es música libre. Es la banda sonora de un juego comercial, compuesta por una
-autora identificable que trabaja con ese equipo. Para meterla dentro del JAR
-harían falta dos permisos por escrito: el de la **composición** y el de la
-**grabación**. No los tenemos.
+autora identificable que trabaja con ese equipo.
 
-**Por eso no está dentro del JAR, y no voy a decirte que lo está.** Descargar el
-audio de YouTube ya viola los términos de servicio de la plataforma antes
-siquiera de llegar a la cuestión de los derechos de autor; redistribuirlo dentro
-de un mod es otra infracción encima de esa. Si el mod circula por tu server con
-esa pista adentro, el que responde sos vos.
+**Por qué el archivo no está en este repositorio.** El entorno donde se edita
+el mod no tiene acceso a YouTube (está bloqueado), así que la grabación no se
+pudo descargar desde acá para incluirla. Y aunque se pudiera: la obra de un
+tercero no entra al control de versiones de un repo público. Por eso
+`.gitignore` excluye `music/*.ogg`.
 
-Esto es exactamente lo que quedamos: si legalmente no se puede, se dice, no se
-finge.
+**Pero la vía para que la pista viaje DENTRO del JAR ya está construida.** Si es
+para tu server entre amigos y vas a poner el crédito en pantalla —el mod lo
+muestra solo, arriba a la derecha, al empezar a sonar—, dejás el archivo en la
+carpeta `music/` del repo y al compilar queda horneado en el `.jar`. Los pasos,
+más abajo. La responsabilidad de usar esa grabación es de quien compila el mod.
 
 ## Qué hay ahora
 
@@ -41,7 +42,33 @@ redimensionar la ventana, bucle natural, entrada de veinte segundos, volumen
 propio en la config, y continuidad durante el apagón cediendo un 22 % para que
 el corte eléctrico tenga el frente.
 
-## Cómo poner la pista que quieras: una carpeta, un archivo, nada más
+## Hornear REQUIEM (u otra pista) DENTRO del JAR
+
+Esta es la vía para que la música **viaje con el mod**: quien instale el `.jar`
+la oye sin poner nada. Pensada para un server entre amigos con el crédito en
+pantalla.
+
+1. Conseguí el archivo en **OGG Vorbis** (`.ogg`). Es el único formato que
+   Minecraft decodifica. Si tenés un MP3, convertilo antes.
+2. Copialo al repo como **`music/requiem.ogg`** (ese nombre exacto).
+3. Compilá con `.\gradlew build`. El build detecta el archivo, lo hornea en el
+   JAR reemplazando al tema sintetizado, y deja una marca interna
+   (`assets/jobsmenu/musica_creditada`) que le dice al mod que esa pista tiene
+   autor. En consola vas a ver:
+   `[jobsmenu] REQUIEM horneada en el JAR desde music/requiem.ogg (con credito).`
+
+Con eso, al abrir el menú suena REQUIEM y aparece el crédito arriba a la
+derecha —**REQUIEM · Emmy Z · Forsaken OST**— una vez por sesión, entrando y
+saliendo suave. El texto del crédito se edita en `lang/*.json`
+(`jobsmenu.credito.titulo` y `jobsmenu.credito.autor`); si querés apagarlo,
+`credito_musica = false` en la config.
+
+El archivo `music/requiem.ogg` **no se sube al repositorio** (`.gitignore` lo
+excluye): la obra de un tercero no se versiona. Si no ponés el archivo, el JAR
+usa el tema sintetizado y el crédito no aparece —no se le atribuye a nadie una
+pieza que compuso el propio mod—.
+
+## Cómo poner la pista que quieras SIN recompilar: una carpeta, un archivo
 
 Esto volvió a cambiar en 0.6.0, y ahora sí está terminado.
 

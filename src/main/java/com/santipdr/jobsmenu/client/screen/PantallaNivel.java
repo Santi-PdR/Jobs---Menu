@@ -77,14 +77,8 @@ public class PantallaNivel extends Screen {
     /** Aire entre la cabecera y el primer renglon: cambia de bloque. */
     private static final int AIRE_CABECERA = 14;
 
-    /** Aire entre el ultimo renglon y la letra chica del pie. */
+    /** Aire entre el ultimo renglon y la nota rotativa del pie. */
     private static final int AIRE_PIE = 16;
-
-    /** Alto de la linea del atajo. */
-    private static final int ALTO_ATAJO = 10;
-
-    /** Aire entre el atajo y la nota rotativa. */
-    private static final int SEPARACION_AVISO = 6;
 
     /** Margen minimo entre la hoja y el borde de la pantalla. */
     private static final int MARGEN_PANTALLA = 12;
@@ -101,9 +95,6 @@ public class PantallaNivel extends Screen {
 
     /** Alto reservado para la nota rotativa, o 0 si esta desactivada. */
     private int altoAviso;
-
-    /** Donde va la linea del atajo, calculada en init(). */
-    private int atajoY;
 
     /** Ultimo nivel visto, para saber cuando cambio sin llevar temporizadores. */
     private int nivelVisto;
@@ -144,9 +135,7 @@ public class PantallaNivel extends Screen {
                 + this.altoCabecera
                 + AIRE_CABECERA
                 + altoLista
-                + AIRE_PIE
-                + ALTO_ATAJO
-                + (this.altoAviso > 0 ? SEPARACION_AVISO + this.altoAviso : 0)
+                + (this.altoAviso > 0 ? AIRE_PIE + this.altoAviso : 0)
                 + MARGEN_HOJA;
 
         this.hojaAlto = altoPie;
@@ -185,13 +174,12 @@ public class PantallaNivel extends Screen {
         agregar(x, y + 3 * salto + HUECO_APARTE, ancho, "04", "jobsmenu.tablon.renunciar",
                 this::renunciar, true);
 
-        this.atajoY = y + altoLista + AIRE_PIE;
-
         // El aviso del pie es un widget y no un dibujo: se puede pasar a mano y
-        // entra en el recorrido del tabulador como cualquier otro renglon.
+        // entra en el recorrido del tabulador como cualquier otro renglon. Va
+        // directo debajo de la lista: el atajo de servicio ya no ocupa el pie.
         if (this.altoAviso > 0) {
             this.addRenderableWidget(new NotaAviso(
-                    x, this.atajoY + ALTO_ATAJO + SEPARACION_AVISO, ancho, this.altoAviso));
+                    x, y + altoLista + AIRE_PIE, ancho, this.altoAviso));
         }
     }
 
@@ -299,9 +287,49 @@ public class PantallaNivel extends Screen {
             ronda(grafico);
         }
         if (!ConfigTurno.interfazMinima()) {
-            atajo(grafico);
             rotuloNivel(grafico);
         }
+        credito(grafico);
+    }
+
+    /**
+     * El credito de la pista, arriba a la derecha, al empezar a sonar.
+     *
+     * Aparece una sola vez por sesion -entra suave, se sostiene, se va- y en la
+     * misma esquina que el reloj de ronda, pero debajo: si el reloj esta, el
+     * credito se corre hacia abajo lo que haga falta para no pisarlo. Es un
+     * gesto de pantalla de titulo de juego: quien compuso lo que estas oyendo.
+     */
+    private void credito(GuiGraphics grafico) {
+        float alfa = GestorMusica.creditoAlfa();
+        if (alfa <= 0.02F) {
+            return;
+        }
+
+        Component titulo = Component.translatable("jobsmenu.credito.titulo");
+        Component autor = Component.translatable("jobsmenu.credito.autor");
+
+        int margen = 12;
+        // Si el reloj de ronda ocupa su esquina, el credito arranca debajo de
+        // su placa (margen-6 .. margen+26); si no, sube al tope. Asi los dos
+        // pueden estar a la vez sin tocarse en ninguna resolucion.
+        int y = ConfigTurno.mostrarCuentaRegresiva() ? margen + 34 : margen;
+
+        int anchoTitulo = this.font.width(titulo);
+        int anchoAutor = this.font.width(autor);
+        int ancho = Math.max(anchoTitulo, anchoAutor);
+        int izq = this.width - margen - ancho;
+
+        // Una barra fina a la IZQUIERDA del bloque, como una firma al margen.
+        // No hay placa oscura detras: el credito no compite con el reloj de
+        // ronda, lo acompana. Va pegada al texto y crece con la envolvente.
+        grafico.fill(izq - 6, y, izq - 5, y + 19,
+                Paleta.conAlfa(Paleta.PAPEL, 0.45F * alfa));
+
+        grafico.drawString(this.font, titulo, this.width - margen - anchoTitulo, y,
+                Paleta.conAlfa(Paleta.PAPEL, 0.90F * alfa), false);
+        grafico.drawString(this.font, autor, this.width - margen - anchoAutor, y + 10,
+                Paleta.conAlfa(Paleta.PAPEL, 0.55F * alfa), false);
     }
 
     /**
@@ -403,19 +431,6 @@ public class PantallaNivel extends Screen {
             y += ALTO_LINEA;
         }
         return y;
-    }
-
-    /**
-     * La nota al pie que explica la salida de servicio.
-     *
-     * Va en la hoja, con la tipografia de la letra chica, y no como un aviso
-     * flotante: forma parte del documento, no de la interfaz. Un atajo que no
-     * esta escrito en ningun lado no existe para nadie.
-     */
-    private void atajo(GuiGraphics grafico) {
-        grafico.drawString(this.font, Component.translatable("jobsmenu.tablon.atajo"),
-                this.hojaX + MARGEN_HOJA, this.atajoY,
-                Paleta.conAlfa(Paleta.TINTA_TENUE, 0.70F * tinta()), false);
     }
 
     /** Cuanto falta para la proxima ronda de los Executores. */

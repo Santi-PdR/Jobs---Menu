@@ -281,7 +281,8 @@ public final class Natatorio implements Planta {
             }
             float prof = Trazo.limitar((dy - CABECERA) / (TRAMOS * 0.35F), 0.0F, 1.0F);
             // La niebla es mas densa cerca del fondo del vaso (arriba en pantalla)
-            // y menos cerca de la camara (abajo). Atauencia del aire con el agua.
+            // y menos cerca de la camara (abajo): el vapor del agua tibia se
+            // acumula lejos y se disipa hacia el ojo.
             float humedad = (1.0F - prof) * 0.18F * luz;
             if (humedad <= 0.0F) {
                 continue;
@@ -291,9 +292,23 @@ public final class Natatorio implements Planta {
             if (x1i <= x0i) {
                 continue;
             }
-            int niebla = Paleta.conAlfa(Paleta.mezclar(nivel.paredAlta, nivel.paredBaja, 0.50F),
-                    humedad);
-            grafico.fill(x0i, y, x1i, y + Trazo.PASO, niebla);
+            // El vapor no es una banda pareja: son jirones que se arrastran muy
+            // despacio de un lado a otro. Cada fila modula su densidad con dos
+            // ondas lentas desfasadas, asi el velo respira en vez de quedarse
+            // pintado. Es el unico movimiento del agua ademas de la caustica, y
+            // basta para que el aire sobre la pileta se sienta cargado y vivo.
+            int niebla = Paleta.mezclar(nivel.paredAlta, nivel.paredBaja, 0.50F);
+            for (int jx = x0i; jx < x1i; jx += Trazo.PASO * 3) {
+                float onda = (float) Math.sin(tiempo * 0.16F + jx * 0.010F + dy * 0.6F)
+                        + 0.6F * (float) Math.sin(tiempo * 0.09F - jx * 0.017F);
+                float jiron = 0.55F + 0.45F * onda;   // 0.1 .. 1.15 aprox
+                float a = humedad * Trazo.limitar(jiron, 0.0F, 1.2F);
+                if (a <= 0.006F) {
+                    continue;
+                }
+                int jx1 = Math.min(x1i, jx + Trazo.PASO * 3);
+                grafico.fill(jx, y, jx1, y + Trazo.PASO, Paleta.conAlfa(niebla, a));
+            }
         }
 
         // Burbujas y motas: en un natatorio quieto hay siempre algo flotando.

@@ -6,6 +6,7 @@ import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 
@@ -89,6 +90,81 @@ public class GestorMusica extends AbstractTickableSoundInstance {
     /** Si el tema esta sonando ahora mismo. */
     public static boolean sonando() {
         return activa != null && !activa.isStopped();
+    }
+
+    /**
+     * Cuanto se ve el credito de la pista ahora mismo, de 0 a 1.
+     *
+     * El credito -titulo y autor de la pista- se muestra UNA sola vez, al
+     * empezar a sonar el tema, arriba a la derecha. La cuenta sale de la edad
+     * de la instancia de musica, que nace con el menu y no se reinicia al
+     * cambiar de pantalla: por eso el credito no vuelve a aparecer cada vez que
+     * el jugador entra y sale de las opciones, solo la primera vez de la sesion.
+     *
+     * La envolvente es trapezoidal y en ticks (20 por segundo): entra a los 2 s,
+     * se sostiene hasta los 15 s y se va del todo a los 18. Da tiempo de sobra a
+     * leer dos lineas cortas sin quedarse en pantalla molestando despues.
+     */
+    public static float creditoAlfa() {
+        GestorMusica m = activa;
+        if (m == null || m.isStopped()
+                || !ConfigTurno.musicaMenu() || !ConfigTurno.creditoMusica()
+                || !hayPistaCreditada()) {
+            return 0.0F;
+        }
+        int edad = m.edad;
+        final int entra0 = 40;
+        final int entra1 = 90;
+        final int sale0 = 300;
+        final int sale1 = 360;
+        if (edad <= entra0 || edad >= sale1) {
+            return 0.0F;
+        }
+        if (edad < entra1) {
+            return (edad - entra0) / (float) (entra1 - entra0);
+        }
+        if (edad <= sale0) {
+            return 1.0F;
+        }
+        return 1.0F - (edad - sale0) / (float) (sale1 - sale0);
+    }
+
+    /**
+     * Si la pista que suena tiene un autor al que acreditar.
+     *
+     * Se cumple en dos casos, y solo en esos dos:
+     *
+     *   - el JAR trae una pista horneada con credito. El build deja un recurso
+     *     marca (assets/jobsmenu/musica_creditada) cuando reemplaza el tema por
+     *     REQUIEM; si no se horneo nada, el marcador no existe;
+     *   - el jugador dejo su propia pista en la carpeta de runtime.
+     *
+     * La pieza sintetizada que viene de fabrica NO se acredita a nadie: es del
+     * mod. Por eso, sin marca y sin pista propia, el credito no aparece y nunca
+     * se le atribuye a un autor una musica que no compuso.
+     */
+    private static boolean hayPistaCreditada() {
+        if (MusicaPropia.tieneMusicaPropia()) {
+            return true;
+        }
+        return marcadorHorneado();
+    }
+
+    /** Estado del marcador de pista horneada, -1 sin calcular, 0 no, 1 si. */
+    private static int marcador = -1;
+
+    /**
+     * Si el JAR trae la marca de pista con credito. Se consulta el gestor de
+     * recursos una sola vez por sesion y se cachea: el contenido del JAR no
+     * cambia en caliente, y mirar el disco cada fotograma no tiene sentido.
+     */
+    private static boolean marcadorHorneado() {
+        if (marcador < 0) {
+            boolean hay = Minecraft.getInstance().getResourceManager()
+                    .getResource(new ResourceLocation("jobsmenu", "musica_creditada")).isPresent();
+            marcador = hay ? 1 : 0;
+        }
+        return marcador == 1;
     }
 
     /**

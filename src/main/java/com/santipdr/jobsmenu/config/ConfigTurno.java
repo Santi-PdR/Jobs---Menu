@@ -26,6 +26,7 @@ public final class ConfigTurno {
     public final ForgeConfigSpec.IntValue volumenAmbiente;
     public final ForgeConfigSpec.BooleanValue musicaMenu;
     public final ForgeConfigSpec.IntValue volumenMusica;
+    public final ForgeConfigSpec.BooleanValue creditoMusica;
 
     static {
         Pair<ConfigTurno, ForgeConfigSpec> par = new ForgeConfigSpec.Builder().configure(ConfigTurno::new);
@@ -92,6 +93,10 @@ public final class ConfigTurno {
                 .comment("Volumen del tema del menu, de 0 a 100.")
                 .defineInRange("volumen_musica", 70, 0, 100);
 
+        this.creditoMusica = builder
+                .comment("Mostrar el credito de la pista (titulo y autor) al empezar a sonar, arriba a la derecha.")
+                .define("credito_musica", true);
+
         builder.pop();
     }
 
@@ -151,6 +156,10 @@ public final class ConfigTurno {
 
     public static boolean musicaMenu() {
         return leer(INSTANCE.musicaMenu, true);
+    }
+
+    public static boolean creditoMusica() {
+        return leer(INSTANCE.creditoMusica, true);
     }
 
     /** Volumen del tema del menu, ya convertido a la escala 0.0 - 1.0 del motor. */

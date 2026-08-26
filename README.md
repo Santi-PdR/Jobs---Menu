@@ -14,11 +14,37 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
 
 | | |
 |---|---|
-| Versión | **0.6.1** |
+| Versión | **0.6.2** |
 | Minecraft | 1.20.1 |
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente (el servidor no necesita el mod) |
+
+## Qué trae la 0.6.2
+
+**La música puede viajar dentro del JAR, con crédito en pantalla.** Si dejás tu pista en `music/requiem.ogg`
+y compilás, ese archivo queda horneado en el `.jar` reemplazando al tema sintetizado, y el menú muestra el
+crédito —**REQUIEM · Emmy Z · Forsaken OST**— arriba a la derecha, una vez por sesión, entrando y saliendo
+suave. El crédito sólo aparece si hay una pista con autor; sobre el tema propio del mod no se muestra, porque
+esa pieza no es de nadie más. La pista con derechos **no se sube al repositorio** —`.gitignore` la excluye—:
+es tu copia, en tu build, para tu server. Los pasos exactos están en [`docs/musica.md`](docs/musica.md).
+
+> Nota honesta: el entorno donde se edita el mod no tiene acceso a YouTube, así que el archivo de REQUIEM no
+> se pudo descargar ahí para dejarlo listo. Lo que está hecho es toda la maquinaria: vos ponés el `.ogg` y
+> suena con su crédito, sin tocar código.
+
+**Ctrl+S es ahora una herramienta oculta.** El atajo que salta a la selección de mundos sigue funcionando
+igual, pero ya no se anuncia en ninguna parte del menú: es una comodidad de desarrollo y administración,
+invisible para quien sólo viene a jugar. La hoja quedó más limpia sin esa línea al pie.
+
+**Más atmósfera en la Poolroom.** El vapor sobre el agua dejó de ser una banda pareja: ahora son jirones que
+se arrastran muy despacio de un lado a otro, como el aire cargado de un natatorio cerrado. Es el segundo
+movimiento continuo del agua, junto con las cáusticas.
+
+**El sonido de recorrer los renglones cansa menos.** `ui.pasar` —el gesto que más veces suena— tenía casi un
+quinto de su energía por encima de 5 kHz, el brillo agudo que fatiga el oído en una sesión larga. Se le
+recortó el techo sin quitarle el carácter de papel: sigue siendo el mismo roce, ahora escuchable una hora
+seguida sin molestar. Los otros siete gestos no se tocaron.
 
 ## Qué trae la 0.6.1
 
@@ -173,7 +199,7 @@ Requiere JDK 17 instalado.
 .\gradlew build
 ```
 
-El `.jar` queda en `build\libs\jobsmenu-0.6.1.jar` y se copia a la carpeta `mods` de la instancia.
+El `.jar` queda en `build\libs\jobsmenu-0.6.2.jar` y se copia a la carpeta `mods` de la instancia.
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 
@@ -188,7 +214,7 @@ SKLauncher, pero sirve igual para `.minecraft` o cualquier lanzador.
 # --- 0. Rutas --------------------------------------------------------------
 $repo      = "C:\Users\santi\Desktop\Jobs---Menu"
 $instancia = "C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1"
-$version   = "0.6.1"
+$version   = "0.6.2"
 
 Set-Location $repo
 

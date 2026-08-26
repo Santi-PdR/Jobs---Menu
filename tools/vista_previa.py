@@ -1230,8 +1230,16 @@ def nat_agua(lz, m, nivel, luz, tiempo) -> None:
         x1i = min(m.ancho, x1)
         if x1i <= x0i:
             continue
-        niebla = con_alfa(mezclar(nivel.pared_alta, nivel.pared_baja, 0.50), humedad)
-        lz.fill(x0i, y, x1i, y + PASO, niebla)
+        # Jirones de vapor que se arrastran despacio, no una banda pareja.
+        niebla = mezclar(nivel.pared_alta, nivel.pared_baja, 0.50)
+        for jx in range(x0i, x1i, PASO * 3):
+            onda = (math.sin(tiempo * 0.16 + jx * 0.010 + dy * 0.6)
+                    + 0.6 * math.sin(tiempo * 0.09 - jx * 0.017))
+            jiron = 0.55 + 0.45 * onda
+            a = humedad * limitar(jiron, 0.0, 1.2)
+            if a <= 0.006:
+                continue
+            lz.fill(jx, y, min(x1i, jx + PASO * 3), y + PASO, con_alfa(niebla, a))
 
     # Burbujas y motas: en un natatorio quieto hay siempre algo flotando.
     burbujas = 14
@@ -1823,8 +1831,6 @@ def hoja(lz: Lienzo) -> None:
     AIRE_REGLA = 7
     AIRE_CABECERA = 14
     AIRE_PIE = 16
-    ALTO_ATAJO = 10
-    SEP_AVISO = 6
     ALTO_RENGLON = 20
     SEPARACION = 3
     HUECO_APARTE = 10
@@ -1836,8 +1842,8 @@ def hoja(lz: Lienzo) -> None:
     salto = ALTO_RENGLON + SEPARACION
     lista = 3 * salto + HUECO_APARTE + ALTO_RENGLON
     aviso = 3 * LINEA + 2
-    alto_hoja = (MARGEN + cabecera + AIRE_CABECERA + lista + AIRE_PIE
-                 + ALTO_ATAJO + SEP_AVISO + aviso + MARGEN)
+    alto_hoja = (MARGEN + cabecera + AIRE_CABECERA + lista
+                 + AIRE_PIE + aviso + MARGEN)
 
     x0 = max(14, int(lz.ancho * 0.07))
     disponible = lz.alto - 2 * MARGEN_PANTALLA
@@ -1886,9 +1892,9 @@ def hoja(lz: Lienzo) -> None:
             lz.fill(px, fy + 12, px + 1, fy + 13, con_alfa(TINTA_TENUE, 0.30))
             px += 3
 
-    y_atajo = y + lista + AIRE_PIE
-    lz.fill(x, y_atajo + 1, x + 143, y_atajo + 8, con_alfa(TINTA_TENUE, 0.50))
-    y_aviso = y_atajo + ALTO_ATAJO + SEP_AVISO
+    # El atajo de servicio (Ctrl+S) ya no se dibuja: es una herramienta oculta.
+    # El aviso rotativo va directo debajo de la lista.
+    y_aviso = y + lista + AIRE_PIE
     for i in range(3):
         ancho_linea = ancho_util if i < 2 else int(ancho_util * 0.55)
         lz.fill(x, y_aviso + i * LINEA + 1, x + ancho_linea,

@@ -1,0 +1,33 @@
+MUSICA HORNEADA EN EL JAR
+=========================
+
+Deja aqui un archivo llamado exactamente:
+
+    requiem.ogg
+
+y al compilar (.\gradlew build) ese archivo se mete DENTRO del JAR como el
+tema del menu, reemplazando la pieza sintetizada que viene de fabrica. La
+musica viaja con el mod: quien instale el .jar la escucha sin tener que
+poner nada.
+
+REQUISITOS
+
+  - Formato OGG Vorbis (.ogg). Es el unico que Minecraft decodifica. Un MP3
+    renombrado no suena. Convertilo antes con cualquier editor de audio o un
+    conversor en linea.
+  - El nombre tiene que ser 'requiem.ogg'. Si no existe, el build usa el tema
+    sintetizado por defecto y no falla.
+
+SOBRE LOS DERECHOS
+
+La pista pedida es REQUIEM, de Emmy Z (Forsaken OST). Es obra de una autora
+identificable y NO se versiona en este repositorio: por eso .gitignore excluye
+music/*.ogg. Meterla en el JAR que compilas para tu server entre amigos, con
+el credito en pantalla (lo muestra el mod arriba a la derecha al empezar a
+sonar), es tu decision y tu responsabilidad. Para repartir el mod
+publicamente hace falta permiso escrito de la autora.
+
+El credito que muestra el mod se edita en:
+    src/main/resources/assets/jobsmenu/lang/es_es.json
+    src/main/resources/assets/jobsmenu/lang/en_us.json
+  claves  jobsmenu.credito.titulo  y  jobsmenu.credito.autor

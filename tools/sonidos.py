@@ -452,9 +452,16 @@ def ui_pasar() -> np.ndarray:
     """
     grano = pa_m(cargar("roceCorto_001"), 1_800.0, 2)
     grano = recortar(grano, 0.004, 0.075)
-    grano = pb_m(grano, 6_200.0, 4)
+    # Techo del grano bajado de 6.2 a 5.2 kHz. Este es el gesto que suena mas
+    # veces por sesion, y era el unico de la familia que se saltaba la regla de
+    # "nada por encima de 5 kHz": tenia cerca de un quinto de su energia arriba
+    # de esa linea. En un sonido que se dispara trescientas veces, ese brillo es
+    # exactamente lo que fatiga el oido a los veinte minutos. Bajarlo no le quita
+    # el caracter de papel -el papel se lee de sobra a 5 kHz- y lo vuelve un roce
+    # que se puede escuchar toda una sesion sin cansar.
+    grano = pb_m(grano, 5_200.0, 4)
     suave = altura(cargar("roceSuave_000"), 1.25)
-    suave = pa_m(pb_m(suave, 6_000.0), 900.0, 2)
+    suave = pa_m(pb_m(suave, 5_000.0), 900.0, 2)
     suave = recortar(suave, 0.0, 0.09) * 0.55
     # Sin ataque: la envolvente sube y baja sin pico. Es lo que separa un roce
     # de un golpe, y es toda la identidad de este gesto.
@@ -462,7 +469,7 @@ def ui_pasar() -> np.ndarray:
     n = len(x)
     forma = np.sin(np.linspace(0.0, np.pi, n)) ** 0.8
     return _gesto(x * forma, 0.100, 0.06, ataque=12.0, pico=0.21,
-                  corte_bajo=700.0, techo=7_000.0, cierre=0.035)
+                  corte_bajo=700.0, techo=5_400.0, cierre=0.035)
 
 
 def ui_elegir() -> np.ndarray:

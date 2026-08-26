@@ -10,7 +10,7 @@
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
 | Paquete Java | `com.santipdr.jobsmenu` |
-| Versión actual | **0.6.1** |
+| Versión actual | **0.6.2** |
 | Plataforma | Minecraft **1.20.1** · Forge **47.x** · Java **17** |
 | Alcance | Menús (Title / Pause / Options), escena viva, audio, lore. **Sin gameplay.** |
 | Lado | **Cliente**. El mod no toca el servidor ni exige instalarse en él. |
@@ -142,10 +142,12 @@ costumbre de Mojang: a la cuadrilla se entra todos los días, el registro se con
 condiciones se tocan una vez. El hueco antes de renunciar no es decorativo: separar lo irreversible del
 resto es lo que evita que alguien lo pulse por inercia bajando la lista.
 
-**Fichar turno salió del tablón.** La partida de un jugador se abre con **Control + S**
+**Fichar turno es una herramienta oculta.** La partida de un jugador se abre con **Control + S**
 (`client/AtajoOverworld.java`, sobre `ScreenEvent.KeyPressed` / `KeyReleased`, con anti-repetición mientras
-la tecla sigue pulsada). Es la salida de servicio, y las salidas de servicio no se anuncian en el tablón; se
-aclara al pie de la hoja, en letra chica (`jobsmenu.tablon.atajo`).
+la tecla sigue pulsada). Desde 0.6.2 **no se anuncia en ningún lado**: no hay texto en la hoja ni en el pie
+que insinúe que existe. Es una comodidad de desarrollo y de administración —saltar directo a la selección de
+mundos— y queda invisible para quien sólo viene a jugar. Sigue funcionando igual; lo único que cambió es que
+ya no se documenta en la interfaz.
 
 ### 3.1 La cuenta regresiva (pieza de identidad)
 
@@ -432,14 +434,23 @@ menú, **no se reinicia al cambiar de pantalla** y **sigue sonando durante el ap
 atraviesa la transición, y por eso la transición no se siente como un corte.
 
 **Sobre el tema pedido.** El enlace de YouTube es *REQUIEM — Forsaken OST*, del canal **Emmy Z**: es obra de
-un tercero con copyright, así que **no se empaqueta**. Fingir que está integrada sería mentir. Lo que hay:
+un tercero con copyright, así que **no se versiona en este repositorio** (`.gitignore` excluye `music/*.ogg`).
+Desde este entorno, además, YouTube está bloqueado, así que la grabación no se pudo descargar aquí para
+incluirla. Lo que hay:
 
 - `musica/defecto.ogg`, pieza original de 67 s (La menor, 8 acordes de 9 s, crossfade de 5 s), incluida en
-  el JAR y sonando de fábrica.
-- El camino legal para usar REQUIEM u otra pista: **paquete de recursos**, que sobrescribe
-  `assets/jobsmenu/sounds/musica/defecto.ogg` sin tocar código ni recompilar y sin que el archivo con
-  derechos entre nunca al JAR. Procedimiento completo, con la estructura de carpetas y el `pack.mcmeta`,
-  en **`docs/musica.md`**, junto con las tres vías para conseguir la pista con permiso.
+  el JAR y sonando de fábrica. No se acredita a nadie: es del mod.
+- **Vía para hornear la pista en el JAR** (0.6.2): dejar el archivo en `music/requiem.ogg` en la raíz del
+  repo y compilar. El `build.gradle` lo mete dentro del `.jar` reemplazando a `defecto.ogg` y deja un
+  recurso marca (`assets/jobsmenu/musica_creditada`) que activa el **crédito en pantalla**. Pensado para un
+  server entre amigos con el crédito puesto; la responsabilidad de usar esa grabación es de quien compila.
+- **El crédito** (`jobsmenu.credito.titulo` / `jobsmenu.credito.autor`, hoy *REQUIEM · Emmy Z · Forsaken
+  OST*) aparece arriba a la derecha una sola vez por sesión, entrando y saliendo suave, y **sólo si hay una
+  pista con autor** —la horneada con marca, o una que el jugador haya dejado en su carpeta—. Nunca sobre la
+  pieza sintetizada. Se apaga con `credito_musica = false`.
+- **Vía sin recompilar** (paquete de recursos automático): dejar cualquier `.ogg` en
+  `.minecraft/jobsmenu-musica/` y el mod lo instala y activa solo. Procedimiento completo en
+  **`docs/musica.md`**.
 
 ---
 
@@ -463,6 +474,7 @@ un tercero con copyright, así que **no se empaqueta**. Fingir que está integra
 | `volumen_ambiente` | `55` | Volumen del ambiente, 0–100. |
 | `musica_menu` | `true` | La música del menú. |
 | `volumen_musica` | `70` | Volumen de la música, 0–100. |
+| `credito_musica` | `true` | Mostrar el crédito de la pista (título y autor) al empezar a sonar, arriba a la derecha. |
 
 Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y legible**, nunca uno roto.
 
@@ -479,6 +491,7 @@ Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y
 | **0.5.0** | Tercera cama de ambiente, sincronía A/V de la transición, presencia con cuatro modos, primeros planos | **Entregado** |
 | **0.6.0** | Interfaz de sexta generación (cinco clases de gesto), música con detección automática, jerarquía de UI medida, luminarias y vanos con cuerpo, sesgo de eventos corregido | **Entregado** |
 | **0.6.1** | Ronda de pulido: el agua del natatorio devuelve los tubos del techo (reflejo roto y tembloroso, el detalle que la vuelve agua), más humedad en el azulejado, sello de versión eliminado de la esquina, código muerto retirado | **Entregado** |
+| **0.6.2** | Música: vía para hornear REQUIEM (u otra pista) dentro del JAR con crédito en pantalla al empezar a sonar; Ctrl+S pasa a herramienta oculta (sin texto en el menú); vapor del natatorio en jirones que se arrastran; `ui.pasar` con el brillo agudo recortado para no cansar | **Entregado** |
 | 0.7.0 | Pausa ("Estancia en suspenso") y opciones con la misma piel | Pendiente |
 | 0.8.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
 | 0.9.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |

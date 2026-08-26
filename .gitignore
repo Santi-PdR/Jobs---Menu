@@ -33,3 +33,7 @@ Thumbs.db
 # Herramientas
 __pycache__/
 *.pyc
+
+# Pista propia con derechos de terceros (REQUIEM u otra): viaja en el JAR
+# compilado pero NO entra al control de versiones. Ver music/LEEME.txt.
+/music/*.ogg

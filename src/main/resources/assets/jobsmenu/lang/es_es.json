@@ -8,7 +8,6 @@
   "jobsmenu.tablon.registro": "Registro de intervenciones",
   "jobsmenu.tablon.condiciones": "Condiciones de estancia",
   "jobsmenu.tablon.renunciar": "Renunciar al nivel",
-  "jobsmenu.tablon.atajo": "Turno individual: Control + S.",
   "jobsmenu.reloj.proxima": "Próxima ronda",
   "jobsmenu.reloj.inminente": "RONDA INMINENTE",
   "jobsmenu.reloj.encurso": "RONDA EN CURSO",
@@ -65,5 +64,7 @@
   "jobsmenu.subtitulo.nivel.apagon": "Se corta la corriente",
   "jobsmenu.subtitulo.nivel.encendido": "El tubo arranca",
   "jobsmenu.subtitulo.figura.presencia": "Algo al fondo del recinto",
-  "jobsmenu.subtitulo.musica.tema": "Aviso a los ocupantes"
+  "jobsmenu.subtitulo.musica.tema": "Aviso a los ocupantes",
+  "jobsmenu.credito.titulo": "REQUIEM",
+  "jobsmenu.credito.autor": "Emmy Z · Forsaken OST"
 }

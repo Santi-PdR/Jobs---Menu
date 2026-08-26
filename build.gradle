@@ -70,6 +70,42 @@ tasks.named('processResources', ProcessResources).configure {
     filesMatching(['META-INF/mods.toml']) {
         expand replaceProperties
     }
+
+    // PISTA PROPIA HORNEADA EN EL JAR
+    //
+    // El tema del menu que viene de fabrica es la pieza sintetizada
+    // (musica/defecto.ogg, generada por tools/sonidos.py y versionada en el
+    // repo). Si el owner tiene una pista con permiso -por ejemplo REQUIEM, de
+    // Emmy Z, para un server entre amigos con el credito puesto- puede dejarla
+    // en 'music/requiem.ogg' en la raiz del repo y ese archivo REEMPLAZA al
+    // defecto DENTRO DEL JAR compilado, sin tocar el .ogg versionado ni el
+    // codigo. Asi la pista viaja con el mod.
+    //
+    // El archivo NO se versiona (esta en .gitignore): la obra de un tercero no
+    // entra al control de versiones. Se declara como entrada opcional via
+    // fileTree para que el build se rehaga si cambia y no falle si no existe.
+    def carpetaPista = rootProject.file('music')
+    inputs.files(fileTree(dir: carpetaPista, includes: ['requiem.ogg', 'defecto.ogg'])).optional()
+    doLast {
+        def destino = layout.buildDirectory
+                .file('resources/main/assets/jobsmenu/sounds/musica/defecto.ogg').get().asFile
+        // El marcador dice al mod que la pista horneada es una obra con credito
+        // (REQUIEM), no el tema sintetizado. Sin el, el credito de pantalla no
+        // se muestra: nunca se atribuye a un autor la pieza generada por el mod.
+        def marcador = layout.buildDirectory
+                .file('resources/main/assets/jobsmenu/musica_creditada').get().asFile
+        def fuente = new File(carpetaPista, 'requiem.ogg')
+        if (fuente.exists()) {
+            destino.parentFile.mkdirs()
+            destino.bytes = fuente.bytes
+            marcador.parentFile.mkdirs()
+            marcador.text = 'requiem'
+            logger.lifecycle('[jobsmenu] REQUIEM horneada en el JAR desde music/requiem.ogg (con credito).')
+        } else {
+            marcador.delete()
+            logger.lifecycle('[jobsmenu] Sin music/requiem.ogg: el JAR usa el tema sintetizado, sin credito.')
+        }
+    }
 }
 
 tasks.named('jar', Jar).configure {

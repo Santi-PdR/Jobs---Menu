@@ -8,7 +8,6 @@
   "jobsmenu.tablon.registro": "Record of interventions",
   "jobsmenu.tablon.condiciones": "Terms of stay",
   "jobsmenu.tablon.renunciar": "Resign from the level",
-  "jobsmenu.tablon.atajo": "Individual shift: Control + S.",
   "jobsmenu.reloj.proxima": "Next round",
   "jobsmenu.reloj.inminente": "ROUND IMMINENT",
   "jobsmenu.reloj.encurso": "ROUND IN PROGRESS",
@@ -65,5 +64,7 @@
   "jobsmenu.subtitulo.nivel.apagon": "The power cuts out",
   "jobsmenu.subtitulo.nivel.encendido": "The tube starts up",
   "jobsmenu.subtitulo.figura.presencia": "Something at the far end",
-  "jobsmenu.subtitulo.musica.tema": "Notice to occupants"
+  "jobsmenu.subtitulo.musica.tema": "Notice to occupants",
+  "jobsmenu.credito.titulo": "REQUIEM",
+  "jobsmenu.credito.autor": "Emmy Z · Forsaken OST"
 }
