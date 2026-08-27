@@ -30,6 +30,9 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
   una sala del trono. Ahora hay un **trono alto y coronado** —con brazos, cojín y el hueco de la corona que
   falta— sobre un **estrado de cinco escalones**, enmarcado por un **ábside** de piedra al fondo y bañado por
   un **haz de luz cenital** con polvo suspendido. Es el centro de la escena, y está vacío.
+- **Respiración de cámara.** Todo el recinto se mece ahora con un vaivén lentísimo de un par de píxeles, como
+  si quien mira respirara. No es un temblor: es que el pasillo nunca está del todo quieto. Se apaga con
+  *movimiento reducido*.
 
 ## Qué trae la 0.8.2
 

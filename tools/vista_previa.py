@@ -621,6 +621,12 @@ def dibujar(lz: Lienzo, nivel: Nivel, tiempo: float = 3.0, penumbra: float = 0.0
             primer_plano: bool = True) -> None:
     fx = lz.ancho * nivel.fuga_x
     fy = lz.alto * nivel.fuga_y
+    # Respiracion de camara (espejo de EscenaNivel): la fuga deriva unos pocos
+    # pixeles en un vaiven lentisimo. Gated por 'polvo', el equivalente de
+    # movimiento en la vista previa.
+    if polvo:
+        fx += math.sin(tiempo * 0.13) * lz.ancho * 0.006
+        fy += math.sin(tiempo * 0.087 + 1.3) * lz.alto * 0.005
     m = Marco(lz.ancho, lz.alto, fx, fy,
               lz.ancho * nivel.semi_izq, lz.ancho * nivel.semi_der,
               lz.ancho * nivel.semi_alto, lz.ancho * nivel.semi_bajo)

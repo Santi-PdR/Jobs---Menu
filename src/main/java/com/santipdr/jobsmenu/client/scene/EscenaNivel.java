@@ -76,6 +76,17 @@ public final class EscenaNivel {
 
         float fx = ancho * nivel.fugaX;
         float fy = alto * nivel.fugaY;
+
+        // Respiracion de camara: la fuga deriva unos pocos pixeles en un vaiven
+        // lentisimo, con la horizontal y la vertical a periodos distintos para
+        // que el recorrido no se repita a ojo. No es un temblor -eso marearia-,
+        // es que el pasillo nunca esta del todo quieto, como si el que mira
+        // respirara. Se apaga con movimiento reducido o la escena quieta.
+        if (movimiento) {
+            fx += (float) Math.sin(tiempo * 0.13F) * ancho * 0.006F;
+            fy += (float) Math.sin(tiempo * 0.087F + 1.3F) * alto * 0.005F;
+        }
+
         Marco marco = new Marco(ancho, alto, fx, fy,
                 ancho * nivel.semiIzq, ancho * nivel.semiDer,
                 ancho * nivel.semiAlto, ancho * nivel.semiBajo);
