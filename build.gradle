@@ -111,12 +111,20 @@ tasks.named('jar', Jar).configure {
 // el build muere con 'os::commit_memory ... failed (errno=1455)'. Bajarle el
 // heap al daemon no lo arregla, porque el que pide la memoria es este fork.
 //
-// JarExec -del que hereda reobfJar- expone jvmArgs y se los pasa al proceso. Con
-// un tope chico, el mod -que es minusculo- reobfusca de sobra y no vuelve a
-// pedir memoria que el sistema no tiene.
-tasks.named('reobfJar').configure {
-    it.getJvmArgs().set(['-Xmx512m'])
+// reobfJar es un RenameJarInPlace (hereda de JarExec) y expone getJvmArgs(), que
+// se los pasa al proceso. Con un tope chico, el mod -que es minusculo-
+// reobfusca de sobra y no vuelve a pedir memoria que el sistema no tiene.
+//
+// Se configura en afterEvaluate porque ForgeGradle crea las tareas de reobf
+// tarde, durante la evaluacion: en el cuerpo del script todavia no existen, y
+// tasks.named('reobfJar') fallaria con "Task ... not found". Se recorre por tipo
+// para no depender del nombre exacto y no romper si algun dia cambia.
+afterEvaluate {
+    tasks.withType(net.minecraftforge.gradle.userdev.tasks.RenameJarInPlace).configureEach {
+        it.getJvmArgs().set(['-Xmx512m'])
+    }
 }
+
 
 
 tasks.withType(JavaCompile).configureEach {
