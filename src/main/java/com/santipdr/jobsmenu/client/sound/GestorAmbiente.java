@@ -131,6 +131,15 @@ public final class GestorAmbiente {
                     new Evento(SonidosNivel.EV_N5_RELOJ, 1.6F, 0.18F, 0.34F, 0.98F, 1.02F),
                     new Evento(SonidosNivel.EV_N5_SUSURRO, 1.0F, 0.16F, 0.30F, 0.97F, 1.03F),
             }),
+
+            // Nivel 6 - El invernadero. Vidrio, agua y follaje. La gota es lo
+            // mas frecuente; las hojas, lo mas raro. Tono estable: objetos
+            // concretos (vidrio, agua, plantas).
+            new Repertorio(13_000L, 32_000L, new Evento[] {
+                    new Evento(SonidosNivel.EV_N6_GOTA, 3.0F, 0.22F, 0.42F, 0.94F, 1.10F),
+                    new Evento(SonidosNivel.EV_N6_VIDRIO, 2.0F, 0.20F, 0.38F, 0.96F, 1.05F),
+                    new Evento(SonidosNivel.EV_N6_HOJAS, 1.0F, 0.16F, 0.30F, 0.97F, 1.03F),
+            }),
     };
 
     private static final Random AZAR = new Random();
@@ -259,6 +268,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.AMBIENTE_NIVEL4;
             case 5:
                 return SonidosNivel.AMBIENTE_NIVEL5;
+            case 6:
+                return SonidosNivel.AMBIENTE_NIVEL6;
             default:
                 return SonidosNivel.AMBIENTE_NIVEL0;
         }
@@ -276,6 +287,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.CARACTER_NIVEL4;
             case 5:
                 return SonidosNivel.CARACTER_NIVEL5;
+            case 6:
+                return SonidosNivel.CARACTER_NIVEL6;
             default:
                 return SonidosNivel.CARACTER_NIVEL0;
         }
@@ -293,6 +306,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.ACTIVIDAD_NIVEL4;
             case 5:
                 return SonidosNivel.ACTIVIDAD_NIVEL5;
+            case 6:
+                return SonidosNivel.ACTIVIDAD_NIVEL6;
             default:
                 return SonidosNivel.ACTIVIDAD_NIVEL0;
         }

@@ -210,6 +210,9 @@ SALAS = {
     # Biblioteca: los libros y la madera absorben casi todo. Cola corta y
     # seca, mate, la mas apagada de todas -por eso el sitio se siente muerto-.
     "biblioteca": impulso(0.85, 0.010, 2_000.0, 0.6),
+    # Invernadero: vidrio y volumen de aire. Cola media-larga y brillante -el
+    # vidrio refleja los agudos-, pero la vegetacion la amortigua un poco.
+    "invernadero": impulso(1.90, 0.018, 6_000.0, 1.0),
 }
 
 
@@ -859,6 +862,25 @@ def base_nivel5(dur: float = 22.0) -> np.ndarray:
     return reverberar(x, SALAS["biblioteca"], 0.18)
 
 
+def base_nivel6(dur: float = 25.0) -> np.ndarray:
+    """Nivel 6, el invernadero.
+
+    Una nave grande de vidrio. La base es el aire moviendose bajo la cristalera
+    -una corriente ancha y suave- y el ping ocasional del vidrio dilatandose con
+    la temperatura. Nada electrico: es un sitio de aire, agua y luz.
+    """
+    t = tiempo(dur)
+
+    # Corriente de aire bajo el vidrio: ruido de banda ancha, medio, respirando.
+    aire = pasabanda(rosa(dur), 200.0, 2_400.0, 2) * 0.7 * deriva(dur, 0.023, 0.45)
+
+    # Volumen del recinto: un grave suave, no tan hondo como el deposito.
+    volumen = pasabajos(marron(dur), 160.0, 3) * 2.6 * deriva(dur, 0.017, 0.30)
+
+    x = aire * 0.06 + volumen * 0.06
+    return reverberar(x, SALAS["invernadero"], 0.34)
+
+
 # ==========================================================================
 # 2b. Capa de caracter: la segunda cama, tambien continua
 # ==========================================================================
@@ -1085,6 +1107,36 @@ def caracter_nivel5(dur: float = 33.0) -> np.ndarray:
 
     x = zumbido * 0.5 + tics * 0.30
     return reverberar(x, SALAS["biblioteca"], 0.22)
+
+
+def caracter_nivel6(dur: float = 35.0) -> np.ndarray:
+    """Nivel 6. El agua y las hojas del invernadero, siempre.
+
+    Lo que se mueve aca es la humedad: condensacion goteando del vidrio a las
+    hojas y de las hojas al suelo, y el roce constante y suave del follaje con la
+    corriente. Es una cama viva y verde, sin nada metalico ni electrico.
+    """
+    t = tiempo(dur)
+
+    # Follaje: roce ancho y suave, banda media-alta, modulado como el viento
+    # entre las hojas.
+    follaje = pasabanda(rosa(dur), 800.0, 4_500.0, 2) * 0.30
+    follaje *= 0.55 + 0.45 * deriva(dur, 0.7, 1.0)
+
+    # Goteo de condensacion: gotas sueltas, sin periodo, cada una con su ping.
+    goteo = np.zeros(len(t))
+    for _ in range(30):
+        pos = muestras(RNG.uniform(0.2, dur - 0.3))
+        largo = min(muestras(RNG.uniform(0.03, 0.12)), len(t) - pos)
+        if largo <= 0:
+            continue
+        tc = np.arange(largo) / SR
+        f = RNG.uniform(900.0, 2_400.0)
+        g = np.sin(2 * np.pi * f * tc * (1 + 0.8 * tc / (largo / SR))) * np.exp(-tc / 0.03)
+        goteo[pos:pos + largo] += g * RNG.uniform(0.06, 0.20)
+
+    x = follaje * 0.055 + goteo * 0.30
+    return reverberar(x, SALAS["invernadero"], 0.40)
 
 
 
@@ -1341,6 +1393,32 @@ def actividad_nivel5(dur: float = 51.0) -> np.ndarray:
     _sembrar(x, escalera, 24.8, 0.15)
 
     return reverberar(x, SALAS["biblioteca"], 0.40)
+
+
+def actividad_nivel6(dur: float = 53.0) -> np.ndarray:
+    """Nivel 6. El invernadero, donde el vidrio y las plantas se mueven solos.
+
+    Sucesos verdes y de vidrio: un panel que cruje al dilatarse, una maceta de
+    barro asentandose, algo cayendo entre el follaje. La sala brillante alarga la
+    cola de todo, asi que suena mas grande de lo que uno esperaria de un jardin.
+    """
+    x = np.zeros(muestras(dur))
+
+    # Panel de vidrio dilatandose: un cruji-ping agudo con cola.
+    panel = _lejos(cargar("impactGlass_light_003"), 0.7, 5_000.0, 520.0)
+    for s, g in ((8.4, 0.18), (28.9, 0.22), (48.1, 0.15)):
+        _sembrar(x, panel, s, g)
+
+    # Maceta de barro asentandose: golpe sordo, terroso.
+    maceta = _lejos(cargar("impactSoft_heavy_001"), 1.1, 900.0, 150.0)
+    _sembrar(x, maceta, 17.6, 0.20)
+    _sembrar(x, maceta, 39.3, 0.16)
+
+    # Algo cayendo en el follaje: hojas y una rama.
+    follaje = _lejos(cargar("impactWood_light_002"), 1.4, 1_600.0, 240.0)
+    _sembrar(x, follaje, 23.7, 0.14)
+
+    return reverberar(x, SALAS["invernadero"], 0.62)
 
 
 # ==========================================================================
@@ -1663,6 +1741,52 @@ def ev_nivel5_reloj() -> np.ndarray:
     return rampa(reverberar(x, SALAS["biblioteca"], 0.30), 0.002, 0.55)
 
 
+def ev_nivel6_vidrio() -> np.ndarray:
+    """Un panel de vidrio de la cristalera crujiendo y asentandose.
+
+    Un chirrido agudo de vidrio contra el marco de hierro, con una cola larga y
+    brillante que la sala de cristal alarga.
+    """
+    dur = 3.0
+    n = muestras(dur)
+    t = tiempo(dur)
+    chirrido = pasabanda(RNG.normal(0, 1, n), 2_000.0, 6_500.0, 2) * envolvente(n, 0.02, 0.4, 2.0)
+    # Un par de resonancias vidriosas.
+    for frec in (1_840.0, 2_730.0, 4_100.0):
+        chirrido += np.sin(2 * np.pi * frec * t) * np.exp(-t / RNG.uniform(0.2, 0.5)) * 0.10
+    x = pasaaltos(chirrido, 900.0, 2) * 0.30
+    return rampa(reverberar(x, SALAS["invernadero"], 0.55), 0.02, 0.85)
+
+
+def ev_nivel6_gota() -> np.ndarray:
+    """Una gota grande de condensacion cayendo del vidrio a un charco."""
+    dur = 2.2
+    n = muestras(dur)
+    t = tiempo(dur)
+    # El impacto en el agua: pitch que sube rapido (la burbuja cerrando).
+    f = 700.0
+    plop = np.sin(2 * np.pi * f * t * (1 + 3.0 * np.exp(-t / 0.02))) * np.exp(-t / 0.05)
+    salpica = pasabanda(RNG.normal(0, 1, n), 1_500.0, 5_000.0, 2) * envolvente(n, 0.001, 0.03, 6.0)
+    x = (plop * 0.6 + salpica * 0.3) * 0.30
+    return rampa(reverberar(x, SALAS["invernadero"], 0.60), 0.002, 0.75)
+
+
+def ev_nivel6_hojas() -> np.ndarray:
+    """Un movimiento largo entre las hojas: algo se abre paso, o el viento.
+
+    Roce ancho de follaje que crece y se apaga. Como el susurro de la
+    biblioteca, deja la duda de si fue la corriente o algo mas.
+    """
+    dur = 3.6
+    n = muestras(dur)
+    t = tiempo(dur)
+    roce = pasabanda(rosa(dur), 700.0, 4_000.0, 2)
+    sobre = np.sin(np.pi * np.clip(t / dur, 0, 1)) ** 2
+    roce *= 0.4 + 0.6 * np.clip(np.sin(2 * np.pi * 1.3 * t + np.sin(2 * np.pi * 0.4 * t)), 0, None)
+    x = roce * sobre * 0.17
+    return rampa(reverberar(x, SALAS["invernadero"], 0.45), 0.05, 0.70)
+
+
 # ==========================================================================
 # 4. Transicion entre niveles
 # ==========================================================================
@@ -1888,6 +2012,7 @@ PIEZAS = {
     "ambiente/nivel3": lambda: bucle_suave(base_nivel3(), 6.0),
     "ambiente/nivel4": lambda: bucle_suave(base_nivel4(), 5.0),
     "ambiente/nivel5": lambda: bucle_suave(base_nivel5(), 5.0),
+    "ambiente/nivel6": lambda: bucle_suave(base_nivel6(), 5.0),
 
     # Capa de caracter, tambien en bucle. Duraciones primas con las bases para
     # que las dos camas de cada nivel no vuelvan a alinearse en toda la sesion.
@@ -1897,6 +2022,7 @@ PIEZAS = {
     "caracter/nivel3": lambda: bucle_suave(caracter_nivel3(), 7.0),
     "caracter/nivel4": lambda: bucle_suave(caracter_nivel4(), 5.0),
     "caracter/nivel5": lambda: bucle_suave(caracter_nivel5(), 4.0),
+    "caracter/nivel6": lambda: bucle_suave(caracter_nivel6(), 5.0),
 
     # Capa de actividad: bucles largos, casi vacios, con sucesos lejanos. El
     # cruce es corto porque casi toda la junta cae sobre silencio.
@@ -1906,6 +2032,7 @@ PIEZAS = {
     "actividad/nivel3": lambda: bucle_suave(actividad_nivel3(), 2.0),
     "actividad/nivel4": lambda: bucle_suave(actividad_nivel4(), 2.0),
     "actividad/nivel5": lambda: bucle_suave(actividad_nivel5(), 2.0),
+    "actividad/nivel6": lambda: bucle_suave(actividad_nivel6(), 2.0),
 
     # Eventos
     "evento/nivel0_tubo": ev_nivel0_tubo,
@@ -1927,6 +2054,9 @@ PIEZAS = {
     "evento/nivel5_libro": ev_nivel5_libro,
     "evento/nivel5_susurro": ev_nivel5_susurro,
     "evento/nivel5_reloj": ev_nivel5_reloj,
+    "evento/nivel6_vidrio": ev_nivel6_vidrio,
+    "evento/nivel6_gota": ev_nivel6_gota,
+    "evento/nivel6_hojas": ev_nivel6_hojas,
 
     # Transicion
     "nivel/titileo": tr_titileo,

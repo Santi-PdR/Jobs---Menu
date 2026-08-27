@@ -199,6 +199,16 @@ NIVELES = [
           fuga_x=0.500, fuga_y=0.500,
           semi_izq=0.140, semi_der=0.140, semi_alto=0.150, semi_bajo=0.140,
           reflejo=0.14, humedad=0.45),
+
+    # Nivel 6 - El invernadero. Vidrio y hierro tomados por las plantas.
+    Nivel(clave="nivel6", planta="invernadero",
+          pared_alta=0xFF8A9A6E, pared_baja=0xFF566040, junta=0xFF3B3B22,
+          suelo=0xFF4C5436, suelo_lejos=0xFF343A24, suelo_junta=0xFF20240E,
+          techo=0xFFC8D4B0, techo_junta=0xFF6E7A50,
+          niebla=0xFF7E8C64, luz=0xFFF2F6E0, fondo=0xFF141810,
+          fuga_x=0.500, fuga_y=0.500,
+          semi_izq=0.165, semi_der=0.165, semi_alto=0.175, semi_bajo=0.130,
+          reflejo=0.18, humedad=0.60),
 ]
 
 
@@ -2098,6 +2108,197 @@ def pp_biblioteca(lz, m, nivel, luz, tiempo) -> None:
             iluminar(verde, min(1.0, luz * titil * 1.1)))
 
 
+# --------------------------------------------------------------------------
+# Nivel 6 - El invernadero: espejo de planta/Invernadero.java
+# --------------------------------------------------------------------------
+INV_TRAMOS = 14
+
+
+def invernadero(lz, m, nivel, luz, tiempo) -> None:
+    t_fondo(lz, m, nivel, luz, mezclar(nivel.pared_baja, nivel.techo, 0.55), 1.9)
+    inv_porton(lz, m, nivel, luz)
+    inv_cristalera(lz, m, nivel, luz)
+    t_transversales(lz, m, True, nivel.techo_junta, nivel.niebla, luz, INV_TRAMOS, 0.34)
+    t_plano(lz, m, False, nivel.suelo, nivel.suelo_lejos, nivel.niebla, luz, 0.52)
+    t_transversales(lz, m, False, nivel.suelo_junta, nivel.niebla, luz, INV_TRAMOS, 0.40)
+    inv_sendero(lz, m, nivel, luz)
+    t_paredes(lz, m, nivel, luz)
+    t_juntas(lz, m, nivel, luz, INV_TRAMOS, 1.0, 0.28)
+    t_manchas(lz, m, nivel, luz, INV_TRAMOS)
+    inv_bancos(lz, m, nivel, luz)
+    inv_vegetacion(lz, m, nivel, luz, tiempo)
+    inv_haces(lz, m, nivel, luz, tiempo)
+    inv_vaho(lz, m, nivel, luz, tiempo)
+
+
+def inv_porton(lz, m, nivel, luz) -> None:
+    suelo = m.suelo_en(1.0)
+    alto = m.h * 1.30
+    x0, x1 = round(m.izq(0.40)), round(m.der(0.40))
+    y0, y1 = round(suelo - alto), round(suelo)
+    lz.fill_gradient(x0, y0, x1, y1,
+                     iluminar(mezclar(nivel.techo, 0xFFFFFFFF, 0.20), luz * 0.90),
+                     iluminar(nivel.pared_baja, luz * 0.55))
+    marco = iluminar(nivel.junta, luz * 0.6)
+    for k in range(1, 3):
+        lz.fill(x0 + (x1 - x0) * k // 3, y0, x0 + (x1 - x0) * k // 3 + 1, y1, marco)
+    for k in range(1, 4):
+        lz.fill(x0, y0 + (y1 - y0) * k // 4, x1, y0 + (y1 - y0) * k // 4 + 1, marco)
+
+
+def inv_cristalera(lz, m, nivel, luz) -> None:
+    hasta = round(m.techo_en(1.0))
+    for y in range(0, hasta, PASO):
+        dy = m.dy(y + PASO * 0.5)
+        if dy <= 1.0:
+            continue
+        lej = limitar(1.0 / dy, 0.0, 1.0)
+        hacia = 1.0 - limitar(y / max(1, hasta), 0.0, 1.0)
+        vidrio = mezclar(nivel.techo, 0xFFFFFFFF, 0.10 + 0.35 * hacia)
+        vidrio = velar(vidrio, nivel.niebla, lej, 0.30)
+        lz.fill(0, y, m.ancho, y + PASO, iluminar(vidrio, atenuar(luz, lej) * (0.7 + 0.3 * hacia)))
+    for j in range(1, INV_TRAMOS + 1):
+        dx = profundidad(j, INV_TRAMOS)
+        lej = limitar(1.0 / dx, 0.0, 1.0)
+        y = m.techo_en(dx * 0.10)
+        x = round(m.centro(dx))
+        grosor = max(1, int(m.h * dx * 0.012))
+        lz.fill(x - grosor, int(y), x + grosor, int(y) + grosor,
+                con_alfa(iluminar(nivel.junta, atenuar(luz, lej)), 0.55))
+
+
+def inv_sendero(lz, m, nivel, luz) -> None:
+    for y in range(round(m.suelo_en(1.0)), m.alto, PASO):
+        dy = m.dy(y + PASO * 0.5)
+        if dy <= 1.0:
+            continue
+        lej = limitar(1.0 / dy, 0.0, 1.0)
+        medio = m.w * dy * 0.22
+        color = mezclar(nivel.suelo, nivel.techo, 0.20)
+        lz.fill(int(m.centro(dy) - medio), y, int(m.centro(dy) + medio), y + PASO,
+                con_alfa(iluminar(color, atenuar(luz, lej)), 0.30))
+
+
+def inv_bancos(lz, m, nivel, luz) -> None:
+    for j in range(2, INV_TRAMOS + 1, 2):
+        dx = profundidad(j, INV_TRAMOS)
+        if dx > 6.0:
+            continue
+        lej = limitar(1.0 / dx, 0.0, 1.0)
+        at = atenuar(luz, lej)
+        for signo in (-1, 1):
+            x = m.lado(signo, dx * 0.62)
+            if x < -m.w or x > m.ancho + m.w:
+                continue
+            ancho = max(3.0, m.w * dx * 0.20)
+            y = m.suelo_en(dx * 0.72)
+            alto = m.h * dx * 0.05
+            mesa = iluminar(velar(nivel.junta, nivel.niebla, lej, 0.45), at * 0.7)
+            lz.fill(int(x - ancho * 0.5), int(y), int(x + ancho * 0.5), int(y + alto), mesa)
+            lz.fill(int(x - ancho * 0.5), int(y - alto * 0.4), int(x + ancho * 0.5), int(y),
+                    iluminar(velar(0xFF2C2415, nivel.niebla, lej, 0.4), at * 0.6))
+
+
+def inv_vegetacion(lz, m, nivel, luz, tiempo) -> None:
+    for i in range(46):
+        dx = 1.15 + pseudo(i * 5) * (INV_TRAMOS * 0.42)
+        if dx > 7.0:
+            continue
+        signo = -1 if pseudo(i * 5 + 1) < 0.5 else 1
+        frac = 0.44 + pseudo(i * 5 + 2) * 0.55
+        x = m.lado(signo, dx * frac)
+        if x < -20 or x > m.ancho + 20:
+            continue
+        lej = limitar(1.0 / dx, 0.0, 1.0)
+        at = atenuar(luz, lej)
+        base = m.suelo_en(dx * 0.72)
+        altura = m.h * dx * (0.10 + pseudo(i * 5 + 3) * 0.30)
+        ancho_mata = max(2.0, m.w * dx * (0.03 + pseudo(i * 5 + 4) * 0.06))
+        verde = mezclar(0xFF3E5A28, 0xFF6E8A3A, pseudo(i * 7))
+        verde = velar(verde, nivel.niebla, lej, 0.4)
+        vaiven = math.sin(tiempo * 0.4 + i) * ancho_mata * 0.15
+        hojas = 6
+        for k in range(hojas):
+            f = k / hojas
+            w = ancho_mata * (1.0 - f * 0.6)
+            yy = base - altura * f
+            ox = vaiven * f
+            lz.fill(int(x - w + ox), int(yy - altura / hojas), int(x + w + ox), int(yy),
+                    con_alfa(iluminar(verde, at * (0.7 + 0.3 * f)), 0.9))
+
+
+def inv_haces(lz, m, nivel, luz, tiempo) -> None:
+    for i in range(5):
+        fase = tiempo * 0.03 + i * 0.7
+        frac = math.sin(fase) * 0.7
+        dx_top = 2.0 + i * 1.6
+        x_top = m.en_x(dx_top, frac)
+        y_top = m.techo_en(dx_top * 0.3)
+        x_bot = m.en_x(dx_top * 1.4, frac * 0.7)
+        y_bot = m.suelo_en(dx_top * 0.9)
+        lej = limitar(1.0 / dx_top, 0.0, 1.0)
+        a = 0.05 * luz * (0.5 + 0.5 * lej)
+        pasos = 14
+        ancho = max(3.0, m.w * dx_top * 0.05)
+        for k in range(pasos):
+            t = k / pasos
+            x = x_top + (x_bot - x_top) * t
+            y = y_top + (y_bot - y_top) * t
+            lz.fill(int(x - ancho * (1.0 + t)), int(y), int(x + ancho * (1.0 + t)), int(y) + PASO * 2,
+                    con_alfa(iluminar(0xFFFFFFF0, luz), a * (1.0 - t * 0.5)))
+
+
+def inv_vaho(lz, m, nivel, luz, tiempo) -> None:
+    desde = round(m.suelo_en(1.0))
+    for y in range(desde, m.alto, PASO):
+        dy = m.dy(y + PASO * 0.5)
+        if dy <= 1.0:
+            continue
+        lej = limitar(1.0 / dy, 0.0, 1.0)
+        humedad = (1.0 - lej) * 0.10 * luz
+        if humedad <= 0.005:
+            continue
+        niebla = mezclar(nivel.niebla, 0xFF6E8A3A, 0.30)
+        paso = max(PASO * 8, m.ancho // 9)
+        for jx in range(0, m.ancho, paso):
+            onda = math.sin(tiempo * 0.14 + jx * 0.012 + dy * 0.5)
+            a = humedad * limitar(0.5 + 0.5 * onda, 0.0, 1.0)
+            if a <= 0.005:
+                continue
+            lz.fill(jx, y, min(m.ancho, jx + paso), y + PASO, con_alfa(niebla, a))
+
+
+def pp_invernadero(lz, m, nivel, luz, tiempo) -> None:
+    _fronda(lz, m, tiempo, -m.ancho * 0.02, 0.0, m.ancho * 0.34, m.alto * 0.40, 0xFF223C18, luz, 1.0)
+    _fronda(lz, m, tiempo + 3.0, m.ancho * 1.02, 0.0, m.ancho * 0.72, m.alto * 0.30, 0xFF1C3414, luz, -1.0)
+    cx = int(m.ancho * 0.80)
+    largo = int(m.alto * 0.34)
+    for i in range(0, largo, 4):
+        t = i / largo
+        sway = math.sin(tiempo * 0.5 + t * 3.0) * m.ancho * 0.01
+        x = int(cx + sway)
+        lz.fill(x - 1, i, x + 2, i + 3, con_alfa(iluminar(0xFF2E4A1E, 0.4 + 0.3 * luz), 0.85))
+        if i % 16 == 0:
+            lz.fill(x - 4, i, x + 5, i + 4, con_alfa(iluminar(0xFF3E5A28, 0.4 + 0.3 * luz), 0.75))
+
+
+def _fronda(lz, m, tiempo, bx, by, tx, ty, color, luz, dir) -> None:
+    nervios = 9
+    mece = math.sin(tiempo * 0.35) * m.ancho * 0.012
+    for k in range(nervios):
+        a = k / (nervios - 1)
+        ex = bx + (tx - bx) * (0.6 + 0.6 * a) + dir * (a - 0.5) * m.ancho * 0.10 + mece
+        ey = by + (ty - by) * (0.5 + 0.9 * a)
+        pasos = 10
+        for p in range(pasos + 1):
+            t = p / pasos
+            x = int(bx + (ex - bx) * t + mece * t)
+            y = int(by + (ey - by) * t)
+            ancho = max(2, int(m.ancho * 0.014 * (1.0 - t * 0.5)))
+            lz.fill(x - ancho, y - 1, x + ancho, y + 2,
+                    con_alfa(iluminar(color, 0.35 + 0.30 * luz), 0.88))
+
+
 PRIMEROS_PLANOS = {
     "sala": pp_sala,
     "nave": pp_nave,
@@ -2105,13 +2306,14 @@ PRIMEROS_PLANOS = {
     "natatorio": pp_natatorio,
     "cripta": pp_cripta,
     "biblioteca": pp_biblioteca,
+    "invernadero": pp_invernadero,
 }
 
 
 PLANTAS = {"sala": sala, "nave": nave, "servicio": servicio, "natatorio": natatorio,
-           "cripta": cripta, "biblioteca": biblioteca}
+           "cripta": cripta, "biblioteca": biblioteca, "invernadero": invernadero}
 PISO_PRESENCIA = {"sala": 0.94, "nave": 1.30, "servicio": 0.98, "natatorio": 1.18,
-                  "cripta": 0.98, "biblioteca": 0.96}
+                  "cripta": 0.98, "biblioteca": 0.96, "invernadero": 0.96}
 
 
 # --------------------------------------------------------------------------

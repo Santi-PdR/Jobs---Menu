@@ -442,5 +442,63 @@ public final class PrimerPlano {
                 px + (int) (m.ancho() * 0.03F), py - ph + 4,
                 Paleta.iluminar(verde, Math.min(1.0F, luz * titil * 1.1F)));
     }
+
+    // ----------------------------------------------------------------------
+    // Nivel 6 - El invernadero: hojas colgando desde el borde superior
+    // ----------------------------------------------------------------------
+
+    /**
+     * Frondas grandes que cuelgan del entramado y entran por las esquinas de
+     * arriba, muy cerca de la camara. Es la vegetacion que se comio el techo, y
+     * lo que dice que se mira el invernadero desde debajo de una planta trepadora.
+     * Se mecen lentisimo con la corriente.
+     */
+    public static void invernadero(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
+        // Una fronda desde la esquina superior izquierda y otra, mas chica,
+        // desde la derecha. En sombra: estan a contraluz del vidrio.
+        frondaColgante(grafico, m, tiempo, -m.ancho() * 0.02F, 0.0F, m.ancho() * 0.34F,
+                m.alto() * 0.40F, 0xFF223C18, luz, 1.0F);
+        frondaColgante(grafico, m, tiempo + 3.0F, m.ancho() * 1.02F, 0.0F, m.ancho() * 0.72F,
+                m.alto() * 0.30F, 0xFF1C3414, luz, -1.0F);
+
+        // Una maceta colgante con enredadera cayendo, mas al centro-derecha.
+        int cx = (int) (m.ancho() * 0.80F);
+        int cy = 0;
+        int largo = (int) (m.alto() * 0.34F);
+        for (int i = 0; i < largo; i += 4) {
+            float t = i / (float) largo;
+            float sway = (float) Math.sin(tiempo * 0.5F + t * 3.0F) * m.ancho() * 0.01F;
+            int x = (int) (cx + sway);
+            grafico.fill(x - 1, cy + i, x + 2, cy + i + 3,
+                    Paleta.conAlfa(Paleta.iluminar(0xFF2E4A1E, 0.4F + 0.3F * luz), 0.85F));
+            if (i % 16 == 0) {
+                grafico.fill(x - 4, cy + i, x + 5, cy + i + 4,
+                        Paleta.conAlfa(Paleta.iluminar(0xFF3E5A28, 0.4F + 0.3F * luz), 0.75F));
+            }
+        }
+    }
+
+    /** Una hoja/fronda grande en abanico, anclada a una esquina de arriba. */
+    private static void frondaColgante(GuiGraphics grafico, Marco m, float tiempo,
+                                       float bx, float by, float tx, float ty,
+                                       int color, float luz, float dir) {
+        int nervios = 9;
+        float mece = (float) Math.sin(tiempo * 0.35F) * m.ancho() * 0.012F;
+        for (int k = 0; k < nervios; k++) {
+            float a = k / (float) (nervios - 1);
+            // Cada nervio abre en abanico desde el anclaje.
+            float ex = bx + (tx - bx) * (0.6F + 0.6F * a) + dir * (a - 0.5F) * m.ancho() * 0.10F + mece;
+            float ey = by + (ty - by) * (0.5F + 0.9F * a);
+            int pasos = 10;
+            for (int p = 0; p <= pasos; p++) {
+                float t = p / (float) pasos;
+                int x = (int) (bx + (ex - bx) * t + mece * t);
+                int y = (int) (by + (ey - by) * t);
+                int ancho = Math.max(2, (int) (m.ancho() * 0.014F * (1.0F - t * 0.5F)));
+                grafico.fill(x - ancho, y - 1, x + ancho, y + 2,
+                        Paleta.conAlfa(Paleta.iluminar(color, 0.35F + 0.30F * luz), 0.88F));
+            }
+        }
+    }
 }
 

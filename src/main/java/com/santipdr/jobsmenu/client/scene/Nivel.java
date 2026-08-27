@@ -2,6 +2,7 @@ package com.santipdr.jobsmenu.client.scene;
 
 import com.santipdr.jobsmenu.client.scene.planta.Biblioteca;
 import com.santipdr.jobsmenu.client.scene.planta.Cripta;
+import com.santipdr.jobsmenu.client.scene.planta.Invernadero;
 import com.santipdr.jobsmenu.client.scene.planta.Nave;
 import com.santipdr.jobsmenu.client.scene.planta.Natatorio;
 import com.santipdr.jobsmenu.client.scene.planta.Planta;
@@ -205,6 +206,19 @@ public final class Nivel {
                     // central entre las dos hileras de estanterias.
                     0.500F, 0.500F, 0.140F, 0.140F, 0.150F, 0.140F,
                     0.14F, 0.45F),
+
+            // Nivel 6 - El invernadero. Vidrio y hierro tomados por las plantas.
+            // La luz entra por el techo, blanca y difusa. Verdes humedos, hierro
+            // oxidado; el unico recinto iluminado desde arriba y por luz natural.
+            new Nivel("nivel6", new Invernadero(),
+                    0xFF8A9A6E, 0xFF566040, 0xFF3B3B22,
+                    0xFF4C5436, 0xFF343A24, 0xFF20240E,
+                    0xFFC8D4B0, 0xFF6E7A50,
+                    0xFF7E8C64, 0xFFF2F6E0, 0xFF141810,
+                    // Nave ancha y alta de techo a dos aguas, vista de frente por
+                    // el sendero central. Se abre a lo alto: el techo es el tema.
+                    0.500F, 0.500F, 0.165F, 0.165F, 0.175F, 0.130F,
+                    0.18F, 0.60F),
     };
 
     /** Cuantos niveles hay en la rotacion. */
