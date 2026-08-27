@@ -10,7 +10,7 @@
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
 | Paquete Java | `com.santipdr.jobsmenu` |
-| Versión actual | **0.6.3** |
+| Versión actual | **0.6.4** |
 | Plataforma | Minecraft **1.20.1** · Forge **47.x** · Java **17** |
 | Alcance | Menús (Title / Pause / Options), escena viva, audio, lore. **Sin gameplay.** |
 | Lado | **Cliente**. El mod no toca el servidor ni exige instalarse en él. |

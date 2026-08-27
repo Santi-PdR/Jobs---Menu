@@ -193,9 +193,11 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         if (permitido) {
             objetivo = ConfigTurno.volumenMusica() * MezclaAudio.MUSICA;
 
-            // Entrada larga la primera vez: veinte segundos hasta el volumen
-            // pleno. Que la musica ya este ahi cuando el jugador se da cuenta.
-            float entrada = Math.min(1.0F, this.edad / 400.0F);
+            // Entrada suave pero no eterna: unos seis segundos hasta el volumen
+            // pleno (antes eran veinte, y con la curva al cuadrado el tema no se
+            // oia hasta pasado medio minuto; quien entraba un momento al menu se
+            // iba sin escuchar nada). Sigue siendo un fundido, no un golpe.
+            float entrada = Math.min(1.0F, this.edad / 120.0F);
             objetivo *= entrada * entrada;
 
             // Durante el apagon la musica se sostiene, pero cede un poco de

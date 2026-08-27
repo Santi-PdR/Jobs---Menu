@@ -70,48 +70,21 @@ tasks.named('processResources', ProcessResources).configure {
     filesMatching(['META-INF/mods.toml']) {
         expand replaceProperties
     }
-
-    // PISTA PROPIA HORNEADA EN EL JAR
+    // NOTA SOBRE LA MUSICA
     //
-    // El tema del menu que viene de fabrica es la pieza sintetizada
-    // (musica/defecto.ogg, generada por tools/sonidos.py y versionada en el
-    // repo). Si el owner tiene una pista con permiso -por ejemplo REQUIEM, de
-    // Emmy Z, para un server entre amigos con el credito puesto- deja CUALQUIER
-    // archivo .ogg en la carpeta 'music/' de la raiz del repo y ese archivo
-    // REEMPLAZA al defecto DENTRO DEL JAR compilado, sin tocar el .ogg
-    // versionado ni el codigo. Asi la pista viaja con el mod.
+    // La pista del menu es el propio archivo versionado
+    // assets/jobsmenu/sounds/musica/defecto.ogg. Desde 0.6.4 es REQUIEM
+    // directamente -no se hornea en tiempo de compilacion-, porque el paso de
+    // build que la copiaba era fragil y podia no ejecutarse (cache de
+    // processResources), y de hecho la pista no llegaba a sonar. Ahora el .ogg
+    // que suena ES el que esta en el arbol de recursos, sin magia de Gradle: lo
+    // que ves en el repo es lo que entra al JAR. El original de la pista, tal
+    // como lo subio el owner, queda archivado en music/ como respaldo.
     //
-    // El nombre del archivo da igual: se toma el primer .ogg por orden
-    // alfabetico. Eso evita el error tipico de que el nombre no coincida y el
-    // build no encuentre nada. El archivo NO se versiona (esta en .gitignore):
-    // la obra de un tercero no entra al control de versiones. Se declara la
-    // carpeta como entrada opcional para que el build se rehaga si cambia y no
-    // falle si esta vacia.
-    def carpetaPista = rootProject.file('music')
-    inputs.files(fileTree(dir: carpetaPista, includes: ['*.ogg'])).optional()
-    doLast {
-        def destino = layout.buildDirectory
-                .file('resources/main/assets/jobsmenu/sounds/musica/defecto.ogg').get().asFile
-        // El marcador dice al mod que la pista horneada es una obra con credito
-        // (REQUIEM), no el tema sintetizado. Sin el, el credito de pantalla no
-        // se muestra: nunca se atribuye a un autor la pieza generada por el mod.
-        def marcador = layout.buildDirectory
-                .file('resources/main/assets/jobsmenu/musica_creditada.txt').get().asFile
-        def oggs = carpetaPista.exists() ? carpetaPista.listFiles({ f ->
-            f.isFile() && f.name.toLowerCase().endsWith('.ogg')
-        } as FileFilter) : null
-        def fuente = (oggs != null && oggs.length > 0) ? oggs.sort { it.name.toLowerCase() }[0] : null
-        if (fuente != null) {
-            destino.parentFile.mkdirs()
-            destino.bytes = fuente.bytes
-            marcador.parentFile.mkdirs()
-            marcador.text = 'requiem'
-            logger.lifecycle("[jobsmenu] Pista con credito horneada en el JAR desde music/${fuente.name}")
-        } else {
-            marcador.delete()
-            logger.lifecycle('[jobsmenu] Sin .ogg en music/: el JAR usa el tema sintetizado, sin credito.')
-        }
-    }
+    // Para cambiar de pista: reemplazar assets/jobsmenu/sounds/musica/defecto.ogg
+    // por otro OGG Vorbis. El credito de pantalla lo activa el recurso
+    // assets/jobsmenu/musica_creditada.txt (si no debe haber credito -tema
+    // propio del mod-, se borra ese archivo).
 }
 
 tasks.named('jar', Jar).configure {
