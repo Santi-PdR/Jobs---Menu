@@ -28,7 +28,7 @@ SUBTITULOS: set[str] = set()
 # Cuantas piezas de audio tiene la identidad sonora completa: 8 de interfaz,
 # 4 ambientes de sala, 13 eventos, 3 de transicion electrica, 1 de la figura
 # y 1 de musica. Si el numero baja, algo se perdio por el camino.
-PIEZAS_ESPERADAS = 62
+PIEZAS_ESPERADAS = 68
 
 
 def fallo(mensaje: str) -> None:

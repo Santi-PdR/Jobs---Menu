@@ -2,6 +2,7 @@ package com.santipdr.jobsmenu.client.scene;
 
 import com.santipdr.jobsmenu.client.scene.planta.Biblioteca;
 import com.santipdr.jobsmenu.client.scene.planta.Catacumba;
+import com.santipdr.jobsmenu.client.scene.planta.Cisterna;
 import com.santipdr.jobsmenu.client.scene.planta.Cripta;
 import com.santipdr.jobsmenu.client.scene.planta.Invernadero;
 import com.santipdr.jobsmenu.client.scene.planta.Nave;
@@ -233,6 +234,19 @@ public final class Nivel {
                     // un poco hacia el fondo (horizonte alto).
                     0.470F, 0.470F, 0.070F, 0.082F, 0.130F, 0.112F,
                     0.24F, 0.85F),
+
+            // Nivel 8 - La cisterna. Aljibe enorme: columnas naciendo de un agua
+            // negra que lo refleja todo, focos sumergidos que la tinen, goteo
+            // con eco. Azul profundo y ambar de los focos. Reflejo altisimo.
+            new Nivel("nivel8", new Cisterna(),
+                    0xFF4A5A6E, 0xFF2A3644, 0xFF17202A,
+                    0xFF1E2A38, 0xFF121A24, 0xFF0A0F16,
+                    0xFF3A4A5C, 0xFF22303E,
+                    0xFF1E2A38, 0xFFFFC878, 0xFF05080C,
+                    // Nave ancha y de techo bajo, vista al ras del agua desde una
+                    // pasarela; se abre a lo ancho, poco a lo alto.
+                    0.500F, 0.500F, 0.190F, 0.190F, 0.092F, 0.118F,
+                    0.80F, 0.55F),
     };
 
     /** Cuantos niveles hay en la rotacion. */

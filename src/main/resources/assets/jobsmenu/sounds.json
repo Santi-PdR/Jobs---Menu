@@ -135,6 +135,16 @@
       }
     ]
   },
+  "ambiente.nivel8": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.ambiente.nivel8",
+    "sounds": [
+      {
+        "name": "jobsmenu:ambiente/nivel8",
+        "stream": false
+      }
+    ]
+  },
   "caracter.nivel0": {
     "category": "ambient",
     "subtitle": "jobsmenu.subtitulo.caracter.nivel0",
@@ -215,6 +225,16 @@
       }
     ]
   },
+  "caracter.nivel8": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.caracter.nivel8",
+    "sounds": [
+      {
+        "name": "jobsmenu:caracter/nivel8",
+        "stream": false
+      }
+    ]
+  },
   "actividad.nivel0": {
     "category": "ambient",
     "subtitle": "jobsmenu.subtitulo.actividad.nivel0",
@@ -291,6 +311,16 @@
     "sounds": [
       {
         "name": "jobsmenu:actividad/nivel7",
+        "stream": true
+      }
+    ]
+  },
+  "actividad.nivel8": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel8",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel8",
         "stream": true
       }
     ]
@@ -468,6 +498,27 @@
     "subtitle": "jobsmenu.subtitulo.evento.nivel7_viento",
     "sounds": [
       "jobsmenu:evento/nivel7_viento"
+    ]
+  },
+  "evento.nivel8_gota": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel8_gota",
+    "sounds": [
+      "jobsmenu:evento/nivel8_gota"
+    ]
+  },
+  "evento.nivel8_chapoteo": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel8_chapoteo",
+    "sounds": [
+      "jobsmenu:evento/nivel8_chapoteo"
+    ]
+  },
+  "evento.nivel8_columna": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel8_columna",
+    "sounds": [
+      "jobsmenu:evento/nivel8_columna"
     ]
   },
   "nivel.titileo": {

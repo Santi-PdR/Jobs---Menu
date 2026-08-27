@@ -219,6 +219,16 @@ NIVELES = [
           fuga_x=0.470, fuga_y=0.470,
           semi_izq=0.070, semi_der=0.082, semi_alto=0.130, semi_bajo=0.112,
           reflejo=0.24, humedad=0.85),
+
+    # Nivel 8 - La cisterna. Columnas sobre agua negra que lo refleja todo.
+    Nivel(clave="nivel8", planta="cisterna",
+          pared_alta=0xFF4A5A6E, pared_baja=0xFF2A3644, junta=0xFF17202A,
+          suelo=0xFF1E2A38, suelo_lejos=0xFF121A24, suelo_junta=0xFF0A0F16,
+          techo=0xFF3A4A5C, techo_junta=0xFF22303E,
+          niebla=0xFF1E2A38, luz=0xFFFFC878, fondo=0xFF05080C,
+          fuga_x=0.500, fuga_y=0.500,
+          semi_izq=0.190, semi_der=0.190, semi_alto=0.092, semi_bajo=0.118,
+          reflejo=0.80, humedad=0.55),
 ]
 
 
@@ -2489,6 +2499,150 @@ def pp_catacumba(lz, m, nivel, luz, tiempo) -> None:
             con_alfa(iluminar(0xFFFFE0A0, min(1.0, luz * titil * 1.4)), 0.95))
 
 
+# --------------------------------------------------------------------------
+# Nivel 8 - La cisterna: espejo de planta/Cisterna.java
+# --------------------------------------------------------------------------
+CIS_TRAMOS = 16
+CIS_ORILLA = 1.02
+CIS_HILERA = 0.60
+
+
+def cisterna(lz, m, nivel, luz, tiempo) -> None:
+    t_fondo(lz, m, nivel, luz, mezclar(nivel.fondo, nivel.pared_baja, 0.20), 1.10)
+    t_plano(lz, m, True, mezclar(nivel.techo, nivel.pared_baja, 0.35),
+            mezclar(nivel.techo, nivel.niebla, 0.55), nivel.niebla, luz, 0.55)
+    t_transversales(lz, m, True, nivel.techo_junta, nivel.niebla, luz, CIS_TRAMOS, 0.26)
+    cis_agua(lz, m, nivel, luz, tiempo)
+    t_paredes(lz, m, nivel, luz)
+    t_manchas(lz, m, nivel, luz, CIS_TRAMOS)
+    cis_columnas(lz, m, nivel, luz, tiempo)
+    cis_focos(lz, m, nivel, luz, tiempo)
+    cis_gotas(lz, m, nivel, luz, tiempo)
+
+
+def cis_agua(lz, m, nivel, luz, tiempo) -> None:
+    desde = round(m.suelo_en(CIS_ORILLA))
+    for y in range(desde, m.alto, PASO):
+        dy = m.dy(y + PASO * 0.5)
+        lej = limitar(1.0 / dy, 0.0, 1.0)
+        agua_base = velar(mezclar(nivel.suelo, nivel.fondo, 0.55), nivel.niebla, lej, 0.30)
+        lz.fill(0, y, m.ancho, y + PASO, iluminar(agua_base, atenuar(luz, lej) * 0.7))
+    if 0 <= desde < m.alto:
+        lz.fill(0, desde, m.ancho, desde + 1, con_alfa(iluminar(nivel.luz, luz * 0.5), 0.35))
+
+
+def cis_columnas(lz, m, nivel, luz, tiempo) -> None:
+    for j in range(2, CIS_TRAMOS + 1, 2):
+        dx = profundidad(j, CIS_TRAMOS)
+        if dx > 7.0:
+            continue
+        lej = limitar(1.0 / dx, 0.0, 1.0)
+        at = atenuar(luz, lej)
+        ancho = max(2.0, m.w * dx * 0.05)
+        y_techo = m.techo_en(dx * 0.92)
+        y_base = m.suelo_en(max(CIS_ORILLA, dx))
+        for signo in (-1, 1):
+            x = m.lado(signo, dx * CIS_HILERA)
+            if x < -ancho * 2 or x > m.ancho + ancho * 2:
+                continue
+            frente = iluminar(velar(nivel.pared_alta, nivel.niebla, lej, 0.45), at * 0.9)
+            costado = iluminar(velar(nivel.pared_baja, nivel.niebla, lej, 0.50), at * 0.55)
+            corte = ancho * 0.42 * (1 if signo < 0 else -1)
+            lz.fill(int(x - ancho), int(y_techo), int(x + corte), int(y_base),
+                    costado if signo < 0 else frente)
+            lz.fill(int(x + corte), int(y_techo), int(x + ancho), int(y_base),
+                    frente if signo < 0 else costado)
+            cap_a = m.h * dx * 0.05
+            lz.fill(int(x - ancho * 1.3), int(y_techo), int(x + ancho * 1.3), int(y_techo + cap_a),
+                    iluminar(velar(nivel.junta, nivel.niebla, lej, 0.4), at * 0.8))
+            largo = (y_base - y_techo) * 0.8
+            pasos = 12
+            for k in range(pasos):
+                t = k / pasos
+                ry0 = int(y_base + largo * t)
+                ry1 = int(y_base + largo * (k + 1) / pasos)
+                if ry0 >= m.alto:
+                    break
+                onda = math.sin(tiempo * 0.5 + t * 6.0 + j) * ancho * 0.4
+                desvanece = (1.0 - t) * (1.0 - t) * 0.5
+                lz.fill(int(x - ancho + onda), ry0, int(x + ancho + onda), max(ry0 + 1, ry1),
+                        con_alfa(iluminar(velar(nivel.pared_alta, nivel.niebla, lej, 0.5), at * 0.6), desvanece * luz))
+
+
+def cis_focos(lz, m, nivel, luz, tiempo) -> None:
+    for j in range(3, CIS_TRAMOS + 1, 4):
+        dx = profundidad(j, CIS_TRAMOS)
+        if dx > 6.0:
+            continue
+        lej = limitar(1.0 / dx, 0.0, 1.0)
+        x = m.centro(dx)
+        y = m.suelo_en(max(CIS_ORILLA, dx))
+        titil = 0.85 + 0.15 * math.sin(tiempo * 1.5 + j)
+        at = atenuar(luz, lej) * titil
+        medio = max(2.0, m.w * dx * 0.06)
+        for k in range(5, 0, -1):
+            t = k / 5.0
+            ex = medio * (1.0 + t * 3.0)
+            ey = medio * (1.0 + t * 5.0)
+            lz.fill(int(x - ex), int(y - ey), int(x + ex), int(y + ey * 0.3),
+                    con_alfa(nivel.luz, 0.05 * at * (1.0 - t * 0.5)))
+        lz.fill(int(x - medio * 0.5), int(y - 1), int(x + medio * 0.5), int(y + 2),
+                con_alfa(iluminar(nivel.luz, min(1.0, at * 1.2)), 0.7))
+
+
+def cis_gotas(lz, m, nivel, luz, tiempo) -> None:
+    desde = round(m.suelo_en(CIS_ORILLA))
+    for i in range(8):
+        dx = 1.4 + pseudo(i * 13) * (CIS_TRAMOS * 0.4)
+        frac = (pseudo(i * 13 + 1) - 0.5) * 1.6
+        x = m.en_x(dx, frac)
+        y = m.suelo_en(max(CIS_ORILLA, dx))
+        if x < 0 or x > m.ancho or y < desde:
+            continue
+        lej = limitar(1.0 / dx, 0.0, 1.0)
+        ciclo = (tiempo * 0.4 + pseudo(i * 13 + 2)) % 1.0
+        if ciclo > 0.4:
+            continue
+        r = ciclo / 0.4
+        radio = m.w * dx * 0.06 * r
+        a = (1.0 - r) * 0.5 * atenuar(luz, lej)
+        col = con_alfa(iluminar(nivel.luz, luz), a)
+        lz.fill(int(x - radio), int(y), int(x + radio), int(y) + 1, col)
+        lz.fill(int(x - radio * 0.6), int(y) + 2, int(x + radio * 0.6), int(y) + 3, col)
+
+
+def pp_cisterna(lz, m, nivel, luz, tiempo) -> None:
+    balance = desvio(tiempo, 1.6, 0.09)
+    w, h = m.ancho, m.alto
+    hierro = mezclar(nivel.junta, 0x000000, 0.35)
+    pas_y = int(h * 0.80 + balance)
+    grosor = max(3, int(h * 0.018))
+    lz.fill_gradient(0, pas_y, w, pas_y + grosor,
+                     iluminar(hierro, 0.40 + 0.20 * luz), iluminar(hierro, 0.20 + 0.10 * luz))
+    lz.fill(0, pas_y, w, pas_y + 1, con_alfa(iluminar(nivel.luz, luz), 0.16))
+    bajo_y = pas_y + int(h * 0.10)
+    lz.fill(0, bajo_y, w, bajo_y + max(2, grosor // 2), iluminar(hierro, 0.28 + 0.14 * luz))
+    paso = max(24, int(w * 0.11))
+    x = int(paso * 0.5 + balance * 2.0)
+    while x < w:
+        lz.fill_gradient(x, pas_y, x + max(2, grosor // 2), h,
+                         iluminar(hierro, 0.34 + 0.16 * luz), iluminar(hierro, 0.12 + 0.08 * luz))
+        x += paso
+    lz.fill_gradient(0, bajo_y + grosor // 2, w, h, con_alfa(0x000000, 0.30), con_alfa(0x000000, 0.62))
+    fx = int(w * 0.24 + balance * 2.0)
+    fy = pas_y
+    fh = int(h * 0.09)
+    titil = 0.85 + 0.15 * math.sin(tiempo * 6.0)
+    for k in range(4, 0, -1):
+        t = k / 4.0
+        e = w * 0.03 * (1.0 + t * 2.4)
+        lz.fill(int(fx - e), int(fy - fh - e * 0.5), int(fx + e), fy,
+                con_alfa(nivel.luz, 0.07 * luz * titil * (1.0 - t * 0.5)))
+    lz.fill(fx - 3, fy - fh, fx + 3, fy, con_alfa(iluminar(hierro, luz), 0.92))
+    lz.fill(fx - 2, fy - fh + 2, fx + 2, fy - 2,
+            con_alfa(iluminar(0xFFFFE0A0, min(1.0, luz * titil * 1.3)), 0.9))
+
+
 PRIMEROS_PLANOS = {
     "sala": pp_sala,
     "nave": pp_nave,
@@ -2498,15 +2652,16 @@ PRIMEROS_PLANOS = {
     "biblioteca": pp_biblioteca,
     "invernadero": pp_invernadero,
     "catacumba": pp_catacumba,
+    "cisterna": pp_cisterna,
 }
 
 
 PLANTAS = {"sala": sala, "nave": nave, "servicio": servicio, "natatorio": natatorio,
            "cripta": cripta, "biblioteca": biblioteca, "invernadero": invernadero,
-           "catacumba": catacumba}
+           "catacumba": catacumba, "cisterna": cisterna}
 PISO_PRESENCIA = {"sala": 0.94, "nave": 1.30, "servicio": 0.98, "natatorio": 1.18,
                   "cripta": 0.98, "biblioteca": 0.96, "invernadero": 0.96,
-                  "catacumba": 0.97}
+                  "catacumba": 0.97, "cisterna": 1.00}
 
 
 # --------------------------------------------------------------------------

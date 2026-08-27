@@ -560,5 +560,63 @@ public final class PrimerPlano {
         grafico.fill(vx - 1, vy - (int) (h * 0.065F), vx + 1, vy - (int) (h * 0.05F),
                 Paleta.conAlfa(Paleta.iluminar(0xFFFFE0A0, Math.min(1.0F, luz * titil * 1.4F)), 0.95F));
     }
+
+    // ----------------------------------------------------------------------
+    // Nivel 8 - La cisterna: la baranda de la pasarela al ras del agua
+    // ----------------------------------------------------------------------
+
+    /**
+     * La baranda de hierro de la pasarela, cruzando el borde inferior.
+     *
+     * Se mira la cisterna desde una pasarela metalica al ras del agua: una
+     * baranda horizontal con montantes verticales, en silueta contra el agua
+     * apenas luminosa, muy cerca. Es lo que pone al que mira sobre el agua y no
+     * dentro de ella. El pasamanos capta un brillo de los focos.
+     */
+    public static void cisterna(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
+        float balance = desvio(tiempo, 1.6F, 0.09F);
+        int w = m.ancho();
+        int h = m.alto();
+        int hierro = Paleta.mezclar(nivel.junta, 0xFF000000, 0.35F);
+
+        // El pasamanos superior.
+        int pasY = (int) (h * 0.80F + balance);
+        int grosor = Math.max(3, (int) (h * 0.018F));
+        grafico.fillGradient(0, pasY, w, pasY + grosor,
+                Paleta.iluminar(hierro, 0.40F + 0.20F * luz), Paleta.iluminar(hierro, 0.20F + 0.10F * luz));
+        // Brillo de los focos en el canto de arriba del pasamanos.
+        grafico.fill(0, pasY, w, pasY + 1, Paleta.conAlfa(Paleta.iluminar(nivel.luz, luz), 0.16F));
+
+        // El larguero inferior.
+        int bajoY = pasY + (int) (h * 0.10F);
+        grafico.fill(0, bajoY, w, bajoY + Math.max(2, grosor / 2), Paleta.iluminar(hierro, 0.28F + 0.14F * luz));
+
+        // Montantes verticales cada tanto, desde el pasamanos hasta el borde.
+        int paso = Math.max(24, (int) (w * 0.11F));
+        for (int x = (int) (paso * 0.5F + balance * 2.0F); x < w; x += paso) {
+            grafico.fillGradient(x, pasY, x + Math.max(2, grosor / 2), h,
+                    Paleta.iluminar(hierro, 0.34F + 0.16F * luz), Paleta.iluminar(hierro, 0.12F + 0.08F * luz));
+        }
+
+        // El frente sombrio de la pasarela por debajo del larguero.
+        grafico.fillGradient(0, bajoY + grosor / 2, w, h,
+                Paleta.conAlfa(0xFF000000, 0.30F), Paleta.conAlfa(0xFF000000, 0.62F));
+
+        // Un farol de mano posado en la baranda, a la izquierda, con su reflejo
+        // temblando en el agua justo debajo.
+        int fx = (int) (w * 0.24F + balance * 2.0F);
+        int fy = pasY;
+        int fh = (int) (h * 0.09F);
+        float titil = 0.85F + 0.15F * (float) Math.sin(tiempo * 6.0F);
+        for (int k = 4; k >= 1; k--) {
+            float t = k / 4.0F;
+            float e = w * 0.03F * (1.0F + t * 2.4F);
+            grafico.fill((int) (fx - e), (int) (fy - fh - e * 0.5F), (int) (fx + e), fy,
+                    Paleta.conAlfa(nivel.luz, 0.07F * luz * titil * (1.0F - t * 0.5F)));
+        }
+        grafico.fill(fx - 3, fy - fh, fx + 3, fy, Paleta.conAlfa(Paleta.iluminar(hierro, luz), 0.92F));
+        grafico.fill(fx - 2, fy - fh + 2, fx + 2, fy - 2,
+                Paleta.conAlfa(Paleta.iluminar(0xFFFFE0A0, Math.min(1.0F, luz * titil * 1.3F)), 0.9F));
+    }
 }
 

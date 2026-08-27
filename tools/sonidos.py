@@ -216,6 +216,9 @@ SALAS = {
     # Catacumbas: tunel de piedra estrecho. Cola media, muy oscura y con muchas
     # reflexiones cercanas -las paredes estan a un brazo-, sin nada de agudos.
     "catacumbas": impulso(1.60, 0.006, 1_600.0, 1.6),
+    # Cisterna: aljibe enorme lleno de agua. La cola mas larga de todas, oscura
+    # y con muchisimo cuerpo; el agua y la piedra hacen que todo dure segundos.
+    "cisterna": impulso(5.20, 0.040, 3_000.0, 1.7),
 }
 
 
@@ -904,6 +907,28 @@ def base_nivel7(dur: float = 24.0) -> np.ndarray:
     return reverberar(x, SALAS["catacumbas"], 0.30)
 
 
+def base_nivel8(dur: float = 27.0) -> np.ndarray:
+    """Nivel 8, la cisterna.
+
+    Un volumen de aire enorme sobre agua quieta. La base es el grave hondo del
+    espacio -mas grande que el deposito- y la masa de agua moviendose apenas
+    contra las columnas. Todo pasado por la cola larguisima del aljibe: el sitio
+    suena tan grande que un solo sonido tarda en morir.
+    """
+    t = tiempo(dur)
+
+    # El volumen del aljibe: grave profundo y estable.
+    volumen = pasabajos(marron(dur), 120.0, 3) * 4.4 * deriva(dur, 0.013, 0.25)
+    volumen = pasaaltos(volumen, 30.0, 2)
+
+    # La masa de agua contra la piedra: ondulacion lentisima, grave.
+    ola = 0.6 + 0.4 * (np.sin(2 * np.pi * 0.045 * t) * 0.6 + np.sin(2 * np.pi * 0.031 * t + 1.5) * 0.4)
+    agua = pasabanda(rosa(dur), 90.0, 500.0, 2) * np.clip(ola, 0.0, None) * 0.7
+
+    x = volumen * 0.08 + agua * 0.06
+    return reverberar(x, SALAS["cisterna"], 0.50)
+
+
 # ==========================================================================
 # 2b. Capa de caracter: la segunda cama, tambien continua
 # ==========================================================================
@@ -1189,6 +1214,35 @@ def caracter_nivel7(dur: float = 37.0) -> np.ndarray:
 
     x = gotas * 0.28 + roce * 0.05
     return reverberar(x, SALAS["catacumbas"], 0.42)
+
+
+def caracter_nivel8(dur: float = 41.0) -> np.ndarray:
+    """Nivel 8. El agua de la cisterna, siempre, con su eco larguisimo.
+
+    Gotas que caen de la boveda al agua, cada una con una cola enorme -el
+    sonido mas caracteristico de un aljibe-, y el lametazo lento del agua contra
+    las columnas. Es la capa que hace el sitio: sin ella es una cueva seca.
+    """
+    t = tiempo(dur)
+
+    # Gotas al agua, muy espaciadas, cada una con su plink que la sala alarga.
+    gotas = np.zeros(len(t))
+    for _ in range(22):
+        pos = muestras(RNG.uniform(0.3, dur - 0.4))
+        largo = min(muestras(RNG.uniform(0.06, 0.20)), len(t) - pos)
+        if largo <= 0:
+            continue
+        tc = np.arange(largo) / SR
+        f = RNG.uniform(500.0, 1_300.0)
+        g = np.sin(2 * np.pi * f * tc * (1 + 1.5 * np.exp(-tc / 0.02))) * np.exp(-tc / 0.06)
+        gotas[pos:pos + largo] += g * RNG.uniform(0.12, 0.32)
+
+    # Lametazo del agua contra la piedra: banda baja, lento.
+    lame = pasabanda(rosa(dur), 120.0, 600.0, 2)
+    lame *= np.clip(np.sin(2 * np.pi * 0.08 * t) * 0.5 + 0.5, 0.0, None) * 0.5
+
+    x = gotas * 0.30 + lame * 0.06
+    return reverberar(x, SALAS["cisterna"], 0.56)
 
 
 
@@ -1494,6 +1548,32 @@ def actividad_nivel7(dur: float = 55.0) -> np.ndarray:
     _sembrar(x, rueda, 28.5, 0.13)
 
     return reverberar(x, SALAS["catacumbas"], 0.68)
+
+
+def actividad_nivel8(dur: float = 59.0) -> np.ndarray:
+    """Nivel 8. La cisterna, donde cada suceso tarda cinco segundos en morir.
+
+    Casi vacio y con la cola mas larga de todas: algo cayendo al agua en otra
+    nave, una columna asentandose, el chapoteo de algo que se movio bajo el
+    agua. La sala hace todo el trabajo; se pone MENOS de lo que uno pondria.
+    """
+    x = np.zeros(muestras(dur))
+
+    # Algo entrando al agua, lejos: un chof grave y ancho.
+    chof = _lejos(cargar("impactSoft_heavy_001"), 0.9, 700.0, 120.0)
+    for s, g in ((11.7, 0.20), (37.2, 0.24), (54.0, 0.16)):
+        _sembrar(x, chof, s, g)
+
+    # Una columna o un sillar bajo el agua asentandose: grave, con cola.
+    sillar = _lejos(cargar("impactoSordo_000"), 1.1, 500.0, 80.0)
+    _sembrar(x, sillar, 22.4, 0.18)
+    _sembrar(x, sillar, 46.8, 0.14)
+
+    # Chapoteo metalico lejano: la pasarela, quiza.
+    metal = _lejos(cargar("impactMetal_light_000"), 1.5, 1_800.0, 240.0)
+    _sembrar(x, metal, 30.1, 0.12)
+
+    return reverberar(x, SALAS["cisterna"], 0.80)
 
 
 # ==========================================================================
@@ -1901,6 +1981,40 @@ def ev_nivel7_viento() -> np.ndarray:
     return rampa(reverberar(x, SALAS["catacumbas"], 0.60), 0.10, 1.10)
 
 
+def ev_nivel8_gota() -> np.ndarray:
+    """Una gota grande al agua del aljibe. Plink hueco con una cola larguisima."""
+    dur = 4.0
+    n = muestras(dur)
+    t = tiempo(dur)
+    f = 640.0
+    plink = np.sin(2 * np.pi * f * t * (1 + 2.2 * np.exp(-t / 0.03))) * np.exp(-t / 0.07)
+    x = plink * 0.32
+    return rampa(reverberar(x, SALAS["cisterna"], 0.66), 0.002, 1.30)
+
+
+def ev_nivel8_chapoteo() -> np.ndarray:
+    """Algo moviendose bajo el agua, lejos. Un remolino grave que sube y baja."""
+    dur = 4.4
+    n = muestras(dur)
+    t = tiempo(dur)
+    agua = pasabanda(rosa(dur), 150.0, 1_100.0, 2)
+    sobre = np.sin(np.pi * np.clip(t / dur, 0, 1)) ** 2
+    agua *= 0.4 + 0.6 * np.clip(np.sin(2 * np.pi * 0.8 * t), 0, None)
+    x = agua * sobre * 0.16
+    return rampa(reverberar(x, SALAS["cisterna"], 0.62), 0.05, 1.10)
+
+
+def ev_nivel8_columna() -> np.ndarray:
+    """Una columna asentandose bajo el agua. Grave, sordo, con eco enorme."""
+    dur = 5.0
+    n = muestras(dur)
+    t = tiempo(dur)
+    golpe = pasabajos(RNG.normal(0, 1, n), 300.0, 2) * envolvente(n, 0.004, 0.14, 4.0)
+    cuerpo = np.sin(2 * np.pi * 38.0 * t) * np.exp(-t / 0.6) * 0.4
+    x = pasabajos(golpe * 0.6 + cuerpo, 900.0, 2) * 0.30
+    return rampa(reverberar(x, SALAS["cisterna"], 0.78), 0.01, 1.40)
+
+
 # ==========================================================================
 # 4. Transicion entre niveles
 # ==========================================================================
@@ -2128,6 +2242,7 @@ PIEZAS = {
     "ambiente/nivel5": lambda: bucle_suave(base_nivel5(), 5.0),
     "ambiente/nivel6": lambda: bucle_suave(base_nivel6(), 5.0),
     "ambiente/nivel7": lambda: bucle_suave(base_nivel7(), 5.0),
+    "ambiente/nivel8": lambda: bucle_suave(base_nivel8(), 6.0),
 
     # Capa de caracter, tambien en bucle. Duraciones primas con las bases para
     # que las dos camas de cada nivel no vuelvan a alinearse en toda la sesion.
@@ -2139,6 +2254,7 @@ PIEZAS = {
     "caracter/nivel5": lambda: bucle_suave(caracter_nivel5(), 4.0),
     "caracter/nivel6": lambda: bucle_suave(caracter_nivel6(), 5.0),
     "caracter/nivel7": lambda: bucle_suave(caracter_nivel7(), 4.0),
+    "caracter/nivel8": lambda: bucle_suave(caracter_nivel8(), 6.0),
 
     # Capa de actividad: bucles largos, casi vacios, con sucesos lejanos. El
     # cruce es corto porque casi toda la junta cae sobre silencio.
@@ -2150,6 +2266,7 @@ PIEZAS = {
     "actividad/nivel5": lambda: bucle_suave(actividad_nivel5(), 2.0),
     "actividad/nivel6": lambda: bucle_suave(actividad_nivel6(), 2.0),
     "actividad/nivel7": lambda: bucle_suave(actividad_nivel7(), 2.0),
+    "actividad/nivel8": lambda: bucle_suave(actividad_nivel8(), 2.0),
 
     # Eventos
     "evento/nivel0_tubo": ev_nivel0_tubo,
@@ -2177,6 +2294,9 @@ PIEZAS = {
     "evento/nivel7_gota": ev_nivel7_gota,
     "evento/nivel7_piedra": ev_nivel7_piedra,
     "evento/nivel7_viento": ev_nivel7_viento,
+    "evento/nivel8_gota": ev_nivel8_gota,
+    "evento/nivel8_chapoteo": ev_nivel8_chapoteo,
+    "evento/nivel8_columna": ev_nivel8_columna,
 
     # Transicion
     "nivel/titileo": tr_titileo,

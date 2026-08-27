@@ -149,6 +149,15 @@ public final class GestorAmbiente {
                     new Evento(SonidosNivel.EV_N7_PIEDRA, 1.6F, 0.20F, 0.38F, 0.95F, 1.04F),
                     new Evento(SonidosNivel.EV_N7_VIENTO, 1.0F, 0.16F, 0.30F, 0.98F, 1.02F),
             }),
+
+            // Nivel 8 - La cisterna. Enorme y quieta: gotas al agua con eco
+            // larguisimo, y de fondo el chapoteo de algo que no se ve. Ventanas
+            // largas; la cola de la sala hace casi todo el trabajo.
+            new Repertorio(14_000L, 36_000L, new Evento[] {
+                    new Evento(SonidosNivel.EV_N8_GOTA, 3.0F, 0.22F, 0.42F, 0.92F, 1.10F),
+                    new Evento(SonidosNivel.EV_N8_COLUMNA, 1.5F, 0.20F, 0.38F, 0.95F, 1.03F),
+                    new Evento(SonidosNivel.EV_N8_CHAPOTEO, 1.0F, 0.16F, 0.30F, 0.96F, 1.04F),
+            }),
     };
 
     private static final Random AZAR = new Random();
@@ -281,6 +290,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.AMBIENTE_NIVEL6;
             case 7:
                 return SonidosNivel.AMBIENTE_NIVEL7;
+            case 8:
+                return SonidosNivel.AMBIENTE_NIVEL8;
             default:
                 return SonidosNivel.AMBIENTE_NIVEL0;
         }
@@ -302,6 +313,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.CARACTER_NIVEL6;
             case 7:
                 return SonidosNivel.CARACTER_NIVEL7;
+            case 8:
+                return SonidosNivel.CARACTER_NIVEL8;
             default:
                 return SonidosNivel.CARACTER_NIVEL0;
         }
@@ -323,6 +336,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.ACTIVIDAD_NIVEL6;
             case 7:
                 return SonidosNivel.ACTIVIDAD_NIVEL7;
+            case 8:
+                return SonidosNivel.ACTIVIDAD_NIVEL8;
             default:
                 return SonidosNivel.ACTIVIDAD_NIVEL0;
         }
