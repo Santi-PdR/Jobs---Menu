@@ -12,6 +12,9 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+
 /**
  * La linea de la administracion al pie de la hoja.
  *
@@ -35,7 +38,25 @@ import net.minecraft.util.FormattedCharSequence;
 public class NotaAviso extends AbstractButton {
 
     /** Cantidad de avisos disponibles en los archivos de idioma. */
-    public static final int AVISOS = 8;
+    public static final int AVISOS = 20;
+
+    /**
+     * Todas las notas especiales que la administracion puede colar por fecha u
+     * hora. Estan aca, y no solo en especialDeHoy(), porque la hoja necesita
+     * reservar alto para la mas larga de TODAS las notas -comunes y especiales-
+     * antes de saber que dia es: una nota especial que parta en mas lineas
+     * empujaria los renglones si la hoja no la hubiese tenido en cuenta. El
+     * orden de esta lista no decide cual gana; de eso se ocupa especialDeHoy().
+     */
+    public static final String[] ESPECIALES = {
+            "jobsmenu.aviso.especial.anonuevo",
+            "jobsmenu.aviso.especial.navidad",
+            "jobsmenu.aviso.especial.difuntos",
+            "jobsmenu.aviso.especial.trabajador",
+            "jobsmenu.aviso.especial.viernes13",
+            "jobsmenu.aviso.especial.madrugada",
+            "jobsmenu.aviso.especial.medianoche",
+    };
 
     /** Cada cuantos milisegundos pasa solo al siguiente. */
     private static final long ROTACION_MS = 7_000L;
@@ -62,6 +83,79 @@ public class NotaAviso extends AbstractButton {
     private static int indice() {
         long vueltas = Math.floorDiv(System.currentTimeMillis() - base, ROTACION_MS);
         return (int) Math.floorMod(vueltas + corrimiento, AVISOS);
+    }
+
+    /**
+     * La clave del aviso que se muestra: casi siempre el rotativo comun, pero
+     * en ciertas fechas y horas la administracion cuela una nota propia.
+     *
+     * ES UN GUINO, NO UN CARTEL. Solo aparece cuando la fecha real coincide, y
+     * ademas solo en una de cada tres vueltas de la rotacion, para que quien
+     * este mirando justo esos dias tenga que tener algo de suerte para leerla.
+     * El que nunca abra el menu un 31 de octubre no se entera de que existe, y
+     * esa es la idea: se descubre, no se anuncia. Todo sale del reloj del
+     * sistema, sin estado.
+     *
+     * Los mensajes viven en lang, en la voz seca de siempre: nada de romper el
+     * tono con chistes. Ver jobsmenu.aviso.especial.*.
+     */
+    private static Component textoActual() {
+        int i = indice();
+        // La nota especial no se roba todas las vueltas: una de cada tres.
+        if (i % 3 == 0) {
+            String especial = especialDeHoy();
+            if (especial != null) {
+                return Component.translatable(especial);
+            }
+        }
+        return Component.translatable("jobsmenu.aviso." + i);
+    }
+
+    /**
+     * La nota especial que corresponde a la fecha y hora de hoy, o null.
+     *
+     * El orden importa: primero lo mas raro (una fecha concreta, que pasa una
+     * vez al ano) y al final lo mas comun (una hora del dia, que vuelve cada
+     * jornada). Asi un viernes 13 a las tres de la manana gana el viernes 13, y
+     * la Navidad a medianoche gana la Navidad. Lo senalado siempre le gana a lo
+     * cotidiano.
+     */
+    private static String especialDeHoy() {
+        LocalDateTime ahora = LocalDateTime.now();
+        int mes = ahora.getMonthValue();
+        int dia = ahora.getDayOfMonth();
+        int hora = ahora.getHour();
+
+        // --- Fechas concretas: lo mas raro, gana siempre. ---
+        if (mes == 1 && dia == 1) {
+            return "jobsmenu.aviso.especial.anonuevo";
+        }
+        if (mes == 12 && (dia == 24 || dia == 25)) {
+            return "jobsmenu.aviso.especial.navidad";
+        }
+        if (mes == 10 && dia == 31) {
+            return "jobsmenu.aviso.especial.difuntos";
+        }
+        // El Dia del Trabajador: guino directo al nombre del server.
+        if (mes == 5 && dia == 1) {
+            return "jobsmenu.aviso.especial.trabajador";
+        }
+        if (dia == 13 && ahora.getDayOfWeek() == DayOfWeek.FRIDAY) {
+            return "jobsmenu.aviso.especial.viernes13";
+        }
+
+        // --- Horas del dia: lo mas comun, solo si no cayo ninguna fecha. ---
+        // La hora de las brujas: de 3:00 a 3:59, cualquier dia.
+        if (hora == 3) {
+            return "jobsmenu.aviso.especial.madrugada";
+        }
+        // El cambio de turno: la hora cero, de 0:00 a 0:59. Se acota a la hora
+        // entera -y no al minuto justo- para que llegue a verse: con el minuto
+        // exacto y la regla de una vuelta de cada tres, no aparecia casi nunca.
+        if (hora == 0) {
+            return "jobsmenu.aviso.especial.medianoche";
+        }
+        return null;
     }
 
     /** Sin el clac de fabrica: el gesto propio va en onPress(). */
@@ -98,7 +192,7 @@ public class NotaAviso extends AbstractButton {
             }
         }
 
-        Component texto = Component.translatable("jobsmenu.aviso." + indice());
+        Component texto = textoActual();
 
         int x = this.getX();
         int y = this.getY();
@@ -127,6 +221,6 @@ public class NotaAviso extends AbstractButton {
     @Override
     public void updateWidgetNarration(NarrationElementOutput salida) {
         salida.add(net.minecraft.client.gui.narration.NarratedElementType.TITLE,
-                Component.translatable("jobsmenu.aviso." + indice()));
+                textoActual());
     }
 }

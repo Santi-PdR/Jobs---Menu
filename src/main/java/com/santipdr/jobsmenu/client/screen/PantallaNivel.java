@@ -47,6 +47,9 @@ import net.minecraftforge.client.gui.ModListScreen;
 public class PantallaNivel extends Screen {
 
     private static final int ANCHO_HOJA = 214;
+
+    /** Cuantas notas rotativas tiene cada nivel (jobsmenu.<clave>.nota0..N-1). */
+    private static final int NOTAS_POR_NIVEL = 3;
     private static final int ALTO_RENGLON = 20;
     private static final int SEPARACION = 3;
 
@@ -77,14 +80,8 @@ public class PantallaNivel extends Screen {
     /** Aire entre la cabecera y el primer renglon: cambia de bloque. */
     private static final int AIRE_CABECERA = 14;
 
-    /** Aire entre el ultimo renglon y la letra chica del pie. */
+    /** Aire entre el ultimo renglon y la nota rotativa del pie. */
     private static final int AIRE_PIE = 16;
-
-    /** Alto de la linea del atajo. */
-    private static final int ALTO_ATAJO = 10;
-
-    /** Aire entre el atajo y la nota rotativa. */
-    private static final int SEPARACION_AVISO = 6;
 
     /** Margen minimo entre la hoja y el borde de la pantalla. */
     private static final int MARGEN_PANTALLA = 12;
@@ -101,9 +98,6 @@ public class PantallaNivel extends Screen {
 
     /** Alto reservado para la nota rotativa, o 0 si esta desactivada. */
     private int altoAviso;
-
-    /** Donde va la linea del atajo, calculada en init(). */
-    private int atajoY;
 
     /** Ultimo nivel visto, para saber cuando cambio sin llevar temporizadores. */
     private int nivelVisto;
@@ -144,9 +138,7 @@ public class PantallaNivel extends Screen {
                 + this.altoCabecera
                 + AIRE_CABECERA
                 + altoLista
-                + AIRE_PIE
-                + ALTO_ATAJO
-                + (this.altoAviso > 0 ? SEPARACION_AVISO + this.altoAviso : 0)
+                + (this.altoAviso > 0 ? AIRE_PIE + this.altoAviso : 0)
                 + MARGEN_HOJA;
 
         this.hojaAlto = altoPie;
@@ -185,13 +177,12 @@ public class PantallaNivel extends Screen {
         agregar(x, y + 3 * salto + HUECO_APARTE, ancho, "04", "jobsmenu.tablon.renunciar",
                 this::renunciar, true);
 
-        this.atajoY = y + altoLista + AIRE_PIE;
-
         // El aviso del pie es un widget y no un dibujo: se puede pasar a mano y
-        // entra en el recorrido del tabulador como cualquier otro renglon.
+        // entra en el recorrido del tabulador como cualquier otro renglon. Va
+        // directo debajo de la lista: el atajo de servicio ya no ocupa el pie.
         if (this.altoAviso > 0) {
             this.addRenderableWidget(new NotaAviso(
-                    x, this.atajoY + ALTO_ATAJO + SEPARACION_AVISO, ancho, this.altoAviso));
+                    x, y + altoLista + AIRE_PIE, ancho, this.altoAviso));
         }
     }
 
@@ -210,15 +201,19 @@ public class PantallaNivel extends Screen {
         int alto = ALTO_TITULO + AIRE_TITULO;
         alto += lineas("jobsmenu.subtitulo", ancho) * ALTO_LINEA;
         alto += AIRE_REGLA + 1 + AIRE_REGLA;
-        alto += lineas("jobsmenu.nivel.actual", ancho) * ALTO_LINEA;
-        alto += lineas("jobsmenu.nivel.tarifa", ancho) * ALTO_LINEA;
+        // Se miden con el numero de nivel mas ancho posible (el de mas digitos
+        // del catalogo) para que la hoja reserve el alto correcto aunque el
+        // texto rote entre "Nivel 0" y "Nivel 10". Asi no cambia de tamano sola.
+        int anchoMax = Nivel.cantidad();
+        alto += lineasDe(Component.translatable("jobsmenu.nivel.actual", anchoMax), ancho) * ALTO_LINEA;
+        alto += lineasDe(Component.translatable("jobsmenu.nivel.tarifa", anchoMax), ancho) * ALTO_LINEA;
         return alto;
     }
 
     /**
      * Cuanto alto reservar para la nota rotativa.
      *
-     * Se toma el aviso MAS LARGO de los ocho y no el que toca ahora: si se
+     * Se toma el aviso MAS LARGO de todos y no el que toca ahora: si se
      * midiera el actual, la hoja cambiaria de tamano sola cada siete segundos
      * al rotar el texto, y los renglones bailarian debajo del cursor.
      */
@@ -228,12 +223,26 @@ public class PantallaNivel extends Screen {
         for (int i = 0; i < NotaAviso.AVISOS; i++) {
             maximo = Math.max(maximo, lineas("jobsmenu.aviso." + i, ancho));
         }
+        // Las notas especiales por fecha (ano nuevo, difuntos, viernes 13...)
+        // tambien ocupan este renglon, y algunas parten en mas lineas que el
+        // aviso comun mas largo. Si no se midieran, la hoja reservaria de menos
+        // y en una fecha senalada la nota especial empujaria los renglones. Se
+        // miden todas, no solo la de hoy: la hoja no puede cambiar de alto
+        // segun el dia.
+        for (String especial : NotaAviso.ESPECIALES) {
+            maximo = Math.max(maximo, lineas(especial, ancho));
+        }
         return maximo * ALTO_LINEA + 2;
     }
 
     /** En cuantas lineas parte el motor esta clave con el ancho dado. */
     private int lineas(String clave, int ancho) {
         return Math.max(1, this.font.split(Component.translatable(clave), ancho).size());
+    }
+
+    /** Igual que {@link #lineas(String, int)} pero para un texto ya compuesto. */
+    private int lineasDe(Component texto, int ancho) {
+        return Math.max(1, this.font.split(texto, ancho).size());
     }
 
     private void agregar(int x, int y, int ancho, String orden, String clave,
@@ -257,6 +266,15 @@ public class PantallaNivel extends Screen {
         cliente.setScreen(new ModListScreen(this));
     }
 
+    /**
+     * Las condiciones de estancia: las opciones del juego, tal cual.
+     *
+     * Es UNA sola pantalla de ajustes, la de siempre, con todo lo que el
+     * jugador espera (imagen, sonido, controles, idioma, recursos). Los ajustes
+     * propios del mod no viven en otra interfaz aparte: se agregan DENTRO de
+     * esta, con un boton que Forge inserta en la pantalla de opciones de vanilla
+     * (ver AjustesAviso). Asi no hay dos menus de configuracion compitiendo.
+     */
     private void abrirCondiciones() {
         Minecraft cliente = Minecraft.getInstance();
         cliente.setScreen(new OptionsScreen(this, cliente.options));
@@ -299,9 +317,49 @@ public class PantallaNivel extends Screen {
             ronda(grafico);
         }
         if (!ConfigTurno.interfazMinima()) {
-            atajo(grafico);
             rotuloNivel(grafico);
         }
+        credito(grafico);
+    }
+
+    /**
+     * El credito de la pista, arriba a la derecha, al empezar a sonar.
+     *
+     * Aparece una sola vez por sesion -entra suave, se sostiene, se va- y en la
+     * misma esquina que el reloj de ronda, pero debajo: si el reloj esta, el
+     * credito se corre hacia abajo lo que haga falta para no pisarlo. Es un
+     * gesto de pantalla de titulo de juego: quien compuso lo que estas oyendo.
+     */
+    private void credito(GuiGraphics grafico) {
+        float alfa = GestorMusica.creditoAlfa();
+        if (alfa <= 0.02F) {
+            return;
+        }
+
+        Component titulo = Component.translatable("jobsmenu.credito.titulo");
+        Component autor = Component.translatable("jobsmenu.credito.autor");
+
+        int margen = 12;
+        // Si el reloj de ronda ocupa su esquina, el credito arranca debajo de
+        // su placa (margen-6 .. margen+26); si no, sube al tope. Asi los dos
+        // pueden estar a la vez sin tocarse en ninguna resolucion.
+        int y = ConfigTurno.mostrarCuentaRegresiva() ? margen + 34 : margen;
+
+        int anchoTitulo = this.font.width(titulo);
+        int anchoAutor = this.font.width(autor);
+        int ancho = Math.max(anchoTitulo, anchoAutor);
+        int izq = this.width - margen - ancho;
+
+        // Una barra fina a la IZQUIERDA del bloque, como una firma al margen.
+        // No hay placa oscura detras: el credito no compite con el reloj de
+        // ronda, lo acompana. Va pegada al texto y crece con la envolvente.
+        grafico.fill(izq - 6, y, izq - 5, y + 19,
+                Paleta.conAlfa(Paleta.PAPEL, 0.45F * alfa));
+
+        grafico.drawString(this.font, titulo, this.width - margen - anchoTitulo, y,
+                Paleta.conAlfa(Paleta.PAPEL, 0.90F * alfa), false);
+        grafico.drawString(this.font, autor, this.width - margen - anchoAutor, y + 10,
+                Paleta.conAlfa(Paleta.PAPEL, 0.55F * alfa), false);
     }
 
     /**
@@ -338,26 +396,10 @@ public class PantallaNivel extends Screen {
 
     /** La hoja fotocopiada pegada a la pared, con su sombra y su cinta. */
     private void hoja(GuiGraphics grafico) {
-        int x0 = this.hojaX;
-        int y0 = this.hojaY;
-        int x1 = x0 + ANCHO_HOJA;
-        int y1 = y0 + this.hojaAlto;
-
-        // El papel se oscurece con el pasillo. No es tinta: es el blanco de la
-        // hoja, que sin fluorescente encima deja de ser blanco.
-        float luz = RotacionNiveles.luzDisponible();
-        int papel = Paleta.iluminar(Paleta.PAPEL, 0.22F + 0.78F * luz);
-
-        grafico.fill(x0 + 3, y0 + 4, x1 + 3, y1 + 4, Paleta.conAlfa(Paleta.VANO, 0.30F));
-        grafico.fill(x0, y0, x1, y1, Paleta.conAlfa(papel, 0.94F));
-        grafico.fill(x0, y0, x1, y0 + 1, Paleta.conAlfa(Paleta.MOHO, 0.35F));
-        grafico.fill(x0, y1 - 1, x1, y1, Paleta.conAlfa(Paleta.MOHO, 0.45F));
-        grafico.fill(x0, y0, x0 + 1, y1, Paleta.conAlfa(Paleta.MOHO, 0.35F));
-        grafico.fill(x1 - 1, y0, x1, y1, Paleta.conAlfa(Paleta.MOHO, 0.35F));
-
-        int cinta = 22;
-        int centro = (x0 + x1) / 2;
-        grafico.fill(centro - cinta, y0 - 4, centro + cinta, y0 + 4, Paleta.conAlfa(papel, 0.45F));
+        // El dibujo de la hoja vive en HojaPapel: es el mismo papel que usan la
+        // pantalla de condiciones y la de pausa, y tiene que envejecer igual.
+        com.santipdr.jobsmenu.client.ui.HojaPapel.dibujar(grafico,
+                this.hojaX, this.hojaY, this.hojaX + ANCHO_HOJA, this.hojaY + this.hojaAlto, true);
     }
 
     /**
@@ -390,10 +432,26 @@ public class PantallaNivel extends Screen {
                 Paleta.conAlfa(Paleta.TINTA_TENUE, 0.45F * tinta));
         y += 1 + AIRE_REGLA;
 
-        y = parrafo(grafico, "jobsmenu.nivel.actual", x, y, ancho,
+        // El nivel actual y la tarifa YA NO son fijos: siguen al recinto que se
+        // ve al fondo. Si el pasillo esta mostrando el Nivel 7, la hoja dice
+        // "Nivel 7" y "Salida al Nivel 8", no el eterno "Nivel 0" de antes. Es
+        // el mismo aviso releido por la administracion de cada nivel, y hace
+        // que la hoja pertenezca al recinto en vez de flotar por encima.
+        Nivel actual = RotacionNiveles.actual();
+        int n = actual.numero();
+        y = parrafo(grafico, Component.translatable("jobsmenu.nivel.actual", n), x, y, ancho,
                 Paleta.conAlfa(Paleta.TINTA_TENUE, tinta));
-        parrafo(grafico, "jobsmenu.nivel.tarifa", x, y, ancho,
+        parrafo(grafico, Component.translatable("jobsmenu.nivel.tarifa", n + 1), x, y, ancho,
                 Paleta.conAlfa(Paleta.TINTA, tinta));
+    }
+
+    /** Dibuja un texto partido al ancho de la hoja y devuelve donde termino. */
+    private int parrafo(GuiGraphics grafico, Component texto, int x, int y, int ancho, int color) {
+        for (FormattedCharSequence linea : this.font.split(texto, ancho)) {
+            grafico.drawString(this.font, linea, x, y, color, false);
+            y += ALTO_LINEA;
+        }
+        return y;
     }
 
     /** Dibuja un texto partido al ancho de la hoja y devuelve donde termino. */
@@ -403,19 +461,6 @@ public class PantallaNivel extends Screen {
             y += ALTO_LINEA;
         }
         return y;
-    }
-
-    /**
-     * La nota al pie que explica la salida de servicio.
-     *
-     * Va en la hoja, con la tipografia de la letra chica, y no como un aviso
-     * flotante: forma parte del documento, no de la interfaz. Un atajo que no
-     * esta escrito en ningun lado no existe para nadie.
-     */
-    private void atajo(GuiGraphics grafico) {
-        grafico.drawString(this.font, Component.translatable("jobsmenu.tablon.atajo"),
-                this.hojaX + MARGEN_HOJA, this.atajoY,
-                Paleta.conAlfa(Paleta.TINTA_TENUE, 0.70F * tinta()), false);
     }
 
     /** Cuanto falta para la proxima ronda de los Executores. */
@@ -462,7 +507,14 @@ public class PantallaNivel extends Screen {
         }
 
         Component nombre = Component.translatable("jobsmenu." + nivel.clave + ".nombre");
-        Component nota = Component.translatable("jobsmenu." + nivel.clave + ".nota");
+        // Cada nivel tiene varias notas y muestra una distinta por estancia: la
+        // que toca sale del ciclo de rotacion, asi cada vez que el fondo vuelve
+        // a este nivel el cartel dice otra cosa. Da mas voz a cada recinto sin
+        // agregar nada a la composicion. NOTAS_POR_NIVEL fija cuantas hay.
+        int cual = (int) (Math.floorDiv(System.currentTimeMillis(), 1000L)
+                / 27L % NOTAS_POR_NIVEL);
+        Component nota = Component.translatable(
+                "jobsmenu." + nivel.clave + ".nota" + cual);
 
         int x = 12;
         int y = this.height - 30;

@@ -111,6 +111,62 @@ public final class GestorAmbiente {
                     new Evento(SonidosNivel.EV_N3_VENTILACION, 1.5F, 0.20F, 0.38F, 0.96F, 1.04F),
                     new Evento(SonidosNivel.EV_N3_LEJANO, 1.0F, 0.18F, 0.34F, 0.92F, 1.08F),
             }),
+
+            // Nivel 4 - La sala de piedra. Fuego y una construccion vieja: la
+            // antorcha que prende es lo mas frecuente; la piedra que se asienta,
+            // lo mas raro y lo que mas inquieta. El tono se mueve poco: son
+            // objetos reconocibles (fuego, hierro, roca), no lechos de ruido.
+            new Repertorio(12_000L, 30_000L, new Evento[] {
+                    new Evento(SonidosNivel.EV_N4_ANTORCHA, 3.0F, 0.24F, 0.44F, 0.95F, 1.06F),
+                    new Evento(SonidosNivel.EV_N4_CADENA, 2.0F, 0.20F, 0.38F, 0.96F, 1.05F),
+                    new Evento(SonidosNivel.EV_N4_PIEDRA, 1.2F, 0.22F, 0.40F, 0.94F, 1.04F),
+            }),
+
+            // Nivel 5 - La biblioteca. El sitio mas callado: ventanas largas
+            // entre sucesos, y los sucesos son sordos. El susurro es lo mas
+            // raro y por eso pesa menos. Casi sin variacion de tono: son
+            // objetos concretos (papel, madera, un reloj), no ruido.
+            new Repertorio(16_000L, 38_000L, new Evento[] {
+                    new Evento(SonidosNivel.EV_N5_LIBRO, 3.0F, 0.22F, 0.40F, 0.96F, 1.05F),
+                    new Evento(SonidosNivel.EV_N5_RELOJ, 1.6F, 0.18F, 0.34F, 0.98F, 1.02F),
+                    new Evento(SonidosNivel.EV_N5_SUSURRO, 1.0F, 0.16F, 0.30F, 0.97F, 1.03F),
+            }),
+
+            // Nivel 6 - El invernadero. Vidrio, agua y follaje. La gota es lo
+            // mas frecuente; las hojas, lo mas raro. Tono estable: objetos
+            // concretos (vidrio, agua, plantas).
+            new Repertorio(13_000L, 32_000L, new Evento[] {
+                    new Evento(SonidosNivel.EV_N6_GOTA, 3.0F, 0.22F, 0.42F, 0.94F, 1.10F),
+                    new Evento(SonidosNivel.EV_N6_VIDRIO, 2.0F, 0.20F, 0.38F, 0.96F, 1.05F),
+                    new Evento(SonidosNivel.EV_N6_HOJAS, 1.0F, 0.16F, 0.30F, 0.97F, 1.03F),
+            }),
+
+            // Nivel 7 - Las catacumbas. El sitio mas quieto y grave. La gota es
+            // lo comun; el viento en el tunel, lo raro y lo que inquieta. Ventanas
+            // largas: aca el silencio pesa.
+            new Repertorio(15_000L, 40_000L, new Evento[] {
+                    new Evento(SonidosNivel.EV_N7_GOTA, 3.0F, 0.22F, 0.42F, 0.94F, 1.10F),
+                    new Evento(SonidosNivel.EV_N7_PIEDRA, 1.6F, 0.20F, 0.38F, 0.95F, 1.04F),
+                    new Evento(SonidosNivel.EV_N7_VIENTO, 1.0F, 0.16F, 0.30F, 0.98F, 1.02F),
+            }),
+
+            // Nivel 8 - La cisterna. Enorme y quieta: gotas al agua con eco
+            // larguisimo, y de fondo el chapoteo de algo que no se ve. Ventanas
+            // largas; la cola de la sala hace casi todo el trabajo.
+            new Repertorio(14_000L, 36_000L, new Evento[] {
+                    new Evento(SonidosNivel.EV_N8_GOTA, 3.0F, 0.22F, 0.42F, 0.92F, 1.10F),
+                    new Evento(SonidosNivel.EV_N8_COLUMNA, 1.5F, 0.20F, 0.38F, 0.95F, 1.03F),
+                    new Evento(SonidosNivel.EV_N8_CHAPOTEO, 1.0F, 0.16F, 0.30F, 0.96F, 1.04F),
+            }),
+
+            // Nivel 9 - El salon del trono. Ruinas: el cascote que cae es lo
+            // comun; la puerta lejana, lo raro y lo mas grande. Sala alta con
+            // cola larga; ventanas medias.
+            new Repertorio(13_000L, 34_000L, new Evento[] {
+                    new Evento(SonidosNivel.EV_N9_CASCOTE, 3.0F, 0.22F, 0.42F, 0.94F, 1.08F),
+                    new Evento(SonidosNivel.EV_N9_ESTANDARTE, 1.8F, 0.18F, 0.34F, 0.96F, 1.04F),
+                    new Evento(SonidosNivel.EV_N9_PUERTA, 1.0F, 0.18F, 0.34F, 0.95F, 1.03F),
+            }),
     };
 
     private static final Random AZAR = new Random();
@@ -235,6 +291,18 @@ public final class GestorAmbiente {
                 return SonidosNivel.AMBIENTE_NIVEL2;
             case 3:
                 return SonidosNivel.AMBIENTE_NIVEL3;
+            case 4:
+                return SonidosNivel.AMBIENTE_NIVEL4;
+            case 5:
+                return SonidosNivel.AMBIENTE_NIVEL5;
+            case 6:
+                return SonidosNivel.AMBIENTE_NIVEL6;
+            case 7:
+                return SonidosNivel.AMBIENTE_NIVEL7;
+            case 8:
+                return SonidosNivel.AMBIENTE_NIVEL8;
+            case 9:
+                return SonidosNivel.AMBIENTE_NIVEL9;
             default:
                 return SonidosNivel.AMBIENTE_NIVEL0;
         }
@@ -248,6 +316,18 @@ public final class GestorAmbiente {
                 return SonidosNivel.CARACTER_NIVEL2;
             case 3:
                 return SonidosNivel.CARACTER_NIVEL3;
+            case 4:
+                return SonidosNivel.CARACTER_NIVEL4;
+            case 5:
+                return SonidosNivel.CARACTER_NIVEL5;
+            case 6:
+                return SonidosNivel.CARACTER_NIVEL6;
+            case 7:
+                return SonidosNivel.CARACTER_NIVEL7;
+            case 8:
+                return SonidosNivel.CARACTER_NIVEL8;
+            case 9:
+                return SonidosNivel.CARACTER_NIVEL9;
             default:
                 return SonidosNivel.CARACTER_NIVEL0;
         }
@@ -261,6 +341,18 @@ public final class GestorAmbiente {
                 return SonidosNivel.ACTIVIDAD_NIVEL2;
             case 3:
                 return SonidosNivel.ACTIVIDAD_NIVEL3;
+            case 4:
+                return SonidosNivel.ACTIVIDAD_NIVEL4;
+            case 5:
+                return SonidosNivel.ACTIVIDAD_NIVEL5;
+            case 6:
+                return SonidosNivel.ACTIVIDAD_NIVEL6;
+            case 7:
+                return SonidosNivel.ACTIVIDAD_NIVEL7;
+            case 8:
+                return SonidosNivel.ACTIVIDAD_NIVEL8;
+            case 9:
+                return SonidosNivel.ACTIVIDAD_NIVEL9;
             default:
                 return SonidosNivel.ACTIVIDAD_NIVEL0;
         }

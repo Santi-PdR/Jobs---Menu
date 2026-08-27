@@ -34,9 +34,6 @@ public class JobsMenu {
      */
     public static final Logger LOG = LogUtils.getLogger();
 
-    /** Version visible en el sello del menu. Se sincroniza a mano con gradle.properties. */
-    public static final String VERSION = "0.6.0";
-
     public JobsMenu() {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ConfigTurno.SPEC, "jobsmenu-client.toml");

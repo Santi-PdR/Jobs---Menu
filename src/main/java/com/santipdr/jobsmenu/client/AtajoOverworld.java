@@ -17,6 +17,16 @@ import org.lwjgl.glfw.GLFW;
 /**
  * Control + S abre la lista de mundos sin pasar por el aviso.
  *
+ * HERRAMIENTA OCULTA, NO FUNCION DE USUARIO
+ *
+ * Este atajo no se anuncia en ningun lado: no hay texto en la hoja, ni en el
+ * pie, ni en ninguna pantalla que insinue que existe. Es una comodidad de
+ * desarrollo y de administracion -saltar directo a la seleccion de mundos sin
+ * recorrer el menu- y a proposito queda invisible para quien solo viene a
+ * jugar. Sigue funcionando exactamente igual que antes; lo unico que cambio es
+ * que ya no se documenta en la interfaz. Un usuario normal nunca lo descubre, y
+ * quien lo necesita ya sabe que esta.
+ *
  * POR QUE NO ES UN KEYMAPPING
  *
  * Los KeyMapping de Forge se consultan desde el tick del cliente y ese tick no

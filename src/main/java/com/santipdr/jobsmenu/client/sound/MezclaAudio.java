@@ -42,8 +42,16 @@ public final class MezclaAudio {
      * raras no rompan nada.
      */
 
-    /** Tema del menu. Ambiental: acompana, no protagoniza. */
-    public static final float MUSICA = 0.34F;
+    /**
+     * Tema del menu.
+     *
+     * Subido de 0.34 a 0.55 en 0.6.4. Con la pista propia sintetizada el 0.34
+     * bastaba -era un lecho armonico de fondo-, pero la pista actual (REQUIEM)
+     * es un tema de lobby con melodia, pensado para escucharse, y a 0.34 con la
+     * entrada lenta el jugador entraba, miraba y salia sin oir una nota. Sigue
+     * por debajo de un evento o de la transicion: acompana, pero ahora se oye.
+     */
+    public static final float MUSICA = 0.55F;
 
     /** Ambiente base del nivel, ya multiplicado por el volumen de la config. */
     public static final float AMBIENTE = 0.66F;

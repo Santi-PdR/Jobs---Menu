@@ -95,6 +95,66 @@
       }
     ]
   },
+  "ambiente.nivel4": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.ambiente.nivel4",
+    "sounds": [
+      {
+        "name": "jobsmenu:ambiente/nivel4",
+        "stream": false
+      }
+    ]
+  },
+  "ambiente.nivel5": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.ambiente.nivel5",
+    "sounds": [
+      {
+        "name": "jobsmenu:ambiente/nivel5",
+        "stream": false
+      }
+    ]
+  },
+  "ambiente.nivel6": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.ambiente.nivel6",
+    "sounds": [
+      {
+        "name": "jobsmenu:ambiente/nivel6",
+        "stream": false
+      }
+    ]
+  },
+  "ambiente.nivel7": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.ambiente.nivel7",
+    "sounds": [
+      {
+        "name": "jobsmenu:ambiente/nivel7",
+        "stream": false
+      }
+    ]
+  },
+  "ambiente.nivel8": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.ambiente.nivel8",
+    "sounds": [
+      {
+        "name": "jobsmenu:ambiente/nivel8",
+        "stream": false
+      }
+    ]
+  },
+  "ambiente.nivel9": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.ambiente.nivel9",
+    "sounds": [
+      {
+        "name": "jobsmenu:ambiente/nivel9",
+        "stream": false
+      }
+    ]
+  },
   "caracter.nivel0": {
     "category": "ambient",
     "subtitle": "jobsmenu.subtitulo.caracter.nivel0",
@@ -135,6 +195,66 @@
       }
     ]
   },
+  "caracter.nivel4": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.caracter.nivel4",
+    "sounds": [
+      {
+        "name": "jobsmenu:caracter/nivel4",
+        "stream": false
+      }
+    ]
+  },
+  "caracter.nivel5": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.caracter.nivel5",
+    "sounds": [
+      {
+        "name": "jobsmenu:caracter/nivel5",
+        "stream": false
+      }
+    ]
+  },
+  "caracter.nivel6": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.caracter.nivel6",
+    "sounds": [
+      {
+        "name": "jobsmenu:caracter/nivel6",
+        "stream": false
+      }
+    ]
+  },
+  "caracter.nivel7": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.caracter.nivel7",
+    "sounds": [
+      {
+        "name": "jobsmenu:caracter/nivel7",
+        "stream": false
+      }
+    ]
+  },
+  "caracter.nivel8": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.caracter.nivel8",
+    "sounds": [
+      {
+        "name": "jobsmenu:caracter/nivel8",
+        "stream": false
+      }
+    ]
+  },
+  "caracter.nivel9": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.caracter.nivel9",
+    "sounds": [
+      {
+        "name": "jobsmenu:caracter/nivel9",
+        "stream": false
+      }
+    ]
+  },
   "actividad.nivel0": {
     "category": "ambient",
     "subtitle": "jobsmenu.subtitulo.actividad.nivel0",
@@ -171,6 +291,66 @@
     "sounds": [
       {
         "name": "jobsmenu:actividad/nivel3",
+        "stream": true
+      }
+    ]
+  },
+  "actividad.nivel4": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel4",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel4",
+        "stream": true
+      }
+    ]
+  },
+  "actividad.nivel5": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel5",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel5",
+        "stream": true
+      }
+    ]
+  },
+  "actividad.nivel6": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel6",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel6",
+        "stream": true
+      }
+    ]
+  },
+  "actividad.nivel7": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel7",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel7",
+        "stream": true
+      }
+    ]
+  },
+  "actividad.nivel8": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel8",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel8",
+        "stream": true
+      }
+    ]
+  },
+  "actividad.nivel9": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel9",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel9",
         "stream": true
       }
     ]
@@ -266,6 +446,132 @@
       "jobsmenu:evento/nivel3_lejano"
     ]
   },
+  "evento.nivel4_antorcha": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel4_antorcha",
+    "sounds": [
+      "jobsmenu:evento/nivel4_antorcha"
+    ]
+  },
+  "evento.nivel4_cadena": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel4_cadena",
+    "sounds": [
+      "jobsmenu:evento/nivel4_cadena"
+    ]
+  },
+  "evento.nivel4_piedra": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel4_piedra",
+    "sounds": [
+      "jobsmenu:evento/nivel4_piedra"
+    ]
+  },
+  "evento.nivel5_libro": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel5_libro",
+    "sounds": [
+      "jobsmenu:evento/nivel5_libro"
+    ]
+  },
+  "evento.nivel5_susurro": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel5_susurro",
+    "sounds": [
+      "jobsmenu:evento/nivel5_susurro"
+    ]
+  },
+  "evento.nivel5_reloj": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel5_reloj",
+    "sounds": [
+      "jobsmenu:evento/nivel5_reloj"
+    ]
+  },
+  "evento.nivel6_vidrio": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel6_vidrio",
+    "sounds": [
+      "jobsmenu:evento/nivel6_vidrio"
+    ]
+  },
+  "evento.nivel6_gota": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel6_gota",
+    "sounds": [
+      "jobsmenu:evento/nivel6_gota"
+    ]
+  },
+  "evento.nivel6_hojas": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel6_hojas",
+    "sounds": [
+      "jobsmenu:evento/nivel6_hojas"
+    ]
+  },
+  "evento.nivel7_gota": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel7_gota",
+    "sounds": [
+      "jobsmenu:evento/nivel7_gota"
+    ]
+  },
+  "evento.nivel7_piedra": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel7_piedra",
+    "sounds": [
+      "jobsmenu:evento/nivel7_piedra"
+    ]
+  },
+  "evento.nivel7_viento": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel7_viento",
+    "sounds": [
+      "jobsmenu:evento/nivel7_viento"
+    ]
+  },
+  "evento.nivel8_gota": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel8_gota",
+    "sounds": [
+      "jobsmenu:evento/nivel8_gota"
+    ]
+  },
+  "evento.nivel8_chapoteo": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel8_chapoteo",
+    "sounds": [
+      "jobsmenu:evento/nivel8_chapoteo"
+    ]
+  },
+  "evento.nivel8_columna": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel8_columna",
+    "sounds": [
+      "jobsmenu:evento/nivel8_columna"
+    ]
+  },
+  "evento.nivel9_cascote": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel9_cascote",
+    "sounds": [
+      "jobsmenu:evento/nivel9_cascote"
+    ]
+  },
+  "evento.nivel9_estandarte": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel9_estandarte",
+    "sounds": [
+      "jobsmenu:evento/nivel9_estandarte"
+    ]
+  },
+  "evento.nivel9_puerta": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel9_puerta",
+    "sounds": [
+      "jobsmenu:evento/nivel9_puerta"
+    ]
+  },
   "nivel.titileo": {
     "category": "ambient",
     "subtitle": "jobsmenu.subtitulo.nivel.titileo",
@@ -300,7 +606,7 @@
     "sounds": [
       {
         "name": "jobsmenu:musica/defecto",
-        "stream": true
+        "stream": false
       }
     ]
   }

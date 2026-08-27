@@ -6,6 +6,7 @@ import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 
@@ -79,6 +80,12 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         }
         activa = new GestorMusica();
         Minecraft.getInstance().getSoundManager().play(activa);
+        // Un rastro en el log: si la musica no se oye, esto dice si al menos se
+        // mando a reproducir. Un SoundManager que descarta el sonido lo hace en
+        // silencio, y sin este aviso no hay forma de saber si el problema es el
+        // archivo, la mezcla o que nunca se llamo aca.
+        com.santipdr.jobsmenu.JobsMenu.LOG.info(
+                "[jobsmenu] Musica del menu enviada a reproducir (musica/defecto.ogg).");
     }
 
     /** Deja de sonar, con caida. No corta en seco. */
@@ -89,6 +96,81 @@ public class GestorMusica extends AbstractTickableSoundInstance {
     /** Si el tema esta sonando ahora mismo. */
     public static boolean sonando() {
         return activa != null && !activa.isStopped();
+    }
+
+    /**
+     * Cuanto se ve el credito de la pista ahora mismo, de 0 a 1.
+     *
+     * El credito -titulo y autor de la pista- se muestra UNA sola vez, al
+     * empezar a sonar el tema, arriba a la derecha. La cuenta sale de la edad
+     * de la instancia de musica, que nace con el menu y no se reinicia al
+     * cambiar de pantalla: por eso el credito no vuelve a aparecer cada vez que
+     * el jugador entra y sale de las opciones, solo la primera vez de la sesion.
+     *
+     * La envolvente es trapezoidal y en ticks (20 por segundo): entra a los 2 s,
+     * se sostiene hasta los 15 s y se va del todo a los 18. Da tiempo de sobra a
+     * leer dos lineas cortas sin quedarse en pantalla molestando despues.
+     */
+    public static float creditoAlfa() {
+        GestorMusica m = activa;
+        if (m == null || m.isStopped()
+                || !ConfigTurno.musicaMenu() || !ConfigTurno.creditoMusica()
+                || !hayPistaCreditada()) {
+            return 0.0F;
+        }
+        int edad = m.edad;
+        final int entra0 = 40;
+        final int entra1 = 90;
+        final int sale0 = 300;
+        final int sale1 = 360;
+        if (edad <= entra0 || edad >= sale1) {
+            return 0.0F;
+        }
+        if (edad < entra1) {
+            return (edad - entra0) / (float) (entra1 - entra0);
+        }
+        if (edad <= sale0) {
+            return 1.0F;
+        }
+        return 1.0F - (edad - sale0) / (float) (sale1 - sale0);
+    }
+
+    /**
+     * Si la pista que suena tiene un autor al que acreditar.
+     *
+     * Se cumple en dos casos, y solo en esos dos:
+     *
+     *   - el JAR trae una pista horneada con credito. El build deja un recurso
+     *     marca (assets/jobsmenu/musica_creditada.txt) cuando reemplaza el tema por
+     *     REQUIEM; si no se horneo nada, el marcador no existe;
+     *   - el jugador dejo su propia pista en la carpeta de runtime.
+     *
+     * La pieza sintetizada que viene de fabrica NO se acredita a nadie: es del
+     * mod. Por eso, sin marca y sin pista propia, el credito no aparece y nunca
+     * se le atribuye a un autor una musica que no compuso.
+     */
+    private static boolean hayPistaCreditada() {
+        if (MusicaPropia.tieneMusicaPropia()) {
+            return true;
+        }
+        return marcadorHorneado();
+    }
+
+    /** Estado del marcador de pista horneada, -1 sin calcular, 0 no, 1 si. */
+    private static int marcador = -1;
+
+    /**
+     * Si el JAR trae la marca de pista con credito. Se consulta el gestor de
+     * recursos una sola vez por sesion y se cachea: el contenido del JAR no
+     * cambia en caliente, y mirar el disco cada fotograma no tiene sentido.
+     */
+    private static boolean marcadorHorneado() {
+        if (marcador < 0) {
+            boolean hay = Minecraft.getInstance().getResourceManager()
+                    .getResource(new ResourceLocation("jobsmenu", "musica_creditada.txt")).isPresent();
+            marcador = hay ? 1 : 0;
+        }
+        return marcador == 1;
     }
 
     /**
@@ -113,13 +195,35 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         boolean enMenu = cliente.screen instanceof com.santipdr.jobsmenu.client.screen.PantallaNivel;
         boolean permitido = enMenu && ConfigTurno.musicaMenu();
 
+        // POR QUE LA MUSICA NO SE OIA
+        //
+        // Minecraft trae su propio gestor de musica de menu, que suena en el
+        // MISMO canal (SoundSource.MUSIC) que nuestro tema. Cuando el juego
+        // decide poner su musica de menu, la nuestra queda tapada o desalojada,
+        // y el ambiente -que va por otro canal (AMBIENT)- se seguia oyendo: de
+        // ahi el sintoma de "el ambiente suena pero la musica no".
+        //
+        // La solucion es callar al gestor de vanilla mientras nuestro menu esta
+        // abierto, para que el canal de musica quede libre para el tema del
+        // aviso. No toca los deslizadores del jugador: solo evita que dos
+        // musicas peleen por el mismo canal.
+        //
+        // AVISO honesto: si ademas el deslizador "Musica" del juego esta en
+        // cero, no hay codigo que valga -ese control lo manda el jugador-. Por
+        // eso el ajuste de volumen del aviso avisa que hay que subirlo tambien.
+        if (permitido) {
+            cliente.getMusicManager().stopPlaying();
+        }
+
         float objetivo = 0.0F;
         if (permitido) {
             objetivo = ConfigTurno.volumenMusica() * MezclaAudio.MUSICA;
 
-            // Entrada larga la primera vez: veinte segundos hasta el volumen
-            // pleno. Que la musica ya este ahi cuando el jugador se da cuenta.
-            float entrada = Math.min(1.0F, this.edad / 400.0F);
+            // Entrada suave pero no eterna: unos seis segundos hasta el volumen
+            // pleno (antes eran veinte, y con la curva al cuadrado el tema no se
+            // oia hasta pasado medio minuto; quien entraba un momento al menu se
+            // iba sin escuchar nada). Sigue siendo un fundido, no un golpe.
+            float entrada = Math.min(1.0F, this.edad / 120.0F);
             objetivo *= entrada * entrada;
 
             // Durante el apagon la musica se sostiene, pero cede un poco de

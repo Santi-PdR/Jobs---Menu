@@ -33,3 +33,9 @@ Thumbs.db
 # Herramientas
 __pycache__/
 *.pyc
+
+# La pista de music/ (REQUIEM, de Emmy Z) la subio el owner a proposito para
+# su server entre amigos, con el credito en pantalla. Por eso NO se ignora:
+# esta versionada por decision explicita. Si se quisiera sacar del control de
+# versiones, descomentar la linea de abajo y hacer 'git rm --cached'.
+# /music/*.ogg

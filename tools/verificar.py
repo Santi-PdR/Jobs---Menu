@@ -28,7 +28,7 @@ SUBTITULOS: set[str] = set()
 # Cuantas piezas de audio tiene la identidad sonora completa: 8 de interfaz,
 # 4 ambientes de sala, 13 eventos, 3 de transicion electrica, 1 de la figura
 # y 1 de musica. Si el numero baja, algo se perdio por el camino.
-PIEZAS_ESPERADAS = 38
+PIEZAS_ESPERADAS = 74
 
 
 def fallo(mensaje: str) -> None:
@@ -70,10 +70,6 @@ def verificar_versiones(props: dict[str, str]) -> None:
     readme = leer(RAIZ / "README.md")
     if f"**{version}**" not in readme:
         fallo(f"README.md no declara la version {version}.")
-
-    java = leer(RAIZ / "src/main/java/com/santipdr/jobsmenu/JobsMenu.java")
-    if f'VERSION = "{version}"' not in java:
-        fallo(f"JobsMenu.VERSION no coincide con {version}.")
 
     jar = f"jobsmenu-{version}.jar"
     if jar not in readme:
@@ -259,8 +255,11 @@ def verificar_claves(es: dict[str, str]) -> None:
     usadas -= prefijos
     usadas -= {p for p, _ in horquillas}
 
+    # El mod tambien usa claves de Minecraft (menu.game, menu.savingLevel...):
+    # las provee el juego, no este mod, asi que no tienen que estar en los lang
+    # propios. Solo se exigen las claves 'jobsmenu.*', que son las nuestras.
     for clave in sorted(usadas):
-        if clave not in es:
+        if clave.startswith("jobsmenu.") and clave not in es:
             fallo(f"El codigo pide la clave '{clave}' y no existe en los idiomas.")
 
     cubiertas = set(usadas)
@@ -283,6 +282,20 @@ def verificar_claves(es: dict[str, str]) -> None:
     # Los subtitulos no los nombra el codigo: los declara sounds.json, y de
     # ahi los toma Minecraft. Son cadenas usadas, aunque no aparezcan en Java.
     cubiertas |= SUBTITULOS
+
+    # Las notas rotativas de cada nivel se componen con doble concatenacion
+    # ("jobsmenu." + clave + ".nota" + indice), que el detector de horquillas
+    # -pensado para un solo hueco- no alcanza a ver. Se cubren explicitamente:
+    # cualquier clave con el infijo '.nota' seguido de digitos la pide
+    # rotuloNivel() en PantallaNivel.
+    cubiertas |= {k for k in es if re.search(r"\.nota\d+$", k)}
+
+    # Los detalles de los ajustes se componen igual, con clave + ".detalle"
+    # dentro de cachedConstantTooltip (PantallaAjustesAviso). El detector de
+    # horquillas tampoco los ve, asi que se cubre el sufijo: toda clave de
+    # ajuste que termina en '.detalle' la pide el tooltip del control que
+    # comparte su prefijo.
+    cubiertas |= {k for k in es if k.startswith("jobsmenu.ajustes.") and k.endswith(".detalle")}
 
     for clave in sorted(set(es) - cubiertas):
         aviso(f"La clave '{clave}' no la usa nadie en el codigo.")
@@ -578,7 +591,7 @@ def verificar_niveles(es: dict[str, str]) -> None:
         return
 
     for clave in claves:
-        for sufijo in ("nombre", "nota"):
+        for sufijo in ("nombre", "nota0", "nota1", "nota2"):
             necesaria = f"jobsmenu.{clave}.{sufijo}"
             if necesaria not in es:
                 fallo(f"El nivel '{clave}' no tiene la cadena {necesaria}.")

@@ -10,7 +10,7 @@
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
 | Paquete Java | `com.santipdr.jobsmenu` |
-| Versión actual | **0.6.0** |
+| Versión actual | **0.8.3** |
 | Plataforma | Minecraft **1.20.1** · Forge **47.x** · Java **17** |
 | Alcance | Menús (Title / Pause / Options), escena viva, audio, lore. **Sin gameplay.** |
 | Lado | **Cliente**. El mod no toca el servidor ni exige instalarse en él. |
@@ -125,7 +125,7 @@ Implementados en `client/screen/PantallaNivel.java`.
 | Hoja, cuerpo | Los cuatro renglones del formulario |
 | Hoja, pie | **Avisos rotativos** (cambian cada 7 s, o a mano; con ajuste de línea) |
 | Esquina superior derecha | **Cuenta regresiva a la próxima ronda**, sobre placa oscura |
-| Esquina inferior derecha | Sello: `jobsmenu 0.6.0` |
+| Esquina inferior izquierda | Rótulo del nivel actual (cartel de pared, aparece con la luz nueva) |
 
 Renglones del formulario:
 
@@ -133,7 +133,7 @@ Renglones del formulario:
 |---|---|---|
 | 01 | Unirse a una cuadrilla | `JoinMultiplayerScreen` |
 | 02 | Registro de intervenciones | `net.minecraftforge.client.gui.ModListScreen` |
-| 03 | Condiciones de estancia | `OptionsScreen` |
+| 03 | Condiciones de estancia | `OptionsScreen` de vanilla (con un boton "Ajustes del aviso" que el mod inserta, hacia `PantallaAjustesAviso`) |
 | — | *(hueco de 10 px)* | |
 | 04 | Renunciar al nivel | `Minecraft#stop()` |
 
@@ -142,10 +142,12 @@ costumbre de Mojang: a la cuadrilla se entra todos los días, el registro se con
 condiciones se tocan una vez. El hueco antes de renunciar no es decorativo: separar lo irreversible del
 resto es lo que evita que alguien lo pulse por inercia bajando la lista.
 
-**Fichar turno salió del tablón.** La partida de un jugador se abre con **Control + S**
+**Fichar turno es una herramienta oculta.** La partida de un jugador se abre con **Control + S**
 (`client/AtajoOverworld.java`, sobre `ScreenEvent.KeyPressed` / `KeyReleased`, con anti-repetición mientras
-la tecla sigue pulsada). Es la salida de servicio, y las salidas de servicio no se anuncian en el tablón; se
-aclara al pie de la hoja, en letra chica (`jobsmenu.tablon.atajo`).
+la tecla sigue pulsada). Desde 0.6.2 **no se anuncia en ningún lado**: no hay texto en la hoja ni en el pie
+que insinúe que existe. Es una comodidad de desarrollo y de administración —saltar directo a la selección de
+mundos— y queda invisible para quien sólo viene a jugar. Sigue funcionando igual; lo único que cambió es que
+ya no se documenta en la interfaz.
 
 ### 3.1 La cuenta regresiva (pieza de identidad)
 
@@ -196,17 +198,29 @@ marcos según corresponda, el vano del fondo, polvo y viñeta perimetral.
 
 **La presencia** (`client/scene/Presencia.java`) reemplaza a la silueta caminante de la 0.2.0. Ver §3.7.
 
-### 3.4 Los cuatro niveles
+### 3.4 Los niveles
 
 `client/scene/Nivel.java` es el catálogo. Cada nivel cambia proporción, ancho, colores, reflejo y qué cosas
 cuelgan de las paredes:
 
-| Clave | Nivel | Proporción | Semiancho | Reflejo | Señas |
-|---|---|---|---|---|---|
-| `nivel0` | Sección administrativa | 0.92 | 0.082 | 0.16 | Papel mural amarillo, zócalo, humedad total |
-| `nivel1` | Depósito | 0.98 | 0.132 | 0.30 | Hormigón, mucho más ancho, neblina |
-| `nivel2` | Pasillos de servicio | 0.78 | 0.070 | 0.22 | Estrecho y alto, óxido, tuberías |
-| `nivel3` | Las piscinas | 1.02 | 0.098 | 0.62 | Azulejo, casi cuadrado, todo se refleja |
+| Clave | Nivel | Reflejo | Señas |
+|---|---|---|---|
+| `nivel0` | Sección administrativa | 0.16 | Papel mural amarillo, zócalo, humedad total |
+| `nivel1` | Depósito | 0.30 | Hormigón, mucho más ancho, neblina |
+| `nivel2` | Pasillos de servicio | 0.22 | Estrecho y alto, óxido, tuberías |
+| `nivel3` | Las piscinas | 0.62 | Azulejo, casi cuadrado, todo se refleja |
+| `nivel4` | La sala | 0.20 | Piedra cálida, fuego, bóveda, candil de rueda — el guiño al lobby |
+| `nivel5` | La biblioteca | 0.14 | Estanterías hasta el techo, lámparas verdes, quietud |
+| `nivel6` | El invernadero | 0.18 | Vidrio y hierro, plantas, luz cenital difusa |
+| `nivel7` | Las catacumbas | 0.24 | Túnel de piedra fría, nichos, farol — el pariente oscuro de la sala |
+| `nivel8` | La cisterna | 0.80 | Columnas sobre agua negra que las refleja, focos sumergidos |
+| `nivel9` | El salón del trono | 0.26 | Ruinas, columnas partidas, un trono vacío bajo un haz de luz |
+
+**Nivel 4 es la otra cara del mod.** Los cuatro primeros son backrooms: fluorescente que no se apaga, terror
+burocrático y luminoso. La sala es lo contrario —piedra excavada, antorchas, un candelabro de rueda con
+velas colgado de la bóveda, estandartes— y su luz es **fuego que titila**, no tubo. Convive en la rotación
+como quinto recinto (`client/scene/planta/Cripta.java`). Su primer plano es el borde de una mesa larga de
+banquete: se mira la sala desde la cabecera. El vano del fondo es la boca de un túnel sin luz.
 
 ### 3.5 La transición
 
@@ -235,14 +249,23 @@ presencia. Cualquiera de los dos deja la escena legible.
 
 ### 3.6 Sonido
 
-**Treinta y cuatro piezas**, todas sintetizadas para el mod con `tools/sonidos.py` (numpy + scipy +
-soundfile): ninguna muestra de terceros, ninguna licencia de por medio. Mono, 44.1 kHz, OGG Vorbis, 1.36 MB
-en total.
-Semilla fija `0x4A4F4253`, así que regenerarlas da siempre el mismo resultado.
+**Setenta y cuatro piezas** en total: **73 sintetizadas** para el mod con `tools/sonidos.py` (numpy + scipy +
+soundfile) —ninguna muestra de terceros, ninguna licencia de por medio— más la pista de música
+(`musica/defecto.ogg`, ver §3.8). Todas mono, 44.1 kHz, OGG Vorbis. Semilla fija `0x4A4F4253`, así que
+regenerar las sintetizadas da siempre el mismo resultado.
+
+> **Por qué mono, y no es un detalle menor.** El motor de sonido de Minecraft trata distinto lo mono y lo
+> estéreo, y una pieza estéreo puede quedar muda aunque el archivo sea válido y los volúmenes estén al máximo.
+> Pasó de verdad con la música (ver §3.8). Desde entonces la regla es dura: **todo el audio del mod es mono**.
 
 Las seis piezas de la 0.2.0 se descartaron enteras. El problema no era la mezcla: eran genéricas y se
 repetían. Esta tanda parte de una regla distinta —**todo tiene que sonar al mismo edificio**— y de ahí
 salen las cuatro familias.
+
+> **Los conteos de esta sección son del diseño original de cuatro recintos** (niveles 0–3). Desde 0.7.0 los
+> seis recintos nuevos (4–9) siguen exactamente el mismo patrón —tres camas continuas y tres eventos por
+> nivel—, cada uno con sus propias piezas. El total hoy es de 74 `.ogg` (73 sintetizadas + la música). Las
+> tablas de abajo se conservan porque explican el *criterio* de diseño, que vale igual para los diez.
 
 #### Interfaz (8)
 
@@ -371,7 +394,7 @@ Tres o cuatro por nivel, disparados por `CapaAmbiente` con probabilidad, retardo
 
 | Clase | Responsabilidad |
 |---|---|
-| `client/sound/SonidosNivel.java` | Registro diferido de los 34 eventos |
+| `client/sound/SonidosNivel.java` | Registro diferido de los 74 eventos |
 | `client/sound/MezclaAudio.java` | La mezcla y los gestos. Un solo lugar decide volúmenes. |
 | `client/sound/CapaAmbiente.java` | Una cama continua: su bucle, su respiración, su reacción a la luz. Dos instancias por nivel, con papel `BASE` o `CARACTER` |
 | `client/sound/GestorAmbiente.java` | Levanta las dos camas de cada nivel, sortea los eventos, sigue la transición, dispara el titileo |
@@ -431,15 +454,30 @@ Con *movimiento reducido* o la escena quieta, no aparece.
 menú, **no se reinicia al cambiar de pantalla** y **sigue sonando durante el apagón**: es lo único que
 atraviesa la transición, y por eso la transición no se siente como un corte.
 
-**Sobre el tema pedido.** El enlace de YouTube es *REQUIEM — Forsaken OST*, del canal **Emmy Z**: es obra de
-un tercero con copyright, así que **no se empaqueta**. Fingir que está integrada sería mentir. Lo que hay:
+**Sobre el tema.** Es *REQUIEM — Forsaken OST*, del canal **Emmy Z**. Es obra de un tercero con copyright, y
+está incluida por decisión del owner (`music/REQUIEM-Forsaken-OST.ogg`, archivada como respaldo) para un
+server entre amigos con el crédito en pantalla. Lo que hay:
 
-- `musica/defecto.ogg`, pieza original de 67 s (La menor, 8 acordes de 9 s, crossfade de 5 s), incluida en
-  el JAR y sonando de fábrica.
-- El camino legal para usar REQUIEM u otra pista: **paquete de recursos**, que sobrescribe
-  `assets/jobsmenu/sounds/musica/defecto.ogg` sin tocar código ni recompilar y sin que el archivo con
-  derechos entre nunca al JAR. Procedimiento completo, con la estructura de carpetas y el `pack.mcmeta`,
-  en **`docs/musica.md`**, junto con las tres vías para conseguir la pista con permiso.
+- `musica/defecto.ogg` **ES la pista real** (REQUIEM), directamente en los recursos, no un tema sintetizado.
+  Desde 0.6.4 no se hornea nada en tiempo de compilación: el `.ogg` que suena es el que está en el árbol de
+  recursos, sin magia de Gradle. Para cambiar de pista, se reemplaza ese archivo por otro OGG Vorbis.
+- **Tiene que ser MONO.** La causa real de que la música no sonara (mientras el ambiente sí) fue que la pista
+  venía en **estéreo**, y el motor de Minecraft trata ese caso distinto: la descartaba en silencio aunque el
+  archivo fuera válido y los volúmenes estuvieran al máximo. Re-codificada a mono (con libVorbis, normalizada
+  con más volumen) y marcada `"stream": false` en `sounds.json` —igual que las camas de ambiente que sí se
+  oyen—, suena.
+- **El canal MUSIC es de uno solo.** Minecraft trae su propio gestor de música de menú, que suena en el mismo
+  `SoundSource.MUSIC` que el tema del mod y lo desalojaba. `GestorMusica.tick()` llama cada tick a
+  `getMusicManager().stopPlaying()` mientras el aviso está abierto, para dejarle el canal libre al tema. No
+  toca los deslizadores del jugador: sólo evita que dos músicas peleen por el mismo canal. (Si el deslizador
+  *Música* del juego está en cero, no hay código que valga; el ajuste de volumen del aviso lo aclara.)
+- **El crédito** (`jobsmenu.credito.titulo` / `jobsmenu.credito.autor`, hoy *REQUIEM · Emmy Z · Forsaken
+  OST*) aparece arriba a la derecha una sola vez por sesión, entrando y saliendo suave, y **sólo si hay una
+  pista con autor** —la marcada con `assets/jobsmenu/musica_creditada.txt`, o una que el jugador haya dejado
+  en su carpeta—. Nunca sobre una pieza sin autor. Se apaga con `credito_musica = false`.
+- **Vía sin recompilar** (paquete de recursos automático): dejar cualquier `.ogg` en
+  `.minecraft/jobsmenu-musica/` y el mod lo instala y activa solo. Procedimiento completo en
+  **`docs/musica.md`**.
 
 ---
 
@@ -450,6 +488,7 @@ un tercero con copyright, así que **no se empaqueta**. Fingir que está integra
 | Clave | Def. | Qué hace |
 |---|---|---|
 | `menu_propio` | `true` | Sustituye el título vanilla. En `false` el mod queda invisible. |
+| `pausa_propia` | `true` | Sustituye la pausa del juego por "Estancia en suspenso", con la misma piel. En `false` vuelve la pausa vanilla. |
 | `escena_viva` | `true` | Fondo animado; en `false`, misma composición pero quieta. |
 | `movimiento_reducido` | `false` | Apaga el polvo y la presencia del fondo. |
 | `destellos_reducidos` | `false` | Congela el parpadeo de los tubos y el pulso rojo. |
@@ -457,14 +496,23 @@ un tercero con copyright, así que **no se empaqueta**. Fingir que está integra
 | `mostrar_cuenta_regresiva` | `true` | Control fino del reloj de ronda. |
 | `avisos_rotativos` | `true` | Control fino de la línea de avisos. En `false` la línea no existe. |
 | `rotar_niveles` | `true` | En `false`, el fondo se queda en un solo nivel. |
-| `nivel_fijo` | `0` | Qué nivel mostrar cuando la rotación está apagada (0–3). |
+| `nivel_fijo` | `0` | Qué nivel mostrar cuando la rotación está apagada (0–9). |
 | `sonido_botones` | `true` | Los ocho gestos de interfaz. |
 | `sonido_ambiente` | `true` | Ambiente por nivel, eventos ocasionales y los golpes de la transición. |
 | `volumen_ambiente` | `55` | Volumen del ambiente, 0–100. |
 | `musica_menu` | `true` | La música del menú. |
 | `volumen_musica` | `70` | Volumen de la música, 0–100. |
+| `credito_musica` | `true` | Mostrar el crédito de la pista (título y autor) al empezar a sonar, arriba a la derecha. |
 
 Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y legible**, nunca uno roto.
+
+**Dónde se tocan estos ajustes.** No hay una pantalla de opciones aparte: son un solo menú. El renglón
+*Condiciones de estancia* del aviso (y el mismo renglón de la pausa) abren el `OptionsScreen` de vanilla —el
+de imagen, sonido, controles, idioma, recursos—, y ahí el mod inserta un botón **Ajustes del aviso**
+(`client/AjustesAviso.java`, sobre `ScreenEvent.Init.Post`) que lleva a `PantallaAjustesAviso`, una
+subpantalla de opciones nativa (`OptionsSubScreen` + `OptionsList` + `OptionInstance`) con todos los
+interruptores y deslizadores de esta tabla. Cada control escribe y guarda la config en el acto: no hace falta
+editar el `.toml` a mano.
 
 ---
 
@@ -478,9 +526,20 @@ Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y
 | **0.4.0** | Cuatro tipologías de recinto reales, interfaz de cuarta generación (síntesis modal), segunda cama continua por nivel, ambiente audible, vía legal para la música | **Entregado** |
 | **0.5.0** | Tercera cama de ambiente, sincronía A/V de la transición, presencia con cuatro modos, primeros planos | **Entregado** |
 | **0.6.0** | Interfaz de sexta generación (cinco clases de gesto), música con detección automática, jerarquía de UI medida, luminarias y vanos con cuerpo, sesgo de eventos corregido | **Entregado** |
-| 0.7.0 | Pausa ("Estancia en suspenso") y opciones con la misma piel | Pendiente |
-| 0.8.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
-| 0.9.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |
+| **0.6.1** | Ronda de pulido: el agua del natatorio devuelve los tubos del techo (reflejo roto y tembloroso, el detalle que la vuelve agua), más humedad en el azulejado, sello de versión eliminado de la esquina, código muerto retirado | **Entregado** |
+| **0.6.2** | Música: vía para hornear REQUIEM (u otra pista) dentro del JAR con crédito en pantalla al empezar a sonar; Ctrl+S pasa a herramienta oculta (sin texto en el menú); vapor del natatorio en jirones que se arrastran; `ui.pasar` con el brillo agudo recortado para no cansar | **Entregado** |
+| **0.6.3** | La pista REQUIEM (Emmy Z) subida por el owner queda integrada: el build hornea cualquier `.ogg` de `music/` en el JAR (nombre libre), suena de fábrica con su crédito. OGG verificado (Vorbis 44.1 kHz, 3:16, sin clipping, junta de bucle limpia) | **Entregado** |
+| **0.6.4** | Arreglo de que la música no sonara: `defecto.ogg` ES ahora REQUIEM directo en los recursos (el horneado en build era frágil y no se ejecutaba); marcador de crédito como recurso real; mezcla de música 0.34→0.55 y entrada 20 s→6 s para que se escuche | **Entregado** |
+| **0.6.5** | Nivel 4, **La sala**: quinto recinto de piedra cálida iluminada por fuego (bóveda, columnas, antorchas, estandartes, candil de rueda con velas, runas en el suelo, mesa de banquete en primer plano). Audio propio: tres camas (aire tibio, fuego, la sala vieja) y tres eventos (antorcha, cadena, piedra). El guiño al lobby del server, conviviendo con los cuatro backrooms | **Entregado** |
+| **0.7.0** | Cinco recintos nuevos (biblioteca, invernadero, catacumbas, cisterna, salón del trono) con su audio propio (30 piezas más), diez fondos en rotación; REQUIEM re-codificada con libVorbis para que suene; más frases (16 avisos, 3 notas por nivel) | **Entregado** |
+| **0.7.1** | La cabecera de la hoja sigue al recinto (dice el Nivel y la tarifa reales, no el fijo "Nivel 0"); easter eggs por fecha/hora en los avisos (año nuevo, 31/10, viernes 13, las 3 AM); pared del fondo de la biblioteca más legible | **Entregado** |
+| **0.7.2** | Más frases (avisos rotativos de 16 a 20) y tres easter eggs nuevos (Día del Trabajador —guiño al nombre del server—, Navidad, medianoche); arreglo de maquetación: la hoja ahora reserva alto también para las notas especiales, que en una fecha señalada podían empujar los renglones | **Entregado** |
+| **0.8.0** | Condiciones de estancia (opciones del mod con la piel del aviso: casillas y reglas graduadas que escriben y guardan la config sin tocar el archivo) y pausa propia ("Estancia en suspenso"), replicando la salida guardada de vanilla para no chocar con los mods de guardado en segundo plano | **Entregado** |
+| **0.8.1** | Las condiciones de estancia recuperan el acceso a las opciones reales del juego: un renglon "Ajustes del equipo" al pie de la hoja abre el `OptionsScreen` de vanilla (imagen, sonido, controles, idioma, recursos). Los ajustes del mod y los del equipo conviven sin que se pierda ninguno | **Entregado** |
+| **0.8.2** | Un solo menu de ajustes: se retira la hoja de opciones propia y los ajustes del mod pasan a una subpantalla de opciones nativa (`OptionsSubScreen` + `OptionsList` + `OptionInstance`), a la que se llega por un boton "Ajustes del aviso" que el mod inserta en la pantalla de opciones del juego. Arreglo de la musica: se calla al gestor de musica de vanilla mientras el aviso esta abierto, para que el tema no compita por el canal `MUSIC` (era la causa de que el ambiente se oyera y la musica no) | **Entregado** |
+| **0.8.3** | Arreglo real de la musica: la pista era estereo y las camas que si sonaban eran mono; el motor las trata distinto. Se re-codifico REQUIEM a mono (mas volumen) y `stream:false`, igual que el ambiente. Nivel 9 rehecho: trono alto y coronado (brazos, cojin, hueco de la corona) sobre estrado de cinco escalones, abside de piedra al fondo y haz cenital con polvo. Nueva respiracion de camara: la fuga deriva unos pixeles en un vaiven lentisimo en todos los niveles (se apaga con movimiento reducido). El espejo Python queda sincronizado | **Entregado** |
+| 0.9.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
+| 0.10.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |
 | 1.0.0 | Pulido, accesibilidad completa, empaquetado para repartir | Pendiente |
 
 Fuera de alcance, explícitamente: entidades, ítems, mecánicas, comandos, economía real, cualquier cosa que
@@ -512,6 +571,15 @@ toque el servidor. **La tarifa del menú es decorativa**: no lee el dinero real 
     Backrooms se llevo `brilloFluorescente()` y dejo la llamada en pie; el mod no compilo
     en el PC del owner. Si se borra o renombra un metodo privado, hay que seguirle el rastro
     a sus llamadas.
+12. **Todo el audio va en MONO.** El motor de Minecraft trata distinto lo mono y lo estereo;
+    una pieza estereo puede quedar muda aunque el archivo sea valido y los volumenes esten al
+    maximo. Costo varias entregas descubrir que era eso lo que impedia oir la musica. Cualquier
+    `.ogg` que entre al mod se comprueba mono antes de darlo por bueno.
+13. **El build cuida la memoria.** `reobfJar` (ForgeGradle) abre un proceso Java aparte que
+    reserva ~1/4 de la RAM fisica; en equipos con archivo de paginacion chico el build moria con
+    `errno=1455` o el daemon crasheaba. `gradle.properties` va contenido (`-Xmx1024m`, GC serial,
+    sin paralelismo) y `build.gradle` capa el heap del fork de reobf en `afterEvaluate`. No subir
+    esos numeros a la ligera: la causa de raiz suele ser el archivo de paginacion de Windows.
 
 ---
 
@@ -521,7 +589,7 @@ toque el servidor. **La tarifa del menú es decorativa**: no lee el dinero real 
 |---|---|
 | `tools/verificar.py` | Sustituto del compilador ausente, en 9 bloques: versiones sincronizadas, **`mods.toml` parseado y validado contra el esquema de Forge 47**, paridad y validez de los `lang`, claves usadas vs. existentes, ASCII puro y balance de delimitadores en `.java`, **metodos llamados que la clase no declara**, recursos (`pack_format`, archivos de Gradle), **coherencia del audio** (los `.ogg` existen, arrancan con la firma `OggS`, `sounds.json` los nombra y Java los registra) y **los niveles** (cada uno con su nombre y su nota traducidos, y `nivel_fijo` con el rango correcto). |
 | `tools/vista_previa.py` | Espejo en Python de la escena. Dibuja el menú a PNG sin Minecraft para revisar composición, perspectiva y paleta. Acepta `--nivel=N`, `--figura=0..1`, `--contacto salida.png` (los cuatro niveles en una tira) y `--presencia salida.png` (los seis instantes de la manifestación). Escribe el PNG a mano con `zlib` (no necesita Pillow). **Se sincroniza a mano con `EscenaNivel.java` y `Presencia.java`: si cambia uno, cambia el otro.** |
-| `tools/sonidos.py` | Genera las 34 piezas `.ogg` desde cero con numpy, scipy y soundfile (reverberación por convolución incluida). Semilla fija `0x4A4F4253`. Escribe en bloques de 4 s: `sf.write()` con OGG de más de 60 s da segfault en libsndfile 1.2.2. Ninguna pieza viene de una muestra ajena. |
+| `tools/sonidos.py` | Genera las 73 piezas `.ogg` sintetizadas desde cero con numpy, scipy y soundfile (reverberación por convolución incluida). Semilla fija `0x4A4F4253`. Escribe en bloques de 4 s: `sf.write()` con OGG de más de 60 s da segfault en libsndfile 1.2.2. Todas mono. Ninguna pieza viene de una muestra ajena; la música (`musica/defecto.ogg`) es la excepción y no la toca este generador. |
 
 ---
 

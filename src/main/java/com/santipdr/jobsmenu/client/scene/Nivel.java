@@ -1,10 +1,16 @@
 package com.santipdr.jobsmenu.client.scene;
 
+import com.santipdr.jobsmenu.client.scene.planta.Biblioteca;
+import com.santipdr.jobsmenu.client.scene.planta.Catacumba;
+import com.santipdr.jobsmenu.client.scene.planta.Cisterna;
+import com.santipdr.jobsmenu.client.scene.planta.Cripta;
+import com.santipdr.jobsmenu.client.scene.planta.Invernadero;
 import com.santipdr.jobsmenu.client.scene.planta.Nave;
 import com.santipdr.jobsmenu.client.scene.planta.Natatorio;
 import com.santipdr.jobsmenu.client.scene.planta.Planta;
 import com.santipdr.jobsmenu.client.scene.planta.Sala;
 import com.santipdr.jobsmenu.client.scene.planta.Servicio;
+import com.santipdr.jobsmenu.client.scene.planta.Trono;
 
 /**
  * Un nivel del servidor, visto desde donde esta pegado el aviso.
@@ -174,7 +180,87 @@ public final class Nivel {
                     // agua: se abre mucho a lo ancho y poco a lo alto, y el
                     // vaso ocupa casi todo el cuadro inferior.
                     0.455F, 0.330F, 0.300F, 0.270F, 0.080F, 0.124F,
-                    0.62F, 0.15F),
+                    0.62F, 0.30F),
+
+            // Nivel 4 - La sala. El primer recinto que no es un backroom: piedra
+            // calida iluminada por fuego, el guino al lobby del server. Ambar y
+            // ocre, boveda de sillares, antorchas y un candil de rueda. El vano
+            // del fondo es la boca de un tunel sin luz. 'luz' es el color de la
+            // llama (ambar), no de un fluorescente.
+            new Nivel("nivel4", new Cripta(),
+                    0xFF9A7444, 0xFF5E4227, 0xFF34220F,
+                    0xFF6E5432, 0xFF463320, 0xFF2C1C0C,
+                    0xFF836540, 0xFF4E3822,
+                    0xFF4A3520, 0xFFFFC070, 0xFF0A0603,
+                    // Nave abovedada, honda y de buena altura, vista casi de
+                    // frente y un punto desde abajo: el candil domina el techo.
+                    0.505F, 0.500F, 0.150F, 0.150F, 0.185F, 0.150F,
+                    0.20F, 0.55F),
+
+            // Nivel 5 - La biblioteca. Estanterias de madera oscura hasta el
+            // techo, lamparas de pantalla verde, polvo. Marron calido y verde
+            // apagado; la sala mas quieta de todas. Fondo: un ventanal gris.
+            new Nivel("nivel5", new Biblioteca(),
+                    0xFF7C6142, 0xFF4E3B26, 0xFF2C2013,
+                    0xFF5A4A34, 0xFF3C3020, 0xFF241B10,
+                    0xFF6E5C42, 0xFF3E3020,
+                    0xFF433624, 0xFFE9D8A0, 0xFF120E08,
+                    // Sala honda de techo medio, vista de frente por el pasillo
+                    // central entre las dos hileras de estanterias.
+                    0.500F, 0.500F, 0.140F, 0.140F, 0.150F, 0.140F,
+                    0.14F, 0.45F),
+
+            // Nivel 6 - El invernadero. Vidrio y hierro tomados por las plantas.
+            // La luz entra por el techo, blanca y difusa. Verdes humedos, hierro
+            // oxidado; el unico recinto iluminado desde arriba y por luz natural.
+            new Nivel("nivel6", new Invernadero(),
+                    0xFF8A9A6E, 0xFF566040, 0xFF3B3B22,
+                    0xFF4C5436, 0xFF343A24, 0xFF20240E,
+                    0xFFC8D4B0, 0xFF6E7A50,
+                    0xFF7E8C64, 0xFFF2F6E0, 0xFF141810,
+                    // Nave ancha y alta de techo a dos aguas, vista de frente por
+                    // el sendero central. Se abre a lo alto: el techo es el tema.
+                    0.500F, 0.500F, 0.165F, 0.165F, 0.175F, 0.130F,
+                    0.18F, 0.60F),
+
+            // Nivel 7 - Las catacumbas. Tunel angosto y bajo de piedra fria, con
+            // nichos en las paredes y un farol colgado. Azul-gris, humedo, el
+            // pariente oscuro de la sala. Un pasillo, estrecho y arqueado.
+            new Nivel("nivel7", new Catacumba(),
+                    0xFF6A7078, 0xFF3C4248, 0xFF23282C,
+                    0xFF43484C, 0xFF2A2E32, 0xFF181B1E,
+                    0xFF565C62, 0xFF303539,
+                    0xFF32383E, 0xFFFFDC96, 0xFF06080A,
+                    // Pasillo estrecho y alto, fuga apenas descentrada; se baja
+                    // un poco hacia el fondo (horizonte alto).
+                    0.470F, 0.470F, 0.070F, 0.082F, 0.130F, 0.112F,
+                    0.24F, 0.85F),
+
+            // Nivel 8 - La cisterna. Aljibe enorme: columnas naciendo de un agua
+            // negra que lo refleja todo, focos sumergidos que la tinen, goteo
+            // con eco. Azul profundo y ambar de los focos. Reflejo altisimo.
+            new Nivel("nivel8", new Cisterna(),
+                    0xFF4A5A6E, 0xFF2A3644, 0xFF17202A,
+                    0xFF1E2A38, 0xFF121A24, 0xFF0A0F16,
+                    0xFF3A4A5C, 0xFF22303E,
+                    0xFF1E2A38, 0xFFFFC878, 0xFF05080C,
+                    // Nave ancha y de techo bajo, vista al ras del agua desde una
+                    // pasarela; se abre a lo ancho, poco a lo alto.
+                    0.500F, 0.500F, 0.190F, 0.190F, 0.092F, 0.118F,
+                    0.80F, 0.55F),
+
+            // Nivel 9 - El salon del trono. Sala de audiencias en ruinas: columnas
+            // partidas, techo con boquetes, un trono vacio al fondo bajo un haz de
+            // luz. Oro apagado y azul de piedra; nada de rojo (es de los Executores).
+            new Nivel("nivel9", new Trono(),
+                    0xFF6C6A82, 0xFF3E3C50, 0xFF242234,
+                    0xFF46445A, 0xFF2C2A3C, 0xFF181628,
+                    0xFF56546A, 0xFF302E44,
+                    0xFF34324A, 0xFFE8C878, 0xFF0A0812,
+                    // Nave alta y honda, vista de frente por la alfombra central;
+                    // el trono cae justo en la fuga, al fondo.
+                    0.500F, 0.500F, 0.150F, 0.150F, 0.185F, 0.140F,
+                    0.26F, 0.55F),
     };
 
     /** Cuantos niveles hay en la rotacion. */
@@ -186,5 +272,25 @@ public final class Nivel {
     public static Nivel porIndice(int indice) {
         int n = CATALOGO.length;
         return CATALOGO[((indice % n) + n) % n];
+    }
+
+    /**
+     * El numero del nivel tal como lo lee el ocupante: el que va en el nombre.
+     *
+     * Sale de la clave ("nivel0" -> 0, "nivel7" -> 7) y no del indice de la
+     * rotacion, porque son cosas distintas: la rotacion podria reordenarse o
+     * saltear alguno, pero "Nivel 7" siempre es el mismo sitio. La hoja del
+     * aviso lo usa para decir en que nivel esta parado el ocupante y cuanto
+     * cuesta el siguiente, en vez de mentir siempre "Nivel 0".
+     */
+    public int numero() {
+        int n = 0;
+        for (int i = 0; i < this.clave.length(); i++) {
+            char c = this.clave.charAt(i);
+            if (c >= '0' && c <= '9') {
+                n = n * 10 + (c - '0');
+            }
+        }
+        return n;
     }
 }

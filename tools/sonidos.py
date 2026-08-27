@@ -204,6 +204,24 @@ SALAS = {
     "servicio": impulso(1.10, 0.004, 5_000.0, 1.8),
     # Complejo de piscinas: azulejo, enorme, brillante y con cola larguisima.
     "piscinas": impulso(4.20, 0.035, 7_500.0, 1.6),
+    # Sala de piedra abovedada: grande y calida, cola media, sin el brillo del
+    # azulejo -la piedra absorbe los agudos-, mas oscura que el deposito.
+    "sala_piedra": impulso(2.30, 0.022, 2_400.0, 1.3),
+    # Biblioteca: los libros y la madera absorben casi todo. Cola corta y
+    # seca, mate, la mas apagada de todas -por eso el sitio se siente muerto-.
+    "biblioteca": impulso(0.85, 0.010, 2_000.0, 0.6),
+    # Invernadero: vidrio y volumen de aire. Cola media-larga y brillante -el
+    # vidrio refleja los agudos-, pero la vegetacion la amortigua un poco.
+    "invernadero": impulso(1.90, 0.018, 6_000.0, 1.0),
+    # Catacumbas: tunel de piedra estrecho. Cola media, muy oscura y con muchas
+    # reflexiones cercanas -las paredes estan a un brazo-, sin nada de agudos.
+    "catacumbas": impulso(1.60, 0.006, 1_600.0, 1.6),
+    # Cisterna: aljibe enorme lleno de agua. La cola mas larga de todas, oscura
+    # y con muchisimo cuerpo; el agua y la piedra hacen que todo dure segundos.
+    "cisterna": impulso(5.20, 0.040, 3_000.0, 1.7),
+    # Salon del trono: nave alta de piedra, en ruinas y con boquetes al cielo.
+    # Cola larga y grande, algo mas clara que la cisterna -esta seca- y con aire.
+    "trono": impulso(3.40, 0.030, 4_000.0, 1.5),
 }
 
 
@@ -452,9 +470,16 @@ def ui_pasar() -> np.ndarray:
     """
     grano = pa_m(cargar("roceCorto_001"), 1_800.0, 2)
     grano = recortar(grano, 0.004, 0.075)
-    grano = pb_m(grano, 6_200.0, 4)
+    # Techo del grano bajado de 6.2 a 5.2 kHz. Este es el gesto que suena mas
+    # veces por sesion, y era el unico de la familia que se saltaba la regla de
+    # "nada por encima de 5 kHz": tenia cerca de un quinto de su energia arriba
+    # de esa linea. En un sonido que se dispara trescientas veces, ese brillo es
+    # exactamente lo que fatiga el oido a los veinte minutos. Bajarlo no le quita
+    # el caracter de papel -el papel se lee de sobra a 5 kHz- y lo vuelve un roce
+    # que se puede escuchar toda una sesion sin cansar.
+    grano = pb_m(grano, 5_200.0, 4)
     suave = altura(cargar("roceSuave_000"), 1.25)
-    suave = pa_m(pb_m(suave, 6_000.0), 900.0, 2)
+    suave = pa_m(pb_m(suave, 5_000.0), 900.0, 2)
     suave = recortar(suave, 0.0, 0.09) * 0.55
     # Sin ataque: la envolvente sube y baja sin pico. Es lo que separa un roce
     # de un golpe, y es toda la identidad de este gesto.
@@ -462,7 +487,7 @@ def ui_pasar() -> np.ndarray:
     n = len(x)
     forma = np.sin(np.linspace(0.0, np.pi, n)) ** 0.8
     return _gesto(x * forma, 0.100, 0.06, ataque=12.0, pico=0.21,
-                  corte_bajo=700.0, techo=7_000.0, cierre=0.035)
+                  corte_bajo=700.0, techo=5_400.0, cierre=0.035)
 
 
 def ui_elegir() -> np.ndarray:
@@ -794,6 +819,141 @@ def base_nivel3(dur: float = 31.0) -> np.ndarray:
     return reverberar(x, SALAS["piscinas"], 0.52)
 
 
+def base_nivel4(dur: float = 26.0) -> np.ndarray:
+    """Nivel 4, la sala de piedra.
+
+    La otra cara del mod: aca no hay instalacion electrica, hay FUEGO. La cama
+    base es el aire caliente de una sala grande de piedra -un tiro suave, como
+    el de una chimenea- mas el modo grave de la boveda. No hay zumbido de 50 Hz
+    de ningun tubo: lo que sostiene el sitio es el volumen de aire tibio y la
+    piedra devolviendolo todo con una cola media y oscura.
+    """
+    t = tiempo(dur)
+
+    # Tiro de aire caliente: ruido marron ancho, modulado lento como una
+    # corriente que sube por la nave. Es el "cuarto tono" de la sala.
+    tiro = pasabajos(marron(dur), 200.0, 3) * 4.2 * deriva(dur, 0.021, 0.30)
+
+    # Modo propio de la boveda: una nave de piedra tiene su nota, mas alta que
+    # la del deposito de hormigon porque es mas corta.
+    modo = np.sin(2 * np.pi * 57.0 * t) * 0.09 * deriva(dur, 0.013, 0.55)
+    modo += np.sin(2 * np.pi * 86.0 * t + 0.6) * 0.045 * deriva(dur, 0.019, 0.60)
+
+    # Un siseo grave y lejano: las brasas respirando, sin transitorios todavia
+    # (los chasquidos van en la capa de caracter). Banda baja-media.
+    brasa = pasabanda(rosa(dur), 240.0, 1_100.0, 2) * 0.20 * deriva(dur, 0.047, 0.45)
+
+    x = tiro * 0.11 + modo * 0.9 + brasa * 0.06
+    return reverberar(x, SALAS["sala_piedra"], 0.38)
+
+
+def base_nivel5(dur: float = 22.0) -> np.ndarray:
+    """Nivel 5, la biblioteca.
+
+    El sitio mas quieto. No hay maquinas ni fuego: hay una sala grande llena de
+    papel que se traga el sonido. La base es un room tone muy bajo -el silencio
+    tiene su propio color- con el rumor apenas audible de una calle o un patio
+    detras del ventanal, muy filtrado, que nunca termina de estar.
+    """
+    t = tiempo(dur)
+
+    # Room tone: ruido rosa muy filtrado y bajo. El silencio de una sala real
+    # no es cero, es esto.
+    cuarto = pasabajos(rosa(dur), 400.0, 2) * 0.9 * deriva(dur, 0.017, 0.20)
+
+    # La calle detras del ventanal: banda media-baja, lejanisima y sorda, como
+    # a traves de un vidrio grueso. Sube y baja como el trafico que no se ve.
+    calle = pasabanda(rosa(dur), 120.0, 800.0, 2) * 0.6
+    calle *= 0.4 + 0.6 * np.clip(np.sin(2 * np.pi * 0.02 * t) * 0.5 + 0.5, 0.0, None)
+    calle = pasabajos(calle, 600.0, 2)
+
+    x = cuarto * 0.09 + calle * 0.05
+    return reverberar(x, SALAS["biblioteca"], 0.18)
+
+
+def base_nivel6(dur: float = 25.0) -> np.ndarray:
+    """Nivel 6, el invernadero.
+
+    Una nave grande de vidrio. La base es el aire moviendose bajo la cristalera
+    -una corriente ancha y suave- y el ping ocasional del vidrio dilatandose con
+    la temperatura. Nada electrico: es un sitio de aire, agua y luz.
+    """
+    t = tiempo(dur)
+
+    # Corriente de aire bajo el vidrio: ruido de banda ancha, medio, respirando.
+    aire = pasabanda(rosa(dur), 200.0, 2_400.0, 2) * 0.7 * deriva(dur, 0.023, 0.45)
+
+    # Volumen del recinto: un grave suave, no tan hondo como el deposito.
+    volumen = pasabajos(marron(dur), 160.0, 3) * 2.6 * deriva(dur, 0.017, 0.30)
+
+    x = aire * 0.06 + volumen * 0.06
+    return reverberar(x, SALAS["invernadero"], 0.34)
+
+
+def base_nivel7(dur: float = 24.0) -> np.ndarray:
+    """Nivel 7, las catacumbas.
+
+    Piedra fria y aire quieto bajo tierra. La base es un grave muy hondo -la
+    masa de tierra alrededor- y un soplo minimo de aire que recorre el tunel. No
+    hay nada calido ni electrico: es el sonido de estar debajo de todo.
+    """
+    t = tiempo(dur)
+
+    # La masa de tierra: subgrave apenas por encima del infrasonido, estable.
+    masa = pasabajos(marron(dur), 90.0, 3) * 4.0 * deriva(dur, 0.011, 0.30)
+    masa = pasaaltos(masa, 32.0, 2)
+
+    # Corriente que recorre el tunel: banda estrecha baja-media, muy sorda.
+    corriente = pasabanda(rosa(dur), 150.0, 700.0, 2) * 0.4 * deriva(dur, 0.03, 0.5)
+
+    x = masa * 0.09 + corriente * 0.05
+    return reverberar(x, SALAS["catacumbas"], 0.30)
+
+
+def base_nivel8(dur: float = 27.0) -> np.ndarray:
+    """Nivel 8, la cisterna.
+
+    Un volumen de aire enorme sobre agua quieta. La base es el grave hondo del
+    espacio -mas grande que el deposito- y la masa de agua moviendose apenas
+    contra las columnas. Todo pasado por la cola larguisima del aljibe: el sitio
+    suena tan grande que un solo sonido tarda en morir.
+    """
+    t = tiempo(dur)
+
+    # El volumen del aljibe: grave profundo y estable.
+    volumen = pasabajos(marron(dur), 120.0, 3) * 4.4 * deriva(dur, 0.013, 0.25)
+    volumen = pasaaltos(volumen, 30.0, 2)
+
+    # La masa de agua contra la piedra: ondulacion lentisima, grave.
+    ola = 0.6 + 0.4 * (np.sin(2 * np.pi * 0.045 * t) * 0.6 + np.sin(2 * np.pi * 0.031 * t + 1.5) * 0.4)
+    agua = pasabanda(rosa(dur), 90.0, 500.0, 2) * np.clip(ola, 0.0, None) * 0.7
+
+    x = volumen * 0.08 + agua * 0.06
+    return reverberar(x, SALAS["cisterna"], 0.50)
+
+
+def base_nivel9(dur: float = 25.0) -> np.ndarray:
+    """Nivel 9, el salon del trono.
+
+    Una nave alta y en ruinas, abierta al cielo por los boquetes del techo. La
+    base es el viento entrando por esos huecos -una corriente ancha, con silbido
+    grave- sobre el volumen de aire de la sala. Es un sitio grande y muerto que
+    respira por sus heridas.
+    """
+    t = tiempo(dur)
+
+    # Viento por los boquetes: banda media-baja modulada, con un silbido tenue.
+    viento = pasabanda(rosa(dur), 180.0, 1_600.0, 2) * 0.6
+    viento *= 0.45 + 0.55 * np.clip(np.sin(2 * np.pi * 0.035 * t) * 0.6
+                                    + np.sin(2 * np.pi * 0.021 * t + 1.0) * 0.4 + 0.3, 0.0, None)
+
+    # Volumen de la sala: grave estable.
+    volumen = pasabajos(marron(dur), 150.0, 3) * 3.0 * deriva(dur, 0.015, 0.28)
+
+    x = viento * 0.055 + volumen * 0.06
+    return reverberar(x, SALAS["trono"], 0.44)
+
+
 # ==========================================================================
 # 2b. Capa de caracter: la segunda cama, tambien continua
 # ==========================================================================
@@ -946,6 +1106,206 @@ def caracter_nivel3(dur: float = 43.0) -> np.ndarray:
 
     x = canaleta * 0.050 + masa * 0.070 + lame * 0.30 + clima * 0.045
     return reverberar(x, SALAS["piscinas"], 0.56)
+
+
+def caracter_nivel4(dur: float = 39.0) -> np.ndarray:
+    """Nivel 4. El fuego, siempre.
+
+    Es la capa que hace que la sala sea la sala: el crepitar continuo de las
+    antorchas y el candil. No es un bucle de fogata cercana -eso cansa-, sino
+    fuego repartido y lejano, muchos focos chicos alrededor: chasquidos secos
+    de madera y resina sueltos, sin periodo, sobre un lecho de siseo de llama.
+    """
+    t = tiempo(dur)
+
+    # El lecho de llama: siseo de banda media, modulado rapido y suave, como el
+    # temblor del fuego. Nunca del todo estable.
+    llama = pasabanda(rosa(dur), 500.0, 3_800.0, 2) * 0.34
+    llama *= 0.70 + 0.30 * deriva(dur, 0.9, 1.0)
+
+    # Chasquidos de la madera y la resina: transitorios cortos y secos,
+    # repartidos sin periodo. Son la firma del fuego. Cada uno es un golpecito
+    # de banda ancha con caida muy rapida.
+    chas = np.zeros(len(t))
+    for _ in range(70):
+        pos = muestras(RNG.uniform(0.2, dur - 0.3))
+        largo = muestras(RNG.uniform(0.006, 0.045))
+        if pos + largo > len(t):
+            continue
+        tc = np.arange(largo) / SR
+        c = pasabanda(RNG.normal(0, 1, largo), 900.0, 6_500.0, 2)
+        c *= np.exp(-tc / RNG.uniform(0.004, 0.016)) * RNG.uniform(0.10, 0.55)
+        chas[pos:pos + largo] += c
+
+    # Un chisporroteo mas grave y ocasional: la brasa que se asienta.
+    for _ in range(10):
+        pos = muestras(RNG.uniform(0.5, dur - 0.6))
+        largo = muestras(RNG.uniform(0.05, 0.20))
+        if pos + largo > len(t):
+            continue
+        tc = np.arange(largo) / SR
+        b = pasabanda(RNG.normal(0, 1, largo), 200.0, 1_400.0, 2)
+        b *= np.exp(-tc / RNG.uniform(0.03, 0.08)) * RNG.uniform(0.10, 0.30)
+        chas[pos:pos + largo] += b
+
+    x = llama * 0.070 + chas * 0.42
+    return reverberar(x, SALAS["sala_piedra"], 0.44)
+
+
+def caracter_nivel5(dur: float = 33.0) -> np.ndarray:
+    """Nivel 5. La madera y el papel de la biblioteca, respirando.
+
+    No es una fuente continua fuerte: es el mueble viejo que se acomoda -tics de
+    madera secos y espaciados- y el zumbido finisimo de un tubo o un filamento
+    de las lamparas de mesa. Casi nada, que es el punto: hay que aguzar el oido
+    para notar que la sala esta viva, y esa atencion es la incomodidad.
+    """
+    t = tiempo(dur)
+
+    # Zumbido finisimo de las lamparas: una senoidal muy baja y estable.
+    zumbido = np.sin(2 * np.pi * 120.0 * t) * 0.02 * deriva(dur, 0.05, 0.4)
+    zumbido += pasabanda(rosa(dur), 3_000.0, 6_000.0, 2) * 0.05 * deriva(dur, 0.2, 0.5)
+
+    # Tics de madera: transitorios secos, cortos, muy espaciados.
+    tics = np.zeros(len(t))
+    for _ in range(18):
+        pos = muestras(RNG.uniform(0.3, dur - 0.3))
+        largo = min(muestras(RNG.uniform(0.004, 0.02)), len(t) - pos)
+        if largo <= 0:
+            continue
+        tc = np.arange(largo) / SR
+        c = pasabanda(RNG.normal(0, 1, largo), 400.0, 3_000.0, 2)
+        c *= np.exp(-tc / RNG.uniform(0.003, 0.010)) * RNG.uniform(0.08, 0.28)
+        tics[pos:pos + largo] += c
+
+    x = zumbido * 0.5 + tics * 0.30
+    return reverberar(x, SALAS["biblioteca"], 0.22)
+
+
+def caracter_nivel6(dur: float = 35.0) -> np.ndarray:
+    """Nivel 6. El agua y las hojas del invernadero, siempre.
+
+    Lo que se mueve aca es la humedad: condensacion goteando del vidrio a las
+    hojas y de las hojas al suelo, y el roce constante y suave del follaje con la
+    corriente. Es una cama viva y verde, sin nada metalico ni electrico.
+    """
+    t = tiempo(dur)
+
+    # Follaje: roce ancho y suave, banda media-alta, modulado como el viento
+    # entre las hojas.
+    follaje = pasabanda(rosa(dur), 800.0, 4_500.0, 2) * 0.30
+    follaje *= 0.55 + 0.45 * deriva(dur, 0.7, 1.0)
+
+    # Goteo de condensacion: gotas sueltas, sin periodo, cada una con su ping.
+    goteo = np.zeros(len(t))
+    for _ in range(30):
+        pos = muestras(RNG.uniform(0.2, dur - 0.3))
+        largo = min(muestras(RNG.uniform(0.03, 0.12)), len(t) - pos)
+        if largo <= 0:
+            continue
+        tc = np.arange(largo) / SR
+        f = RNG.uniform(900.0, 2_400.0)
+        g = np.sin(2 * np.pi * f * tc * (1 + 0.8 * tc / (largo / SR))) * np.exp(-tc / 0.03)
+        goteo[pos:pos + largo] += g * RNG.uniform(0.06, 0.20)
+
+    x = follaje * 0.055 + goteo * 0.30
+    return reverberar(x, SALAS["invernadero"], 0.40)
+
+
+def caracter_nivel7(dur: float = 37.0) -> np.ndarray:
+    """Nivel 7. El agua de las catacumbas, cayendo en la piedra.
+
+    Lo unico que se mueve aca es el agua: gotas que caen de la boveda a charcos
+    en el suelo, con el eco cercano del tunel. Cada gota es un plink hueco, muy
+    espaciadas, con una cola corta y oscura. Entre gota y gota, el silencio de
+    la piedra.
+    """
+    t = tiempo(dur)
+
+    # Gotas en charco: plinks huecos, graves, sin periodo.
+    gotas = np.zeros(len(t))
+    for _ in range(26):
+        pos = muestras(RNG.uniform(0.3, dur - 0.4))
+        largo = min(muestras(RNG.uniform(0.05, 0.18)), len(t) - pos)
+        if largo <= 0:
+            continue
+        tc = np.arange(largo) / SR
+        f = RNG.uniform(400.0, 1_100.0)
+        g = np.sin(2 * np.pi * f * tc * (1 + 1.2 * np.exp(-tc / 0.02))) * np.exp(-tc / 0.05)
+        gotas[pos:pos + largo] += g * RNG.uniform(0.10, 0.30)
+
+    # Un roce grave de piedra muy de fondo, casi constante.
+    roce = pasabanda(rosa(dur), 100.0, 500.0, 2) * 0.10 * deriva(dur, 0.04, 0.6)
+
+    x = gotas * 0.28 + roce * 0.05
+    return reverberar(x, SALAS["catacumbas"], 0.42)
+
+
+def caracter_nivel8(dur: float = 41.0) -> np.ndarray:
+    """Nivel 8. El agua de la cisterna, siempre, con su eco larguisimo.
+
+    Gotas que caen de la boveda al agua, cada una con una cola enorme -el
+    sonido mas caracteristico de un aljibe-, y el lametazo lento del agua contra
+    las columnas. Es la capa que hace el sitio: sin ella es una cueva seca.
+    """
+    t = tiempo(dur)
+
+    # Gotas al agua, muy espaciadas, cada una con su plink que la sala alarga.
+    gotas = np.zeros(len(t))
+    for _ in range(22):
+        pos = muestras(RNG.uniform(0.3, dur - 0.4))
+        largo = min(muestras(RNG.uniform(0.06, 0.20)), len(t) - pos)
+        if largo <= 0:
+            continue
+        tc = np.arange(largo) / SR
+        f = RNG.uniform(500.0, 1_300.0)
+        g = np.sin(2 * np.pi * f * tc * (1 + 1.5 * np.exp(-tc / 0.02))) * np.exp(-tc / 0.06)
+        gotas[pos:pos + largo] += g * RNG.uniform(0.12, 0.32)
+
+    # Lametazo del agua contra la piedra: banda baja, lento.
+    lame = pasabanda(rosa(dur), 120.0, 600.0, 2)
+    lame *= np.clip(np.sin(2 * np.pi * 0.08 * t) * 0.5 + 0.5, 0.0, None) * 0.5
+
+    x = gotas * 0.30 + lame * 0.06
+    return reverberar(x, SALAS["cisterna"], 0.56)
+
+
+def caracter_nivel9(dur: float = 38.0) -> np.ndarray:
+    """Nivel 9. Las ruinas del salon del trono, moviendose con el viento.
+
+    Lo que se oye aca es la tela y la piedra suelta: los estandartes rotos
+    ondeando -un flap grave y espaciado- y el tintineo de cascotes menudos que
+    el viento mueve. Nada de agua ni fuego: solo el edificio deshaciendose muy
+    despacio, con la cola grande de la sala.
+    """
+    t = tiempo(dur)
+
+    # Ondeo de los estandartes: golpes graves de tela, espaciados, sin periodo.
+    flap = np.zeros(len(t))
+    for _ in range(16):
+        pos = muestras(RNG.uniform(0.3, dur - 0.5))
+        largo = min(muestras(RNG.uniform(0.08, 0.25)), len(t) - pos)
+        if largo <= 0:
+            continue
+        tc = np.arange(largo) / SR
+        f = pasabanda(RNG.normal(0, 1, largo), 120.0, 900.0, 2)
+        f *= np.sin(np.pi * tc / (largo / SR)) ** 2 * RNG.uniform(0.10, 0.28)
+        flap[pos:pos + largo] += f
+
+    # Cascotes: tics agudos y menudos, muy espaciados.
+    cascotes = np.zeros(len(t))
+    for _ in range(20):
+        pos = muestras(RNG.uniform(0.2, dur - 0.2))
+        largo = min(muestras(RNG.uniform(0.004, 0.016)), len(t) - pos)
+        if largo <= 0:
+            continue
+        tc = np.arange(largo) / SR
+        c = pasabanda(RNG.normal(0, 1, largo), 1_500.0, 5_000.0, 2)
+        c *= np.exp(-tc / 0.006) * RNG.uniform(0.06, 0.18)
+        cascotes[pos:pos + largo] += c
+
+    x = flap * 0.28 + cascotes * 0.22
+    return reverberar(x, SALAS["trono"], 0.52)
 
 
 
@@ -1145,6 +1505,163 @@ def actividad_nivel3(dur: float = 61.0) -> np.ndarray:
     return reverberar(x, SALAS["piscinas"], 0.78)
 
 
+def actividad_nivel4(dur: float = 57.0) -> np.ndarray:
+    """Nivel 4. La sala de piedra, donde el edificio es antiguo y cruje.
+
+    Casi siempre en silencio, con sucesos lejanos que dicen que la sala es
+    grande y vieja: una viga de madera asentandose, el eco de una puerta
+    pesada en otra nave, la cadena del candil moviendose sola, un desprendimiento
+    de piedra menuda. Todo con la cola de la sala puesta.
+    """
+    x = np.zeros(muestras(dur))
+
+    # Viga de madera de la boveda asentandose: grave, larga, inquietante.
+    viga = _lejos(cargar("impactWood_light_002"), 1.6, 900.0, 130.0)
+    for s, g in ((7.3, 0.20), (31.8, 0.24), (50.1, 0.16)):
+        _sembrar(x, viga, s, g)
+
+    # Puerta pesada en otra nave: madera y hierro, muy lejos.
+    puerta = _lejos(cargar("impactPlank_medium_000"), 2.1, 620.0, 90.0)
+    _sembrar(x, puerta, 19.4, 0.22)
+    _sembrar(x, puerta, 44.7, 0.18)
+
+    # La cadena del candil, moviendose sola: metal agudo, corto.
+    cadena = _lejos(cargar("impactMetal_light_003"), 1.2, 3_200.0, 380.0)
+    _sembrar(x, cadena, 13.6, 0.13)
+    _sembrar(x, cadena, 38.9, 0.15)
+
+    # Piedra menuda cayendo del techo: chasquido seco y disperso.
+    piedra = _lejos(cargar("impactGeneric_light_000"), 1.0, 2_400.0, 300.0)
+    _sembrar(x, piedra, 26.2, 0.12)
+
+    return reverberar(x, SALAS["sala_piedra"], 0.70)
+
+
+def actividad_nivel5(dur: float = 51.0) -> np.ndarray:
+    """Nivel 5. La biblioteca, donde lo unico que pasa es que algo cae.
+
+    Sucesos raros y sordos, casi todos de papel y madera: un libro que se cae
+    de una balda en otro pasillo, una silla que se corre sola, el crujido de una
+    escalera de mano. La sala se traga la cola, asi que cada suceso es seco y se
+    acaba enseguida -y por eso inquieta: no hay eco que lo explique-.
+    """
+    x = np.zeros(muestras(dur))
+
+    # Un libro cayendo al piso: golpe sordo de papel y tapa.
+    libro = _lejos(cargar("impactSoft_medium_000"), 0.6, 1_400.0, 210.0)
+    for s, g in ((9.1, 0.22), (30.7, 0.26), (46.3, 0.18)):
+        _sembrar(x, libro, s, g)
+
+    # Una silla que se corre: madera arrastrada, corta.
+    silla = _lejos(cargar("impactWood_light_000"), 1.0, 1_100.0, 160.0)
+    _sembrar(x, silla, 18.5, 0.20)
+    _sembrar(x, silla, 40.2, 0.16)
+
+    # La escalera de mano de los estantes crujiendo.
+    escalera = _lejos(cargar("impactPlank_medium_000"), 1.3, 900.0, 140.0)
+    _sembrar(x, escalera, 24.8, 0.15)
+
+    return reverberar(x, SALAS["biblioteca"], 0.40)
+
+
+def actividad_nivel6(dur: float = 53.0) -> np.ndarray:
+    """Nivel 6. El invernadero, donde el vidrio y las plantas se mueven solos.
+
+    Sucesos verdes y de vidrio: un panel que cruje al dilatarse, una maceta de
+    barro asentandose, algo cayendo entre el follaje. La sala brillante alarga la
+    cola de todo, asi que suena mas grande de lo que uno esperaria de un jardin.
+    """
+    x = np.zeros(muestras(dur))
+
+    # Panel de vidrio dilatandose: un cruji-ping agudo con cola.
+    panel = _lejos(cargar("impactGlass_light_003"), 0.7, 5_000.0, 520.0)
+    for s, g in ((8.4, 0.18), (28.9, 0.22), (48.1, 0.15)):
+        _sembrar(x, panel, s, g)
+
+    # Maceta de barro asentandose: golpe sordo, terroso.
+    maceta = _lejos(cargar("impactSoft_heavy_001"), 1.1, 900.0, 150.0)
+    _sembrar(x, maceta, 17.6, 0.20)
+    _sembrar(x, maceta, 39.3, 0.16)
+
+    # Algo cayendo en el follaje: hojas y una rama.
+    follaje = _lejos(cargar("impactWood_light_002"), 1.4, 1_600.0, 240.0)
+    _sembrar(x, follaje, 23.7, 0.14)
+
+    return reverberar(x, SALAS["invernadero"], 0.62)
+
+
+def actividad_nivel7(dur: float = 55.0) -> np.ndarray:
+    """Nivel 7. Las catacumbas, donde la piedra se mueve muy de vez en cuando.
+
+    Sucesos sordos y graves: un bloque de mamposteria asentandose, algo pesado
+    cayendo en un nicho lejano, el eco de una piedra rodando en otro corredor.
+    La sala estrecha devuelve todo con reflexiones cercanas y una cola oscura.
+    """
+    x = np.zeros(muestras(dur))
+
+    bloque = _lejos(cargar("impactoSordo_000"), 0.9, 700.0, 110.0)
+    for s, g in ((10.2, 0.22), (33.4, 0.26), (49.6, 0.18)):
+        _sembrar(x, bloque, s, g)
+
+    caida = _lejos(cargar("impactMetal_heavy_000"), 1.8, 500.0, 80.0)
+    _sembrar(x, caida, 21.1, 0.18)
+    _sembrar(x, caida, 43.0, 0.14)
+
+    rueda = _lejos(cargar("impactGeneric_light_000"), 1.2, 1_400.0, 200.0)
+    _sembrar(x, rueda, 28.5, 0.13)
+
+    return reverberar(x, SALAS["catacumbas"], 0.68)
+
+
+def actividad_nivel8(dur: float = 59.0) -> np.ndarray:
+    """Nivel 8. La cisterna, donde cada suceso tarda cinco segundos en morir.
+
+    Casi vacio y con la cola mas larga de todas: algo cayendo al agua en otra
+    nave, una columna asentandose, el chapoteo de algo que se movio bajo el
+    agua. La sala hace todo el trabajo; se pone MENOS de lo que uno pondria.
+    """
+    x = np.zeros(muestras(dur))
+
+    # Algo entrando al agua, lejos: un chof grave y ancho.
+    chof = _lejos(cargar("impactSoft_heavy_001"), 0.9, 700.0, 120.0)
+    for s, g in ((11.7, 0.20), (37.2, 0.24), (54.0, 0.16)):
+        _sembrar(x, chof, s, g)
+
+    # Una columna o un sillar bajo el agua asentandose: grave, con cola.
+    sillar = _lejos(cargar("impactoSordo_000"), 1.1, 500.0, 80.0)
+    _sembrar(x, sillar, 22.4, 0.18)
+    _sembrar(x, sillar, 46.8, 0.14)
+
+    # Chapoteo metalico lejano: la pasarela, quiza.
+    metal = _lejos(cargar("impactMetal_light_000"), 1.5, 1_800.0, 240.0)
+    _sembrar(x, metal, 30.1, 0.12)
+
+    return reverberar(x, SALAS["cisterna"], 0.80)
+
+
+def actividad_nivel9(dur: float = 56.0) -> np.ndarray:
+    """Nivel 9. El salon del trono, donde la ruina se derrumba de a poco.
+
+    Sucesos de piedra grande y madera vieja: un cascote que cae de lo alto, una
+    viga del techo que cede, el eco de una puerta enorme en otra ala. La sala
+    alta y seca alarga todo casi como la cisterna, pero con mas aire.
+    """
+    x = np.zeros(muestras(dur))
+
+    cascote = _lejos(cargar("impactPlate_heavy_000"), 1.0, 900.0, 140.0)
+    for s, g in ((9.8, 0.22), (34.1, 0.26), (52.0, 0.16)):
+        _sembrar(x, cascote, s, g)
+
+    viga = _lejos(cargar("impactPlank_medium_000"), 1.6, 600.0, 90.0)
+    _sembrar(x, viga, 20.6, 0.20)
+    _sembrar(x, viga, 45.3, 0.15)
+
+    puerta = _lejos(cargar("impactMetal_heavy_000"), 2.0, 500.0, 70.0)
+    _sembrar(x, puerta, 28.9, 0.14)
+
+    return reverberar(x, SALAS["trono"], 0.74)
+
+
 # ==========================================================================
 # 3. Eventos ambientales
 # ==========================================================================
@@ -1336,6 +1853,284 @@ def ev_nivel3_lejano() -> np.ndarray:
                                       * np.exp(-tc / 0.020) * RNG.uniform(0.2, 0.6))
     x = pasabajos(entrada * 0.5 + burbujas * 0.4, 2_500.0, 2) * 0.22
     return rampa(reverberar(x, SALAS["piscinas"], 0.82), 0.01, 1.20)
+
+
+def ev_nivel4_antorcha() -> np.ndarray:
+    """Una antorcha prendiendo con fuerza: la resina que se enciende de golpe.
+
+    Un 'fum' grave de aire encendiendose, seguido de un crepitar mas vivo que
+    se calma. Es el suceso mas caracteristico de la sala de fuego.
+    """
+    dur = 2.6
+    n = muestras(dur)
+    t = tiempo(dur)
+    # El golpe de aire al prender: soplo grave con ataque suave.
+    fum = pasabanda(RNG.normal(0, 1, n), 90.0, 700.0, 2) * envolvente(n, 0.02, 0.5, 2.5)
+    # El crepitar que sigue: chasquidos rapidos que se apagan.
+    crepita = np.zeros(n)
+    for _ in range(26):
+        pos = muestras(RNG.uniform(0.05, 1.8))
+        largo = min(muestras(RNG.uniform(0.006, 0.03)), n - pos)
+        if largo <= 0:
+            continue
+        tc = np.arange(largo) / SR
+        c = pasabanda(RNG.normal(0, 1, largo), 1_200.0, 6_000.0, 2)
+        c *= np.exp(-tc / 0.010) * RNG.uniform(0.15, 0.5) * (1.0 - pos / n)
+        crepita[pos:pos + largo] += c
+    x = (fum * 0.5 + crepita * 0.5) * 0.34
+    return rampa(reverberar(x, SALAS["sala_piedra"], 0.42), 0.02, 0.55)
+
+
+def ev_nivel4_cadena() -> np.ndarray:
+    """El candil de rueda meciendose: la cadena cede un eslabon.
+
+    Un tintineo metalico grave con dos o tres golpes de eslabon y una cola de
+    metal grande resonando. Dice que algo movio el candil.
+    """
+    dur = 3.2
+    n = muestras(dur)
+    t = tiempo(dur)
+    x = np.zeros(n)
+    fundamental = RNG.uniform(150.0, 210.0)
+    for golpe, g in ((0.0, 1.0), (0.14, 0.6), (0.33, 0.35)):
+        pos = muestras(golpe)
+        if pos >= n:
+            continue
+        tc = np.arange(n - pos) / SR
+        eslabon = pasabanda(RNG.normal(0, 1, n - pos), 800.0, 5_000.0, 2)
+        eslabon *= np.exp(-tc / 0.05) * 0.4 * g
+        for k, a in ((1, 1.0), (2.7, 0.4), (5.1, 0.2)):
+            eslabon += np.sin(2 * np.pi * fundamental * k * tc) * np.exp(-tc / (0.6 / k)) * 0.12 * g
+        x[pos:] += eslabon
+    x = pasabajos(x, 5_500.0, 2) * 0.34
+    return rampa(reverberar(x, SALAS["sala_piedra"], 0.55), 0.002, 0.75)
+
+
+def ev_nivel4_piedra() -> np.ndarray:
+    """Un bloque de piedra asentandose en la boveda. Grave, seco, con eco.
+
+    La sala es vieja y pesada. Cada tanto algo de mamposteria se acomoda: un
+    crujido grave de roca contra roca, y la nave entera devolviendolo.
+    """
+    dur = 4.2
+    n = muestras(dur)
+    t = tiempo(dur)
+    roce = pasabanda(RNG.normal(0, 1, n), 120.0, 900.0, 2) * envolvente(n, 0.008, 0.30, 3.0)
+    cuerpo = np.sin(2 * np.pi * 46.0 * t) * np.exp(-t / 0.5) * 0.4
+    cuerpo += np.sin(2 * np.pi * 71.0 * t + 0.5) * np.exp(-t / 0.35) * 0.2
+    x = pasabajos(roce * 0.6 + cuerpo, 1_600.0, 2) * 0.32
+    return rampa(reverberar(x, SALAS["sala_piedra"], 0.72), 0.01, 0.95)
+
+
+def ev_nivel5_libro() -> np.ndarray:
+    """Un libro que se cae de un estante. Golpe de tapa y aleteo de paginas."""
+    dur = 1.8
+    n = muestras(dur)
+    tapa = pasabanda(RNG.normal(0, 1, n), 200.0, 1_600.0, 2) * envolvente(n, 0.002, 0.08, 4.0)
+    # Aleteo: dos o tres golpecitos de papel al abrirse en el aire.
+    aleteo = np.zeros(n)
+    for pos_s in (0.03, 0.11, 0.19):
+        pos = muestras(pos_s)
+        largo = min(muestras(0.05), n - pos)
+        if largo <= 0:
+            continue
+        tc = np.arange(largo) / SR
+        a = pasabanda(RNG.normal(0, 1, largo), 1_500.0, 5_000.0, 2)
+        a *= np.exp(-tc / 0.02) * RNG.uniform(0.15, 0.3)
+        aleteo[pos:pos + largo] += a
+    x = (tapa * 0.6 + aleteo * 0.5) * 0.32
+    return rampa(reverberar(x, SALAS["biblioteca"], 0.30), 0.002, 0.40)
+
+
+def ev_nivel5_susurro() -> np.ndarray:
+    """Un roce largo entre estantes: como paginas pasando, o algo que pasa.
+
+    El suceso mas inquietante del nivel: podria ser el aire moviendo un libro
+    abierto, o podria no serlo. Banda alta y suave, sin transitorio.
+    """
+    dur = 3.4
+    n = muestras(dur)
+    t = tiempo(dur)
+    roce = pasabanda(rosa(dur), 2_000.0, 6_500.0, 2)
+    sobre = np.sin(np.pi * np.clip(t / dur, 0, 1)) ** 2
+    # Modulacion como de paginas sucesivas.
+    roce *= 0.5 + 0.5 * np.clip(np.sin(2 * np.pi * 2.5 * t), 0, None)
+    x = roce * sobre * 0.16
+    return rampa(reverberar(x, SALAS["biblioteca"], 0.28), 0.05, 0.60)
+
+
+def ev_nivel5_reloj() -> np.ndarray:
+    """El pendulo de un reloj de pared, unos pocos golpes y para.
+
+    Grave, de madera, con una cola muy corta. Da una cadencia que arranca y se
+    interrumpe: un reloj al que se le acaba la cuerda.
+    """
+    dur = 3.6
+    n = muestras(dur)
+    x = np.zeros(n)
+    for k, g in enumerate((1.0, 0.9, 0.8, 0.55)):
+        pos = muestras(0.05 + k * 0.85)
+        if pos >= n:
+            break
+        largo = min(muestras(0.12), n - pos)
+        tc = np.arange(largo) / SR
+        tic = pasabanda(RNG.normal(0, 1, largo), 300.0, 1_800.0, 2)
+        tic *= np.exp(-tc / 0.03) * 0.4 * g
+        tic += np.sin(2 * np.pi * 90.0 * tc) * np.exp(-tc / 0.05) * 0.15 * g
+        x[pos:pos + largo] += tic
+    x = pasabajos(x, 2_500.0, 2) * 0.34
+    return rampa(reverberar(x, SALAS["biblioteca"], 0.30), 0.002, 0.55)
+
+
+def ev_nivel6_vidrio() -> np.ndarray:
+    """Un panel de vidrio de la cristalera crujiendo y asentandose.
+
+    Un chirrido agudo de vidrio contra el marco de hierro, con una cola larga y
+    brillante que la sala de cristal alarga.
+    """
+    dur = 3.0
+    n = muestras(dur)
+    t = tiempo(dur)
+    chirrido = pasabanda(RNG.normal(0, 1, n), 2_000.0, 6_500.0, 2) * envolvente(n, 0.02, 0.4, 2.0)
+    # Un par de resonancias vidriosas.
+    for frec in (1_840.0, 2_730.0, 4_100.0):
+        chirrido += np.sin(2 * np.pi * frec * t) * np.exp(-t / RNG.uniform(0.2, 0.5)) * 0.10
+    x = pasaaltos(chirrido, 900.0, 2) * 0.30
+    return rampa(reverberar(x, SALAS["invernadero"], 0.55), 0.02, 0.85)
+
+
+def ev_nivel6_gota() -> np.ndarray:
+    """Una gota grande de condensacion cayendo del vidrio a un charco."""
+    dur = 2.2
+    n = muestras(dur)
+    t = tiempo(dur)
+    # El impacto en el agua: pitch que sube rapido (la burbuja cerrando).
+    f = 700.0
+    plop = np.sin(2 * np.pi * f * t * (1 + 3.0 * np.exp(-t / 0.02))) * np.exp(-t / 0.05)
+    salpica = pasabanda(RNG.normal(0, 1, n), 1_500.0, 5_000.0, 2) * envolvente(n, 0.001, 0.03, 6.0)
+    x = (plop * 0.6 + salpica * 0.3) * 0.30
+    return rampa(reverberar(x, SALAS["invernadero"], 0.60), 0.002, 0.75)
+
+
+def ev_nivel6_hojas() -> np.ndarray:
+    """Un movimiento largo entre las hojas: algo se abre paso, o el viento.
+
+    Roce ancho de follaje que crece y se apaga. Como el susurro de la
+    biblioteca, deja la duda de si fue la corriente o algo mas.
+    """
+    dur = 3.6
+    n = muestras(dur)
+    t = tiempo(dur)
+    roce = pasabanda(rosa(dur), 700.0, 4_000.0, 2)
+    sobre = np.sin(np.pi * np.clip(t / dur, 0, 1)) ** 2
+    roce *= 0.4 + 0.6 * np.clip(np.sin(2 * np.pi * 1.3 * t + np.sin(2 * np.pi * 0.4 * t)), 0, None)
+    x = roce * sobre * 0.17
+    return rampa(reverberar(x, SALAS["invernadero"], 0.45), 0.05, 0.70)
+
+
+def ev_nivel7_gota() -> np.ndarray:
+    """Una gota grande cayendo en un charco del tunel. Plink hueco y grave."""
+    dur = 2.4
+    n = muestras(dur)
+    t = tiempo(dur)
+    f = 520.0
+    plink = np.sin(2 * np.pi * f * t * (1 + 2.0 * np.exp(-t / 0.03))) * np.exp(-t / 0.06)
+    x = plink * 0.32
+    return rampa(reverberar(x, SALAS["catacumbas"], 0.55), 0.002, 0.80)
+
+
+def ev_nivel7_piedra() -> np.ndarray:
+    """Un bloque de piedra rodando y asentandose en otro corredor. Grave, seco."""
+    dur = 3.8
+    n = muestras(dur)
+    t = tiempo(dur)
+    roce = pasabanda(RNG.normal(0, 1, n), 90.0, 700.0, 2) * envolvente(n, 0.01, 0.35, 3.0)
+    cuerpo = np.sin(2 * np.pi * 40.0 * t) * np.exp(-t / 0.5) * 0.4
+    x = pasabajos(roce * 0.6 + cuerpo, 1_000.0, 2) * 0.30
+    return rampa(reverberar(x, SALAS["catacumbas"], 0.72), 0.01, 0.95)
+
+
+def ev_nivel7_viento() -> np.ndarray:
+    """Una corriente de aire recorriendo el tunel: un lamento grave que sube y baja.
+
+    El suceso mas inquietante del nivel. Banda baja-media, larga, sin ataque, con
+    una modulacion de altura que casi parece una voz sin llegar a serlo.
+    """
+    dur = 4.6
+    n = muestras(dur)
+    t = tiempo(dur)
+    base = pasabanda(rosa(dur), 120.0, 900.0, 2)
+    # Modulacion como un lamento: la banda se estrecha y se mueve.
+    lam = resonar(base, 220.0 + 80.0 * np.sin(2 * np.pi * 0.25 * t).mean(), 18.0, 1.0)
+    sobre = np.sin(np.pi * np.clip(t / dur, 0, 1)) ** 2
+    x = lam * sobre * 0.16
+    return rampa(reverberar(x, SALAS["catacumbas"], 0.60), 0.10, 1.10)
+
+
+def ev_nivel8_gota() -> np.ndarray:
+    """Una gota grande al agua del aljibe. Plink hueco con una cola larguisima."""
+    dur = 4.0
+    n = muestras(dur)
+    t = tiempo(dur)
+    f = 640.0
+    plink = np.sin(2 * np.pi * f * t * (1 + 2.2 * np.exp(-t / 0.03))) * np.exp(-t / 0.07)
+    x = plink * 0.32
+    return rampa(reverberar(x, SALAS["cisterna"], 0.66), 0.002, 1.30)
+
+
+def ev_nivel8_chapoteo() -> np.ndarray:
+    """Algo moviendose bajo el agua, lejos. Un remolino grave que sube y baja."""
+    dur = 4.4
+    n = muestras(dur)
+    t = tiempo(dur)
+    agua = pasabanda(rosa(dur), 150.0, 1_100.0, 2)
+    sobre = np.sin(np.pi * np.clip(t / dur, 0, 1)) ** 2
+    agua *= 0.4 + 0.6 * np.clip(np.sin(2 * np.pi * 0.8 * t), 0, None)
+    x = agua * sobre * 0.16
+    return rampa(reverberar(x, SALAS["cisterna"], 0.62), 0.05, 1.10)
+
+
+def ev_nivel8_columna() -> np.ndarray:
+    """Una columna asentandose bajo el agua. Grave, sordo, con eco enorme."""
+    dur = 5.0
+    n = muestras(dur)
+    t = tiempo(dur)
+    golpe = pasabajos(RNG.normal(0, 1, n), 300.0, 2) * envolvente(n, 0.004, 0.14, 4.0)
+    cuerpo = np.sin(2 * np.pi * 38.0 * t) * np.exp(-t / 0.6) * 0.4
+    x = pasabajos(golpe * 0.6 + cuerpo, 900.0, 2) * 0.30
+    return rampa(reverberar(x, SALAS["cisterna"], 0.78), 0.01, 1.40)
+
+
+def ev_nivel9_cascote() -> np.ndarray:
+    """Un cascote de piedra cayendo de lo alto al suelo del salon. Seco, con eco."""
+    dur = 3.4
+    n = muestras(dur)
+    golpe = pasabanda(RNG.normal(0, 1, n), 200.0, 2_200.0, 2) * envolvente(n, 0.001, 0.06, 5.0)
+    x = pasabajos(golpe, 2_500.0, 2) * 0.32
+    return rampa(reverberar(x, SALAS["trono"], 0.70), 0.002, 1.10)
+
+
+def ev_nivel9_estandarte() -> np.ndarray:
+    """Un estandarte roto ondeando con una racha. Flap grave de tela, con eco."""
+    dur = 3.0
+    n = muestras(dur)
+    t = tiempo(dur)
+    tela = pasabanda(rosa(dur), 130.0, 1_100.0, 2)
+    sobre = np.sin(np.pi * np.clip(t / dur, 0, 1)) ** 2
+    tela *= 0.4 + 0.6 * np.clip(np.sin(2 * np.pi * 3.0 * t), 0, None)
+    x = tela * sobre * 0.17
+    return rampa(reverberar(x, SALAS["trono"], 0.55), 0.03, 0.85)
+
+
+def ev_nivel9_puerta() -> np.ndarray:
+    """El eco de una puerta enorme cerrandose en otra ala. Grave, lejano, largo."""
+    dur = 4.4
+    n = muestras(dur)
+    t = tiempo(dur)
+    golpe = pasabajos(RNG.normal(0, 1, n), 260.0, 2) * envolvente(n, 0.004, 0.12, 4.0)
+    cuerpo = np.sin(2 * np.pi * 44.0 * t) * np.exp(-t / 0.5) * 0.35
+    x = pasabajos(golpe * 0.6 + cuerpo, 800.0, 2) * 0.28
+    return rampa(reverberar(x, SALAS["trono"], 0.78), 0.01, 1.30)
 
 
 # ==========================================================================
@@ -1561,6 +2356,12 @@ PIEZAS = {
     "ambiente/nivel1": lambda: bucle_suave(base_nivel1(), 5.0),
     "ambiente/nivel2": lambda: bucle_suave(base_nivel2(), 4.0),
     "ambiente/nivel3": lambda: bucle_suave(base_nivel3(), 6.0),
+    "ambiente/nivel4": lambda: bucle_suave(base_nivel4(), 5.0),
+    "ambiente/nivel5": lambda: bucle_suave(base_nivel5(), 5.0),
+    "ambiente/nivel6": lambda: bucle_suave(base_nivel6(), 5.0),
+    "ambiente/nivel7": lambda: bucle_suave(base_nivel7(), 5.0),
+    "ambiente/nivel8": lambda: bucle_suave(base_nivel8(), 6.0),
+    "ambiente/nivel9": lambda: bucle_suave(base_nivel9(), 5.0),
 
     # Capa de caracter, tambien en bucle. Duraciones primas con las bases para
     # que las dos camas de cada nivel no vuelvan a alinearse en toda la sesion.
@@ -1568,6 +2369,12 @@ PIEZAS = {
     "caracter/nivel1": lambda: bucle_suave(caracter_nivel1(), 6.0),
     "caracter/nivel2": lambda: bucle_suave(caracter_nivel2(), 4.0),
     "caracter/nivel3": lambda: bucle_suave(caracter_nivel3(), 7.0),
+    "caracter/nivel4": lambda: bucle_suave(caracter_nivel4(), 5.0),
+    "caracter/nivel5": lambda: bucle_suave(caracter_nivel5(), 4.0),
+    "caracter/nivel6": lambda: bucle_suave(caracter_nivel6(), 5.0),
+    "caracter/nivel7": lambda: bucle_suave(caracter_nivel7(), 4.0),
+    "caracter/nivel8": lambda: bucle_suave(caracter_nivel8(), 6.0),
+    "caracter/nivel9": lambda: bucle_suave(caracter_nivel9(), 5.0),
 
     # Capa de actividad: bucles largos, casi vacios, con sucesos lejanos. El
     # cruce es corto porque casi toda la junta cae sobre silencio.
@@ -1575,6 +2382,12 @@ PIEZAS = {
     "actividad/nivel1": lambda: bucle_suave(actividad_nivel1(), 2.0),
     "actividad/nivel2": lambda: bucle_suave(actividad_nivel2(), 2.0),
     "actividad/nivel3": lambda: bucle_suave(actividad_nivel3(), 2.0),
+    "actividad/nivel4": lambda: bucle_suave(actividad_nivel4(), 2.0),
+    "actividad/nivel5": lambda: bucle_suave(actividad_nivel5(), 2.0),
+    "actividad/nivel6": lambda: bucle_suave(actividad_nivel6(), 2.0),
+    "actividad/nivel7": lambda: bucle_suave(actividad_nivel7(), 2.0),
+    "actividad/nivel8": lambda: bucle_suave(actividad_nivel8(), 2.0),
+    "actividad/nivel9": lambda: bucle_suave(actividad_nivel9(), 2.0),
 
     # Eventos
     "evento/nivel0_tubo": ev_nivel0_tubo,
@@ -1590,6 +2403,24 @@ PIEZAS = {
     "evento/nivel3_ondas": ev_nivel3_ondas,
     "evento/nivel3_ventilacion": ev_nivel3_ventilacion,
     "evento/nivel3_lejano": ev_nivel3_lejano,
+    "evento/nivel4_antorcha": ev_nivel4_antorcha,
+    "evento/nivel4_cadena": ev_nivel4_cadena,
+    "evento/nivel4_piedra": ev_nivel4_piedra,
+    "evento/nivel5_libro": ev_nivel5_libro,
+    "evento/nivel5_susurro": ev_nivel5_susurro,
+    "evento/nivel5_reloj": ev_nivel5_reloj,
+    "evento/nivel6_vidrio": ev_nivel6_vidrio,
+    "evento/nivel6_gota": ev_nivel6_gota,
+    "evento/nivel6_hojas": ev_nivel6_hojas,
+    "evento/nivel7_gota": ev_nivel7_gota,
+    "evento/nivel7_piedra": ev_nivel7_piedra,
+    "evento/nivel7_viento": ev_nivel7_viento,
+    "evento/nivel8_gota": ev_nivel8_gota,
+    "evento/nivel8_chapoteo": ev_nivel8_chapoteo,
+    "evento/nivel8_columna": ev_nivel8_columna,
+    "evento/nivel9_cascote": ev_nivel9_cascote,
+    "evento/nivel9_estandarte": ev_nivel9_estandarte,
+    "evento/nivel9_puerta": ev_nivel9_puerta,
 
     # Transicion
     "nivel/titileo": tr_titileo,
