@@ -12,6 +12,9 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+
 /**
  * La linea de la administracion al pie de la hoja.
  *
@@ -64,6 +67,61 @@ public class NotaAviso extends AbstractButton {
         return (int) Math.floorMod(vueltas + corrimiento, AVISOS);
     }
 
+    /**
+     * La clave del aviso que se muestra: casi siempre el rotativo comun, pero
+     * en ciertas fechas y horas la administracion cuela una nota propia.
+     *
+     * ES UN GUINO, NO UN CARTEL. Solo aparece cuando la fecha real coincide, y
+     * ademas solo en una de cada tres vueltas de la rotacion, para que quien
+     * este mirando justo esos dias tenga que tener algo de suerte para leerla.
+     * El que nunca abra el menu un 31 de octubre no se entera de que existe, y
+     * esa es la idea: se descubre, no se anuncia. Todo sale del reloj del
+     * sistema, sin estado.
+     *
+     * Los mensajes viven en lang, en la voz seca de siempre: nada de romper el
+     * tono con chistes. Ver jobsmenu.aviso.especial.*.
+     */
+    private static Component textoActual() {
+        int i = indice();
+        // La nota especial no se roba todas las vueltas: una de cada tres.
+        if (i % 3 == 0) {
+            String especial = especialDeHoy();
+            if (especial != null) {
+                return Component.translatable(especial);
+            }
+        }
+        return Component.translatable("jobsmenu.aviso." + i);
+    }
+
+    /**
+     * La nota especial que corresponde a la fecha y hora de hoy, o null.
+     *
+     * El orden importa: primero lo mas raro (la madrugada, que es diaria) cede
+     * ante lo mas senalado (una fecha concreta). Asi un viernes 13 a las tres de
+     * la manana gana el viernes 13, que pasa una vez cada tanto, y no la
+     * madrugada, que es de todos los dias.
+     */
+    private static String especialDeHoy() {
+        LocalDateTime ahora = LocalDateTime.now();
+        int mes = ahora.getMonthValue();
+        int dia = ahora.getDayOfMonth();
+
+        if (mes == 1 && dia == 1) {
+            return "jobsmenu.aviso.especial.anonuevo";
+        }
+        if (mes == 10 && dia == 31) {
+            return "jobsmenu.aviso.especial.difuntos";
+        }
+        if (dia == 13 && ahora.getDayOfWeek() == DayOfWeek.FRIDAY) {
+            return "jobsmenu.aviso.especial.viernes13";
+        }
+        // La hora de las brujas: de 3:00 a 3:59, cualquier dia.
+        if (ahora.getHour() == 3) {
+            return "jobsmenu.aviso.especial.madrugada";
+        }
+        return null;
+    }
+
     /** Sin el clac de fabrica: el gesto propio va en onPress(). */
     @Override
     public void playDownSound(net.minecraft.client.sounds.SoundManager gestor) {
@@ -98,7 +156,7 @@ public class NotaAviso extends AbstractButton {
             }
         }
 
-        Component texto = Component.translatable("jobsmenu.aviso." + indice());
+        Component texto = textoActual();
 
         int x = this.getX();
         int y = this.getY();
@@ -127,6 +185,6 @@ public class NotaAviso extends AbstractButton {
     @Override
     public void updateWidgetNarration(NarrationElementOutput salida) {
         salida.add(net.minecraft.client.gui.narration.NarratedElementType.TITLE,
-                Component.translatable("jobsmenu.aviso." + indice()));
+                textoActual());
     }
 }

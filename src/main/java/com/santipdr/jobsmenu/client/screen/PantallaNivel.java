@@ -201,15 +201,19 @@ public class PantallaNivel extends Screen {
         int alto = ALTO_TITULO + AIRE_TITULO;
         alto += lineas("jobsmenu.subtitulo", ancho) * ALTO_LINEA;
         alto += AIRE_REGLA + 1 + AIRE_REGLA;
-        alto += lineas("jobsmenu.nivel.actual", ancho) * ALTO_LINEA;
-        alto += lineas("jobsmenu.nivel.tarifa", ancho) * ALTO_LINEA;
+        // Se miden con el numero de nivel mas ancho posible (el de mas digitos
+        // del catalogo) para que la hoja reserve el alto correcto aunque el
+        // texto rote entre "Nivel 0" y "Nivel 10". Asi no cambia de tamano sola.
+        int anchoMax = Nivel.cantidad();
+        alto += lineasDe(Component.translatable("jobsmenu.nivel.actual", anchoMax), ancho) * ALTO_LINEA;
+        alto += lineasDe(Component.translatable("jobsmenu.nivel.tarifa", anchoMax), ancho) * ALTO_LINEA;
         return alto;
     }
 
     /**
      * Cuanto alto reservar para la nota rotativa.
      *
-     * Se toma el aviso MAS LARGO de los ocho y no el que toca ahora: si se
+     * Se toma el aviso MAS LARGO de todos y no el que toca ahora: si se
      * midiera el actual, la hoja cambiaria de tamano sola cada siete segundos
      * al rotar el texto, y los renglones bailarian debajo del cursor.
      */
@@ -225,6 +229,11 @@ public class PantallaNivel extends Screen {
     /** En cuantas lineas parte el motor esta clave con el ancho dado. */
     private int lineas(String clave, int ancho) {
         return Math.max(1, this.font.split(Component.translatable(clave), ancho).size());
+    }
+
+    /** Igual que {@link #lineas(String, int)} pero para un texto ya compuesto. */
+    private int lineasDe(Component texto, int ancho) {
+        return Math.max(1, this.font.split(texto, ancho).size());
     }
 
     private void agregar(int x, int y, int ancho, String orden, String clave,
@@ -421,10 +430,26 @@ public class PantallaNivel extends Screen {
                 Paleta.conAlfa(Paleta.TINTA_TENUE, 0.45F * tinta));
         y += 1 + AIRE_REGLA;
 
-        y = parrafo(grafico, "jobsmenu.nivel.actual", x, y, ancho,
+        // El nivel actual y la tarifa YA NO son fijos: siguen al recinto que se
+        // ve al fondo. Si el pasillo esta mostrando el Nivel 7, la hoja dice
+        // "Nivel 7" y "Salida al Nivel 8", no el eterno "Nivel 0" de antes. Es
+        // el mismo aviso releido por la administracion de cada nivel, y hace
+        // que la hoja pertenezca al recinto en vez de flotar por encima.
+        Nivel actual = RotacionNiveles.actual();
+        int n = actual.numero();
+        y = parrafo(grafico, Component.translatable("jobsmenu.nivel.actual", n), x, y, ancho,
                 Paleta.conAlfa(Paleta.TINTA_TENUE, tinta));
-        parrafo(grafico, "jobsmenu.nivel.tarifa", x, y, ancho,
+        parrafo(grafico, Component.translatable("jobsmenu.nivel.tarifa", n + 1), x, y, ancho,
                 Paleta.conAlfa(Paleta.TINTA, tinta));
+    }
+
+    /** Dibuja un texto partido al ancho de la hoja y devuelve donde termino. */
+    private int parrafo(GuiGraphics grafico, Component texto, int x, int y, int ancho, int color) {
+        for (FormattedCharSequence linea : this.font.split(texto, ancho)) {
+            grafico.drawString(this.font, linea, x, y, color, false);
+            y += ALTO_LINEA;
+        }
+        return y;
     }
 
     /** Dibuja un texto partido al ancho de la hoja y devuelve donde termino. */

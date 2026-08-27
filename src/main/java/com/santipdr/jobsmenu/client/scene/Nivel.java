@@ -273,4 +273,24 @@ public final class Nivel {
         int n = CATALOGO.length;
         return CATALOGO[((indice % n) + n) % n];
     }
+
+    /**
+     * El numero del nivel tal como lo lee el ocupante: el que va en el nombre.
+     *
+     * Sale de la clave ("nivel0" -> 0, "nivel7" -> 7) y no del indice de la
+     * rotacion, porque son cosas distintas: la rotacion podria reordenarse o
+     * saltear alguno, pero "Nivel 7" siempre es el mismo sitio. La hoja del
+     * aviso lo usa para decir en que nivel esta parado el ocupante y cuanto
+     * cuesta el siguiente, en vez de mentir siempre "Nivel 0".
+     */
+    public int numero() {
+        int n = 0;
+        for (int i = 0; i < this.clave.length(); i++) {
+            char c = this.clave.charAt(i);
+            if (c >= '0' && c <= '9') {
+                n = n * 10 + (c - '0');
+            }
+        }
+        return n;
+    }
 }
