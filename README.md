@@ -328,6 +328,14 @@ El `.jar` queda en `build\libs\jobsmenu-0.8.3.jar` y se copia a la carpeta `mods
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 
+> **Si el build falla por memoria** (`os::commit_memory ... failed (errno=1455)` o *the daemon has
+> disappeared*), no es el mod: es que a Windows le falta memoria comprometible. El `gradle.properties` ya va
+> contenido a propósito (heap chico, GC serial, sin paralelismo) y `build.gradle` limita el proceso de
+> reobfuscación, así que suele alcanzar. Si aun así falla, agrandá el **archivo de paginación** de Windows
+> (Ver configuración avanzada del sistema → Rendimiento → Opciones avanzadas → Memoria virtual → Cambiar →
+> tamaño administrado por el sistema) y reiniciá. El build tiene que terminar en **`BUILD SUCCESSFUL`**: si
+> dice `BUILD FAILED`, el `.jar` que quede está a medio hacer y no sirve.
+
 ## Compilar y desplegar (bloque completo)
 
 Actualiza, compila y copia el `.jar` a la carpeta `mods` de la instancia, sacando

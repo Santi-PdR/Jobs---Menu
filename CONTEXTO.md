@@ -249,14 +249,23 @@ presencia. Cualquiera de los dos deja la escena legible.
 
 ### 3.6 Sonido
 
-**Treinta y cuatro piezas**, todas sintetizadas para el mod con `tools/sonidos.py` (numpy + scipy +
-soundfile): ninguna muestra de terceros, ninguna licencia de por medio. Mono, 44.1 kHz, OGG Vorbis, 1.36 MB
-en total.
-Semilla fija `0x4A4F4253`, así que regenerarlas da siempre el mismo resultado.
+**Setenta y cuatro piezas** en total: **73 sintetizadas** para el mod con `tools/sonidos.py` (numpy + scipy +
+soundfile) —ninguna muestra de terceros, ninguna licencia de por medio— más la pista de música
+(`musica/defecto.ogg`, ver §3.8). Todas mono, 44.1 kHz, OGG Vorbis. Semilla fija `0x4A4F4253`, así que
+regenerar las sintetizadas da siempre el mismo resultado.
+
+> **Por qué mono, y no es un detalle menor.** El motor de sonido de Minecraft trata distinto lo mono y lo
+> estéreo, y una pieza estéreo puede quedar muda aunque el archivo sea válido y los volúmenes estén al máximo.
+> Pasó de verdad con la música (ver §3.8). Desde entonces la regla es dura: **todo el audio del mod es mono**.
 
 Las seis piezas de la 0.2.0 se descartaron enteras. El problema no era la mezcla: eran genéricas y se
 repetían. Esta tanda parte de una regla distinta —**todo tiene que sonar al mismo edificio**— y de ahí
 salen las cuatro familias.
+
+> **Los conteos de esta sección son del diseño original de cuatro recintos** (niveles 0–3). Desde 0.7.0 los
+> seis recintos nuevos (4–9) siguen exactamente el mismo patrón —tres camas continuas y tres eventos por
+> nivel—, cada uno con sus propias piezas. El total hoy es de 74 `.ogg` (73 sintetizadas + la música). Las
+> tablas de abajo se conservan porque explican el *criterio* de diseño, que vale igual para los diez.
 
 #### Interfaz (8)
 
@@ -446,19 +455,26 @@ menú, **no se reinicia al cambiar de pantalla** y **sigue sonando durante el ap
 atraviesa la transición, y por eso la transición no se siente como un corte.
 
 **Sobre el tema.** Es *REQUIEM — Forsaken OST*, del canal **Emmy Z**. Es obra de un tercero con copyright, y
-está incluida por decisión del owner (`music/REQUIEM-Forsaken-OST.ogg`) para un server entre amigos con el
-crédito en pantalla. Lo que hay:
+está incluida por decisión del owner (`music/REQUIEM-Forsaken-OST.ogg`, archivada como respaldo) para un
+server entre amigos con el crédito en pantalla. Lo que hay:
 
-- `musica/defecto.ogg`, pieza original de 67 s (La menor, 8 acordes de 9 s, crossfade de 5 s), sintetizada
-  por el mod. Es el tema de fábrica cuando no hay pista en `music/`. No se acredita a nadie: es del mod.
-- **Horneado en el JAR** (0.6.2): cualquier `.ogg` en la carpeta `music/` de la raíz (el primero alfabético)
-  se mete dentro del `.jar` al compilar reemplazando a `defecto.ogg`, y `build.gradle` deja un recurso marca
-  (`assets/jobsmenu/musica_creditada.txt`) que activa el **crédito en pantalla**. La responsabilidad de usar
-  esa grabación es de quien compila; para repartir el mod públicamente hace falta permiso de la autora.
+- `musica/defecto.ogg` **ES la pista real** (REQUIEM), directamente en los recursos, no un tema sintetizado.
+  Desde 0.6.4 no se hornea nada en tiempo de compilación: el `.ogg` que suena es el que está en el árbol de
+  recursos, sin magia de Gradle. Para cambiar de pista, se reemplaza ese archivo por otro OGG Vorbis.
+- **Tiene que ser MONO.** La causa real de que la música no sonara (mientras el ambiente sí) fue que la pista
+  venía en **estéreo**, y el motor de Minecraft trata ese caso distinto: la descartaba en silencio aunque el
+  archivo fuera válido y los volúmenes estuvieran al máximo. Re-codificada a mono (con libVorbis, normalizada
+  con más volumen) y marcada `"stream": false` en `sounds.json` —igual que las camas de ambiente que sí se
+  oyen—, suena.
+- **El canal MUSIC es de uno solo.** Minecraft trae su propio gestor de música de menú, que suena en el mismo
+  `SoundSource.MUSIC` que el tema del mod y lo desalojaba. `GestorMusica.tick()` llama cada tick a
+  `getMusicManager().stopPlaying()` mientras el aviso está abierto, para dejarle el canal libre al tema. No
+  toca los deslizadores del jugador: sólo evita que dos músicas peleen por el mismo canal. (Si el deslizador
+  *Música* del juego está en cero, no hay código que valga; el ajuste de volumen del aviso lo aclara.)
 - **El crédito** (`jobsmenu.credito.titulo` / `jobsmenu.credito.autor`, hoy *REQUIEM · Emmy Z · Forsaken
   OST*) aparece arriba a la derecha una sola vez por sesión, entrando y saliendo suave, y **sólo si hay una
-  pista con autor** —la horneada con marca, o una que el jugador haya dejado en su carpeta—. Nunca sobre la
-  pieza sintetizada. Se apaga con `credito_musica = false`.
+  pista con autor** —la marcada con `assets/jobsmenu/musica_creditada.txt`, o una que el jugador haya dejado
+  en su carpeta—. Nunca sobre una pieza sin autor. Se apaga con `credito_musica = false`.
 - **Vía sin recompilar** (paquete de recursos automático): dejar cualquier `.ogg` en
   `.minecraft/jobsmenu-musica/` y el mod lo instala y activa solo. Procedimiento completo en
   **`docs/musica.md`**.
@@ -489,6 +505,14 @@ crédito en pantalla. Lo que hay:
 | `credito_musica` | `true` | Mostrar el crédito de la pista (título y autor) al empezar a sonar, arriba a la derecha. |
 
 Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y legible**, nunca uno roto.
+
+**Dónde se tocan estos ajustes.** No hay una pantalla de opciones aparte: son un solo menú. El renglón
+*Condiciones de estancia* del aviso (y el mismo renglón de la pausa) abren el `OptionsScreen` de vanilla —el
+de imagen, sonido, controles, idioma, recursos—, y ahí el mod inserta un botón **Ajustes del aviso**
+(`client/AjustesAviso.java`, sobre `ScreenEvent.Init.Post`) que lleva a `PantallaAjustesAviso`, una
+subpantalla de opciones nativa (`OptionsSubScreen` + `OptionsList` + `OptionInstance`) con todos los
+interruptores y deslizadores de esta tabla. Cada control escribe y guarda la config en el acto: no hace falta
+editar el `.toml` a mano.
 
 ---
 
@@ -547,6 +571,15 @@ toque el servidor. **La tarifa del menú es decorativa**: no lee el dinero real 
     Backrooms se llevo `brilloFluorescente()` y dejo la llamada en pie; el mod no compilo
     en el PC del owner. Si se borra o renombra un metodo privado, hay que seguirle el rastro
     a sus llamadas.
+12. **Todo el audio va en MONO.** El motor de Minecraft trata distinto lo mono y lo estereo;
+    una pieza estereo puede quedar muda aunque el archivo sea valido y los volumenes esten al
+    maximo. Costo varias entregas descubrir que era eso lo que impedia oir la musica. Cualquier
+    `.ogg` que entre al mod se comprueba mono antes de darlo por bueno.
+13. **El build cuida la memoria.** `reobfJar` (ForgeGradle) abre un proceso Java aparte que
+    reserva ~1/4 de la RAM fisica; en equipos con archivo de paginacion chico el build moria con
+    `errno=1455` o el daemon crasheaba. `gradle.properties` va contenido (`-Xmx1024m`, GC serial,
+    sin paralelismo) y `build.gradle` capa el heap del fork de reobf en `afterEvaluate`. No subir
+    esos numeros a la ligera: la causa de raiz suele ser el archivo de paginacion de Windows.
 
 ---
 
@@ -556,7 +589,7 @@ toque el servidor. **La tarifa del menú es decorativa**: no lee el dinero real 
 |---|---|
 | `tools/verificar.py` | Sustituto del compilador ausente, en 9 bloques: versiones sincronizadas, **`mods.toml` parseado y validado contra el esquema de Forge 47**, paridad y validez de los `lang`, claves usadas vs. existentes, ASCII puro y balance de delimitadores en `.java`, **metodos llamados que la clase no declara**, recursos (`pack_format`, archivos de Gradle), **coherencia del audio** (los `.ogg` existen, arrancan con la firma `OggS`, `sounds.json` los nombra y Java los registra) y **los niveles** (cada uno con su nombre y su nota traducidos, y `nivel_fijo` con el rango correcto). |
 | `tools/vista_previa.py` | Espejo en Python de la escena. Dibuja el menú a PNG sin Minecraft para revisar composición, perspectiva y paleta. Acepta `--nivel=N`, `--figura=0..1`, `--contacto salida.png` (los cuatro niveles en una tira) y `--presencia salida.png` (los seis instantes de la manifestación). Escribe el PNG a mano con `zlib` (no necesita Pillow). **Se sincroniza a mano con `EscenaNivel.java` y `Presencia.java`: si cambia uno, cambia el otro.** |
-| `tools/sonidos.py` | Genera las 34 piezas `.ogg` desde cero con numpy, scipy y soundfile (reverberación por convolución incluida). Semilla fija `0x4A4F4253`. Escribe en bloques de 4 s: `sf.write()` con OGG de más de 60 s da segfault en libsndfile 1.2.2. Ninguna pieza viene de una muestra ajena. |
+| `tools/sonidos.py` | Genera las 73 piezas `.ogg` sintetizadas desde cero con numpy, scipy y soundfile (reverberación por convolución incluida). Semilla fija `0x4A4F4253`. Escribe en bloques de 4 s: `sf.write()` con OGG de más de 60 s da segfault en libsndfile 1.2.2. Todas mono. Ninguna pieza viene de una muestra ajena; la música (`musica/defecto.ogg`) es la excepción y no la toca este generador. |
 
 ---
 

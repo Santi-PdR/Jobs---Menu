@@ -17,57 +17,53 @@ Fui a buscarla para integrarla y esto es lo que es:
 No es música libre. Es la banda sonora de un juego comercial, compuesta por una
 autora identificable que trabaja con ese equipo.
 
-**Estado actual:** el owner subió la pista al repo (`music/REQUIEM-Forsaken-OST.ogg`)
-a propósito, para su server entre amigos y con el crédito en pantalla. Está,
-entonces, **incluida y sonando**: al compilar, el `build.gradle` la hornea dentro
-del `.jar` como tema del menú, reemplazando la pieza sintetizada. La
-responsabilidad de usar esa grabación es de quien compila y reparte el mod; para
-distribuirlo públicamente haría falta permiso escrito de la autora.
+**Estado actual:** el owner subió la pista al repo y está **incluida y sonando**.
+Desde 0.6.4 **no se hornea nada al compilar**: el archivo
+`src/main/resources/assets/jobsmenu/sounds/musica/defecto.ogg` **ES REQUIEM
+directamente** en los recursos. Lo que ves en el repo es lo que entra al `.jar`,
+sin magia de Gradle. El original tal como lo subió el owner queda archivado como
+respaldo en `music/REQUIEM-Forsaken-OST.ogg`. La responsabilidad de usar esa
+grabación es de quien compila y reparte el mod; para distribuirlo públicamente
+haría falta permiso escrito de la autora.
 
-> Nota de proceso: el entorno donde se editó el mod no tiene acceso a YouTube,
-> así que el `.ogg` no se pudo descargar desde ahí. Lo subió el owner por su
-> cuenta a través de GitHub. La maquinaria de integración estaba lista de antes:
-> bastó con dejar el archivo en `music/`.
+> Nota de proceso: el paso de horneado en `build.gradle` se quitó porque era
+> frágil (la caché de `processResources` podía saltárselo) y de hecho la pista no
+> llegaba a sonar. Ahora el `.ogg` que suena es, sin intermediarios, el que está
+> en el árbol de recursos.
 
 ## Qué hay ahora
 
-El menú **tiene música y suena**. Es una pieza original compuesta para el mod y
-sintetizada desde cero (`tools/sonidos.py`, función `tema`): ocho acordes largos
-sobre un pedal de la, sin ritmo ni melodía, 67 segundos en bucle sin junta.
-Es nuestra, así que el mod se reparte sin arrastrar derechos de nadie.
+El menú **tiene música y suena**: es REQUIEM, la pista real, con su crédito en
+pantalla. Toda la maquinaria está construida y funcionando: instancia única, sin
+duplicados ni reinicios al cambiar de nivel o redimensionar la ventana, bucle
+natural, entrada suave, volumen propio en la config, continuidad durante el
+apagón (cede un 22 % para que el corte eléctrico tenga el frente), y se calla al
+gestor de música de vanilla mientras el aviso está abierto para no pelear por el
+canal `MUSIC`.
 
-Toda la maquinaria que pediste está construida y funcionando sobre esa pieza:
-instancia única, sin duplicados ni reinicios al cambiar de nivel o
-redimensionar la ventana, bucle natural, entrada de veinte segundos, volumen
-propio en la config, y continuidad durante el apagón cediendo un 22 % para que
-el corte eléctrico tenga el frente.
-
-## Hornear REQUIEM (u otra pista) DENTRO del JAR
+## Cómo cambiar la pista (reemplazando el recurso)
 
 Esta es la vía para que la música **viaje con el mod**: quien instale el `.jar`
-la oye sin poner nada. Pensada para un server entre amigos con el crédito en
-pantalla.
+la oye sin poner nada.
 
 1. Conseguí el archivo en **OGG Vorbis** (`.ogg`). Es el único formato que
    Minecraft decodifica. Si tenés un MP3, convertilo antes.
-2. Dejalo en la carpeta **`music/`** del repo. El nombre da igual: se toma el
-   primer `.ogg` por orden alfabético. (Ahora mismo hay
-   `music/REQUIEM-Forsaken-OST.ogg`.)
-3. Compilá con `.\gradlew build`. El build detecta el archivo, lo hornea en el
-   JAR reemplazando al tema sintetizado, y deja una marca interna
-   (`assets/jobsmenu/musica_creditada.txt`) que le dice al mod que esa pista tiene
-   autor. En consola vas a ver:
-   `[jobsmenu] Pista con credito horneada en el JAR desde music/REQUIEM-Forsaken-OST.ogg`
+2. **Tiene que ser MONO.** Una pista estéreo puede quedar **muda** aunque el
+   archivo sea válido y los volúmenes estén al máximo: el motor de Minecraft trata
+   distinto lo mono y lo estéreo, y fue exactamente lo que impidió oír REQUIEM
+   durante varias versiones. Convertí a un canal antes de meterla (con `ffmpeg`:
+   `ffmpeg -i entrada.ogg -ac 1 -c:a libvorbis defecto.ogg`).
+3. Reemplazá `src/main/resources/assets/jobsmenu/sounds/musica/defecto.ogg` por tu
+   archivo (con ese nombre exacto). En `sounds.json`, el evento `musica.tema` debe
+   quedar con `"stream": false` —igual que las camas de ambiente que sí suenan—.
+4. Compilá con `.\gradlew build`.
 
-Con eso, al abrir el menú suena REQUIEM y aparece el crédito arriba a la
-derecha —**REQUIEM · Emmy Z · Forsaken OST**— una vez por sesión, entrando y
-saliendo suave. El texto del crédito se edita en `lang/*.json`
+**El crédito** aparece arriba a la derecha —**REQUIEM · Emmy Z · Forsaken OST**—
+una vez por sesión, entrando y saliendo suave, y sólo si existe el recurso marca
+`assets/jobsmenu/musica_creditada.txt`. El texto se edita en `lang/*.json`
 (`jobsmenu.credito.titulo` y `jobsmenu.credito.autor`); si querés apagarlo,
-`credito_musica = false` en la config.
-
-Si sacás todos los `.ogg` de `music/`, el JAR vuelve a usar el tema sintetizado
-y el crédito no aparece —no se le atribuye a nadie una pieza que compuso el
-propio mod—.
+`credito_musica = false` en la config. Si tu pista es de dominio propio y no debe
+llevar crédito, borrá ese archivo marca y no se atribuye a nadie.
 
 ## Cómo poner la pista que quieras SIN recompilar: una carpeta, un archivo
 
@@ -104,11 +100,14 @@ Lo que hace el mod al arrancar:
 Si no hay archivo, suena la pista propia del mod y no pasa nada. Para cambiar
 de pista, reemplazás el archivo. Para volver a la del mod, lo sacás.
 
-**El único requisito es el formato: OGG Vorbis.** Es el único que Minecraft
-sabe decodificar; un MP3 renombrado a `.ogg` no suena. Y acá va otra cosa que
-antes faltaba: si dejás un archivo que no es OGG, el mod **te lo dice en el
-log** en vez de quedarse mudo. La copia se rehace solo si el archivo cambió, así
-que no se paga tiempo de arranque de más.
+**Dos requisitos: formato OGG Vorbis y MONO.** El OGG es el único formato que
+Minecraft sabe decodificar; un MP3 renombrado a `.ogg` no suena. Y la pista tiene
+que ser **mono (un canal)**: una estéreo puede quedar muda aunque el archivo sea
+válido, porque el motor de sonido trata distinto lo mono y lo estéreo. Si tu
+archivo es estéreo, convertilo antes con
+`ffmpeg -i entrada.ogg -ac 1 -c:a libvorbis salida.ogg`. Si dejás un archivo que
+no es OGG, el mod **te lo dice en el log** en vez de quedarse mudo. La copia se
+rehace solo si el archivo cambió, así que no se paga tiempo de arranque de más.
 
 **Por qué esto es legal y meterla en el JAR no.** Un mod que lee un archivo que
 vos pusiste en tu carpeta no distribuye nada: la obra nunca sale de tu máquina.
