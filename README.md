@@ -14,11 +14,26 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
 
 | | |
 |---|---|
-| Versión | **0.8.1** |
+| Versión | **0.8.2** |
 | Minecraft | 1.20.1 |
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente (el servidor no necesita el mod) |
+
+## Qué trae la 0.8.2
+
+Un solo menú de ajustes, y la música arreglada:
+
+- **Se acabaron los dos menús de configuración.** La versión anterior tenía una hoja de ajustes propia
+  además de las opciones del juego. Ahora hay **uno solo**: "Condiciones de estancia" abre las opciones de
+  Minecraft de siempre —imagen, sonido, controles, idioma, recursos— y ahí, arriba a la izquierda, hay un
+  botón **"Ajustes del aviso"** que abre los ajustes del mod como una sección más, con los mismos
+  interruptores y deslizadores nativos que el resto del menú de opciones. Nada de dos sitios donde buscar.
+- **La música ya suena.** El problema no era el archivo: Minecraft tiene su propio reproductor de música de
+  menú que usa el mismo canal (Music) que el tema del mod, y lo tapaba. Ahora, mientras el aviso está
+  abierto, se silencia el reproductor de vanilla para dejarle el canal al tema. *(Nota: el deslizador
+  **Música** del juego tiene que estar por encima de cero; si está al mínimo, no hay mod que lo levante —por
+  eso el ajuste de volumen del aviso lo aclara.)*
 
 ## Qué trae la 0.8.1
 
@@ -295,7 +310,7 @@ Requiere JDK 17 instalado.
 .\gradlew build
 ```
 
-El `.jar` queda en `build\libs\jobsmenu-0.8.1.jar` y se copia a la carpeta `mods` de la instancia.
+El `.jar` queda en `build\libs\jobsmenu-0.8.2.jar` y se copia a la carpeta `mods` de la instancia.
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 
@@ -310,7 +325,7 @@ SKLauncher, pero sirve igual para `.minecraft` o cualquier lanzador.
 # --- 0. Rutas --------------------------------------------------------------
 $repo      = "C:\Users\santi\Desktop\Jobs---Menu"
 $instancia = "C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1"
-$version   = "0.8.1"
+$version   = "0.8.2"
 
 Set-Location $repo
 

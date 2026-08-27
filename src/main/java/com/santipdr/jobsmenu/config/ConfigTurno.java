@@ -243,6 +243,10 @@ public final class ConfigTurno {
         return SPEC.isLoaded() ? INSTANCE.volumenAmbiente.get() : 55;
     }
 
+    public static void fijarMenuPropio(boolean valor) {
+        fijar(INSTANCE.menuPropio, valor);
+    }
+
     public static void fijarPausaPropia(boolean valor) {
         fijar(INSTANCE.pausaPropia, valor);
     }

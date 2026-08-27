@@ -6,6 +6,7 @@ import com.santipdr.jobsmenu.client.ui.RenglonTablon;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
+import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
@@ -120,7 +121,7 @@ public class PantallaEstancia extends Screen {
     }
 
     private void abrirCondiciones() {
-        this.minecraft.setScreen(new PantallaCondiciones(this));
+        this.minecraft.setScreen(new OptionsScreen(this, this.minecraft.options));
     }
 
     /**

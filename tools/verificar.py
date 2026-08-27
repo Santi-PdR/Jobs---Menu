@@ -290,6 +290,13 @@ def verificar_claves(es: dict[str, str]) -> None:
     # rotuloNivel() en PantallaNivel.
     cubiertas |= {k for k in es if re.search(r"\.nota\d+$", k)}
 
+    # Los detalles de los ajustes se componen igual, con clave + ".detalle"
+    # dentro de cachedConstantTooltip (PantallaAjustesAviso). El detector de
+    # horquillas tampoco los ve, asi que se cubre el sufijo: toda clave de
+    # ajuste que termina en '.detalle' la pide el tooltip del control que
+    # comparte su prefijo.
+    cubiertas |= {k for k in es if k.startswith("jobsmenu.ajustes.") and k.endswith(".detalle")}
+
     for clave in sorted(set(es) - cubiertas):
         aviso(f"La clave '{clave}' no la usa nadie en el codigo.")
 

@@ -195,6 +195,26 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         boolean enMenu = cliente.screen instanceof com.santipdr.jobsmenu.client.screen.PantallaNivel;
         boolean permitido = enMenu && ConfigTurno.musicaMenu();
 
+        // POR QUE LA MUSICA NO SE OIA
+        //
+        // Minecraft trae su propio gestor de musica de menu, que suena en el
+        // MISMO canal (SoundSource.MUSIC) que nuestro tema. Cuando el juego
+        // decide poner su musica de menu, la nuestra queda tapada o desalojada,
+        // y el ambiente -que va por otro canal (AMBIENT)- se seguia oyendo: de
+        // ahi el sintoma de "el ambiente suena pero la musica no".
+        //
+        // La solucion es callar al gestor de vanilla mientras nuestro menu esta
+        // abierto, para que el canal de musica quede libre para el tema del
+        // aviso. No toca los deslizadores del jugador: solo evita que dos
+        // musicas peleen por el mismo canal.
+        //
+        // AVISO honesto: si ademas el deslizador "Musica" del juego esta en
+        // cero, no hay codigo que valga -ese control lo manda el jugador-. Por
+        // eso el ajuste de volumen del aviso avisa que hay que subirlo tambien.
+        if (permitido) {
+            cliente.getMusicManager().stopPlaying();
+        }
+
         float objetivo = 0.0F;
         if (permitido) {
             objetivo = ConfigTurno.volumenMusica() * MezclaAudio.MUSICA;

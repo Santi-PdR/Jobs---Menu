@@ -13,6 +13,7 @@ import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.network.chat.Component;
@@ -266,15 +267,17 @@ public class PantallaNivel extends Screen {
     }
 
     /**
-     * Las condiciones de estancia: los ajustes del mod, en la hoja.
+     * Las condiciones de estancia: las opciones del juego, tal cual.
      *
-     * Antes esto abria las opciones de vanilla, que no tienen nada que ver con
-     * este menu y ademas dejaban los ajustes del mod fuera del alcance del
-     * jugador. Ahora abre una pantalla propia con la misma piel de papel, donde
-     * cada ajuste se marca y se guarda solo.
+     * Es UNA sola pantalla de ajustes, la de siempre, con todo lo que el
+     * jugador espera (imagen, sonido, controles, idioma, recursos). Los ajustes
+     * propios del mod no viven en otra interfaz aparte: se agregan DENTRO de
+     * esta, con un boton que Forge inserta en la pantalla de opciones de vanilla
+     * (ver AjustesAviso). Asi no hay dos menus de configuracion compitiendo.
      */
     private void abrirCondiciones() {
-        Minecraft.getInstance().setScreen(new PantallaCondiciones(this));
+        Minecraft cliente = Minecraft.getInstance();
+        cliente.setScreen(new OptionsScreen(this, cliente.options));
     }
 
     private void renunciar() {
