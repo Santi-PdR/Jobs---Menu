@@ -1232,14 +1232,15 @@ def nat_agua(lz, m, nivel, luz, tiempo) -> None:
             continue
         # Jirones de vapor que se arrastran despacio, no una banda pareja.
         niebla = mezclar(nivel.pared_alta, nivel.pared_baja, 0.50)
-        for jx in range(x0i, x1i, PASO * 3):
+        paso = max(PASO * 8, (x1i - x0i) // 10)
+        for jx in range(x0i, x1i, paso):
             onda = (math.sin(tiempo * 0.16 + jx * 0.010 + dy * 0.6)
                     + 0.6 * math.sin(tiempo * 0.09 - jx * 0.017))
             jiron = 0.55 + 0.45 * onda
             a = humedad * limitar(jiron, 0.0, 1.2)
             if a <= 0.006:
                 continue
-            lz.fill(jx, y, min(x1i, jx + PASO * 3), y + PASO, con_alfa(niebla, a))
+            lz.fill(jx, y, min(x1i, jx + paso), y + PASO, con_alfa(niebla, a))
 
     # Burbujas y motas: en un natatorio quieto hay siempre algo flotando.
     burbujas = 14

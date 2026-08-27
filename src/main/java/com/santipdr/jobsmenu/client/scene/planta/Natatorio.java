@@ -293,12 +293,16 @@ public final class Natatorio implements Planta {
                 continue;
             }
             // El vapor no es una banda pareja: son jirones que se arrastran muy
-            // despacio de un lado a otro. Cada fila modula su densidad con dos
-            // ondas lentas desfasadas, asi el velo respira en vez de quedarse
-            // pintado. Es el unico movimiento del agua ademas de la caustica, y
-            // basta para que el aire sobre la pileta se sienta cargado y vivo.
+            // despacio de un lado a otro. Cada tramo ancho modula su densidad
+            // con dos ondas lentas desfasadas, asi el velo respira en vez de
+            // quedarse pintado. Es el unico movimiento del agua ademas de la
+            // caustica, y basta para que el aire sobre la pileta se sienta
+            // cargado. El paso es ancho a proposito -jirones grandes, no ruido
+            // fino- y ademas mantiene barato el barrido: son pocos rectangulos
+            // por fila, no uno por columna.
             int niebla = Paleta.mezclar(nivel.paredAlta, nivel.paredBaja, 0.50F);
-            for (int jx = x0i; jx < x1i; jx += Trazo.PASO * 3) {
+            int paso = Math.max(Trazo.PASO * 8, (x1i - x0i) / 10);
+            for (int jx = x0i; jx < x1i; jx += paso) {
                 float onda = (float) Math.sin(tiempo * 0.16F + jx * 0.010F + dy * 0.6F)
                         + 0.6F * (float) Math.sin(tiempo * 0.09F - jx * 0.017F);
                 float jiron = 0.55F + 0.45F * onda;   // 0.1 .. 1.15 aprox
@@ -306,7 +310,7 @@ public final class Natatorio implements Planta {
                 if (a <= 0.006F) {
                     continue;
                 }
-                int jx1 = Math.min(x1i, jx + Trazo.PASO * 3);
+                int jx1 = Math.min(x1i, jx + paso);
                 grafico.fill(jx, y, jx1, y + Trazo.PASO, Paleta.conAlfa(niebla, a));
             }
         }
