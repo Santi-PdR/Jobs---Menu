@@ -1,5 +1,6 @@
 package com.santipdr.jobsmenu.client.scene;
 
+import com.santipdr.jobsmenu.client.scene.planta.Cripta;
 import com.santipdr.jobsmenu.client.scene.planta.Nave;
 import com.santipdr.jobsmenu.client.scene.planta.Natatorio;
 import com.santipdr.jobsmenu.client.scene.planta.Planta;
@@ -175,6 +176,21 @@ public final class Nivel {
                     // vaso ocupa casi todo el cuadro inferior.
                     0.455F, 0.330F, 0.300F, 0.270F, 0.080F, 0.124F,
                     0.62F, 0.30F),
+
+            // Nivel 4 - La sala. El primer recinto que no es un backroom: piedra
+            // calida iluminada por fuego, el guino al lobby del server. Ambar y
+            // ocre, boveda de sillares, antorchas y un candil de rueda. El vano
+            // del fondo es la boca de un tunel sin luz. 'luz' es el color de la
+            // llama (ambar), no de un fluorescente.
+            new Nivel("nivel4", new Cripta(),
+                    0xFF9A7444, 0xFF5E4227, 0xFF34220F,
+                    0xFF6E5432, 0xFF463320, 0xFF2C1C0C,
+                    0xFF836540, 0xFF4E3822,
+                    0xFF4A3520, 0xFFFFC070, 0xFF0A0603,
+                    // Nave abovedada, honda y de buena altura, vista casi de
+                    // frente y un punto desde abajo: el candil domina el techo.
+                    0.505F, 0.500F, 0.150F, 0.150F, 0.185F, 0.150F,
+                    0.20F, 0.55F),
     };
 
     /** Cuantos niveles hay en la rotacion. */

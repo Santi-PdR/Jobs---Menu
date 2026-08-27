@@ -10,7 +10,7 @@
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
 | Paquete Java | `com.santipdr.jobsmenu` |
-| Versión actual | **0.6.4** |
+| Versión actual | **0.6.5** |
 | Plataforma | Minecraft **1.20.1** · Forge **47.x** · Java **17** |
 | Alcance | Menús (Title / Pause / Options), escena viva, audio, lore. **Sin gameplay.** |
 | Lado | **Cliente**. El mod no toca el servidor ni exige instalarse en él. |
@@ -198,17 +198,24 @@ marcos según corresponda, el vano del fondo, polvo y viñeta perimetral.
 
 **La presencia** (`client/scene/Presencia.java`) reemplaza a la silueta caminante de la 0.2.0. Ver §3.7.
 
-### 3.4 Los cuatro niveles
+### 3.4 Los niveles
 
 `client/scene/Nivel.java` es el catálogo. Cada nivel cambia proporción, ancho, colores, reflejo y qué cosas
 cuelgan de las paredes:
 
-| Clave | Nivel | Proporción | Semiancho | Reflejo | Señas |
-|---|---|---|---|---|---|
-| `nivel0` | Sección administrativa | 0.92 | 0.082 | 0.16 | Papel mural amarillo, zócalo, humedad total |
-| `nivel1` | Depósito | 0.98 | 0.132 | 0.30 | Hormigón, mucho más ancho, neblina |
-| `nivel2` | Pasillos de servicio | 0.78 | 0.070 | 0.22 | Estrecho y alto, óxido, tuberías |
-| `nivel3` | Las piscinas | 1.02 | 0.098 | 0.62 | Azulejo, casi cuadrado, todo se refleja |
+| Clave | Nivel | Reflejo | Señas |
+|---|---|---|---|
+| `nivel0` | Sección administrativa | 0.16 | Papel mural amarillo, zócalo, humedad total |
+| `nivel1` | Depósito | 0.30 | Hormigón, mucho más ancho, neblina |
+| `nivel2` | Pasillos de servicio | 0.22 | Estrecho y alto, óxido, tuberías |
+| `nivel3` | Las piscinas | 0.62 | Azulejo, casi cuadrado, todo se refleja |
+| `nivel4` | La sala | 0.20 | Piedra cálida, fuego, bóveda, candil de rueda — el guiño al lobby |
+
+**Nivel 4 es la otra cara del mod.** Los cuatro primeros son backrooms: fluorescente que no se apaga, terror
+burocrático y luminoso. La sala es lo contrario —piedra excavada, antorchas, un candelabro de rueda con
+velas colgado de la bóveda, estandartes— y su luz es **fuego que titila**, no tubo. Convive en la rotación
+como quinto recinto (`client/scene/planta/Cripta.java`). Su primer plano es el borde de una mesa larga de
+banquete: se mira la sala desde la cabecera. El vano del fondo es la boca de un túnel sin luz.
 
 ### 3.5 La transición
 
@@ -492,6 +499,8 @@ Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y
 | **0.6.1** | Ronda de pulido: el agua del natatorio devuelve los tubos del techo (reflejo roto y tembloroso, el detalle que la vuelve agua), más humedad en el azulejado, sello de versión eliminado de la esquina, código muerto retirado | **Entregado** |
 | **0.6.2** | Música: vía para hornear REQUIEM (u otra pista) dentro del JAR con crédito en pantalla al empezar a sonar; Ctrl+S pasa a herramienta oculta (sin texto en el menú); vapor del natatorio en jirones que se arrastran; `ui.pasar` con el brillo agudo recortado para no cansar | **Entregado** |
 | **0.6.3** | La pista REQUIEM (Emmy Z) subida por el owner queda integrada: el build hornea cualquier `.ogg` de `music/` en el JAR (nombre libre), suena de fábrica con su crédito. OGG verificado (Vorbis 44.1 kHz, 3:16, sin clipping, junta de bucle limpia) | **Entregado** |
+| **0.6.4** | Arreglo de que la música no sonara: `defecto.ogg` ES ahora REQUIEM directo en los recursos (el horneado en build era frágil y no se ejecutaba); marcador de crédito como recurso real; mezcla de música 0.34→0.55 y entrada 20 s→6 s para que se escuche | **Entregado** |
+| **0.6.5** | Nivel 4, **La sala**: quinto recinto de piedra cálida iluminada por fuego (bóveda, columnas, antorchas, estandartes, candil de rueda con velas, runas en el suelo, mesa de banquete en primer plano). Audio propio: tres camas (aire tibio, fuego, la sala vieja) y tres eventos (antorcha, cadena, piedra). El guiño al lobby del server, conviviendo con los cuatro backrooms | **Entregado** |
 | 0.7.0 | Pausa ("Estancia en suspenso") y opciones con la misma piel | Pendiente |
 | 0.8.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
 | 0.9.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |

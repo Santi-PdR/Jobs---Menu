@@ -288,4 +288,100 @@ public final class PrimerPlano {
         grafico.fill((int) xIni, sy, (int) (xFin * 0.92F), sy + (int) (m.alto() * 0.05F),
                 Paleta.conAlfa(0xFF000000, 0.16F + 0.06F * luz));
     }
+
+    // ----------------------------------------------------------------------
+    // Nivel 4 - La sala: el borde de la mesa de banquete
+    // ----------------------------------------------------------------------
+
+    /**
+     * El canto de una mesa larga de madera, cruzando el borde inferior.
+     *
+     * Se mira la sala desde la cabecera de la mesa -desde donde preside quien
+     * convoca-. Como el mostrador de la sala administrativa, necesita tapa
+     * horizontal iluminada por el fuego de arriba, frente vertical en sombra y
+     * un filo entre ambos; pero la madera es calida y el reflejo del fuego sobre
+     * la tapa titila apenas, cosa que una fotocopiadora no hace.
+     */
+    public static void cripta(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
+        float balance = desvio(tiempo, 2.4F, 0.08F);
+        // El titileo del fuego sobre la madera: comun a todo el primer plano.
+        float llama = 1.0F + 0.05F * (float) Math.sin(tiempo * 12.0F)
+                + 0.03F * (float) Math.sin(tiempo * 7.1F + 1.0F);
+        int tapaY = (int) (m.alto() * 0.82F + balance);
+        int x0 = (int) (m.ancho() * 0.14F + balance * 1.4F);
+        int x1 = (int) (m.ancho() * 0.92F + balance * 1.4F);
+
+        int frente = Paleta.mezclar(nivel.paredBaja, 0xFF000000, 0.55F);
+        int tapa = Paleta.mezclar(nivel.suelo, nivel.paredAlta, 0.30F);
+
+        // Frente de la mesa: cae del filo al borde del cuadro, mas oscuro abajo.
+        grafico.fillGradient(x0, tapaY, x1, m.alto(),
+                Paleta.iluminar(frente, (0.30F + 0.20F * luz) * llama),
+                Paleta.iluminar(frente, 0.10F + 0.08F * luz));
+
+        // Tapa: la banda horizontal de madera, lamida por el fuego de arriba.
+        int espesor = Math.max(5, (int) (m.alto() * 0.035F));
+        grafico.fillGradient(x0, tapaY - espesor, x1, tapaY,
+                Paleta.iluminar(tapa, Math.min(1.0F, (0.60F + 0.34F * luz) * llama)),
+                Paleta.iluminar(tapa, 0.42F + 0.24F * luz));
+
+        // Filo iluminado por el candil y las antorchas.
+        grafico.fill(x0, tapaY - espesor, x1, tapaY - espesor + 2,
+                Paleta.conAlfa(Paleta.iluminar(nivel.luz, Math.min(1.0F, luz * llama)), 0.20F + 0.24F * luz));
+
+        // Vetas de la madera en la tapa: unas pocas lineas longitudinales.
+        for (int k = 1; k <= 3; k++) {
+            int vy = tapaY - espesor + k * espesor / 4;
+            grafico.fill(x0, vy, x1, vy + 1, Paleta.conAlfa(0xFF000000, 0.10F));
+        }
+
+        // Un candelabro bajo sobre la mesa, de canto: un pie y dos velas que
+        // titilan. Es lo que dice que en esta mesa se sienta alguien.
+        int velaX = (int) (m.ancho() * 0.30F + balance * 1.4F);
+        candelabroMesa(grafico, nivel, velaX, tapaY - espesor, m, luz, tiempo);
+
+        // Una jarra de canto, mas a la derecha: silueta simple.
+        int jx = (int) (m.ancho() * 0.66F + balance * 1.4F);
+        int jw = (int) (m.ancho() * 0.05F);
+        int jh = (int) (m.alto() * 0.07F);
+        grafico.fill(jx, tapaY - espesor - jh, jx + jw, tapaY - espesor,
+                Paleta.conAlfa(Paleta.iluminar(nivel.junta, 0.50F + 0.30F * luz), 0.90F));
+        grafico.fill(jx + jw, tapaY - espesor - (int) (jh * 0.6F), jx + jw + (int) (jw * 0.3F),
+                tapaY - espesor - (int) (jh * 0.25F),
+                Paleta.conAlfa(Paleta.iluminar(nivel.junta, 0.50F + 0.30F * luz), 0.90F));
+        // Brillo del fuego en el hombro de la jarra.
+        grafico.fill(jx, tapaY - espesor - jh, jx + jw, tapaY - espesor - jh + 2,
+                Paleta.conAlfa(Paleta.iluminar(nivel.luz, luz * llama), 0.30F));
+    }
+
+    /** Un candelabro bajo sobre la mesa, visto de canto, con dos velas vivas. */
+    private static void candelabroMesa(GuiGraphics grafico, Nivel nivel, int x, int base,
+                                       Marco m, float luz, float tiempo) {
+        int alto = (int) (m.alto() * 0.10F);
+        int hierro = Paleta.iluminar(nivel.junta, 0.45F + 0.25F * luz);
+        // Pie y brazo.
+        grafico.fill(x - 1, base - alto, x + 2, base, Paleta.conAlfa(hierro, 0.92F));
+        grafico.fill(x - (int) (m.ancho() * 0.03F), base - (int) (alto * 0.55F),
+                x + (int) (m.ancho() * 0.03F), base - (int) (alto * 0.55F) + 2,
+                Paleta.conAlfa(hierro, 0.92F));
+        // Dos velas.
+        for (int s = -1; s <= 1; s += 2) {
+            int vx = x + s * (int) (m.ancho() * 0.03F);
+            int vy = base - (int) (alto * 0.55F);
+            float llama = 1.0F + 0.10F * (float) Math.sin(tiempo * 13.0F + s);
+            // Derrame: chico y contenido, no un halo enorme.
+            for (int k = 3; k >= 1; k--) {
+                float t = k / 3.0F;
+                float e = m.ancho() * 0.010F * (1.0F + t * 2.2F);
+                grafico.fill((int) (vx - e), (int) (vy - e), (int) (vx + e), (int) (vy + e * 0.6F),
+                        Paleta.conAlfa(nivel.luz, 0.07F * luz * llama * (1.0F - t * 0.5F)));
+            }
+            // Cuerpo de vela y nucleo.
+            grafico.fill(vx - 1, vy - (int) (alto * 0.22F), vx + 1, vy,
+                    Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, 0.7F * luz), 0.9F));
+            grafico.fill(vx - 1, vy - (int) (alto * 0.30F), vx + 1, vy - (int) (alto * 0.22F),
+                    Paleta.conAlfa(Paleta.iluminar(0xFFFFF3D8, Math.min(1.0F, luz * llama * 1.4F)), 0.95F));
+        }
+    }
 }
+

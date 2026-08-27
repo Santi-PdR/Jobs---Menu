@@ -14,11 +14,26 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
 
 | | |
 |---|---|
-| Versión | **0.6.4** |
+| Versión | **0.6.5** |
 | Minecraft | 1.20.1 |
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente (el servidor no necesita el mod) |
+
+## Qué trae la 0.6.5
+
+**Un quinto fondo: La sala.** El primer recinto que no es un backroom. Una sala de piedra excavada, cálida,
+iluminada por **fuego**: bóveda de sillares, columnas, antorchas en las paredes que titilan cada una a su
+ritmo, estandartes que ondean, y un **candelabro de rueda de carro con velas** colgado del centro. En el
+suelo, runas que laten; en primer plano, el borde de una mesa larga de banquete con un candelabro y una
+jarra —se mira la sala desde la cabecera—. Al fondo, la boca oscura de un túnel. Es el guiño al lobby del
+server, y convive con los cuatro backrooms en la rotación. Trae su propio audio: el aire tibio de la sala, el
+crepitar del fuego, la construcción vieja que se acomoda, y sucesos sueltos (una antorcha que prende, la
+cadena del candil, piedra asentándose).
+
+**Y la música ahora se escucha de verdad.** En la 0.6.4 se arregló que REQUIEM no sonaba —el paso de
+compilación que la metía era frágil y no llegaba a ejecutarse—; ahora la pista es directamente el archivo de
+recursos, entra en seis segundos en vez de veinte y suena a un volumen que se oye.
 
 ## Qué trae la 0.6.3
 
@@ -207,7 +222,7 @@ Requiere JDK 17 instalado.
 .\gradlew build
 ```
 
-El `.jar` queda en `build\libs\jobsmenu-0.6.4.jar` y se copia a la carpeta `mods` de la instancia.
+El `.jar` queda en `build\libs\jobsmenu-0.6.5.jar` y se copia a la carpeta `mods` de la instancia.
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 
@@ -222,7 +237,7 @@ SKLauncher, pero sirve igual para `.minecraft` o cualquier lanzador.
 # --- 0. Rutas --------------------------------------------------------------
 $repo      = "C:\Users\santi\Desktop\Jobs---Menu"
 $instancia = "C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1"
-$version   = "0.6.4"
+$version   = "0.6.5"
 
 Set-Location $repo
 
@@ -265,7 +280,7 @@ Write-Host "Desplegado jobsmenu-$version.jar en $mods" -ForegroundColor Green
 ```powershell
 python tools\verificar.py       # versiones, idiomas, JSON, ASCII, llaves, símbolos, audio y niveles
 python tools\vista_previa.py    # dibuja el menú a PNG para revisar la escena
-python tools\vista_previa.py --contacto docs\vista_previa.png   # los cuatro niveles juntos
+python tools\vista_previa.py --contacto docs\vista_previa.png   # los cinco niveles juntos
 python tools\vista_previa.py --presencia docs\presencia.png     # la manifestación del fondo, paso a paso
 python tools\sonidos.py         # regenera las 38 piezas de audio (requiere numpy, scipy y soundfile)
 ```

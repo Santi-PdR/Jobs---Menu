@@ -204,6 +204,9 @@ SALAS = {
     "servicio": impulso(1.10, 0.004, 5_000.0, 1.8),
     # Complejo de piscinas: azulejo, enorme, brillante y con cola larguisima.
     "piscinas": impulso(4.20, 0.035, 7_500.0, 1.6),
+    # Sala de piedra abovedada: grande y calida, cola media, sin el brillo del
+    # azulejo -la piedra absorbe los agudos-, mas oscura que el deposito.
+    "sala_piedra": impulso(2.30, 0.022, 2_400.0, 1.3),
 }
 
 
@@ -801,6 +804,34 @@ def base_nivel3(dur: float = 31.0) -> np.ndarray:
     return reverberar(x, SALAS["piscinas"], 0.52)
 
 
+def base_nivel4(dur: float = 26.0) -> np.ndarray:
+    """Nivel 4, la sala de piedra.
+
+    La otra cara del mod: aca no hay instalacion electrica, hay FUEGO. La cama
+    base es el aire caliente de una sala grande de piedra -un tiro suave, como
+    el de una chimenea- mas el modo grave de la boveda. No hay zumbido de 50 Hz
+    de ningun tubo: lo que sostiene el sitio es el volumen de aire tibio y la
+    piedra devolviendolo todo con una cola media y oscura.
+    """
+    t = tiempo(dur)
+
+    # Tiro de aire caliente: ruido marron ancho, modulado lento como una
+    # corriente que sube por la nave. Es el "cuarto tono" de la sala.
+    tiro = pasabajos(marron(dur), 200.0, 3) * 4.2 * deriva(dur, 0.021, 0.30)
+
+    # Modo propio de la boveda: una nave de piedra tiene su nota, mas alta que
+    # la del deposito de hormigon porque es mas corta.
+    modo = np.sin(2 * np.pi * 57.0 * t) * 0.09 * deriva(dur, 0.013, 0.55)
+    modo += np.sin(2 * np.pi * 86.0 * t + 0.6) * 0.045 * deriva(dur, 0.019, 0.60)
+
+    # Un siseo grave y lejano: las brasas respirando, sin transitorios todavia
+    # (los chasquidos van en la capa de caracter). Banda baja-media.
+    brasa = pasabanda(rosa(dur), 240.0, 1_100.0, 2) * 0.20 * deriva(dur, 0.047, 0.45)
+
+    x = tiro * 0.11 + modo * 0.9 + brasa * 0.06
+    return reverberar(x, SALAS["sala_piedra"], 0.38)
+
+
 # ==========================================================================
 # 2b. Capa de caracter: la segunda cama, tambien continua
 # ==========================================================================
@@ -953,6 +984,50 @@ def caracter_nivel3(dur: float = 43.0) -> np.ndarray:
 
     x = canaleta * 0.050 + masa * 0.070 + lame * 0.30 + clima * 0.045
     return reverberar(x, SALAS["piscinas"], 0.56)
+
+
+def caracter_nivel4(dur: float = 39.0) -> np.ndarray:
+    """Nivel 4. El fuego, siempre.
+
+    Es la capa que hace que la sala sea la sala: el crepitar continuo de las
+    antorchas y el candil. No es un bucle de fogata cercana -eso cansa-, sino
+    fuego repartido y lejano, muchos focos chicos alrededor: chasquidos secos
+    de madera y resina sueltos, sin periodo, sobre un lecho de siseo de llama.
+    """
+    t = tiempo(dur)
+
+    # El lecho de llama: siseo de banda media, modulado rapido y suave, como el
+    # temblor del fuego. Nunca del todo estable.
+    llama = pasabanda(rosa(dur), 500.0, 3_800.0, 2) * 0.34
+    llama *= 0.70 + 0.30 * deriva(dur, 0.9, 1.0)
+
+    # Chasquidos de la madera y la resina: transitorios cortos y secos,
+    # repartidos sin periodo. Son la firma del fuego. Cada uno es un golpecito
+    # de banda ancha con caida muy rapida.
+    chas = np.zeros(len(t))
+    for _ in range(70):
+        pos = muestras(RNG.uniform(0.2, dur - 0.3))
+        largo = muestras(RNG.uniform(0.006, 0.045))
+        if pos + largo > len(t):
+            continue
+        tc = np.arange(largo) / SR
+        c = pasabanda(RNG.normal(0, 1, largo), 900.0, 6_500.0, 2)
+        c *= np.exp(-tc / RNG.uniform(0.004, 0.016)) * RNG.uniform(0.10, 0.55)
+        chas[pos:pos + largo] += c
+
+    # Un chisporroteo mas grave y ocasional: la brasa que se asienta.
+    for _ in range(10):
+        pos = muestras(RNG.uniform(0.5, dur - 0.6))
+        largo = muestras(RNG.uniform(0.05, 0.20))
+        if pos + largo > len(t):
+            continue
+        tc = np.arange(largo) / SR
+        b = pasabanda(RNG.normal(0, 1, largo), 200.0, 1_400.0, 2)
+        b *= np.exp(-tc / RNG.uniform(0.03, 0.08)) * RNG.uniform(0.10, 0.30)
+        chas[pos:pos + largo] += b
+
+    x = llama * 0.070 + chas * 0.42
+    return reverberar(x, SALAS["sala_piedra"], 0.44)
 
 
 
@@ -1152,6 +1227,38 @@ def actividad_nivel3(dur: float = 61.0) -> np.ndarray:
     return reverberar(x, SALAS["piscinas"], 0.78)
 
 
+def actividad_nivel4(dur: float = 57.0) -> np.ndarray:
+    """Nivel 4. La sala de piedra, donde el edificio es antiguo y cruje.
+
+    Casi siempre en silencio, con sucesos lejanos que dicen que la sala es
+    grande y vieja: una viga de madera asentandose, el eco de una puerta
+    pesada en otra nave, la cadena del candil moviendose sola, un desprendimiento
+    de piedra menuda. Todo con la cola de la sala puesta.
+    """
+    x = np.zeros(muestras(dur))
+
+    # Viga de madera de la boveda asentandose: grave, larga, inquietante.
+    viga = _lejos(cargar("impactWood_light_002"), 1.6, 900.0, 130.0)
+    for s, g in ((7.3, 0.20), (31.8, 0.24), (50.1, 0.16)):
+        _sembrar(x, viga, s, g)
+
+    # Puerta pesada en otra nave: madera y hierro, muy lejos.
+    puerta = _lejos(cargar("impactPlank_medium_000"), 2.1, 620.0, 90.0)
+    _sembrar(x, puerta, 19.4, 0.22)
+    _sembrar(x, puerta, 44.7, 0.18)
+
+    # La cadena del candil, moviendose sola: metal agudo, corto.
+    cadena = _lejos(cargar("impactMetal_light_003"), 1.2, 3_200.0, 380.0)
+    _sembrar(x, cadena, 13.6, 0.13)
+    _sembrar(x, cadena, 38.9, 0.15)
+
+    # Piedra menuda cayendo del techo: chasquido seco y disperso.
+    piedra = _lejos(cargar("impactGeneric_light_000"), 1.0, 2_400.0, 300.0)
+    _sembrar(x, piedra, 26.2, 0.12)
+
+    return reverberar(x, SALAS["sala_piedra"], 0.70)
+
+
 # ==========================================================================
 # 3. Eventos ambientales
 # ==========================================================================
@@ -1343,6 +1450,73 @@ def ev_nivel3_lejano() -> np.ndarray:
                                       * np.exp(-tc / 0.020) * RNG.uniform(0.2, 0.6))
     x = pasabajos(entrada * 0.5 + burbujas * 0.4, 2_500.0, 2) * 0.22
     return rampa(reverberar(x, SALAS["piscinas"], 0.82), 0.01, 1.20)
+
+
+def ev_nivel4_antorcha() -> np.ndarray:
+    """Una antorcha prendiendo con fuerza: la resina que se enciende de golpe.
+
+    Un 'fum' grave de aire encendiendose, seguido de un crepitar mas vivo que
+    se calma. Es el suceso mas caracteristico de la sala de fuego.
+    """
+    dur = 2.6
+    n = muestras(dur)
+    t = tiempo(dur)
+    # El golpe de aire al prender: soplo grave con ataque suave.
+    fum = pasabanda(RNG.normal(0, 1, n), 90.0, 700.0, 2) * envolvente(n, 0.02, 0.5, 2.5)
+    # El crepitar que sigue: chasquidos rapidos que se apagan.
+    crepita = np.zeros(n)
+    for _ in range(26):
+        pos = muestras(RNG.uniform(0.05, 1.8))
+        largo = min(muestras(RNG.uniform(0.006, 0.03)), n - pos)
+        if largo <= 0:
+            continue
+        tc = np.arange(largo) / SR
+        c = pasabanda(RNG.normal(0, 1, largo), 1_200.0, 6_000.0, 2)
+        c *= np.exp(-tc / 0.010) * RNG.uniform(0.15, 0.5) * (1.0 - pos / n)
+        crepita[pos:pos + largo] += c
+    x = (fum * 0.5 + crepita * 0.5) * 0.34
+    return rampa(reverberar(x, SALAS["sala_piedra"], 0.42), 0.02, 0.55)
+
+
+def ev_nivel4_cadena() -> np.ndarray:
+    """El candil de rueda meciendose: la cadena cede un eslabon.
+
+    Un tintineo metalico grave con dos o tres golpes de eslabon y una cola de
+    metal grande resonando. Dice que algo movio el candil.
+    """
+    dur = 3.2
+    n = muestras(dur)
+    t = tiempo(dur)
+    x = np.zeros(n)
+    fundamental = RNG.uniform(150.0, 210.0)
+    for golpe, g in ((0.0, 1.0), (0.14, 0.6), (0.33, 0.35)):
+        pos = muestras(golpe)
+        if pos >= n:
+            continue
+        tc = np.arange(n - pos) / SR
+        eslabon = pasabanda(RNG.normal(0, 1, n - pos), 800.0, 5_000.0, 2)
+        eslabon *= np.exp(-tc / 0.05) * 0.4 * g
+        for k, a in ((1, 1.0), (2.7, 0.4), (5.1, 0.2)):
+            eslabon += np.sin(2 * np.pi * fundamental * k * tc) * np.exp(-tc / (0.6 / k)) * 0.12 * g
+        x[pos:] += eslabon
+    x = pasabajos(x, 5_500.0, 2) * 0.34
+    return rampa(reverberar(x, SALAS["sala_piedra"], 0.55), 0.002, 0.75)
+
+
+def ev_nivel4_piedra() -> np.ndarray:
+    """Un bloque de piedra asentandose en la boveda. Grave, seco, con eco.
+
+    La sala es vieja y pesada. Cada tanto algo de mamposteria se acomoda: un
+    crujido grave de roca contra roca, y la nave entera devolviendolo.
+    """
+    dur = 4.2
+    n = muestras(dur)
+    t = tiempo(dur)
+    roce = pasabanda(RNG.normal(0, 1, n), 120.0, 900.0, 2) * envolvente(n, 0.008, 0.30, 3.0)
+    cuerpo = np.sin(2 * np.pi * 46.0 * t) * np.exp(-t / 0.5) * 0.4
+    cuerpo += np.sin(2 * np.pi * 71.0 * t + 0.5) * np.exp(-t / 0.35) * 0.2
+    x = pasabajos(roce * 0.6 + cuerpo, 1_600.0, 2) * 0.32
+    return rampa(reverberar(x, SALAS["sala_piedra"], 0.72), 0.01, 0.95)
 
 
 # ==========================================================================
@@ -1568,6 +1742,7 @@ PIEZAS = {
     "ambiente/nivel1": lambda: bucle_suave(base_nivel1(), 5.0),
     "ambiente/nivel2": lambda: bucle_suave(base_nivel2(), 4.0),
     "ambiente/nivel3": lambda: bucle_suave(base_nivel3(), 6.0),
+    "ambiente/nivel4": lambda: bucle_suave(base_nivel4(), 5.0),
 
     # Capa de caracter, tambien en bucle. Duraciones primas con las bases para
     # que las dos camas de cada nivel no vuelvan a alinearse en toda la sesion.
@@ -1575,6 +1750,7 @@ PIEZAS = {
     "caracter/nivel1": lambda: bucle_suave(caracter_nivel1(), 6.0),
     "caracter/nivel2": lambda: bucle_suave(caracter_nivel2(), 4.0),
     "caracter/nivel3": lambda: bucle_suave(caracter_nivel3(), 7.0),
+    "caracter/nivel4": lambda: bucle_suave(caracter_nivel4(), 5.0),
 
     # Capa de actividad: bucles largos, casi vacios, con sucesos lejanos. El
     # cruce es corto porque casi toda la junta cae sobre silencio.
@@ -1582,6 +1758,7 @@ PIEZAS = {
     "actividad/nivel1": lambda: bucle_suave(actividad_nivel1(), 2.0),
     "actividad/nivel2": lambda: bucle_suave(actividad_nivel2(), 2.0),
     "actividad/nivel3": lambda: bucle_suave(actividad_nivel3(), 2.0),
+    "actividad/nivel4": lambda: bucle_suave(actividad_nivel4(), 2.0),
 
     # Eventos
     "evento/nivel0_tubo": ev_nivel0_tubo,
@@ -1597,6 +1774,9 @@ PIEZAS = {
     "evento/nivel3_ondas": ev_nivel3_ondas,
     "evento/nivel3_ventilacion": ev_nivel3_ventilacion,
     "evento/nivel3_lejano": ev_nivel3_lejano,
+    "evento/nivel4_antorcha": ev_nivel4_antorcha,
+    "evento/nivel4_cadena": ev_nivel4_cadena,
+    "evento/nivel4_piedra": ev_nivel4_piedra,
 
     # Transicion
     "nivel/titileo": tr_titileo,

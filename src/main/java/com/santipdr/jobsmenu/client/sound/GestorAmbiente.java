@@ -111,6 +111,16 @@ public final class GestorAmbiente {
                     new Evento(SonidosNivel.EV_N3_VENTILACION, 1.5F, 0.20F, 0.38F, 0.96F, 1.04F),
                     new Evento(SonidosNivel.EV_N3_LEJANO, 1.0F, 0.18F, 0.34F, 0.92F, 1.08F),
             }),
+
+            // Nivel 4 - La sala de piedra. Fuego y una construccion vieja: la
+            // antorcha que prende es lo mas frecuente; la piedra que se asienta,
+            // lo mas raro y lo que mas inquieta. El tono se mueve poco: son
+            // objetos reconocibles (fuego, hierro, roca), no lechos de ruido.
+            new Repertorio(12_000L, 30_000L, new Evento[] {
+                    new Evento(SonidosNivel.EV_N4_ANTORCHA, 3.0F, 0.24F, 0.44F, 0.95F, 1.06F),
+                    new Evento(SonidosNivel.EV_N4_CADENA, 2.0F, 0.20F, 0.38F, 0.96F, 1.05F),
+                    new Evento(SonidosNivel.EV_N4_PIEDRA, 1.2F, 0.22F, 0.40F, 0.94F, 1.04F),
+            }),
     };
 
     private static final Random AZAR = new Random();
@@ -235,6 +245,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.AMBIENTE_NIVEL2;
             case 3:
                 return SonidosNivel.AMBIENTE_NIVEL3;
+            case 4:
+                return SonidosNivel.AMBIENTE_NIVEL4;
             default:
                 return SonidosNivel.AMBIENTE_NIVEL0;
         }
@@ -248,6 +260,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.CARACTER_NIVEL2;
             case 3:
                 return SonidosNivel.CARACTER_NIVEL3;
+            case 4:
+                return SonidosNivel.CARACTER_NIVEL4;
             default:
                 return SonidosNivel.CARACTER_NIVEL0;
         }
@@ -261,6 +275,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.ACTIVIDAD_NIVEL2;
             case 3:
                 return SonidosNivel.ACTIVIDAD_NIVEL3;
+            case 4:
+                return SonidosNivel.ACTIVIDAD_NIVEL4;
             default:
                 return SonidosNivel.ACTIVIDAD_NIVEL0;
         }

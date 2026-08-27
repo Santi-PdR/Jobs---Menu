@@ -95,6 +95,16 @@
       }
     ]
   },
+  "ambiente.nivel4": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.ambiente.nivel4",
+    "sounds": [
+      {
+        "name": "jobsmenu:ambiente/nivel4",
+        "stream": false
+      }
+    ]
+  },
   "caracter.nivel0": {
     "category": "ambient",
     "subtitle": "jobsmenu.subtitulo.caracter.nivel0",
@@ -135,6 +145,16 @@
       }
     ]
   },
+  "caracter.nivel4": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.caracter.nivel4",
+    "sounds": [
+      {
+        "name": "jobsmenu:caracter/nivel4",
+        "stream": false
+      }
+    ]
+  },
   "actividad.nivel0": {
     "category": "ambient",
     "subtitle": "jobsmenu.subtitulo.actividad.nivel0",
@@ -171,6 +191,16 @@
     "sounds": [
       {
         "name": "jobsmenu:actividad/nivel3",
+        "stream": true
+      }
+    ]
+  },
+  "actividad.nivel4": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel4",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel4",
         "stream": true
       }
     ]
@@ -264,6 +294,27 @@
     "subtitle": "jobsmenu.subtitulo.evento.nivel3_lejano",
     "sounds": [
       "jobsmenu:evento/nivel3_lejano"
+    ]
+  },
+  "evento.nivel4_antorcha": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel4_antorcha",
+    "sounds": [
+      "jobsmenu:evento/nivel4_antorcha"
+    ]
+  },
+  "evento.nivel4_cadena": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel4_cadena",
+    "sounds": [
+      "jobsmenu:evento/nivel4_cadena"
+    ]
+  },
+  "evento.nivel4_piedra": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel4_piedra",
+    "sounds": [
+      "jobsmenu:evento/nivel4_piedra"
     ]
   },
   "nivel.titileo": {
