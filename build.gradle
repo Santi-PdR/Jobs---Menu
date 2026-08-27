@@ -102,6 +102,23 @@ tasks.named('jar', Jar).configure {
     finalizedBy 'reobfJar'
 }
 
+// MEMORIA DE LA REOBFUSCACION
+//
+// reobfJar (ForgeGradle) NO corre dentro del daemon de Gradle: abre un proceso
+// Java aparte para la herramienta de reofuscacion, y ese proceso reserva por
+// defecto ~1/4 de la RAM fisica del equipo. En una PC con poca RAM o archivo de
+// paginacion chico, ese pedido (varios cientos de MB) no se puede comprometer y
+// el build muere con 'os::commit_memory ... failed (errno=1455)'. Bajarle el
+// heap al daemon no lo arregla, porque el que pide la memoria es este fork.
+//
+// JarExec -del que hereda reobfJar- expone jvmArgs y se los pasa al proceso. Con
+// un tope chico, el mod -que es minusculo- reobfusca de sobra y no vuelve a
+// pedir memoria que el sistema no tiene.
+tasks.named('reobfJar').configure {
+    it.getJvmArgs().set(['-Xmx512m'])
+}
+
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
