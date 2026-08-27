@@ -80,6 +80,12 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         }
         activa = new GestorMusica();
         Minecraft.getInstance().getSoundManager().play(activa);
+        // Un rastro en el log: si la musica no se oye, esto dice si al menos se
+        // mando a reproducir. Un SoundManager que descarta el sonido lo hace en
+        // silencio, y sin este aviso no hay forma de saber si el problema es el
+        // archivo, la mezcla o que nunca se llamo aca.
+        com.santipdr.jobsmenu.JobsMenu.LOG.info(
+                "[jobsmenu] Musica del menu enviada a reproducir (musica/defecto.ogg).");
     }
 
     /** Deja de sonar, con caida. No corta en seco. */
