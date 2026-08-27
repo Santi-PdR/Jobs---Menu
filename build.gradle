@@ -121,7 +121,7 @@ tasks.named('jar', Jar).configure {
 // para no depender del nombre exacto y no romper si algun dia cambia.
 afterEvaluate {
     tasks.withType(net.minecraftforge.gradle.userdev.tasks.RenameJarInPlace).configureEach {
-        it.getJvmArgs().set(['-Xmx512m'])
+        it.getJvmArgs().set(['-Xmx384m', '-XX:+UseSerialGC'])
     }
 }
 
