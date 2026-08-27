@@ -14,11 +14,23 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
 
 | | |
 |---|---|
-| Versión | **0.7.0** |
+| Versión | **0.7.1** |
 | Minecraft | 1.20.1 |
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente (el servidor no necesita el mod) |
+
+## Qué trae la 0.7.1
+
+Pulido de inmersión sobre lo que ya había:
+
+- **La hoja del aviso ya no miente.** Antes decía siempre "Se encuentra usted en el Nivel 0" aunque el fondo
+  estuviera mostrando las catacumbas. Ahora la cabecera sigue al recinto: si ves el Nivel 7, la hoja dice
+  Nivel 7 y "Salida al Nivel 8". El mismo aviso, releído por la administración de cada nivel.
+- **Easter eggs por fecha y hora.** La administración cuela una nota propia en año nuevo, el 31 de octubre,
+  los viernes 13 y de 3 a 4 de la madrugada. Aparecen sólo esos días y sólo de vez en cuando: se descubren,
+  no se anuncian, y siguen la misma voz seca de siempre.
+- **La biblioteca se lee mejor:** la pared del fondo detrás del ventanal ya no es un agujero negro.
 
 ## Qué trae la 0.7.0
 
@@ -247,7 +259,7 @@ Requiere JDK 17 instalado.
 .\gradlew build
 ```
 
-El `.jar` queda en `build\libs\jobsmenu-0.7.0.jar` y se copia a la carpeta `mods` de la instancia.
+El `.jar` queda en `build\libs\jobsmenu-0.7.1.jar` y se copia a la carpeta `mods` de la instancia.
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 
@@ -262,7 +274,7 @@ SKLauncher, pero sirve igual para `.minecraft` o cualquier lanzador.
 # --- 0. Rutas --------------------------------------------------------------
 $repo      = "C:\Users\santi\Desktop\Jobs---Menu"
 $instancia = "C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1"
-$version   = "0.7.0"
+$version   = "0.7.1"
 
 Set-Location $repo
 

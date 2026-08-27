@@ -10,7 +10,7 @@
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
 | Paquete Java | `com.santipdr.jobsmenu` |
-| Versión actual | **0.7.0** |
+| Versión actual | **0.7.1** |
 | Plataforma | Minecraft **1.20.1** · Forge **47.x** · Java **17** |
 | Alcance | Menús (Title / Pause / Options), escena viva, audio, lore. **Sin gameplay.** |
 | Lado | **Cliente**. El mod no toca el servidor ni exige instalarse en él. |
@@ -507,6 +507,7 @@ Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y
 | **0.6.4** | Arreglo de que la música no sonara: `defecto.ogg` ES ahora REQUIEM directo en los recursos (el horneado en build era frágil y no se ejecutaba); marcador de crédito como recurso real; mezcla de música 0.34→0.55 y entrada 20 s→6 s para que se escuche | **Entregado** |
 | **0.6.5** | Nivel 4, **La sala**: quinto recinto de piedra cálida iluminada por fuego (bóveda, columnas, antorchas, estandartes, candil de rueda con velas, runas en el suelo, mesa de banquete en primer plano). Audio propio: tres camas (aire tibio, fuego, la sala vieja) y tres eventos (antorcha, cadena, piedra). El guiño al lobby del server, conviviendo con los cuatro backrooms | **Entregado** |
 | **0.7.0** | Cinco recintos nuevos (biblioteca, invernadero, catacumbas, cisterna, salón del trono) con su audio propio (30 piezas más), diez fondos en rotación; REQUIEM re-codificada con libVorbis para que suene; más frases (16 avisos, 3 notas por nivel) | **Entregado** |
+| **0.7.1** | La cabecera de la hoja sigue al recinto (dice el Nivel y la tarifa reales, no el fijo "Nivel 0"); easter eggs por fecha/hora en los avisos (año nuevo, 31/10, viernes 13, las 3 AM); pared del fondo de la biblioteca más legible | **Entregado** |
 | 0.8.0 | Pausa ("Estancia en suspenso") y opciones con la misma piel | Pendiente |
 | 0.9.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
 | 0.10.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |
