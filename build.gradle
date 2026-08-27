@@ -76,16 +76,19 @@ tasks.named('processResources', ProcessResources).configure {
     // El tema del menu que viene de fabrica es la pieza sintetizada
     // (musica/defecto.ogg, generada por tools/sonidos.py y versionada en el
     // repo). Si el owner tiene una pista con permiso -por ejemplo REQUIEM, de
-    // Emmy Z, para un server entre amigos con el credito puesto- puede dejarla
-    // en 'music/requiem.ogg' en la raiz del repo y ese archivo REEMPLAZA al
-    // defecto DENTRO DEL JAR compilado, sin tocar el .ogg versionado ni el
-    // codigo. Asi la pista viaja con el mod.
+    // Emmy Z, para un server entre amigos con el credito puesto- deja CUALQUIER
+    // archivo .ogg en la carpeta 'music/' de la raiz del repo y ese archivo
+    // REEMPLAZA al defecto DENTRO DEL JAR compilado, sin tocar el .ogg
+    // versionado ni el codigo. Asi la pista viaja con el mod.
     //
-    // El archivo NO se versiona (esta en .gitignore): la obra de un tercero no
-    // entra al control de versiones. Se declara como entrada opcional via
-    // fileTree para que el build se rehaga si cambia y no falle si no existe.
+    // El nombre del archivo da igual: se toma el primer .ogg por orden
+    // alfabetico. Eso evita el error tipico de que el nombre no coincida y el
+    // build no encuentre nada. El archivo NO se versiona (esta en .gitignore):
+    // la obra de un tercero no entra al control de versiones. Se declara la
+    // carpeta como entrada opcional para que el build se rehaga si cambia y no
+    // falle si esta vacia.
     def carpetaPista = rootProject.file('music')
-    inputs.files(fileTree(dir: carpetaPista, includes: ['requiem.ogg'])).optional()
+    inputs.files(fileTree(dir: carpetaPista, includes: ['*.ogg'])).optional()
     doLast {
         def destino = layout.buildDirectory
                 .file('resources/main/assets/jobsmenu/sounds/musica/defecto.ogg').get().asFile
@@ -94,16 +97,19 @@ tasks.named('processResources', ProcessResources).configure {
         // se muestra: nunca se atribuye a un autor la pieza generada por el mod.
         def marcador = layout.buildDirectory
                 .file('resources/main/assets/jobsmenu/musica_creditada.txt').get().asFile
-        def fuente = new File(carpetaPista, 'requiem.ogg')
-        if (fuente.exists()) {
+        def oggs = carpetaPista.exists() ? carpetaPista.listFiles({ f ->
+            f.isFile() && f.name.toLowerCase().endsWith('.ogg')
+        } as FileFilter) : null
+        def fuente = (oggs != null && oggs.length > 0) ? oggs.sort { it.name.toLowerCase() }[0] : null
+        if (fuente != null) {
             destino.parentFile.mkdirs()
             destino.bytes = fuente.bytes
             marcador.parentFile.mkdirs()
             marcador.text = 'requiem'
-            logger.lifecycle('[jobsmenu] REQUIEM horneada en el JAR desde music/requiem.ogg (con credito).')
+            logger.lifecycle("[jobsmenu] Pista con credito horneada en el JAR desde music/${fuente.name}")
         } else {
             marcador.delete()
-            logger.lifecycle('[jobsmenu] Sin music/requiem.ogg: el JAR usa el tema sintetizado, sin credito.')
+            logger.lifecycle('[jobsmenu] Sin .ogg en music/: el JAR usa el tema sintetizado, sin credito.')
         }
     }
 }

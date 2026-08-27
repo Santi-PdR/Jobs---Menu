@@ -10,7 +10,7 @@
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
 | Paquete Java | `com.santipdr.jobsmenu` |
-| Versión actual | **0.6.2** |
+| Versión actual | **0.6.3** |
 | Plataforma | Minecraft **1.20.1** · Forge **47.x** · Java **17** |
 | Alcance | Menús (Title / Pause / Options), escena viva, audio, lore. **Sin gameplay.** |
 | Lado | **Cliente**. El mod no toca el servidor ni exige instalarse en él. |
@@ -433,17 +433,16 @@ Con *movimiento reducido* o la escena quieta, no aparece.
 menú, **no se reinicia al cambiar de pantalla** y **sigue sonando durante el apagón**: es lo único que
 atraviesa la transición, y por eso la transición no se siente como un corte.
 
-**Sobre el tema pedido.** El enlace de YouTube es *REQUIEM — Forsaken OST*, del canal **Emmy Z**: es obra de
-un tercero con copyright, así que **no se versiona en este repositorio** (`.gitignore` excluye `music/*.ogg`).
-Desde este entorno, además, YouTube está bloqueado, así que la grabación no se pudo descargar aquí para
-incluirla. Lo que hay:
+**Sobre el tema.** Es *REQUIEM — Forsaken OST*, del canal **Emmy Z**. Es obra de un tercero con copyright, y
+está incluida por decisión del owner (`music/REQUIEM-Forsaken-OST.ogg`) para un server entre amigos con el
+crédito en pantalla. Lo que hay:
 
-- `musica/defecto.ogg`, pieza original de 67 s (La menor, 8 acordes de 9 s, crossfade de 5 s), incluida en
-  el JAR y sonando de fábrica. No se acredita a nadie: es del mod.
-- **Vía para hornear la pista en el JAR** (0.6.2): dejar el archivo en `music/requiem.ogg` en la raíz del
-  repo y compilar. El `build.gradle` lo mete dentro del `.jar` reemplazando a `defecto.ogg` y deja un
-  recurso marca (`assets/jobsmenu/musica_creditada.txt`) que activa el **crédito en pantalla**. Pensado para un
-  server entre amigos con el crédito puesto; la responsabilidad de usar esa grabación es de quien compila.
+- `musica/defecto.ogg`, pieza original de 67 s (La menor, 8 acordes de 9 s, crossfade de 5 s), sintetizada
+  por el mod. Es el tema de fábrica cuando no hay pista en `music/`. No se acredita a nadie: es del mod.
+- **Horneado en el JAR** (0.6.2): cualquier `.ogg` en la carpeta `music/` de la raíz (el primero alfabético)
+  se mete dentro del `.jar` al compilar reemplazando a `defecto.ogg`, y `build.gradle` deja un recurso marca
+  (`assets/jobsmenu/musica_creditada.txt`) que activa el **crédito en pantalla**. La responsabilidad de usar
+  esa grabación es de quien compila; para repartir el mod públicamente hace falta permiso de la autora.
 - **El crédito** (`jobsmenu.credito.titulo` / `jobsmenu.credito.autor`, hoy *REQUIEM · Emmy Z · Forsaken
   OST*) aparece arriba a la derecha una sola vez por sesión, entrando y saliendo suave, y **sólo si hay una
   pista con autor** —la horneada con marca, o una que el jugador haya dejado en su carpeta—. Nunca sobre la
@@ -492,6 +491,7 @@ Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y
 | **0.6.0** | Interfaz de sexta generación (cinco clases de gesto), música con detección automática, jerarquía de UI medida, luminarias y vanos con cuerpo, sesgo de eventos corregido | **Entregado** |
 | **0.6.1** | Ronda de pulido: el agua del natatorio devuelve los tubos del techo (reflejo roto y tembloroso, el detalle que la vuelve agua), más humedad en el azulejado, sello de versión eliminado de la esquina, código muerto retirado | **Entregado** |
 | **0.6.2** | Música: vía para hornear REQUIEM (u otra pista) dentro del JAR con crédito en pantalla al empezar a sonar; Ctrl+S pasa a herramienta oculta (sin texto en el menú); vapor del natatorio en jirones que se arrastran; `ui.pasar` con el brillo agudo recortado para no cansar | **Entregado** |
+| **0.6.3** | La pista REQUIEM (Emmy Z) subida por el owner queda integrada: el build hornea cualquier `.ogg` de `music/` en el JAR (nombre libre), suena de fábrica con su crédito. OGG verificado (Vorbis 44.1 kHz, 3:16, sin clipping, junta de bucle limpia) | **Entregado** |
 | 0.7.0 | Pausa ("Estancia en suspenso") y opciones con la misma piel | Pendiente |
 | 0.8.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
 | 0.9.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |

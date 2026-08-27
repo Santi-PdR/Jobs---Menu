@@ -14,24 +14,32 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
 
 | | |
 |---|---|
-| Versión | **0.6.2** |
+| Versión | **0.6.3** |
 | Minecraft | 1.20.1 |
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente (el servidor no necesita el mod) |
 
+## Qué trae la 0.6.3
+
+**REQUIEM ya está integrada y suena.** El owner subió la pista al repo
+(`music/REQUIEM-Forsaken-OST.ogg`) y el mod la hornea en el `.jar` al compilar: es la música del menú de
+fábrica, con el crédito **REQUIEM · Emmy Z · Forsaken OST** apareciendo arriba a la derecha al empezar. El
+archivo se verificó: OGG Vorbis a 44.1 kHz, 3:16, sin saturación, con la junta del bucle limpia (final e
+inicio casi en silencio, sin clic). El build ahora toma **cualquier** `.ogg` de `music/`, así que el nombre
+del archivo ya no importa.
+
 ## Qué trae la 0.6.2
 
-**La música puede viajar dentro del JAR, con crédito en pantalla.** Si dejás tu pista en `music/requiem.ogg`
-y compilás, ese archivo queda horneado en el `.jar` reemplazando al tema sintetizado, y el menú muestra el
-crédito —**REQUIEM · Emmy Z · Forsaken OST**— arriba a la derecha, una vez por sesión, entrando y saliendo
+**La música viaja dentro del JAR, con crédito en pantalla.** La pista **REQUIEM · Emmy Z · Forsaken OST**
+está incluida (`music/REQUIEM-Forsaken-OST.ogg`): al compilar, queda horneada en el `.jar` reemplazando al
+tema sintetizado, y el menú muestra el crédito arriba a la derecha, una vez por sesión, entrando y saliendo
 suave. El crédito sólo aparece si hay una pista con autor; sobre el tema propio del mod no se muestra, porque
-esa pieza no es de nadie más. La pista con derechos **no se sube al repositorio** —`.gitignore` la excluye—:
-es tu copia, en tu build, para tu server. Los pasos exactos están en [`docs/musica.md`](docs/musica.md).
+esa pieza no es de nadie más. Cualquier `.ogg` que dejes en `music/` sirve —el nombre da igual—; los pasos
+exactos están en [`docs/musica.md`](docs/musica.md).
 
-> Nota honesta: el entorno donde se edita el mod no tiene acceso a YouTube, así que el archivo de REQUIEM no
-> se pudo descargar ahí para dejarlo listo. Lo que está hecho es toda la maquinaria: vos ponés el `.ogg` y
-> suena con su crédito, sin tocar código.
+> La pista es obra de Emmy Z y está incluida por decisión del owner para un server entre amigos con el
+> crédito puesto. Para repartir el mod públicamente haría falta permiso escrito de la autora.
 
 **Ctrl+S es ahora una herramienta oculta.** El atajo que salta a la selección de mundos sigue funcionando
 igual, pero ya no se anuncia en ninguna parte del menú: es una comodidad de desarrollo y administración,
@@ -199,7 +207,7 @@ Requiere JDK 17 instalado.
 .\gradlew build
 ```
 
-El `.jar` queda en `build\libs\jobsmenu-0.6.2.jar` y se copia a la carpeta `mods` de la instancia.
+El `.jar` queda en `build\libs\jobsmenu-0.6.3.jar` y se copia a la carpeta `mods` de la instancia.
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 
@@ -214,7 +222,7 @@ SKLauncher, pero sirve igual para `.minecraft` o cualquier lanzador.
 # --- 0. Rutas --------------------------------------------------------------
 $repo      = "C:\Users\santi\Desktop\Jobs---Menu"
 $instancia = "C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1"
-$version   = "0.6.2"
+$version   = "0.6.3"
 
 Set-Location $repo
 

@@ -17,17 +17,17 @@ Fui a buscarla para integrarla y esto es lo que es:
 No es música libre. Es la banda sonora de un juego comercial, compuesta por una
 autora identificable que trabaja con ese equipo.
 
-**Por qué el archivo no está en este repositorio.** El entorno donde se edita
-el mod no tiene acceso a YouTube (está bloqueado), así que la grabación no se
-pudo descargar desde acá para incluirla. Y aunque se pudiera: la obra de un
-tercero no entra al control de versiones de un repo público. Por eso
-`.gitignore` excluye `music/*.ogg`.
+**Estado actual:** el owner subió la pista al repo (`music/REQUIEM-Forsaken-OST.ogg`)
+a propósito, para su server entre amigos y con el crédito en pantalla. Está,
+entonces, **incluida y sonando**: al compilar, el `build.gradle` la hornea dentro
+del `.jar` como tema del menú, reemplazando la pieza sintetizada. La
+responsabilidad de usar esa grabación es de quien compila y reparte el mod; para
+distribuirlo públicamente haría falta permiso escrito de la autora.
 
-**Pero la vía para que la pista viaje DENTRO del JAR ya está construida.** Si es
-para tu server entre amigos y vas a poner el crédito en pantalla —el mod lo
-muestra solo, arriba a la derecha, al empezar a sonar—, dejás el archivo en la
-carpeta `music/` del repo y al compilar queda horneado en el `.jar`. Los pasos,
-más abajo. La responsabilidad de usar esa grabación es de quien compila el mod.
+> Nota de proceso: el entorno donde se editó el mod no tiene acceso a YouTube,
+> así que el `.ogg` no se pudo descargar desde ahí. Lo subió el owner por su
+> cuenta a través de GitHub. La maquinaria de integración estaba lista de antes:
+> bastó con dejar el archivo en `music/`.
 
 ## Qué hay ahora
 
@@ -50,12 +50,14 @@ pantalla.
 
 1. Conseguí el archivo en **OGG Vorbis** (`.ogg`). Es el único formato que
    Minecraft decodifica. Si tenés un MP3, convertilo antes.
-2. Copialo al repo como **`music/requiem.ogg`** (ese nombre exacto).
+2. Dejalo en la carpeta **`music/`** del repo. El nombre da igual: se toma el
+   primer `.ogg` por orden alfabético. (Ahora mismo hay
+   `music/REQUIEM-Forsaken-OST.ogg`.)
 3. Compilá con `.\gradlew build`. El build detecta el archivo, lo hornea en el
    JAR reemplazando al tema sintetizado, y deja una marca interna
    (`assets/jobsmenu/musica_creditada.txt`) que le dice al mod que esa pista tiene
    autor. En consola vas a ver:
-   `[jobsmenu] REQUIEM horneada en el JAR desde music/requiem.ogg (con credito).`
+   `[jobsmenu] Pista con credito horneada en el JAR desde music/REQUIEM-Forsaken-OST.ogg`
 
 Con eso, al abrir el menú suena REQUIEM y aparece el crédito arriba a la
 derecha —**REQUIEM · Emmy Z · Forsaken OST**— una vez por sesión, entrando y
@@ -63,10 +65,9 @@ saliendo suave. El texto del crédito se edita en `lang/*.json`
 (`jobsmenu.credito.titulo` y `jobsmenu.credito.autor`); si querés apagarlo,
 `credito_musica = false` en la config.
 
-El archivo `music/requiem.ogg` **no se sube al repositorio** (`.gitignore` lo
-excluye): la obra de un tercero no se versiona. Si no ponés el archivo, el JAR
-usa el tema sintetizado y el crédito no aparece —no se le atribuye a nadie una
-pieza que compuso el propio mod—.
+Si sacás todos los `.ogg` de `music/`, el JAR vuelve a usar el tema sintetizado
+y el crédito no aparece —no se le atribuye a nadie una pieza que compuso el
+propio mod—.
 
 ## Cómo poner la pista que quieras SIN recompilar: una carpeta, un archivo
 
