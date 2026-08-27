@@ -500,5 +500,65 @@ public final class PrimerPlano {
             }
         }
     }
+
+    // ----------------------------------------------------------------------
+    // Nivel 7 - Las catacumbas: el arco de piedra que cruza la camara
+    // ----------------------------------------------------------------------
+
+    /**
+     * Un arco de piedra en primer plano: se pasa por debajo de un dintel.
+     *
+     * Dos jambas gruesas a los lados y un arco que las une por arriba, todo muy
+     * cerca y en sombra, enmarcando la escena. Es lo que mete al que mira DENTRO
+     * del tunel, y da la sensacion de techo bajo. En una de las jambas, una vela
+     * consumida.
+     */
+    public static void catacumba(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
+        int piedra = Paleta.mezclar(nivel.paredBaja, 0xFF000000, 0.45F);
+        int piedraClara = Paleta.iluminar(Paleta.mezclar(nivel.paredAlta, 0xFF000000, 0.30F), 0.5F + 0.3F * luz);
+        int w = m.ancho();
+        int h = m.alto();
+        int jamba = (int) (w * 0.14F);
+
+        // Jamba izquierda y derecha (prismas verticales que cruzan todo el alto).
+        grafico.fillGradient(0, 0, jamba, h,
+                Paleta.iluminar(piedra, 0.5F + 0.2F * luz), Paleta.iluminar(piedra, 0.25F + 0.12F * luz));
+        grafico.fillGradient(w - jamba, 0, w, h,
+                Paleta.iluminar(piedra, 0.5F + 0.2F * luz), Paleta.iluminar(piedra, 0.25F + 0.12F * luz));
+        // Filo interior iluminado de cada jamba.
+        grafico.fill(jamba, 0, jamba + 2, h, Paleta.conAlfa(piedraClara, 0.5F));
+        grafico.fill(w - jamba - 2, 0, w - jamba, h, Paleta.conAlfa(piedraClara, 0.5F));
+
+        // El arco superior: baja desde las dos jambas y se curva por el techo.
+        int arcoAlto = (int) (h * 0.22F);
+        int cx = w / 2;
+        for (int x = jamba; x <= w - jamba; x += Trazo.PASO) {
+            float t = (x - jamba) / (float) Math.max(1, (w - 2 * jamba));
+            // Curva de arco: seno, mas bajo en los extremos, sube al centro... no:
+            // el dintel cuelga MAS en el centro no, cuelga en los bordes. Un arco
+            // de medio punto: mas alto (menos cuelgue) en el centro.
+            float caida = (float) Math.sin(Math.PI * t);
+            int borde = (int) (arcoAlto * (1.0F - 0.6F * caida));
+            grafico.fillGradient(x, 0, x + Trazo.PASO, borde,
+                    Paleta.iluminar(piedra, 0.45F + 0.2F * luz), Paleta.iluminar(piedra, 0.20F + 0.1F * luz));
+            // El canto inferior del arco, iluminado.
+            grafico.fill(x, borde, x + Trazo.PASO, borde + 2, Paleta.conAlfa(piedraClara, 0.45F));
+        }
+
+        // Una vela consumida sobre la jamba derecha, cerca de la camara.
+        int vx = w - jamba / 2;
+        int vy = (int) (h * 0.55F);
+        float titil = 0.85F + 0.15F * (float) Math.sin(tiempo * 6.5F);
+        for (int k = 4; k >= 1; k--) {
+            float t = k / 4.0F;
+            float e = w * 0.03F * (1.0F + t * 2.2F);
+            grafico.fill((int) (vx - e), (int) (vy - e), (int) (vx + e), (int) (vy + e * 0.6F),
+                    Paleta.conAlfa(nivel.luz, 0.08F * luz * titil * (1.0F - t * 0.5F)));
+        }
+        grafico.fill(vx - 2, vy - (int) (h * 0.05F), vx + 2, vy,
+                Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, 0.6F * luz), 0.9F));
+        grafico.fill(vx - 1, vy - (int) (h * 0.065F), vx + 1, vy - (int) (h * 0.05F),
+                Paleta.conAlfa(Paleta.iluminar(0xFFFFE0A0, Math.min(1.0F, luz * titil * 1.4F)), 0.95F));
+    }
 }
 

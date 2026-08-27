@@ -1,6 +1,7 @@
 package com.santipdr.jobsmenu.client.scene;
 
 import com.santipdr.jobsmenu.client.scene.planta.Biblioteca;
+import com.santipdr.jobsmenu.client.scene.planta.Catacumba;
 import com.santipdr.jobsmenu.client.scene.planta.Cripta;
 import com.santipdr.jobsmenu.client.scene.planta.Invernadero;
 import com.santipdr.jobsmenu.client.scene.planta.Nave;
@@ -219,6 +220,19 @@ public final class Nivel {
                     // el sendero central. Se abre a lo alto: el techo es el tema.
                     0.500F, 0.500F, 0.165F, 0.165F, 0.175F, 0.130F,
                     0.18F, 0.60F),
+
+            // Nivel 7 - Las catacumbas. Tunel angosto y bajo de piedra fria, con
+            // nichos en las paredes y un farol colgado. Azul-gris, humedo, el
+            // pariente oscuro de la sala. Un pasillo, estrecho y arqueado.
+            new Nivel("nivel7", new Catacumba(),
+                    0xFF6A7078, 0xFF3C4248, 0xFF23282C,
+                    0xFF43484C, 0xFF2A2E32, 0xFF181B1E,
+                    0xFF565C62, 0xFF303539,
+                    0xFF32383E, 0xFFFFDC96, 0xFF06080A,
+                    // Pasillo estrecho y alto, fuga apenas descentrada; se baja
+                    // un poco hacia el fondo (horizonte alto).
+                    0.470F, 0.470F, 0.070F, 0.082F, 0.130F, 0.112F,
+                    0.24F, 0.85F),
     };
 
     /** Cuantos niveles hay en la rotacion. */

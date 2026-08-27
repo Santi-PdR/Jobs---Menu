@@ -140,6 +140,15 @@ public final class GestorAmbiente {
                     new Evento(SonidosNivel.EV_N6_VIDRIO, 2.0F, 0.20F, 0.38F, 0.96F, 1.05F),
                     new Evento(SonidosNivel.EV_N6_HOJAS, 1.0F, 0.16F, 0.30F, 0.97F, 1.03F),
             }),
+
+            // Nivel 7 - Las catacumbas. El sitio mas quieto y grave. La gota es
+            // lo comun; el viento en el tunel, lo raro y lo que inquieta. Ventanas
+            // largas: aca el silencio pesa.
+            new Repertorio(15_000L, 40_000L, new Evento[] {
+                    new Evento(SonidosNivel.EV_N7_GOTA, 3.0F, 0.22F, 0.42F, 0.94F, 1.10F),
+                    new Evento(SonidosNivel.EV_N7_PIEDRA, 1.6F, 0.20F, 0.38F, 0.95F, 1.04F),
+                    new Evento(SonidosNivel.EV_N7_VIENTO, 1.0F, 0.16F, 0.30F, 0.98F, 1.02F),
+            }),
     };
 
     private static final Random AZAR = new Random();
@@ -270,6 +279,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.AMBIENTE_NIVEL5;
             case 6:
                 return SonidosNivel.AMBIENTE_NIVEL6;
+            case 7:
+                return SonidosNivel.AMBIENTE_NIVEL7;
             default:
                 return SonidosNivel.AMBIENTE_NIVEL0;
         }
@@ -289,6 +300,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.CARACTER_NIVEL5;
             case 6:
                 return SonidosNivel.CARACTER_NIVEL6;
+            case 7:
+                return SonidosNivel.CARACTER_NIVEL7;
             default:
                 return SonidosNivel.CARACTER_NIVEL0;
         }
@@ -308,6 +321,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.ACTIVIDAD_NIVEL5;
             case 6:
                 return SonidosNivel.ACTIVIDAD_NIVEL6;
+            case 7:
+                return SonidosNivel.ACTIVIDAD_NIVEL7;
             default:
                 return SonidosNivel.ACTIVIDAD_NIVEL0;
         }

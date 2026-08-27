@@ -209,6 +209,16 @@ NIVELES = [
           fuga_x=0.500, fuga_y=0.500,
           semi_izq=0.165, semi_der=0.165, semi_alto=0.175, semi_bajo=0.130,
           reflejo=0.18, humedad=0.60),
+
+    # Nivel 7 - Las catacumbas. Tunel de piedra fria con nichos y un farol.
+    Nivel(clave="nivel7", planta="catacumba",
+          pared_alta=0xFF6A7078, pared_baja=0xFF3C4248, junta=0xFF23282C,
+          suelo=0xFF43484C, suelo_lejos=0xFF2A2E32, suelo_junta=0xFF181B1E,
+          techo=0xFF565C62, techo_junta=0xFF303539,
+          niebla=0xFF32383E, luz=0xFFFFDC96, fondo=0xFF06080A,
+          fuga_x=0.470, fuga_y=0.470,
+          semi_izq=0.070, semi_der=0.082, semi_alto=0.130, semi_bajo=0.112,
+          reflejo=0.24, humedad=0.85),
 ]
 
 
@@ -2299,6 +2309,186 @@ def _fronda(lz, m, tiempo, bx, by, tx, ty, color, luz, dir) -> None:
                     con_alfa(iluminar(color, 0.35 + 0.30 * luz), 0.88))
 
 
+# --------------------------------------------------------------------------
+# Nivel 7 - Las catacumbas: espejo de planta/Catacumba.java
+# --------------------------------------------------------------------------
+CAT_TRAMOS = 20
+CAT_PASO_NICHO = 3
+
+
+def catacumba(lz, m, nivel, luz, tiempo) -> None:
+    t_fondo(lz, m, nivel, luz, mezclar(nivel.fondo, nivel.pared_baja, 0.15), 1.10)
+    cat_arco(lz, m, nivel, luz)
+    t_plano(lz, m, True, mezclar(nivel.techo, nivel.pared_baja, 0.30),
+            mezclar(nivel.techo, nivel.niebla, 0.50), nivel.niebla, luz, 0.55)
+    t_transversales(lz, m, True, nivel.techo_junta, nivel.niebla, luz, CAT_TRAMOS, 0.30)
+    cat_arcos(lz, m, nivel, luz)
+    t_plano(lz, m, False, nivel.suelo, nivel.suelo_lejos, nivel.niebla, luz, 0.60)
+    t_transversales(lz, m, False, nivel.suelo_junta, nivel.niebla, luz, CAT_TRAMOS, 0.42)
+    t_paredes(lz, m, nivel, luz)
+    cat_sillares(lz, m, nivel, luz)
+    t_manchas(lz, m, nivel, luz, CAT_TRAMOS)
+    cat_nichos(lz, m, nivel, luz, tiempo)
+    cat_farol(lz, m, nivel, luz, tiempo)
+    cat_goteras(lz, m, nivel, luz, tiempo)
+
+
+def cat_arco(lz, m, nivel, luz) -> None:
+    suelo = m.suelo_en(1.0)
+    alto = m.h * 1.55
+    x0, x1 = round(m.izq(0.55)), round(m.der(0.55))
+    y0, y1 = round(suelo - alto), round(suelo)
+    cx = (x0 + x1) // 2
+    radio = (x1 - x0) // 2
+    t_interior_vano(lz, nivel, x0, y0 + radio // 2, x1, y1, 0, luz)
+    for i in range(15):
+        ang = math.pi * i / 14.0
+        ax = cx - int(math.cos(ang) * radio)
+        ay = (y0 + radio // 2) - int(math.sin(ang) * radio * 0.55)
+        b = max(1, radio // 7)
+        lz.fill(ax - b // 2, ay - b // 2, ax + b // 2 + 1, ay + b // 2 + 1,
+                iluminar(nivel.junta, luz * 0.55))
+
+
+def cat_arcos(lz, m, nivel, luz) -> None:
+    for j in range(1, CAT_TRAMOS + 1, 2):
+        dx = profundidad(j, CAT_TRAMOS)
+        if dx > 9.0:
+            continue
+        lej = limitar(1.0 / dx, 0.0, 1.0)
+        at = atenuar(luz, lej) * 0.8
+        color = iluminar(velar(nivel.junta, nivel.niebla, lej, 0.5), at)
+        grosor = max(1, int(m.h * dx * 0.02))
+        y_pared = m.techo_en(dx)
+        y_cima = m.techo_en(dx * 0.86)
+        cx = round(m.centro(dx))
+        _linea(lz, round(m.izq(dx)), int(y_pared), cx, int(y_cima), grosor, color)
+        _linea(lz, cx, int(y_cima), round(m.der(dx)), int(y_pared), grosor, color)
+
+
+def cat_sillares(lz, m, nivel, luz) -> None:
+    for x in range(0, m.ancho, PASO):
+        dx = m.dx(x + PASO * 0.5)
+        if dx <= 1.0:
+            continue
+        lej = limitar(1.0 / dx, 0.0, 1.0)
+        at = atenuar(luz, lej)
+        y0, y1 = m.techo_en(dx), m.suelo_en(dx)
+        hiladas = 7
+        for k in range(1, hiladas):
+            f = k / hiladas
+            y = int(y0 + (y1 - y0) * f)
+            desvio = pseudo(int(dx * 149.0) + k * 29 + x // 6) * 0.12 - 0.06
+            lz.fill(x, y, x + PASO, y + 1,
+                    con_alfa(iluminar(nivel.junta, at * (0.9 + desvio)), 0.28 * lej + 0.10))
+    t_juntas(lz, m, nivel, luz, CAT_TRAMOS, 1.0, 0.26)
+
+
+def cat_nichos(lz, m, nivel, luz, tiempo) -> None:
+    for j in range(2, CAT_TRAMOS + 1, CAT_PASO_NICHO):
+        dx = profundidad(j, CAT_TRAMOS)
+        if dx > 7.0:
+            continue
+        lej = limitar(1.0 / dx, 0.0, 1.0)
+        at = atenuar(luz, lej)
+        for signo in (-1, 1):
+            x = m.lado(signo, dx * 0.98)
+            if x < -m.w or x > m.ancho + m.w:
+                continue
+            ancho = max(3.0, m.w * dx * 0.16)
+            centro_y = m.techo_en(dx * 0.45)
+            alto = m.h * dx * 0.34
+            nx0, nx1 = int(x - ancho * 0.5), int(x + ancho * 0.5)
+            ny0, ny1 = int(centro_y - alto * 0.5), int(centro_y + alto * 0.5)
+            lz.fill(nx0, ny0, nx1, ny1, con_alfa(mezclar(nivel.fondo, nivel.niebla, 0.10), 0.95))
+            borde = iluminar(velar(nivel.junta, nivel.niebla, lej, 0.4), at * 0.85)
+            lz.fill(nx0 - 1, ny0 - 1, nx1 + 1, ny0, borde)
+            lz.fill(nx0 - 1, ny1, nx1 + 1, ny1 + 1, borde)
+            lz.fill(nx0 - 1, ny0, nx0, ny1, borde)
+            lz.fill(nx1, ny0, nx1 + 1, ny1, borde)
+            if pseudo(500 + j * 7 + (signo + 1) * 40) > 0.55:
+                titil = 0.85 + 0.15 * math.sin(tiempo * 6.0 + j)
+                av = at * titil
+                vx = (nx0 + nx1) // 2
+                vy = ny1 - max(2, int(alto * 0.16))
+                for k in range(3, 0, -1):
+                    t = k / 3.0
+                    e = ancho * 0.28 * (1.0 + t * 2.5)
+                    lz.fill(int(vx - e), int(vy - e), int(vx + e), int(vy + e * 0.6),
+                            con_alfa(nivel.luz, 0.09 * av * (1.0 - t * 0.5)))
+                lz.fill(vx - 1, vy - 2, vx + 2, vy + 1,
+                        con_alfa(iluminar(0xFFFFE0A0, min(1.0, av * 1.3)), 0.95))
+
+
+def cat_farol(lz, m, nivel, luz, tiempo) -> None:
+    dx = 2.4
+    cx = m.centro(dx) + math.sin(tiempo * 0.6) * m.w * dx * 0.02
+    cy = m.techo_en(dx * 0.55)
+    lej = limitar(1.0 / dx, 0.0, 1.0)
+    titil = 0.88 + 0.12 * math.sin(tiempo * 7.0)
+    at = atenuar(luz, lej) * titil
+    medio = max(2.0, m.w * dx * 0.03)
+    y_techo = m.techo_en(dx * 0.90)
+    lz.fill(int(cx) - 1, int(y_techo), int(cx) + 1, int(cy), con_alfa(iluminar(nivel.junta, at * 0.7), 0.8))
+    for k in range(5, 0, -1):
+        t = k / 5.0
+        e = medio * (1.0 + t * 4.5)
+        lz.fill(int(cx - e), int(cy - e), int(cx + e), int(cy + e),
+                con_alfa(nivel.luz, 0.06 * at * (1.0 - t * 0.5)))
+    hierro = iluminar(nivel.junta, at * 0.9)
+    lz.fill(int(cx - medio), int(cy - medio * 1.3), int(cx + medio), int(cy + medio * 1.3), hierro)
+    lz.fill(int(cx - medio * 0.5), int(cy - medio * 0.7), int(cx + medio * 0.5), int(cy + medio * 0.6),
+            con_alfa(iluminar(0xFFFFE0A0, min(1.0, at * 1.4)), 0.95))
+
+
+def cat_goteras(lz, m, nivel, luz, tiempo) -> None:
+    for i in range(10):
+        dx = 1.3 + pseudo(i * 11) * (CAT_TRAMOS * 0.35)
+        if dx > 7.0:
+            continue
+        signo = -1 if pseudo(i * 11 + 1) < 0.5 else 1
+        x = m.lado(signo, dx * 0.9)
+        if x < 0 or x > m.ancho:
+            continue
+        lej = limitar(1.0 / dx, 0.0, 1.0)
+        y0, y1 = m.techo_en(dx), m.suelo_en(dx)
+        lz.fill(int(x), int(y0), int(x) + 1, int(y1),
+                con_alfa(iluminar(mezclar(nivel.pared_alta, 0xFF88AACC, 0.4), atenuar(luz, lej) * 0.5), 0.30))
+        fase = (tiempo * 0.3 + pseudo(i * 11 + 2)) % 1.0
+        gy = int(y0 + (y1 - y0) * fase)
+        lz.fill(int(x) - 1, gy, int(x) + 2, gy + 3,
+                con_alfa(iluminar(0xFFBFE0FF, atenuar(luz, lej)), 0.55))
+
+
+def pp_catacumba(lz, m, nivel, luz, tiempo) -> None:
+    piedra = mezclar(nivel.pared_baja, 0x000000, 0.45)
+    piedra_clara = iluminar(mezclar(nivel.pared_alta, 0x000000, 0.30), 0.5 + 0.3 * luz)
+    w, h = m.ancho, m.alto
+    jamba = int(w * 0.14)
+    lz.fill_gradient(0, 0, jamba, h, iluminar(piedra, 0.5 + 0.2 * luz), iluminar(piedra, 0.25 + 0.12 * luz))
+    lz.fill_gradient(w - jamba, 0, w, h, iluminar(piedra, 0.5 + 0.2 * luz), iluminar(piedra, 0.25 + 0.12 * luz))
+    lz.fill(jamba, 0, jamba + 2, h, con_alfa(piedra_clara, 0.5))
+    lz.fill(w - jamba - 2, 0, w - jamba, h, con_alfa(piedra_clara, 0.5))
+    arco_alto = int(h * 0.22)
+    for x in range(jamba, w - jamba, PASO):
+        t = (x - jamba) / max(1, (w - 2 * jamba))
+        caida = math.sin(math.pi * t)
+        borde = int(arco_alto * (1.0 - 0.6 * caida))
+        lz.fill_gradient(x, 0, x + PASO, borde, iluminar(piedra, 0.45 + 0.2 * luz), iluminar(piedra, 0.20 + 0.1 * luz))
+        lz.fill(x, borde, x + PASO, borde + 2, con_alfa(piedra_clara, 0.45))
+    vx = w - jamba // 2
+    vy = int(h * 0.55)
+    titil = 0.85 + 0.15 * math.sin(tiempo * 6.5)
+    for k in range(4, 0, -1):
+        t = k / 4.0
+        e = w * 0.03 * (1.0 + t * 2.2)
+        lz.fill(int(vx - e), int(vy - e), int(vx + e), int(vy + e * 0.6),
+                con_alfa(nivel.luz, 0.08 * luz * titil * (1.0 - t * 0.5)))
+    lz.fill(vx - 2, vy - int(h * 0.05), vx + 2, vy, con_alfa(iluminar(nivel.pared_alta, 0.6 * luz), 0.9))
+    lz.fill(vx - 1, vy - int(h * 0.065), vx + 1, vy - int(h * 0.05),
+            con_alfa(iluminar(0xFFFFE0A0, min(1.0, luz * titil * 1.4)), 0.95))
+
+
 PRIMEROS_PLANOS = {
     "sala": pp_sala,
     "nave": pp_nave,
@@ -2307,13 +2497,16 @@ PRIMEROS_PLANOS = {
     "cripta": pp_cripta,
     "biblioteca": pp_biblioteca,
     "invernadero": pp_invernadero,
+    "catacumba": pp_catacumba,
 }
 
 
 PLANTAS = {"sala": sala, "nave": nave, "servicio": servicio, "natatorio": natatorio,
-           "cripta": cripta, "biblioteca": biblioteca, "invernadero": invernadero}
+           "cripta": cripta, "biblioteca": biblioteca, "invernadero": invernadero,
+           "catacumba": catacumba}
 PISO_PRESENCIA = {"sala": 0.94, "nave": 1.30, "servicio": 0.98, "natatorio": 1.18,
-                  "cripta": 0.98, "biblioteca": 0.96, "invernadero": 0.96}
+                  "cripta": 0.98, "biblioteca": 0.96, "invernadero": 0.96,
+                  "catacumba": 0.97}
 
 
 # --------------------------------------------------------------------------

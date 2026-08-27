@@ -125,6 +125,16 @@
       }
     ]
   },
+  "ambiente.nivel7": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.ambiente.nivel7",
+    "sounds": [
+      {
+        "name": "jobsmenu:ambiente/nivel7",
+        "stream": false
+      }
+    ]
+  },
   "caracter.nivel0": {
     "category": "ambient",
     "subtitle": "jobsmenu.subtitulo.caracter.nivel0",
@@ -195,6 +205,16 @@
       }
     ]
   },
+  "caracter.nivel7": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.caracter.nivel7",
+    "sounds": [
+      {
+        "name": "jobsmenu:caracter/nivel7",
+        "stream": false
+      }
+    ]
+  },
   "actividad.nivel0": {
     "category": "ambient",
     "subtitle": "jobsmenu.subtitulo.actividad.nivel0",
@@ -261,6 +281,16 @@
     "sounds": [
       {
         "name": "jobsmenu:actividad/nivel6",
+        "stream": true
+      }
+    ]
+  },
+  "actividad.nivel7": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel7",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel7",
         "stream": true
       }
     ]
@@ -417,6 +447,27 @@
     "subtitle": "jobsmenu.subtitulo.evento.nivel6_hojas",
     "sounds": [
       "jobsmenu:evento/nivel6_hojas"
+    ]
+  },
+  "evento.nivel7_gota": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel7_gota",
+    "sounds": [
+      "jobsmenu:evento/nivel7_gota"
+    ]
+  },
+  "evento.nivel7_piedra": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel7_piedra",
+    "sounds": [
+      "jobsmenu:evento/nivel7_piedra"
+    ]
+  },
+  "evento.nivel7_viento": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel7_viento",
+    "sounds": [
+      "jobsmenu:evento/nivel7_viento"
     ]
   },
   "nivel.titileo": {
