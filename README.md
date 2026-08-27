@@ -14,11 +14,36 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
 
 | | |
 |---|---|
-| Versión | **0.6.5** |
+| Versión | **0.7.0** |
 | Minecraft | 1.20.1 |
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente (el servidor no necesita el mod) |
+
+## Qué trae la 0.7.0
+
+**Cinco fondos nuevos, diez en total.** Al lado de los cuatro backrooms y la sala de piedra ahora rotan:
+
+- **La biblioteca** — estanterías de madera hasta el techo, lámparas de pantalla verde, un ventanal gris al
+  fondo. El sitio más quieto de todos.
+- **El invernadero** — una nave de vidrio y hierro tomada por las plantas, iluminada desde el techo por luz
+  natural difusa, con haces polvorientos y vaho verde.
+- **Las catacumbas** — un túnel de piedra fría con nichos en las paredes, un farol colgado y goteras. El
+  pariente oscuro de la sala.
+- **La cisterna** — un aljibe enorme: columnas naciendo de un agua negra que las refleja, focos sumergidos,
+  gotas con eco larguísimo.
+- **El salón del trono** — una sala de audiencias en ruinas, columnas partidas, y al fondo, bajo un haz de
+  luz, un trono vacío.
+
+Cada uno tiene **su propio audio**: tres camas de ambiente (base, carácter, actividad) y tres eventos
+sueltos, sintetizados desde cero como los demás. Son 30 piezas nuevas, 74 en total.
+
+**La música se arregló de raíz.** REQUIEM no sonaba porque el archivo venía codificado por FFmpeg, y el
+decodificador de Minecraft lo descartaba. Se re-codificó con el encoder de referencia (libVorbis) y ahora
+suena; además entra más rápido y a mejor volumen.
+
+**Más frases.** Los avisos rotativos bajo los botones pasaron de 8 a 16, y cada fondo tiene ahora tres notas
+que van rotando: cada vez que un nivel vuelve, dice algo distinto.
 
 ## Qué trae la 0.6.5
 
@@ -222,7 +247,7 @@ Requiere JDK 17 instalado.
 .\gradlew build
 ```
 
-El `.jar` queda en `build\libs\jobsmenu-0.6.5.jar` y se copia a la carpeta `mods` de la instancia.
+El `.jar` queda en `build\libs\jobsmenu-0.7.0.jar` y se copia a la carpeta `mods` de la instancia.
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 
@@ -237,7 +262,7 @@ SKLauncher, pero sirve igual para `.minecraft` o cualquier lanzador.
 # --- 0. Rutas --------------------------------------------------------------
 $repo      = "C:\Users\santi\Desktop\Jobs---Menu"
 $instancia = "C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1"
-$version   = "0.6.5"
+$version   = "0.7.0"
 
 Set-Location $repo
 

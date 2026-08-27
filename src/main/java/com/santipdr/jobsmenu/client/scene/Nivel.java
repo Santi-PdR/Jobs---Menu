@@ -10,6 +10,7 @@ import com.santipdr.jobsmenu.client.scene.planta.Natatorio;
 import com.santipdr.jobsmenu.client.scene.planta.Planta;
 import com.santipdr.jobsmenu.client.scene.planta.Sala;
 import com.santipdr.jobsmenu.client.scene.planta.Servicio;
+import com.santipdr.jobsmenu.client.scene.planta.Trono;
 
 /**
  * Un nivel del servidor, visto desde donde esta pegado el aviso.
@@ -247,6 +248,19 @@ public final class Nivel {
                     // pasarela; se abre a lo ancho, poco a lo alto.
                     0.500F, 0.500F, 0.190F, 0.190F, 0.092F, 0.118F,
                     0.80F, 0.55F),
+
+            // Nivel 9 - El salon del trono. Sala de audiencias en ruinas: columnas
+            // partidas, techo con boquetes, un trono vacio al fondo bajo un haz de
+            // luz. Oro apagado y azul de piedra; nada de rojo (es de los Executores).
+            new Nivel("nivel9", new Trono(),
+                    0xFF6C6A82, 0xFF3E3C50, 0xFF242234,
+                    0xFF46445A, 0xFF2C2A3C, 0xFF181628,
+                    0xFF56546A, 0xFF302E44,
+                    0xFF34324A, 0xFFE8C878, 0xFF0A0812,
+                    // Nave alta y honda, vista de frente por la alfombra central;
+                    // el trono cae justo en la fuga, al fondo.
+                    0.500F, 0.500F, 0.150F, 0.150F, 0.185F, 0.140F,
+                    0.26F, 0.55F),
     };
 
     /** Cuantos niveles hay en la rotacion. */

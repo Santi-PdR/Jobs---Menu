@@ -219,6 +219,9 @@ SALAS = {
     # Cisterna: aljibe enorme lleno de agua. La cola mas larga de todas, oscura
     # y con muchisimo cuerpo; el agua y la piedra hacen que todo dure segundos.
     "cisterna": impulso(5.20, 0.040, 3_000.0, 1.7),
+    # Salon del trono: nave alta de piedra, en ruinas y con boquetes al cielo.
+    # Cola larga y grande, algo mas clara que la cisterna -esta seca- y con aire.
+    "trono": impulso(3.40, 0.030, 4_000.0, 1.5),
 }
 
 
@@ -929,6 +932,28 @@ def base_nivel8(dur: float = 27.0) -> np.ndarray:
     return reverberar(x, SALAS["cisterna"], 0.50)
 
 
+def base_nivel9(dur: float = 25.0) -> np.ndarray:
+    """Nivel 9, el salon del trono.
+
+    Una nave alta y en ruinas, abierta al cielo por los boquetes del techo. La
+    base es el viento entrando por esos huecos -una corriente ancha, con silbido
+    grave- sobre el volumen de aire de la sala. Es un sitio grande y muerto que
+    respira por sus heridas.
+    """
+    t = tiempo(dur)
+
+    # Viento por los boquetes: banda media-baja modulada, con un silbido tenue.
+    viento = pasabanda(rosa(dur), 180.0, 1_600.0, 2) * 0.6
+    viento *= 0.45 + 0.55 * np.clip(np.sin(2 * np.pi * 0.035 * t) * 0.6
+                                    + np.sin(2 * np.pi * 0.021 * t + 1.0) * 0.4 + 0.3, 0.0, None)
+
+    # Volumen de la sala: grave estable.
+    volumen = pasabajos(marron(dur), 150.0, 3) * 3.0 * deriva(dur, 0.015, 0.28)
+
+    x = viento * 0.055 + volumen * 0.06
+    return reverberar(x, SALAS["trono"], 0.44)
+
+
 # ==========================================================================
 # 2b. Capa de caracter: la segunda cama, tambien continua
 # ==========================================================================
@@ -1243,6 +1268,44 @@ def caracter_nivel8(dur: float = 41.0) -> np.ndarray:
 
     x = gotas * 0.30 + lame * 0.06
     return reverberar(x, SALAS["cisterna"], 0.56)
+
+
+def caracter_nivel9(dur: float = 38.0) -> np.ndarray:
+    """Nivel 9. Las ruinas del salon del trono, moviendose con el viento.
+
+    Lo que se oye aca es la tela y la piedra suelta: los estandartes rotos
+    ondeando -un flap grave y espaciado- y el tintineo de cascotes menudos que
+    el viento mueve. Nada de agua ni fuego: solo el edificio deshaciendose muy
+    despacio, con la cola grande de la sala.
+    """
+    t = tiempo(dur)
+
+    # Ondeo de los estandartes: golpes graves de tela, espaciados, sin periodo.
+    flap = np.zeros(len(t))
+    for _ in range(16):
+        pos = muestras(RNG.uniform(0.3, dur - 0.5))
+        largo = min(muestras(RNG.uniform(0.08, 0.25)), len(t) - pos)
+        if largo <= 0:
+            continue
+        tc = np.arange(largo) / SR
+        f = pasabanda(RNG.normal(0, 1, largo), 120.0, 900.0, 2)
+        f *= np.sin(np.pi * tc / (largo / SR)) ** 2 * RNG.uniform(0.10, 0.28)
+        flap[pos:pos + largo] += f
+
+    # Cascotes: tics agudos y menudos, muy espaciados.
+    cascotes = np.zeros(len(t))
+    for _ in range(20):
+        pos = muestras(RNG.uniform(0.2, dur - 0.2))
+        largo = min(muestras(RNG.uniform(0.004, 0.016)), len(t) - pos)
+        if largo <= 0:
+            continue
+        tc = np.arange(largo) / SR
+        c = pasabanda(RNG.normal(0, 1, largo), 1_500.0, 5_000.0, 2)
+        c *= np.exp(-tc / 0.006) * RNG.uniform(0.06, 0.18)
+        cascotes[pos:pos + largo] += c
+
+    x = flap * 0.28 + cascotes * 0.22
+    return reverberar(x, SALAS["trono"], 0.52)
 
 
 
@@ -1574,6 +1637,29 @@ def actividad_nivel8(dur: float = 59.0) -> np.ndarray:
     _sembrar(x, metal, 30.1, 0.12)
 
     return reverberar(x, SALAS["cisterna"], 0.80)
+
+
+def actividad_nivel9(dur: float = 56.0) -> np.ndarray:
+    """Nivel 9. El salon del trono, donde la ruina se derrumba de a poco.
+
+    Sucesos de piedra grande y madera vieja: un cascote que cae de lo alto, una
+    viga del techo que cede, el eco de una puerta enorme en otra ala. La sala
+    alta y seca alarga todo casi como la cisterna, pero con mas aire.
+    """
+    x = np.zeros(muestras(dur))
+
+    cascote = _lejos(cargar("impactPlate_heavy_000"), 1.0, 900.0, 140.0)
+    for s, g in ((9.8, 0.22), (34.1, 0.26), (52.0, 0.16)):
+        _sembrar(x, cascote, s, g)
+
+    viga = _lejos(cargar("impactPlank_medium_000"), 1.6, 600.0, 90.0)
+    _sembrar(x, viga, 20.6, 0.20)
+    _sembrar(x, viga, 45.3, 0.15)
+
+    puerta = _lejos(cargar("impactMetal_heavy_000"), 2.0, 500.0, 70.0)
+    _sembrar(x, puerta, 28.9, 0.14)
+
+    return reverberar(x, SALAS["trono"], 0.74)
 
 
 # ==========================================================================
@@ -2015,6 +2101,38 @@ def ev_nivel8_columna() -> np.ndarray:
     return rampa(reverberar(x, SALAS["cisterna"], 0.78), 0.01, 1.40)
 
 
+def ev_nivel9_cascote() -> np.ndarray:
+    """Un cascote de piedra cayendo de lo alto al suelo del salon. Seco, con eco."""
+    dur = 3.4
+    n = muestras(dur)
+    golpe = pasabanda(RNG.normal(0, 1, n), 200.0, 2_200.0, 2) * envolvente(n, 0.001, 0.06, 5.0)
+    x = pasabajos(golpe, 2_500.0, 2) * 0.32
+    return rampa(reverberar(x, SALAS["trono"], 0.70), 0.002, 1.10)
+
+
+def ev_nivel9_estandarte() -> np.ndarray:
+    """Un estandarte roto ondeando con una racha. Flap grave de tela, con eco."""
+    dur = 3.0
+    n = muestras(dur)
+    t = tiempo(dur)
+    tela = pasabanda(rosa(dur), 130.0, 1_100.0, 2)
+    sobre = np.sin(np.pi * np.clip(t / dur, 0, 1)) ** 2
+    tela *= 0.4 + 0.6 * np.clip(np.sin(2 * np.pi * 3.0 * t), 0, None)
+    x = tela * sobre * 0.17
+    return rampa(reverberar(x, SALAS["trono"], 0.55), 0.03, 0.85)
+
+
+def ev_nivel9_puerta() -> np.ndarray:
+    """El eco de una puerta enorme cerrandose en otra ala. Grave, lejano, largo."""
+    dur = 4.4
+    n = muestras(dur)
+    t = tiempo(dur)
+    golpe = pasabajos(RNG.normal(0, 1, n), 260.0, 2) * envolvente(n, 0.004, 0.12, 4.0)
+    cuerpo = np.sin(2 * np.pi * 44.0 * t) * np.exp(-t / 0.5) * 0.35
+    x = pasabajos(golpe * 0.6 + cuerpo, 800.0, 2) * 0.28
+    return rampa(reverberar(x, SALAS["trono"], 0.78), 0.01, 1.30)
+
+
 # ==========================================================================
 # 4. Transicion entre niveles
 # ==========================================================================
@@ -2243,6 +2361,7 @@ PIEZAS = {
     "ambiente/nivel6": lambda: bucle_suave(base_nivel6(), 5.0),
     "ambiente/nivel7": lambda: bucle_suave(base_nivel7(), 5.0),
     "ambiente/nivel8": lambda: bucle_suave(base_nivel8(), 6.0),
+    "ambiente/nivel9": lambda: bucle_suave(base_nivel9(), 5.0),
 
     # Capa de caracter, tambien en bucle. Duraciones primas con las bases para
     # que las dos camas de cada nivel no vuelvan a alinearse en toda la sesion.
@@ -2255,6 +2374,7 @@ PIEZAS = {
     "caracter/nivel6": lambda: bucle_suave(caracter_nivel6(), 5.0),
     "caracter/nivel7": lambda: bucle_suave(caracter_nivel7(), 4.0),
     "caracter/nivel8": lambda: bucle_suave(caracter_nivel8(), 6.0),
+    "caracter/nivel9": lambda: bucle_suave(caracter_nivel9(), 5.0),
 
     # Capa de actividad: bucles largos, casi vacios, con sucesos lejanos. El
     # cruce es corto porque casi toda la junta cae sobre silencio.
@@ -2267,6 +2387,7 @@ PIEZAS = {
     "actividad/nivel6": lambda: bucle_suave(actividad_nivel6(), 2.0),
     "actividad/nivel7": lambda: bucle_suave(actividad_nivel7(), 2.0),
     "actividad/nivel8": lambda: bucle_suave(actividad_nivel8(), 2.0),
+    "actividad/nivel9": lambda: bucle_suave(actividad_nivel9(), 2.0),
 
     # Eventos
     "evento/nivel0_tubo": ev_nivel0_tubo,
@@ -2297,6 +2418,9 @@ PIEZAS = {
     "evento/nivel8_gota": ev_nivel8_gota,
     "evento/nivel8_chapoteo": ev_nivel8_chapoteo,
     "evento/nivel8_columna": ev_nivel8_columna,
+    "evento/nivel9_cascote": ev_nivel9_cascote,
+    "evento/nivel9_estandarte": ev_nivel9_estandarte,
+    "evento/nivel9_puerta": ev_nivel9_puerta,
 
     # Transicion
     "nivel/titileo": tr_titileo,

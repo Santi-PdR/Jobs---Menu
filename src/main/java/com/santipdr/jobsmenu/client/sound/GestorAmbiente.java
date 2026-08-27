@@ -158,6 +158,15 @@ public final class GestorAmbiente {
                     new Evento(SonidosNivel.EV_N8_COLUMNA, 1.5F, 0.20F, 0.38F, 0.95F, 1.03F),
                     new Evento(SonidosNivel.EV_N8_CHAPOTEO, 1.0F, 0.16F, 0.30F, 0.96F, 1.04F),
             }),
+
+            // Nivel 9 - El salon del trono. Ruinas: el cascote que cae es lo
+            // comun; la puerta lejana, lo raro y lo mas grande. Sala alta con
+            // cola larga; ventanas medias.
+            new Repertorio(13_000L, 34_000L, new Evento[] {
+                    new Evento(SonidosNivel.EV_N9_CASCOTE, 3.0F, 0.22F, 0.42F, 0.94F, 1.08F),
+                    new Evento(SonidosNivel.EV_N9_ESTANDARTE, 1.8F, 0.18F, 0.34F, 0.96F, 1.04F),
+                    new Evento(SonidosNivel.EV_N9_PUERTA, 1.0F, 0.18F, 0.34F, 0.95F, 1.03F),
+            }),
     };
 
     private static final Random AZAR = new Random();
@@ -292,6 +301,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.AMBIENTE_NIVEL7;
             case 8:
                 return SonidosNivel.AMBIENTE_NIVEL8;
+            case 9:
+                return SonidosNivel.AMBIENTE_NIVEL9;
             default:
                 return SonidosNivel.AMBIENTE_NIVEL0;
         }
@@ -315,6 +326,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.CARACTER_NIVEL7;
             case 8:
                 return SonidosNivel.CARACTER_NIVEL8;
+            case 9:
+                return SonidosNivel.CARACTER_NIVEL9;
             default:
                 return SonidosNivel.CARACTER_NIVEL0;
         }
@@ -338,6 +351,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.ACTIVIDAD_NIVEL7;
             case 8:
                 return SonidosNivel.ACTIVIDAD_NIVEL8;
+            case 9:
+                return SonidosNivel.ACTIVIDAD_NIVEL9;
             default:
                 return SonidosNivel.ACTIVIDAD_NIVEL0;
         }

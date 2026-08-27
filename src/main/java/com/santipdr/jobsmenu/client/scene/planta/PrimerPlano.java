@@ -618,5 +618,66 @@ public final class PrimerPlano {
         grafico.fill(fx - 2, fy - fh + 2, fx + 2, fy - 2,
                 Paleta.conAlfa(Paleta.iluminar(0xFFFFE0A0, Math.min(1.0F, luz * titil * 1.3F)), 0.9F));
     }
+
+    // ----------------------------------------------------------------------
+    // Nivel 9 - El salon del trono: un tambor de columna caida en el suelo
+    // ----------------------------------------------------------------------
+
+    /**
+     * Un tambor de columna derribada, atravesado en el primer plano.
+     *
+     * Un cilindro de piedra enorme, caido de lado, cruzando el borde inferior en
+     * diagonal, muy cerca. Es lo que dice que el salon esta en ruinas y pone al
+     * que mira detras de un escombro, agachado. La cara de arriba recibe la luz
+     * cenital; el resto, sombra. Al lado, cascotes menores.
+     */
+    public static void trono(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
+        int w = m.ancho();
+        int h = m.alto();
+        int piedra = Paleta.mezclar(nivel.paredBaja, 0xFF000000, 0.35F);
+        int piedraLuz = Paleta.iluminar(Paleta.mezclar(nivel.paredAlta, 0xFF000000, 0.10F), 0.55F + 0.30F * luz);
+        int piedraSombra = Paleta.iluminar(Paleta.mezclar(piedra, 0xFF000000, 0.4F), 0.30F + 0.15F * luz);
+
+        // El tambor: una banda gruesa en diagonal suave por el borde inferior.
+        int yIzq = (int) (h * 0.74F);
+        int yDer = (int) (h * 0.84F);
+        int alto = (int) (h * 0.28F);
+        for (int x = 0; x < w; x += Trazo.PASO) {
+            float t = x / (float) w;
+            int yTop = (int) (yIzq + (yDer - yIzq) * t);
+            // Cara superior iluminada (una franja fina arriba).
+            grafico.fill(x, yTop, x + Trazo.PASO, yTop + Math.max(2, alto / 8),
+                    piedraLuz);
+            // Cuerpo del tambor.
+            grafico.fillGradient(x, yTop + Math.max(2, alto / 8), x + Trazo.PASO, h,
+                    Paleta.iluminar(piedra, 0.40F + 0.18F * luz), piedraSombra);
+        }
+        // Las molduras circulares de los extremos del tambor (anillos concentricos
+        // sugeridos con lineas horizontales cerca de los bordes).
+        for (int r = 1; r <= 3; r++) {
+            int yr = yIzq + r * alto / 10;
+            grafico.fill(0, yr, (int) (w * 0.10F), yr + 1, Paleta.conAlfa(piedraSombra, 0.7F));
+            int yrd = yDer + r * alto / 10;
+            grafico.fill((int) (w * 0.90F), yrd, w, yrd + 1, Paleta.conAlfa(piedraSombra, 0.7F));
+        }
+        // El filo iluminado del canto superior, a lo largo.
+        for (int x = 0; x < w; x += Trazo.PASO) {
+            float t = x / (float) w;
+            int yTop = (int) (yIzq + (yDer - yIzq) * t);
+            grafico.fill(x, yTop, x + Trazo.PASO, yTop + 1,
+                    Paleta.conAlfa(Paleta.iluminar(0xFFFFF0C0, luz), 0.14F));
+        }
+
+        // Unos cascotes sueltos delante, silueta.
+        for (int i = 0; i < 4; i++) {
+            int cx = (int) (w * (0.20F + i * 0.22F));
+            int cw = (int) (w * (0.04F + Trazo.pseudo(i * 9) * 0.05F));
+            int cy = (int) (h * 0.72F) - (int) (Trazo.pseudo(i * 9 + 1) * h * 0.04F);
+            int ch = (int) (h * 0.06F);
+            grafico.fill(cx, cy, cx + cw, cy + ch,
+                    Paleta.iluminar(piedra, 0.32F + 0.16F * luz));
+            grafico.fill(cx, cy, cx + cw, cy + 1, Paleta.conAlfa(piedraLuz, 0.5F));
+        }
+    }
 }
 

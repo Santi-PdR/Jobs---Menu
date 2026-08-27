@@ -10,7 +10,7 @@
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
 | Paquete Java | `com.santipdr.jobsmenu` |
-| Versión actual | **0.6.5** |
+| Versión actual | **0.7.0** |
 | Plataforma | Minecraft **1.20.1** · Forge **47.x** · Java **17** |
 | Alcance | Menús (Title / Pause / Options), escena viva, audio, lore. **Sin gameplay.** |
 | Lado | **Cliente**. El mod no toca el servidor ni exige instalarse en él. |
@@ -210,6 +210,11 @@ cuelgan de las paredes:
 | `nivel2` | Pasillos de servicio | 0.22 | Estrecho y alto, óxido, tuberías |
 | `nivel3` | Las piscinas | 0.62 | Azulejo, casi cuadrado, todo se refleja |
 | `nivel4` | La sala | 0.20 | Piedra cálida, fuego, bóveda, candil de rueda — el guiño al lobby |
+| `nivel5` | La biblioteca | 0.14 | Estanterías hasta el techo, lámparas verdes, quietud |
+| `nivel6` | El invernadero | 0.18 | Vidrio y hierro, plantas, luz cenital difusa |
+| `nivel7` | Las catacumbas | 0.24 | Túnel de piedra fría, nichos, farol — el pariente oscuro de la sala |
+| `nivel8` | La cisterna | 0.80 | Columnas sobre agua negra que las refleja, focos sumergidos |
+| `nivel9` | El salón del trono | 0.26 | Ruinas, columnas partidas, un trono vacío bajo un haz de luz |
 
 **Nivel 4 es la otra cara del mod.** Los cuatro primeros son backrooms: fluorescente que no se apaga, terror
 burocrático y luminoso. La sala es lo contrario —piedra excavada, antorchas, un candelabro de rueda con
@@ -501,9 +506,10 @@ Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y
 | **0.6.3** | La pista REQUIEM (Emmy Z) subida por el owner queda integrada: el build hornea cualquier `.ogg` de `music/` en el JAR (nombre libre), suena de fábrica con su crédito. OGG verificado (Vorbis 44.1 kHz, 3:16, sin clipping, junta de bucle limpia) | **Entregado** |
 | **0.6.4** | Arreglo de que la música no sonara: `defecto.ogg` ES ahora REQUIEM directo en los recursos (el horneado en build era frágil y no se ejecutaba); marcador de crédito como recurso real; mezcla de música 0.34→0.55 y entrada 20 s→6 s para que se escuche | **Entregado** |
 | **0.6.5** | Nivel 4, **La sala**: quinto recinto de piedra cálida iluminada por fuego (bóveda, columnas, antorchas, estandartes, candil de rueda con velas, runas en el suelo, mesa de banquete en primer plano). Audio propio: tres camas (aire tibio, fuego, la sala vieja) y tres eventos (antorcha, cadena, piedra). El guiño al lobby del server, conviviendo con los cuatro backrooms | **Entregado** |
-| 0.7.0 | Pausa ("Estancia en suspenso") y opciones con la misma piel | Pendiente |
-| 0.8.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
-| 0.9.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |
+| **0.7.0** | Cinco recintos nuevos (biblioteca, invernadero, catacumbas, cisterna, salón del trono) con su audio propio (30 piezas más), diez fondos en rotación; REQUIEM re-codificada con libVorbis para que suene; más frases (16 avisos, 3 notas por nivel) | **Entregado** |
+| 0.8.0 | Pausa ("Estancia en suspenso") y opciones con la misma piel | Pendiente |
+| 0.9.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
+| 0.10.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |
 | 1.0.0 | Pulido, accesibilidad completa, empaquetado para repartir | Pendiente |
 
 Fuera de alcance, explícitamente: entidades, ítems, mecánicas, comandos, economía real, cualquier cosa que
