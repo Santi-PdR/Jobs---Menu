@@ -35,7 +35,7 @@ import net.minecraft.util.FormattedCharSequence;
 public class NotaAviso extends AbstractButton {
 
     /** Cantidad de avisos disponibles en los archivos de idioma. */
-    public static final int AVISOS = 8;
+    public static final int AVISOS = 16;
 
     /** Cada cuantos milisegundos pasa solo al siguiente. */
     private static final long ROTACION_MS = 7_000L;

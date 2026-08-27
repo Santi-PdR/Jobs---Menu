@@ -280,6 +280,13 @@ def verificar_claves(es: dict[str, str]) -> None:
     # ahi los toma Minecraft. Son cadenas usadas, aunque no aparezcan en Java.
     cubiertas |= SUBTITULOS
 
+    # Las notas rotativas de cada nivel se componen con doble concatenacion
+    # ("jobsmenu." + clave + ".nota" + indice), que el detector de horquillas
+    # -pensado para un solo hueco- no alcanza a ver. Se cubren explicitamente:
+    # cualquier clave con el infijo '.nota' seguido de digitos la pide
+    # rotuloNivel() en PantallaNivel.
+    cubiertas |= {k for k in es if re.search(r"\.nota\d+$", k)}
+
     for clave in sorted(set(es) - cubiertas):
         aviso(f"La clave '{clave}' no la usa nadie en el codigo.")
 
@@ -574,7 +581,7 @@ def verificar_niveles(es: dict[str, str]) -> None:
         return
 
     for clave in claves:
-        for sufijo in ("nombre", "nota"):
+        for sufijo in ("nombre", "nota0", "nota1", "nota2"):
             necesaria = f"jobsmenu.{clave}.{sufijo}"
             if necesaria not in es:
                 fallo(f"El nivel '{clave}' no tiene la cadena {necesaria}.")

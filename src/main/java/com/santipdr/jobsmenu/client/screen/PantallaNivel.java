@@ -47,6 +47,9 @@ import net.minecraftforge.client.gui.ModListScreen;
 public class PantallaNivel extends Screen {
 
     private static final int ANCHO_HOJA = 214;
+
+    /** Cuantas notas rotativas tiene cada nivel (jobsmenu.<clave>.nota0..N-1). */
+    private static final int NOTAS_POR_NIVEL = 3;
     private static final int ALTO_RENGLON = 20;
     private static final int SEPARACION = 3;
 
@@ -477,7 +480,14 @@ public class PantallaNivel extends Screen {
         }
 
         Component nombre = Component.translatable("jobsmenu." + nivel.clave + ".nombre");
-        Component nota = Component.translatable("jobsmenu." + nivel.clave + ".nota");
+        // Cada nivel tiene varias notas y muestra una distinta por estancia: la
+        // que toca sale del ciclo de rotacion, asi cada vez que el fondo vuelve
+        // a este nivel el cartel dice otra cosa. Da mas voz a cada recinto sin
+        // agregar nada a la composicion. NOTAS_POR_NIVEL fija cuantas hay.
+        int cual = (int) (Math.floorDiv(System.currentTimeMillis(), 1000L)
+                / 27L % NOTAS_POR_NIVEL);
+        Component nota = Component.translatable(
+                "jobsmenu." + nivel.clave + ".nota" + cual);
 
         int x = 12;
         int y = this.height - 30;
