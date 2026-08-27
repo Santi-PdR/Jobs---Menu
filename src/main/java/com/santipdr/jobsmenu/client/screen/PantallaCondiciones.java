@@ -5,9 +5,12 @@ import com.santipdr.jobsmenu.client.ui.CasillaAjuste;
 import com.santipdr.jobsmenu.client.ui.HojaPapel;
 import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.santipdr.jobsmenu.client.ui.ReglaAjuste;
+import com.santipdr.jobsmenu.client.ui.RenglonTablon;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
@@ -26,6 +29,15 @@ import net.minecraft.util.FormattedCharSequence;
  * archivo. Los dos volumenes son reglas graduadas, no barras rellenas: esto es
  * una hoja, no un panel de control.
  *
+ * LO DEL MOD Y LO DEL EQUIPO
+ *
+ * Esta hoja lleva los ajustes DEL MOD -la escena, el sonido del recinto, la
+ * accesibilidad-, no los del juego. Pero el jugador tambien necesita los del
+ * EQUIPO: imagen, sonido general, controles, idioma, paquetes de recursos. Por
+ * eso al pie, apartado del resto, hay un renglon que abre las opciones reales
+ * de Minecraft tal cual. No se pierde ninguna: se ordenan. Lo del sitio esta en
+ * la hoja; lo de la maquina, a un renglon de distancia.
+ *
  * Es hija del aviso: se llega desde el renglon "03 Condiciones de estancia" y
  * se vuelve con Escape o con el renglon del pie. Comparte con el la escena viva
  * de fondo, asi que el pasillo sigue rotando y apagandose detras del papel.
@@ -41,6 +53,12 @@ public class PantallaCondiciones extends Screen {
     private static final int AIRE_REGLA = 7;
     private static final int AIRE_BLOQUE = 10;
     private static final int AIRE_APARTE = 12;
+
+    /** Alto del renglon de accion al pie (los ajustes del equipo). */
+    private static final int ALTO_RENGLON = 20;
+
+    /** Hueco que aparta el renglon de accion del ultimo ajuste del mod. */
+    private static final int AIRE_ACCION = 14;
 
     /** La pantalla a la que se vuelve (el aviso). */
     private final Screen anterior;
@@ -117,6 +135,10 @@ public class PantallaCondiciones extends Screen {
                 total += CasillaAjuste.altoConDetalle(detalle, ancho, this.font);
             }
         }
+        // Al pie va, apartado, el acceso a los ajustes del equipo (las opciones
+        // reales del juego): imagen, sonido general, controles, idioma. Ocupa
+        // su hueco de separacion y su renglon.
+        total += AIRE_ACCION + ALTO_RENGLON;
         return total;
     }
 
@@ -146,7 +168,23 @@ public class PantallaCondiciones extends Screen {
                 y += alto;
             }
         }
+
+        // El acceso a los ajustes del equipo, al pie y apartado. Es un renglon
+        // de accion -no una casilla-, porque no guarda un estado: lleva a otra
+        // pantalla, la de opciones del juego. Se reusa RenglonTablon, el mismo
+        // widget de las acciones del aviso, asi habla el mismo idioma. No es
+        // terminal: no destruye nada, solo abre lo de siempre.
+        y += AIRE_ACCION;
+        this.addRenderableWidget(new RenglonTablon(x, y, ancho, ALTO_RENGLON,
+                ">", Component.translatable("jobsmenu.opciones.equipo"), this::abrirAjustesEquipo, false));
+        y += ALTO_RENGLON;
         return y;
+    }
+
+    /** Abre las opciones reales de Minecraft: imagen, sonido, controles, idioma. */
+    private void abrirAjustesEquipo() {
+        Minecraft cliente = Minecraft.getInstance();
+        cliente.setScreen(new OptionsScreen(this, cliente.options));
     }
 
     private int lineas(String clave, int ancho) {

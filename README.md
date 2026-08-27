@@ -14,11 +14,19 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
 
 | | |
 |---|---|
-| Versión | **0.8.0** |
+| Versión | **0.8.1** |
 | Minecraft | 1.20.1 |
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente (el servidor no necesita el mod) |
+
+## Qué trae la 0.8.1
+
+- **Las opciones del juego siguen a un renglón de distancia.** En la 0.8.0, "Condiciones de estancia" pasó a
+  mostrar los ajustes del mod y dejaba fuera los del equipo (imagen, sonido general, controles, idioma,
+  paquetes de recursos). Ahora la misma hoja lleva, al pie y apartado, un renglón **"Ajustes del equipo"** que
+  abre las opciones reales de Minecraft tal cual. No se perdió ninguna: lo del sitio está en la hoja, lo de la
+  máquina a un toque.
 
 ## Qué trae la 0.8.0
 
@@ -287,7 +295,7 @@ Requiere JDK 17 instalado.
 .\gradlew build
 ```
 
-El `.jar` queda en `build\libs\jobsmenu-0.8.0.jar` y se copia a la carpeta `mods` de la instancia.
+El `.jar` queda en `build\libs\jobsmenu-0.8.1.jar` y se copia a la carpeta `mods` de la instancia.
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 
@@ -302,7 +310,7 @@ SKLauncher, pero sirve igual para `.minecraft` o cualquier lanzador.
 # --- 0. Rutas --------------------------------------------------------------
 $repo      = "C:\Users\santi\Desktop\Jobs---Menu"
 $instancia = "C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1"
-$version   = "0.8.0"
+$version   = "0.8.1"
 
 Set-Location $repo
 

@@ -10,7 +10,7 @@
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
 | Paquete Java | `com.santipdr.jobsmenu` |
-| Versión actual | **0.8.0** |
+| Versión actual | **0.8.1** |
 | Plataforma | Minecraft **1.20.1** · Forge **47.x** · Java **17** |
 | Alcance | Menús (Title / Pause / Options), escena viva, audio, lore. **Sin gameplay.** |
 | Lado | **Cliente**. El mod no toca el servidor ni exige instalarse en él. |
@@ -133,7 +133,7 @@ Renglones del formulario:
 |---|---|---|
 | 01 | Unirse a una cuadrilla | `JoinMultiplayerScreen` |
 | 02 | Registro de intervenciones | `net.minecraftforge.client.gui.ModListScreen` |
-| 03 | Condiciones de estancia | `PantallaCondiciones` (opciones propias del mod) |
+| 03 | Condiciones de estancia | `PantallaCondiciones` (opciones del mod + acceso al `OptionsScreen` del juego) |
 | — | *(hueco de 10 px)* | |
 | 04 | Renunciar al nivel | `Minecraft#stop()` |
 
@@ -511,6 +511,7 @@ Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y
 | **0.7.1** | La cabecera de la hoja sigue al recinto (dice el Nivel y la tarifa reales, no el fijo "Nivel 0"); easter eggs por fecha/hora en los avisos (año nuevo, 31/10, viernes 13, las 3 AM); pared del fondo de la biblioteca más legible | **Entregado** |
 | **0.7.2** | Más frases (avisos rotativos de 16 a 20) y tres easter eggs nuevos (Día del Trabajador —guiño al nombre del server—, Navidad, medianoche); arreglo de maquetación: la hoja ahora reserva alto también para las notas especiales, que en una fecha señalada podían empujar los renglones | **Entregado** |
 | **0.8.0** | Condiciones de estancia (opciones del mod con la piel del aviso: casillas y reglas graduadas que escriben y guardan la config sin tocar el archivo) y pausa propia ("Estancia en suspenso"), replicando la salida guardada de vanilla para no chocar con los mods de guardado en segundo plano | **Entregado** |
+| **0.8.1** | Las condiciones de estancia recuperan el acceso a las opciones reales del juego: un renglon "Ajustes del equipo" al pie de la hoja abre el `OptionsScreen` de vanilla (imagen, sonido, controles, idioma, recursos). Los ajustes del mod y los del equipo conviven sin que se pierda ninguno | **Entregado** |
 | 0.9.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
 | 0.10.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |
 | 1.0.0 | Pulido, accesibilidad completa, empaquetado para repartir | Pendiente |
