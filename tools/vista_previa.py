@@ -1996,7 +1996,7 @@ BIB_HILERA = 0.66
 
 
 def biblioteca(lz, m, nivel, luz, tiempo) -> None:
-    t_fondo(lz, m, nivel, luz, mezclar(nivel.pared_baja, nivel.junta, 0.30), 1.25)
+    t_fondo(lz, m, nivel, luz, mezclar(nivel.pared_baja, nivel.pared_alta, 0.30), 1.7)
     bib_ventanal(lz, m, nivel, luz)
     t_plano(lz, m, True, nivel.techo, mezclar(nivel.techo, nivel.niebla, 0.40),
             nivel.niebla, luz, 0.52)

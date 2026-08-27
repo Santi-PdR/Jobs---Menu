@@ -39,7 +39,7 @@ public final class Biblioteca implements Planta {
     @Override
     public void dibujar(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
         Trazo.fondo(grafico, m, nivel, luz,
-                Paleta.mezclar(nivel.paredBaja, nivel.junta, 0.30F), 1.25F);
+                Paleta.mezclar(nivel.paredBaja, nivel.paredAlta, 0.30F), 1.7F);
         ventanalFondo(grafico, m, nivel, luz);
 
         Trazo.plano(grafico, m, true, nivel.techo,
