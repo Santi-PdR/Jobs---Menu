@@ -85,7 +85,7 @@ tasks.named('processResources', ProcessResources).configure {
     // entra al control de versiones. Se declara como entrada opcional via
     // fileTree para que el build se rehaga si cambia y no falle si no existe.
     def carpetaPista = rootProject.file('music')
-    inputs.files(fileTree(dir: carpetaPista, includes: ['requiem.ogg', 'defecto.ogg'])).optional()
+    inputs.files(fileTree(dir: carpetaPista, includes: ['requiem.ogg'])).optional()
     doLast {
         def destino = layout.buildDirectory
                 .file('resources/main/assets/jobsmenu/sounds/musica/defecto.ogg').get().asFile
