@@ -27,8 +27,8 @@ public final class Trono implements Planta {
     /** A que fraccion del semiancho corren las dos hileras de columnas. */
     private static final float HILERA = 0.72F;
 
-    /** A que dy arranca la tarima del trono. */
-    private static final float TARIMA = 1.6F;
+    /** A que dy arranca la tarima del trono. Mas cerca = mas presente. */
+    private static final float TARIMA = 1.42F;
 
     @Override
     public int tramos() {
@@ -45,6 +45,9 @@ public final class Trono implements Planta {
         Trazo.fondo(grafico, m, nivel, luz,
                 Paleta.mezclar(nivel.paredBaja, nivel.junta, 0.30F), 1.15F);
 
+        // El abside que enmarca el trono, contra el testero del fondo.
+        abside(grafico, m, nivel, luz);
+
         // El techo, con boquetes por donde entra la luz.
         Trazo.plano(grafico, m, true, Paleta.mezclar(nivel.techo, nivel.paredBaja, 0.30F),
                 Paleta.mezclar(nivel.techo, nivel.niebla, 0.45F), nivel.niebla, luz, 0.50F);
@@ -59,12 +62,91 @@ public final class Trono implements Planta {
         sillares(grafico, m, nivel, luz);
         Trazo.manchas(grafico, m, nivel, luz, TRAMOS);
 
+        // El haz cenital cae ANTES del trono, para que este quede recortado
+        // encima de la luz y no la luz encima del trono.
+        hazMayor(grafico, m, nivel, luz, tiempo);
         // El trono al fondo, antes de las columnas de primer plano.
         trono(grafico, m, nivel, luz, tiempo);
 
         columnas(grafico, m, nivel, luz);
         estandartes(grafico, m, nivel, luz, tiempo);
         haces(grafico, m, nivel, luz, tiempo);
+    }
+
+    /**
+     * El abside: un nicho de piedra al fondo que le da al trono una pared propia.
+     *
+     * En vez de dejar el testero plano y negro -donde el trono flotaba en un
+     * vacio-, se recorta un arco elevado detras de la tarima, mas claro por
+     * dentro y con el reborde dorado. Enmarca el trono y lo ancla al mundo.
+     */
+    private static void abside(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 1.0F;
+        float cx = m.centro(dx);
+        float ancho = m.anchoEn(dx) * 0.30F;
+        float ySuelo = m.sueloEn(dx);
+        float yTecho = m.techoEn(dx);
+        float yArco = yTecho + (ySuelo - yTecho) * 0.20F;
+        float hombro = yTecho + (ySuelo - yTecho) * 0.34F;
+        int interior = Paleta.iluminar(Paleta.mezclar(nivel.paredBaja, nivel.niebla, 0.35F), luz * 0.55F);
+
+        grafico.fill((int) (cx - ancho), (int) hombro, (int) (cx + ancho), (int) ySuelo, interior);
+
+        int pasos = 7;
+        int paso = Math.max(1, (int) ((hombro - yArco) / pasos) + 1);
+        for (int k = 0; k < pasos; k++) {
+            float f = k / (float) (pasos - 1);
+            float w = ancho * (1.0F - (1.0F - f) * (1.0F - f));
+            int yk = (int) (hombro + (yArco - hombro) * f);
+            int y0 = (k == pasos - 1) ? (int) yArco : yk;
+            grafico.fill((int) (cx - w), y0, (int) (cx + w), yk + paso, interior);
+        }
+
+        int borde = Paleta.conAlfa(Paleta.iluminar(nivel.luz, luz * 0.7F), 0.5F);
+        for (int k = 0; k < pasos; k++) {
+            float f = k / (float) (pasos - 1);
+            float w = ancho * (1.0F - (1.0F - f) * (1.0F - f));
+            int yk = (int) (hombro + (yArco - hombro) * f);
+            grafico.fill((int) (cx - w) - 1, yk, (int) (cx - w) + 1, yk + 3, borde);
+            grafico.fill((int) (cx + w) - 1, yk, (int) (cx + w) + 1, yk + 3, borde);
+        }
+    }
+
+    /**
+     * El haz cenital que cae sobre el trono: el gesto central de la sala.
+     *
+     * Baja desde el techo hasta la tarima, ancho y luminoso, ensanchandose al
+     * caer, con un charco de luz al pie y motas de polvo suspendidas dentro. Es
+     * lo que dirige la mirada al fondo, donde espera un asiento vacio.
+     */
+    private static void hazMayor(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
+        float dx = TARIMA;
+        float cx = m.centro(dx);
+        float yTop = m.techoEn(dx * 0.30F);
+        float yBot = m.sueloEn(dx);
+        float ancho = m.anchoEn(dx) * 0.13F;
+        float parpadeo = 0.9F + 0.1F * (float) Math.sin(tiempo * 0.5F);
+        int pasos = 26;
+        int alturaPaso = (int) ((yBot - yTop) / pasos) + 1;
+        for (int k = 0; k < pasos; k++) {
+            float t = k / (float) (pasos - 1);
+            float w = ancho * (0.45F + t * 0.75F);
+            int y = (int) (yTop + (yBot - yTop) * t);
+            float a = 0.13F * luz * parpadeo * (0.35F + 0.65F * t);
+            grafico.fill((int) (cx - w), y, (int) (cx + w), y + alturaPaso,
+                    Paleta.conAlfa(Paleta.iluminar(0xFFFFF0C0, luz), a));
+        }
+        float w = ancho * 1.35F;
+        grafico.fill((int) (cx - w), (int) yBot - 3, (int) (cx + w), (int) yBot + 4,
+                Paleta.conAlfa(Paleta.iluminar(0xFFFFF0C0, luz), 0.16F * luz));
+        for (int i = 0; i < 18; i++) {
+            float px = cx + (Trazo.pseudo(700 + i) - 0.5F) * ancho * 1.6F;
+            float py = yTop + ((Trazo.pseudo(720 + i) + tiempo * 0.02F * (0.5F + Trazo.pseudo(740 + i))) % 1.0F)
+                    * (yBot - yTop);
+            int s = Trazo.pseudo(760 + i) < 0.7F ? 1 : 2;
+            grafico.fill((int) px, (int) py, (int) px + s, (int) py + s,
+                    Paleta.conAlfa(Paleta.iluminar(0xFFFFF6D8, luz), 0.35F * luz));
+        }
     }
 
     /** Los boquetes del techo: parches oscuros de cielo, mas claros que la placa. */
@@ -126,48 +208,80 @@ public final class Trono implements Planta {
         float suelo = m.sueloEn(dx);
         float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
         float at = Trazo.atenuar(luz, lej);
-        float anchoBase = m.w() * dx * 0.34F;
-        float altoEsc = m.h() * dx * 0.06F;
+        float anchoBase = m.anchoEn(dx) * 0.32F;
+        float altoEsc = m.h() * dx * 0.055F;
+        int oro = Paleta.iluminar(Trazo.velar(nivel.luz, nivel.niebla, lej, 0.18F), Math.min(1.0F, at * 1.15F));
+        int oroVivo = Paleta.iluminar(nivel.luz, Math.min(1.0F, at + 0.25F));
+        int sombra = Paleta.iluminar(Trazo.velar(nivel.paredBaja, nivel.niebla, lej, 0.45F), at * 0.48F);
 
-        // Un haz de luz cenital que cae sobre el trono.
-        for (int k = 5; k >= 1; k--) {
-            float t = k / 5.0F;
-            float w = anchoBase * (0.5F + t * 0.6F);
-            grafico.fill((int) (cx - w), (int) m.techoEn(dx * 0.2F), (int) (cx + w), (int) suelo,
-                    Paleta.conAlfa(Paleta.iluminar(0xFFFFF0C0, luz), 0.03F * (1.0F - t * 0.4F)));
-        }
-
-        // Tres escalones de la tarima, cada uno mas angosto arriba.
-        for (int e = 0; e < 3; e++) {
-            float w = anchoBase * (1.0F - e * 0.18F);
+        // La tarima: cinco escalones anchos que suben al trono, cada uno con su
+        // canto iluminado. Se lee como un estrado, no como un cajon.
+        int escalones = 5;
+        for (int e = 0; e < escalones; e++) {
+            float w = anchoBase * (1.0F - e * 0.11F);
             float yTop = suelo - altoEsc * (e + 1);
-            int col = Paleta.iluminar(Trazo.velar(nivel.paredAlta, nivel.niebla, lej, 0.4F), at * (0.7F + e * 0.06F));
+            int col = Paleta.iluminar(Trazo.velar(nivel.paredAlta, nivel.niebla, lej, 0.4F),
+                    at * (0.62F + e * 0.07F));
             grafico.fill((int) (cx - w), (int) yTop, (int) (cx + w), (int) (suelo - altoEsc * e), col);
-            // El canto iluminado del escalon.
-            grafico.fill((int) (cx - w), (int) yTop, (int) (cx + w), (int) yTop + 1,
-                    Paleta.conAlfa(Paleta.iluminar(nivel.luz, at), 0.4F));
+            grafico.fill((int) (cx - w), (int) yTop, (int) (cx + w), (int) yTop + 2,
+                    Paleta.conAlfa(oroVivo, 0.45F));
         }
 
-        // El trono: un asiento y un respaldo alto sobre el ultimo escalon.
-        float baseTrono = suelo - altoEsc * 3;
-        float anchoTrono = anchoBase * 0.42F;
-        float altoTrono = m.h() * dx * 0.42F;
-        int oro = Paleta.iluminar(Trazo.velar(nivel.luz, nivel.niebla, lej, 0.35F), at * 0.85F);
-        int sombra = Paleta.iluminar(Trazo.velar(nivel.paredBaja, nivel.niebla, lej, 0.5F), at * 0.5F);
-        // El respaldo (en sombra por dentro, oro en los bordes).
-        grafico.fill((int) (cx - anchoTrono * 0.5F), (int) (baseTrono - altoTrono),
-                (int) (cx + anchoTrono * 0.5F), (int) baseTrono, sombra);
-        // Montantes dorados a los lados del respaldo.
-        grafico.fill((int) (cx - anchoTrono * 0.5F), (int) (baseTrono - altoTrono),
-                (int) (cx - anchoTrono * 0.5F) + 2, (int) baseTrono, oro);
-        grafico.fill((int) (cx + anchoTrono * 0.5F) - 2, (int) (baseTrono - altoTrono),
-                (int) (cx + anchoTrono * 0.5F), (int) baseTrono, oro);
-        // El remate superior del respaldo.
-        grafico.fill((int) (cx - anchoTrono * 0.5F) - 1, (int) (baseTrono - altoTrono) - 2,
-                (int) (cx + anchoTrono * 0.5F) + 1, (int) (baseTrono - altoTrono) + 1, oro);
-        // El asiento.
-        grafico.fill((int) (cx - anchoTrono * 0.5F), (int) (baseTrono - altoTrono * 0.4F),
-                (int) (cx + anchoTrono * 0.5F), (int) (baseTrono - altoTrono * 0.25F), oro);
+        float base = suelo - altoEsc * escalones;
+        float atW = anchoBase * 0.52F;
+        float respaldo = m.h() * dx * 0.62F;
+        float asientoH = m.h() * dx * 0.16F;
+        float brazoH = m.h() * dx * 0.20F;
+        int mont = Math.max(2, (int) (atW * 0.10F));
+
+        // Sombra proyectada del trono sobre el abside.
+        grafico.fill((int) (cx - atW * 0.5F) - 2, (int) (base - respaldo),
+                (int) (cx + atW * 0.5F) + 2, (int) base, Paleta.conAlfa(0xFF000000, 0.28F));
+
+        // Respaldo alto, interior en sombra.
+        grafico.fill((int) (cx - atW * 0.5F), (int) (base - respaldo),
+                (int) (cx + atW * 0.5F), (int) base, sombra);
+        // Montantes dorados gruesos a los lados.
+        grafico.fill((int) (cx - atW * 0.5F), (int) (base - respaldo),
+                (int) (cx - atW * 0.5F) + mont, (int) base, oro);
+        grafico.fill((int) (cx + atW * 0.5F) - mont, (int) (base - respaldo),
+                (int) (cx + atW * 0.5F), (int) base, oro);
+        // Nervaduras verticales del respaldo, tenues.
+        for (int r = 1; r < 4; r++) {
+            float rx = cx - atW * 0.5F + atW * r / 4.0F;
+            grafico.fill((int) rx, (int) (base - respaldo * 0.92F), (int) rx + 1, (int) (base - asientoH),
+                    Paleta.conAlfa(oro, 0.35F));
+        }
+        // Remate coronado: tres picos.
+        int picoY = (int) (base - respaldo);
+        float[][] picos = {{-0.5F, 0.06F}, {0.0F, 0.13F}, {0.5F, 0.06F}};
+        for (float[] p : picos) {
+            float px = cx + atW * p[0];
+            float hPico = m.h() * dx * p[1];
+            grafico.fill((int) px - mont / 2, (int) (picoY - hPico),
+                    (int) px + mont / 2 + 1, picoY + 1, oro);
+        }
+        // El hueco de la corona ausente, en el pico central.
+        int hx = (int) cx;
+        int hy = (int) (picoY - m.h() * dx * 0.10F);
+        int hw = Math.max(2, (int) (atW * 0.12F));
+        grafico.fill(hx - hw, hy, hx + hw, hy + hw * 2, Paleta.conAlfa(0xFF000000, 0.55F));
+        // Asiento.
+        grafico.fill((int) (cx - atW * 0.5F), (int) (base - asientoH - brazoH),
+                (int) (cx + atW * 0.5F), (int) (base - brazoH), sombra);
+        grafico.fill((int) (cx - atW * 0.5F), (int) (base - asientoH - brazoH),
+                (int) (cx + atW * 0.5F), (int) (base - asientoH - brazoH) + 2, oro);
+        // Brazos: dos bloques dorados a los lados del asiento.
+        int brazoW = Math.max(2, (int) (atW * 0.14F));
+        grafico.fill((int) (cx - atW * 0.5F), (int) (base - asientoH - brazoH),
+                (int) (cx - atW * 0.5F) + brazoW, (int) (base - brazoH * 0.2F), oro);
+        grafico.fill((int) (cx + atW * 0.5F) - brazoW, (int) (base - asientoH - brazoH),
+                (int) (cx + atW * 0.5F), (int) (base - brazoH * 0.2F), oro);
+        // Cojin del asiento: un toque del color de la alfombra, gastado.
+        int coj = Paleta.iluminar(Trazo.velar(Paleta.mezclar(nivel.sueloJunta, nivel.luz, 0.3F),
+                nivel.niebla, lej, 0.4F), at * 0.7F);
+        grafico.fill((int) (cx - atW * 0.5F) + brazoW, (int) (base - asientoH - brazoH * 0.55F),
+                (int) (cx + atW * 0.5F) - brazoW, (int) (base - brazoH * 0.55F), coj);
     }
 
     /** Sillares de piedra en las paredes, con desvio de color. */

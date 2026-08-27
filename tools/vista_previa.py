@@ -2658,11 +2658,12 @@ def pp_cisterna(lz, m, nivel, luz, tiempo) -> None:
 # --------------------------------------------------------------------------
 TRO_TRAMOS = 15
 TRO_HILERA = 0.72
-TRO_TARIMA = 1.6
+TRO_TARIMA = 1.42
 
 
 def trono(lz, m, nivel, luz, tiempo) -> None:
     t_fondo(lz, m, nivel, luz, mezclar(nivel.pared_baja, nivel.junta, 0.30), 1.15)
+    tro_abside(lz, m, nivel, luz)
     t_plano(lz, m, True, mezclar(nivel.techo, nivel.pared_baja, 0.30),
             mezclar(nivel.techo, nivel.niebla, 0.45), nivel.niebla, luz, 0.50)
     t_transversales(lz, m, True, nivel.techo_junta, nivel.niebla, luz, TRO_TRAMOS, 0.28)
@@ -2673,10 +2674,74 @@ def trono(lz, m, nivel, luz, tiempo) -> None:
     t_paredes(lz, m, nivel, luz)
     tro_sillares(lz, m, nivel, luz)
     t_manchas(lz, m, nivel, luz, TRO_TRAMOS)
+    tro_haz_mayor(lz, m, nivel, luz, tiempo)
     tro_trono(lz, m, nivel, luz, tiempo)
     tro_columnas(lz, m, nivel, luz)
     tro_estandartes(lz, m, nivel, luz, tiempo)
     tro_haces(lz, m, nivel, luz, tiempo)
+
+
+def tro_abside(lz, m, nivel, luz) -> None:
+    # El abside: un nicho de piedra al fondo que enmarca el trono. En vez de
+    # dejar el testero plano y oscuro, se recorta un arco elevado detras de la
+    # tarima, mas claro por dentro, con un reborde iluminado. Le da al trono una
+    # pared propia y un lugar en el mundo, no un vacio negro.
+    dx = 1.0
+    cx = m.centro(dx)
+    ancho = m.ancho_en(dx) * 0.30
+    y_suelo = m.suelo_en(dx)
+    y_arco = m.techo_en(dx) + (y_suelo - m.techo_en(dx)) * 0.20
+    hombro = m.techo_en(dx) + (y_suelo - m.techo_en(dx)) * 0.34
+    interior = iluminar(mezclar(nivel.pared_baja, nivel.niebla, 0.35), luz * 0.55)
+    # Cuerpo del nicho (rectangulo desde el hombro hasta el suelo).
+    lz.fill(int(cx - ancho), int(hombro), int(cx + ancho), int(y_suelo), interior)
+    # La boveda del nicho: escalones que suben al centro simulando un arco.
+    pasos = 7
+    for k in range(pasos):
+        f = k / (pasos - 1)
+        w = ancho * (1.0 - (1.0 - f) * (1.0 - f))
+        yk = int(hombro + (y_arco - hombro) * f)
+        lz.fill(int(cx - w), int(y_arco) if k == pasos - 1 else yk,
+                int(cx + w), yk + max(1, int((hombro - y_arco) / pasos) + 1), interior)
+    # Reborde iluminado del arco: el oro del trono se derrama en el marco.
+    borde = con_alfa(iluminar(nivel.luz, luz * 0.7), 0.5)
+    for k in range(pasos):
+        f = k / (pasos - 1)
+        w = ancho * (1.0 - (1.0 - f) * (1.0 - f))
+        yk = int(hombro + (y_arco - hombro) * f)
+        lz.fill(int(cx - w) - 1, yk, int(cx - w) + 1, yk + 3, borde)
+        lz.fill(int(cx + w) - 1, yk, int(cx + w) + 1, yk + 3, borde)
+
+
+def tro_haz_mayor(lz, m, nivel, luz, tiempo) -> None:
+    # El haz cenital que cae sobre el trono: el gesto central de la sala. Baja
+    # desde el techo hasta la tarima, ancho y luminoso, con motas de polvo
+    # suspendidas dentro. Es lo que dice "mira aca" y encuentra un asiento vacio.
+    dx = TRO_TARIMA
+    cx = m.centro(dx)
+    y_top = m.techo_en(dx * 0.30)
+    y_bot = m.suelo_en(dx)
+    ancho = m.ancho_en(dx) * 0.13
+    parpadeo = 0.9 + 0.1 * math.sin(tiempo * 0.5)
+    pasos = 26
+    for k in range(pasos):
+        t = k / (pasos - 1)
+        w = ancho * (0.45 + t * 0.75)
+        y = int(y_top + (y_bot - y_top) * t)
+        a = 0.13 * luz * parpadeo * (0.35 + 0.65 * t)
+        lz.fill(int(cx - w), y, int(cx + w), y + int((y_bot - y_top) / pasos) + 1,
+                con_alfa(iluminar(0xFFFFF0C0, luz), a))
+    # Un charco de luz en el suelo, al pie de la tarima.
+    w = ancho * 1.35
+    lz.fill(int(cx - w), int(y_bot) - 3, int(cx + w), int(y_bot) + 4,
+            con_alfa(iluminar(0xFFFFF0C0, luz), 0.16 * luz))
+    # Motas de polvo en el haz.
+    for i in range(18):
+        px = cx + (pseudo(700 + i) - 0.5) * ancho * 1.6
+        py = y_top + ((pseudo(720 + i) + tiempo * 0.02 * (0.5 + pseudo(740 + i))) % 1.0) * (y_bot - y_top)
+        s = 1 if pseudo(760 + i) < 0.7 else 2
+        lz.fill(int(px), int(py), int(px) + s, int(py) + s,
+                con_alfa(iluminar(0xFFFFF6D8, luz), 0.35 * luz))
 
 
 def tro_boquetes(lz, m, nivel, luz) -> None:
@@ -2720,35 +2785,72 @@ def tro_trono(lz, m, nivel, luz, tiempo) -> None:
     suelo = m.suelo_en(dx)
     lej = limitar(1.0 / dx, 0.0, 1.0)
     at = atenuar(luz, lej)
-    ancho_base = m.w * dx * 0.34
-    alto_esc = m.h * dx * 0.06
-    for k in range(5, 0, -1):
-        t = k / 5.0
-        w = ancho_base * (0.5 + t * 0.6)
-        lz.fill(int(cx - w), int(m.techo_en(dx * 0.2)), int(cx + w), int(suelo),
-                con_alfa(iluminar(0xFFFFF0C0, luz), 0.03 * (1.0 - t * 0.4)))
-    for e in range(3):
-        w = ancho_base * (1.0 - e * 0.18)
+    ancho_base = m.ancho_en(dx) * 0.32
+    alto_esc = m.h * dx * 0.055
+    oro = iluminar(velar(nivel.luz, nivel.niebla, lej, 0.18), min(1.0, at * 1.15))
+    oro_vivo = iluminar(nivel.luz, min(1.0, at + 0.25))
+    sombra = iluminar(velar(nivel.pared_baja, nivel.niebla, lej, 0.45), at * 0.48)
+
+    # La tarima: cinco escalones anchos que suben al trono, cada uno con su
+    # canto iluminado. Mas escalones y mas anchos: se lee como un estrado, no
+    # como un cajon.
+    escalones = 5
+    for e in range(escalones):
+        w = ancho_base * (1.0 - e * 0.11)
         y_top = suelo - alto_esc * (e + 1)
-        col = iluminar(velar(nivel.pared_alta, nivel.niebla, lej, 0.4), at * (0.7 + e * 0.06))
+        col = iluminar(velar(nivel.pared_alta, nivel.niebla, lej, 0.4), at * (0.62 + e * 0.07))
         lz.fill(int(cx - w), int(y_top), int(cx + w), int(suelo - alto_esc * e), col)
-        lz.fill(int(cx - w), int(y_top), int(cx + w), int(y_top) + 1,
-                con_alfa(iluminar(nivel.luz, at), 0.4))
-    base_trono = suelo - alto_esc * 3
-    ancho_trono = ancho_base * 0.42
-    alto_trono = m.h * dx * 0.42
-    oro = iluminar(velar(nivel.luz, nivel.niebla, lej, 0.35), at * 0.85)
-    sombra = iluminar(velar(nivel.pared_baja, nivel.niebla, lej, 0.5), at * 0.5)
-    lz.fill(int(cx - ancho_trono * 0.5), int(base_trono - alto_trono),
-            int(cx + ancho_trono * 0.5), int(base_trono), sombra)
-    lz.fill(int(cx - ancho_trono * 0.5), int(base_trono - alto_trono),
-            int(cx - ancho_trono * 0.5) + 2, int(base_trono), oro)
-    lz.fill(int(cx + ancho_trono * 0.5) - 2, int(base_trono - alto_trono),
-            int(cx + ancho_trono * 0.5), int(base_trono), oro)
-    lz.fill(int(cx - ancho_trono * 0.5) - 1, int(base_trono - alto_trono) - 2,
-            int(cx + ancho_trono * 0.5) + 1, int(base_trono - alto_trono) + 1, oro)
-    lz.fill(int(cx - ancho_trono * 0.5), int(base_trono - alto_trono * 0.4),
-            int(cx + ancho_trono * 0.5), int(base_trono - alto_trono * 0.25), oro)
+        lz.fill(int(cx - w), int(y_top), int(cx + w), int(y_top) + 2,
+                con_alfa(oro_vivo, 0.45))
+
+    base = suelo - alto_esc * escalones
+    # Proporciones del trono: alto y presente. Ancho ~0.5 de la base del estrado.
+    at_w = ancho_base * 0.52
+    respaldo = m.h * dx * 0.62
+    asiento_h = m.h * dx * 0.16
+    brazo_h = m.h * dx * 0.20
+
+    # Sombra proyectada del trono sobre el abside.
+    lz.fill(int(cx - at_w * 0.5) - 2, int(base - respaldo), int(cx + at_w * 0.5) + 2, int(base),
+            con_alfa(0x000000, 0.28))
+
+    # Respaldo alto (interior en sombra).
+    lz.fill(int(cx - at_w * 0.5), int(base - respaldo), int(cx + at_w * 0.5), int(base), sombra)
+    # Montantes dorados gruesos a los lados del respaldo.
+    mont = max(2, int(at_w * 0.10))
+    lz.fill(int(cx - at_w * 0.5), int(base - respaldo), int(cx - at_w * 0.5) + mont, int(base), oro)
+    lz.fill(int(cx + at_w * 0.5) - mont, int(base - respaldo), int(cx + at_w * 0.5), int(base), oro)
+    # Nervaduras verticales del respaldo (tres, tenues).
+    for r in range(1, 4):
+        rx = cx - at_w * 0.5 + at_w * r / 4.0
+        lz.fill(int(rx), int(base - respaldo * 0.92), int(rx) + 1, int(base - asiento_h),
+                con_alfa(oro, 0.35))
+    # Remate coronado: tres picos, el del medio con un HUECO (la corona que no esta).
+    pico_y = int(base - respaldo)
+    for (fx, ph) in ((-0.5, 0.06), (0.0, 0.13), (0.5, 0.06)):
+        px = cx + at_w * fx
+        h_pico = m.h * dx * ph
+        lz.fill(int(px) - mont // 2, int(pico_y - h_pico), int(px) + mont // 2 + 1, pico_y + 1, oro)
+    # El hueco de la corona: un arco oscuro recortado en el pico central.
+    hx = int(cx)
+    hy = int(pico_y - m.h * dx * 0.10)
+    hw = max(2, int(at_w * 0.12))
+    lz.fill(hx - hw, hy, hx + hw, hy + hw * 2, con_alfa(0x000000, 0.55))
+    # Asiento.
+    lz.fill(int(cx - at_w * 0.5), int(base - asiento_h - brazo_h), int(cx + at_w * 0.5),
+            int(base - brazo_h), sombra)
+    lz.fill(int(cx - at_w * 0.5), int(base - asiento_h - brazo_h), int(cx + at_w * 0.5),
+            int(base - asiento_h - brazo_h) + 2, oro)
+    # Brazos: dos bloques dorados macizos a los lados del asiento.
+    brazo_w = max(2, int(at_w * 0.14))
+    lz.fill(int(cx - at_w * 0.5), int(base - asiento_h - brazo_h),
+            int(cx - at_w * 0.5) + brazo_w, int(base - brazo_h * 0.2), oro)
+    lz.fill(int(cx + at_w * 0.5) - brazo_w, int(base - asiento_h - brazo_h),
+            int(cx + at_w * 0.5), int(base - brazo_h * 0.2), oro)
+    # Cojin del asiento: un toque del color de la alfombra, gastado.
+    coj = iluminar(velar(mezclar(nivel.suelo_junta, nivel.luz, 0.3), nivel.niebla, lej, 0.4), at * 0.7)
+    lz.fill(int(cx - at_w * 0.5) + brazo_w, int(base - asiento_h - brazo_h * 0.55),
+            int(cx + at_w * 0.5) - brazo_w, int(base - brazo_h * 0.55), coj)
 
 
 def tro_sillares(lz, m, nivel, luz) -> None:

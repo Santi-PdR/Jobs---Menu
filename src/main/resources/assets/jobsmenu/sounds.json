@@ -606,7 +606,7 @@
     "sounds": [
       {
         "name": "jobsmenu:musica/defecto",
-        "stream": true
+        "stream": false
       }
     ]
   }

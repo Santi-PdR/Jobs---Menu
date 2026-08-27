@@ -14,11 +14,22 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
 
 | | |
 |---|---|
-| Versión | **0.8.2** |
+| Versión | **0.8.3** |
 | Minecraft | 1.20.1 |
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente (el servidor no necesita el mod) |
+
+## Qué trae la 0.8.3
+
+- **La música, arreglada de raíz (de verdad esta vez).** El archivo estaba bien, pero era **estéreo** y todas
+  las camas de ambiente que sí se oían eran **mono**: el motor de sonido de Minecraft las trata distinto, y
+  con los sliders al 100 el tema quedaba mudo mientras el ambiente sonaba. Se re-codificó REQUIEM a **mono**
+  (con más volumen) y se marcó como `stream:false`, igual que las camas que funcionan. Ahora suena.
+- **El salón del trono, rehecho.** Antes el trono era una silla diminuta perdida al fondo y no se sentía como
+  una sala del trono. Ahora hay un **trono alto y coronado** —con brazos, cojín y el hueco de la corona que
+  falta— sobre un **estrado de cinco escalones**, enmarcado por un **ábside** de piedra al fondo y bañado por
+  un **haz de luz cenital** con polvo suspendido. Es el centro de la escena, y está vacío.
 
 ## Qué trae la 0.8.2
 
@@ -310,7 +321,7 @@ Requiere JDK 17 instalado.
 .\gradlew build
 ```
 
-El `.jar` queda en `build\libs\jobsmenu-0.8.2.jar` y se copia a la carpeta `mods` de la instancia.
+El `.jar` queda en `build\libs\jobsmenu-0.8.3.jar` y se copia a la carpeta `mods` de la instancia.
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 
@@ -325,7 +336,7 @@ SKLauncher, pero sirve igual para `.minecraft` o cualquier lanzador.
 # --- 0. Rutas --------------------------------------------------------------
 $repo      = "C:\Users\santi\Desktop\Jobs---Menu"
 $instancia = "C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1"
-$version   = "0.8.2"
+$version   = "0.8.3"
 
 Set-Location $repo
 

@@ -10,7 +10,7 @@
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
 | Paquete Java | `com.santipdr.jobsmenu` |
-| Versión actual | **0.8.2** |
+| Versión actual | **0.8.3** |
 | Plataforma | Minecraft **1.20.1** · Forge **47.x** · Java **17** |
 | Alcance | Menús (Title / Pause / Options), escena viva, audio, lore. **Sin gameplay.** |
 | Lado | **Cliente**. El mod no toca el servidor ni exige instalarse en él. |
@@ -513,6 +513,7 @@ Accesibilidad primero: **cualquiera de esos interruptores deja un menú usable y
 | **0.8.0** | Condiciones de estancia (opciones del mod con la piel del aviso: casillas y reglas graduadas que escriben y guardan la config sin tocar el archivo) y pausa propia ("Estancia en suspenso"), replicando la salida guardada de vanilla para no chocar con los mods de guardado en segundo plano | **Entregado** |
 | **0.8.1** | Las condiciones de estancia recuperan el acceso a las opciones reales del juego: un renglon "Ajustes del equipo" al pie de la hoja abre el `OptionsScreen` de vanilla (imagen, sonido, controles, idioma, recursos). Los ajustes del mod y los del equipo conviven sin que se pierda ninguno | **Entregado** |
 | **0.8.2** | Un solo menu de ajustes: se retira la hoja de opciones propia y los ajustes del mod pasan a una subpantalla de opciones nativa (`OptionsSubScreen` + `OptionsList` + `OptionInstance`), a la que se llega por un boton "Ajustes del aviso" que el mod inserta en la pantalla de opciones del juego. Arreglo de la musica: se calla al gestor de musica de vanilla mientras el aviso esta abierto, para que el tema no compita por el canal `MUSIC` (era la causa de que el ambiente se oyera y la musica no) | **Entregado** |
+| **0.8.3** | Arreglo real de la musica: la pista era estereo y las camas que si sonaban eran mono; el motor las trata distinto. Se re-codifico REQUIEM a mono (mas volumen) y `stream:false`, igual que el ambiente. Nivel 9 rehecho: trono alto y coronado (brazos, cojin, hueco de la corona) sobre estrado de cinco escalones, abside de piedra al fondo y haz cenital con polvo. El espejo Python queda sincronizado | **Entregado** |
 | 0.9.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
 | 0.10.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |
 | 1.0.0 | Pulido, accesibilidad completa, empaquetado para repartir | Pendiente |
