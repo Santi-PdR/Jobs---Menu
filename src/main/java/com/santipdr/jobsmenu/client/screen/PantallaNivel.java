@@ -223,6 +223,15 @@ public class PantallaNivel extends Screen {
         for (int i = 0; i < NotaAviso.AVISOS; i++) {
             maximo = Math.max(maximo, lineas("jobsmenu.aviso." + i, ancho));
         }
+        // Las notas especiales por fecha (ano nuevo, difuntos, viernes 13...)
+        // tambien ocupan este renglon, y algunas parten en mas lineas que el
+        // aviso comun mas largo. Si no se midieran, la hoja reservaria de menos
+        // y en una fecha senalada la nota especial empujaria los renglones. Se
+        // miden todas, no solo la de hoy: la hoja no puede cambiar de alto
+        // segun el dia.
+        for (String especial : NotaAviso.ESPECIALES) {
+            maximo = Math.max(maximo, lineas(especial, ancho));
+        }
         return maximo * ALTO_LINEA + 2;
     }
 

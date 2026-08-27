@@ -38,7 +38,25 @@ import java.time.LocalDateTime;
 public class NotaAviso extends AbstractButton {
 
     /** Cantidad de avisos disponibles en los archivos de idioma. */
-    public static final int AVISOS = 16;
+    public static final int AVISOS = 20;
+
+    /**
+     * Todas las notas especiales que la administracion puede colar por fecha u
+     * hora. Estan aca, y no solo en especialDeHoy(), porque la hoja necesita
+     * reservar alto para la mas larga de TODAS las notas -comunes y especiales-
+     * antes de saber que dia es: una nota especial que parta en mas lineas
+     * empujaria los renglones si la hoja no la hubiese tenido en cuenta. El
+     * orden de esta lista no decide cual gana; de eso se ocupa especialDeHoy().
+     */
+    public static final String[] ESPECIALES = {
+            "jobsmenu.aviso.especial.anonuevo",
+            "jobsmenu.aviso.especial.navidad",
+            "jobsmenu.aviso.especial.difuntos",
+            "jobsmenu.aviso.especial.trabajador",
+            "jobsmenu.aviso.especial.viernes13",
+            "jobsmenu.aviso.especial.madrugada",
+            "jobsmenu.aviso.especial.medianoche",
+    };
 
     /** Cada cuantos milisegundos pasa solo al siguiente. */
     private static final long ROTACION_MS = 7_000L;
@@ -96,28 +114,46 @@ public class NotaAviso extends AbstractButton {
     /**
      * La nota especial que corresponde a la fecha y hora de hoy, o null.
      *
-     * El orden importa: primero lo mas raro (la madrugada, que es diaria) cede
-     * ante lo mas senalado (una fecha concreta). Asi un viernes 13 a las tres de
-     * la manana gana el viernes 13, que pasa una vez cada tanto, y no la
-     * madrugada, que es de todos los dias.
+     * El orden importa: primero lo mas raro (una fecha concreta, que pasa una
+     * vez al ano) y al final lo mas comun (una hora del dia, que vuelve cada
+     * jornada). Asi un viernes 13 a las tres de la manana gana el viernes 13, y
+     * la Navidad a medianoche gana la Navidad. Lo senalado siempre le gana a lo
+     * cotidiano.
      */
     private static String especialDeHoy() {
         LocalDateTime ahora = LocalDateTime.now();
         int mes = ahora.getMonthValue();
         int dia = ahora.getDayOfMonth();
+        int hora = ahora.getHour();
 
+        // --- Fechas concretas: lo mas raro, gana siempre. ---
         if (mes == 1 && dia == 1) {
             return "jobsmenu.aviso.especial.anonuevo";
+        }
+        if (mes == 12 && (dia == 24 || dia == 25)) {
+            return "jobsmenu.aviso.especial.navidad";
         }
         if (mes == 10 && dia == 31) {
             return "jobsmenu.aviso.especial.difuntos";
         }
+        // El Dia del Trabajador: guino directo al nombre del server.
+        if (mes == 5 && dia == 1) {
+            return "jobsmenu.aviso.especial.trabajador";
+        }
         if (dia == 13 && ahora.getDayOfWeek() == DayOfWeek.FRIDAY) {
             return "jobsmenu.aviso.especial.viernes13";
         }
+
+        // --- Horas del dia: lo mas comun, solo si no cayo ninguna fecha. ---
         // La hora de las brujas: de 3:00 a 3:59, cualquier dia.
-        if (ahora.getHour() == 3) {
+        if (hora == 3) {
             return "jobsmenu.aviso.especial.madrugada";
+        }
+        // El cambio de turno: la hora cero, de 0:00 a 0:59. Se acota a la hora
+        // entera -y no al minuto justo- para que llegue a verse: con el minuto
+        // exacto y la regla de una vuelta de cada tres, no aparecia casi nunca.
+        if (hora == 0) {
+            return "jobsmenu.aviso.especial.medianoche";
         }
         return null;
     }

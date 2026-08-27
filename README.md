@@ -14,11 +14,24 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
 
 | | |
 |---|---|
-| Versión | **0.7.1** |
+| Versión | **0.7.2** |
 | Minecraft | 1.20.1 |
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente (el servidor no necesita el mod) |
+
+## Qué trae la 0.7.2
+
+Más voz de la administración, y un arreglo de maquetación que sólo se veía en fechas señaladas:
+
+- **Cuatro avisos rotativos nuevos** (de 16 a 20): el ascensor que nunca funcionó, el turno indefinido, lo
+  que pide comida y las luces que se apagan solas. La misma voz seca de siempre.
+- **Tres easter eggs nuevos por fecha y hora.** El **Día del Trabajador** —guiño directo al nombre del
+  server—, la **Navidad** y el minuto justo de la **medianoche**, el cambio de turno. Aparecen sólo esos días
+  y sólo de vez en cuando: se descubren, no se anuncian.
+- **La hoja ya no baila en las fechas señaladas.** Reservaba alto midiendo sólo los avisos comunes; una nota
+  especial más larga empujaba los renglones hacia abajo. Ahora mide también las notas especiales, así la hoja
+  tiene el mismo tamaño cualquier día del año.
 
 ## Qué trae la 0.7.1
 
@@ -259,7 +272,7 @@ Requiere JDK 17 instalado.
 .\gradlew build
 ```
 
-El `.jar` queda en `build\libs\jobsmenu-0.7.1.jar` y se copia a la carpeta `mods` de la instancia.
+El `.jar` queda en `build\libs\jobsmenu-0.7.2.jar` y se copia a la carpeta `mods` de la instancia.
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 
@@ -274,7 +287,7 @@ SKLauncher, pero sirve igual para `.minecraft` o cualquier lanzador.
 # --- 0. Rutas --------------------------------------------------------------
 $repo      = "C:\Users\santi\Desktop\Jobs---Menu"
 $instancia = "C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1"
-$version   = "0.7.1"
+$version   = "0.7.2"
 
 Set-Location $repo
 
