@@ -121,6 +121,16 @@ public final class GestorAmbiente {
                     new Evento(SonidosNivel.EV_N4_CADENA, 2.0F, 0.20F, 0.38F, 0.96F, 1.05F),
                     new Evento(SonidosNivel.EV_N4_PIEDRA, 1.2F, 0.22F, 0.40F, 0.94F, 1.04F),
             }),
+
+            // Nivel 5 - La biblioteca. El sitio mas callado: ventanas largas
+            // entre sucesos, y los sucesos son sordos. El susurro es lo mas
+            // raro y por eso pesa menos. Casi sin variacion de tono: son
+            // objetos concretos (papel, madera, un reloj), no ruido.
+            new Repertorio(16_000L, 38_000L, new Evento[] {
+                    new Evento(SonidosNivel.EV_N5_LIBRO, 3.0F, 0.22F, 0.40F, 0.96F, 1.05F),
+                    new Evento(SonidosNivel.EV_N5_RELOJ, 1.6F, 0.18F, 0.34F, 0.98F, 1.02F),
+                    new Evento(SonidosNivel.EV_N5_SUSURRO, 1.0F, 0.16F, 0.30F, 0.97F, 1.03F),
+            }),
     };
 
     private static final Random AZAR = new Random();
@@ -247,6 +257,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.AMBIENTE_NIVEL3;
             case 4:
                 return SonidosNivel.AMBIENTE_NIVEL4;
+            case 5:
+                return SonidosNivel.AMBIENTE_NIVEL5;
             default:
                 return SonidosNivel.AMBIENTE_NIVEL0;
         }
@@ -262,6 +274,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.CARACTER_NIVEL3;
             case 4:
                 return SonidosNivel.CARACTER_NIVEL4;
+            case 5:
+                return SonidosNivel.CARACTER_NIVEL5;
             default:
                 return SonidosNivel.CARACTER_NIVEL0;
         }
@@ -277,6 +291,8 @@ public final class GestorAmbiente {
                 return SonidosNivel.ACTIVIDAD_NIVEL3;
             case 4:
                 return SonidosNivel.ACTIVIDAD_NIVEL4;
+            case 5:
+                return SonidosNivel.ACTIVIDAD_NIVEL5;
             default:
                 return SonidosNivel.ACTIVIDAD_NIVEL0;
         }

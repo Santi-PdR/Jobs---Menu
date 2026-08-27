@@ -1,5 +1,6 @@
 package com.santipdr.jobsmenu.client.scene;
 
+import com.santipdr.jobsmenu.client.scene.planta.Biblioteca;
 import com.santipdr.jobsmenu.client.scene.planta.Cripta;
 import com.santipdr.jobsmenu.client.scene.planta.Nave;
 import com.santipdr.jobsmenu.client.scene.planta.Natatorio;
@@ -191,6 +192,19 @@ public final class Nivel {
                     // frente y un punto desde abajo: el candil domina el techo.
                     0.505F, 0.500F, 0.150F, 0.150F, 0.185F, 0.150F,
                     0.20F, 0.55F),
+
+            // Nivel 5 - La biblioteca. Estanterias de madera oscura hasta el
+            // techo, lamparas de pantalla verde, polvo. Marron calido y verde
+            // apagado; la sala mas quieta de todas. Fondo: un ventanal gris.
+            new Nivel("nivel5", new Biblioteca(),
+                    0xFF7C6142, 0xFF4E3B26, 0xFF2C2013,
+                    0xFF5A4A34, 0xFF3C3020, 0xFF241B10,
+                    0xFF6E5C42, 0xFF3E3020,
+                    0xFF433624, 0xFFE9D8A0, 0xFF120E08,
+                    // Sala honda de techo medio, vista de frente por el pasillo
+                    // central entre las dos hileras de estanterias.
+                    0.500F, 0.500F, 0.140F, 0.140F, 0.150F, 0.140F,
+                    0.14F, 0.45F),
     };
 
     /** Cuantos niveles hay en la rotacion. */

@@ -383,5 +383,64 @@ public final class PrimerPlano {
                     Paleta.conAlfa(Paleta.iluminar(0xFFFFF3D8, Math.min(1.0F, luz * llama * 1.4F)), 0.95F));
         }
     }
+
+    // ----------------------------------------------------------------------
+    // Nivel 5 - La biblioteca: el borde de la mesa de lectura con un libro
+    // ----------------------------------------------------------------------
+
+    /**
+     * El canto de una mesa de lectura, con un libro abierto y una lampara.
+     *
+     * Se mira la biblioteca desde un pupitre de la sala central. La tapa de
+     * madera recibe la luz verde de la lampara; el libro abierto es dos paginas
+     * claras en V, lo unico que dice que alguien estaba aca hace un momento.
+     */
+    public static void biblioteca(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
+        float balance = desvio(tiempo, 2.0F, 0.07F);
+        int tapaY = (int) (m.alto() * 0.84F + balance);
+        int x0 = (int) (m.ancho() * 0.10F + balance * 1.3F);
+        int x1 = (int) (m.ancho() * 0.90F + balance * 1.3F);
+
+        int frente = Paleta.mezclar(nivel.paredBaja, 0xFF000000, 0.55F);
+        int tapa = Paleta.mezclar(nivel.suelo, nivel.junta, 0.30F);
+
+        grafico.fillGradient(x0, tapaY, x1, m.alto(),
+                Paleta.iluminar(frente, 0.28F + 0.18F * luz),
+                Paleta.iluminar(frente, 0.10F + 0.08F * luz));
+        int espesor = Math.max(5, (int) (m.alto() * 0.032F));
+        grafico.fillGradient(x0, tapaY - espesor, x1, tapaY,
+                Paleta.iluminar(tapa, 0.55F + 0.30F * luz),
+                Paleta.iluminar(tapa, 0.40F + 0.22F * luz));
+        grafico.fill(x0, tapaY - espesor, x1, tapaY - espesor + 2,
+                Paleta.conAlfa(0xFF2E5A3A, 0.10F + 0.16F * luz));
+
+        // El libro abierto, de canto: dos paginas claras en V y el lomo al medio.
+        int lx = (int) (m.ancho() * 0.40F + balance * 1.3F);
+        int lw = (int) (m.ancho() * 0.20F);
+        int lh = Math.max(4, (int) (m.alto() * 0.03F));
+        int pagina = Paleta.iluminar(Paleta.mezclar(nivel.paredAlta, 0xFFFFFFFF, 0.25F), 0.5F + 0.4F * luz);
+        grafico.fill(lx, tapaY - espesor - lh, lx + lw / 2, tapaY - espesor, pagina);
+        grafico.fill(lx + lw / 2, tapaY - espesor - lh, lx + lw, tapaY - espesor, pagina);
+        // El lomo levantado del medio.
+        grafico.fill(lx + lw / 2 - 1, tapaY - espesor - lh - 2, lx + lw / 2 + 1, tapaY - espesor,
+                Paleta.conAlfa(Paleta.iluminar(nivel.junta, luz), 0.8F));
+
+        // Una lampara de mesa a la derecha, pantalla verde, tibia.
+        int px = (int) (m.ancho() * 0.70F + balance * 1.3F);
+        int py = tapaY - espesor;
+        int ph = (int) (m.alto() * 0.12F);
+        float titil = 0.9F + 0.1F * (float) Math.sin(tiempo * 5.0F);
+        for (int k = 4; k >= 1; k--) {
+            float t = k / 4.0F;
+            float e = m.ancho() * 0.02F * (1.0F + t * 2.5F);
+            grafico.fill((int) (px - e), (int) (py - ph * 0.6F - e * 0.5F), (int) (px + e), py,
+                    Paleta.conAlfa(nivel.luz, 0.06F * luz * titil * (1.0F - t * 0.5F)));
+        }
+        grafico.fill(px - 1, py - ph, px + 1, py, Paleta.conAlfa(Paleta.iluminar(nivel.junta, luz), 0.85F));
+        int verde = Paleta.mezclar(nivel.luz, 0xFF2E5A3A, 0.55F);
+        grafico.fill(px - (int) (m.ancho() * 0.03F), py - ph - 3,
+                px + (int) (m.ancho() * 0.03F), py - ph + 4,
+                Paleta.iluminar(verde, Math.min(1.0F, luz * titil * 1.1F)));
+    }
 }
 

@@ -189,6 +189,16 @@ NIVELES = [
           fuga_x=0.505, fuga_y=0.500,
           semi_izq=0.150, semi_der=0.150, semi_alto=0.185, semi_bajo=0.150,
           reflejo=0.20, humedad=0.55),
+
+    # Nivel 5 - La biblioteca. Estanterias de madera oscura, lamparas verdes.
+    Nivel(clave="nivel5", planta="biblioteca",
+          pared_alta=0xFF7C6142, pared_baja=0xFF4E3B26, junta=0xFF2C2013,
+          suelo=0xFF5A4A34, suelo_lejos=0xFF3C3020, suelo_junta=0xFF241B10,
+          techo=0xFF6E5C42, techo_junta=0xFF3E3020,
+          niebla=0xFF433624, luz=0xFFE9D8A0, fondo=0xFF120E08,
+          fuga_x=0.500, fuga_y=0.500,
+          semi_izq=0.140, semi_der=0.140, semi_alto=0.150, semi_bajo=0.140,
+          reflejo=0.14, humedad=0.45),
 ]
 
 
@@ -1938,19 +1948,170 @@ def pp_cripta(lz, m, nivel, luz, tiempo) -> None:
             con_alfa(iluminar(nivel.luz, luz * llama), 0.30))
 
 
+# --------------------------------------------------------------------------
+# Nivel 5 - La biblioteca: espejo de planta/Biblioteca.java
+# --------------------------------------------------------------------------
+BIB_TRAMOS = 15
+BIB_HILERA = 0.66
+
+
+def biblioteca(lz, m, nivel, luz, tiempo) -> None:
+    t_fondo(lz, m, nivel, luz, mezclar(nivel.pared_baja, nivel.junta, 0.30), 1.25)
+    bib_ventanal(lz, m, nivel, luz)
+    t_plano(lz, m, True, nivel.techo, mezclar(nivel.techo, nivel.niebla, 0.40),
+            nivel.niebla, luz, 0.52)
+    t_transversales(lz, m, True, nivel.techo_junta, nivel.niebla, luz, BIB_TRAMOS, 0.30)
+    t_plano(lz, m, False, nivel.suelo, nivel.suelo_lejos, nivel.niebla, luz, 0.55)
+    t_transversales(lz, m, False, nivel.suelo_junta, nivel.niebla, luz, BIB_TRAMOS, 0.42)
+    bib_alfombra(lz, m, nivel, luz)
+    t_paredes(lz, m, nivel, luz)
+    t_juntas(lz, m, nivel, luz, BIB_TRAMOS, 1.0, 0.30)
+    t_manchas(lz, m, nivel, luz, BIB_TRAMOS)
+    bib_estanterias(lz, m, nivel, luz)
+    bib_lamparas(lz, m, nivel, luz, tiempo)
+
+
+def bib_ventanal(lz, m, nivel, luz) -> None:
+    suelo = m.suelo_en(1.0)
+    alto = m.h * 1.35
+    x0, x1 = round(m.izq(0.34)), round(m.der(0.34))
+    y0 = round(suelo - alto)
+    y1 = round(suelo - m.h * 0.25)
+    lz.fill_gradient(x0, y0, x1, y1,
+                     iluminar(mezclar(nivel.niebla, 0xFFB8C0C8, 0.45), luz * 0.75),
+                     iluminar(nivel.niebla, luz * 0.45))
+    cy = (y0 + y1) // 2
+    marco = iluminar(nivel.junta, luz * 0.6)
+    for k in range(1, 4):
+        vx = x0 + (x1 - x0) * k // 4
+        lz.fill(vx, y0, vx + 1, y1, marco)
+    lz.fill(x0, cy, x1, cy + 1, marco)
+    lz.fill(x0 - 2, y0 - 2, x1 + 2, y0, marco)
+
+
+def bib_alfombra(lz, m, nivel, luz) -> None:
+    for y in range(round(m.suelo_en(1.0)), m.alto, PASO):
+        dy = m.dy(y + PASO * 0.5)
+        if dy <= 1.0:
+            continue
+        lej = limitar(1.0 / dy, 0.0, 1.0)
+        medio = m.w * dy * 0.30
+        color = mezclar(nivel.suelo_junta, nivel.luz, 0.10)
+        lz.fill(int(m.centro(dy) - medio), y, int(m.centro(dy) + medio), y + PASO,
+                con_alfa(iluminar(color, atenuar(luz, lej)), 0.20))
+
+
+def bib_estanterias(lz, m, nivel, luz) -> None:
+    for x in range(0, m.ancho, PASO):
+        dx = m.dx(x + PASO * 0.5)
+        if dx <= 1.05 or dx > 6.5:
+            continue
+        centro = x + PASO * 0.5
+        signo = -1 if centro < m.fx else 1
+        x_hilera = m.lado(signo, dx * BIB_HILERA)
+        if abs(centro - x_hilera) > m.w * dx * 0.5:
+            continue
+        lej = limitar(1.0 / dx, 0.0, 1.0)
+        at = atenuar(luz, lej)
+        y_techo = m.techo_en(dx * 0.86)
+        y_suelo = m.suelo_en(dx)
+        if y_suelo - y_techo < 4:
+            continue
+        madera = iluminar(velar(nivel.pared_baja, nivel.niebla, lej, 0.45), at * 0.75)
+        lz.fill(x, int(y_techo), x + PASO, int(y_suelo), madera)
+        baldas = 6
+        for b in range(baldas):
+            f0 = b / baldas
+            f1 = (b + 1) / baldas
+            yb0 = int(y_techo + (y_suelo - y_techo) * f0) + 1
+            yb1 = int(y_techo + (y_suelo - y_techo) * f1) - 1
+            if yb1 <= yb0:
+                continue
+            semilla = pseudo(int(dx * 53.0) + b * 17 + (signo + 1) * 91)
+            lomo = mezclar(mezclar(nivel.pared_alta, nivel.junta, 0.35), nivel.luz, 0.12 + semilla * 0.5)
+            lz.fill(x, yb0, x + PASO, yb1,
+                    iluminar(velar(lomo, nivel.niebla, lej, 0.4), at * (0.7 + 0.3 * semilla)))
+            lz.fill(x, yb1, x + PASO, yb1 + 1, con_alfa(iluminar(nivel.junta, at), 0.6))
+
+
+def bib_lamparas(lz, m, nivel, luz, tiempo) -> None:
+    for j in range(3, BIB_TRAMOS + 1, 2):
+        dx = profundidad(j, BIB_TRAMOS)
+        if dx > 6.0:
+            continue
+        signo = -1 if j % 4 == 1 else 1
+        lej = limitar(1.0 / dx, 0.0, 1.0)
+        x = m.lado(signo, dx * (BIB_HILERA - 0.10))
+        if x < -8 or x > m.ancho + 8:
+            continue
+        y = m.suelo_en(dx * 0.60)
+        titil = 0.9 + 0.1 * math.sin(tiempo * 5.0 + j * 1.3)
+        at = atenuar(luz, lej) * titil
+        medio = max(1.5, m.w * dx * 0.028)
+        for k in range(4, 0, -1):
+            t = k / 4.0
+            e = medio * (1.0 + t * 3.2)
+            lz.fill(int(x - e), int(y - e), int(x + e), int(y + e),
+                    con_alfa(nivel.luz, 0.06 * at * (1.0 - t * 0.5)))
+        verde = mezclar(nivel.luz, 0xFF2E5A3A, 0.55)
+        lz.fill(int(x - medio), int(y - medio * 1.4), int(x + medio), int(y - medio * 0.4),
+                iluminar(verde, min(1.0, at * 1.1)))
+        lz.fill(int(x - medio * 0.5), int(y - medio * 0.4), int(x + medio * 0.5), int(y + medio * 0.3),
+                con_alfa(iluminar(0xFFFFF0C0, min(1.0, at * 1.3)), 0.9))
+        lz.fill(int(x - 1), int(y + medio * 0.3), int(x + 1), int(y + medio * 1.2),
+                con_alfa(iluminar(nivel.junta, at), 0.8))
+
+
+def pp_biblioteca(lz, m, nivel, luz, tiempo) -> None:
+    balance = desvio(tiempo, 2.0, 0.07)
+    tapa_y = int(lz.alto * 0.84 + balance)
+    x0 = int(lz.ancho * 0.10 + balance * 1.3)
+    x1 = int(lz.ancho * 0.90 + balance * 1.3)
+    frente = mezclar(nivel.pared_baja, 0x000000, 0.55)
+    tapa = mezclar(nivel.suelo, nivel.junta, 0.30)
+    lz.fill_gradient(x0, tapa_y, x1, lz.alto,
+                     iluminar(frente, 0.28 + 0.18 * luz), iluminar(frente, 0.10 + 0.08 * luz))
+    espesor = max(5, int(lz.alto * 0.032))
+    lz.fill_gradient(x0, tapa_y - espesor, x1, tapa_y,
+                     iluminar(tapa, 0.55 + 0.30 * luz), iluminar(tapa, 0.40 + 0.22 * luz))
+    lz.fill(x0, tapa_y - espesor, x1, tapa_y - espesor + 2, con_alfa(0xFF2E5A3A, 0.10 + 0.16 * luz))
+    lx = int(lz.ancho * 0.40 + balance * 1.3)
+    lw = int(lz.ancho * 0.20)
+    lh = max(4, int(lz.alto * 0.03))
+    pagina = iluminar(mezclar(nivel.pared_alta, 0xFFFFFFFF, 0.25), 0.5 + 0.4 * luz)
+    lz.fill(lx, tapa_y - espesor - lh, lx + lw // 2, tapa_y - espesor, pagina)
+    lz.fill(lx + lw // 2, tapa_y - espesor - lh, lx + lw, tapa_y - espesor, pagina)
+    lz.fill(lx + lw // 2 - 1, tapa_y - espesor - lh - 2, lx + lw // 2 + 1, tapa_y - espesor,
+            con_alfa(iluminar(nivel.junta, luz), 0.8))
+    px = int(lz.ancho * 0.70 + balance * 1.3)
+    py = tapa_y - espesor
+    ph = int(lz.alto * 0.12)
+    titil = 0.9 + 0.1 * math.sin(tiempo * 5.0)
+    for k in range(4, 0, -1):
+        t = k / 4.0
+        e = lz.ancho * 0.02 * (1.0 + t * 2.5)
+        lz.fill(int(px - e), int(py - ph * 0.6 - e * 0.5), int(px + e), py,
+                con_alfa(nivel.luz, 0.06 * luz * titil * (1.0 - t * 0.5)))
+    lz.fill(px - 1, py - ph, px + 1, py, con_alfa(iluminar(nivel.junta, luz), 0.85))
+    verde = mezclar(nivel.luz, 0xFF2E5A3A, 0.55)
+    lz.fill(px - int(lz.ancho * 0.03), py - ph - 3, px + int(lz.ancho * 0.03), py - ph + 4,
+            iluminar(verde, min(1.0, luz * titil * 1.1)))
+
+
 PRIMEROS_PLANOS = {
     "sala": pp_sala,
     "nave": pp_nave,
     "servicio": pp_servicio,
     "natatorio": pp_natatorio,
     "cripta": pp_cripta,
+    "biblioteca": pp_biblioteca,
 }
 
 
 PLANTAS = {"sala": sala, "nave": nave, "servicio": servicio, "natatorio": natatorio,
-           "cripta": cripta}
+           "cripta": cripta, "biblioteca": biblioteca}
 PISO_PRESENCIA = {"sala": 0.94, "nave": 1.30, "servicio": 0.98, "natatorio": 1.18,
-                  "cripta": 0.98}
+                  "cripta": 0.98, "biblioteca": 0.96}
 
 
 # --------------------------------------------------------------------------

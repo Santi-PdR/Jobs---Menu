@@ -207,6 +207,9 @@ SALAS = {
     # Sala de piedra abovedada: grande y calida, cola media, sin el brillo del
     # azulejo -la piedra absorbe los agudos-, mas oscura que el deposito.
     "sala_piedra": impulso(2.30, 0.022, 2_400.0, 1.3),
+    # Biblioteca: los libros y la madera absorben casi todo. Cola corta y
+    # seca, mate, la mas apagada de todas -por eso el sitio se siente muerto-.
+    "biblioteca": impulso(0.85, 0.010, 2_000.0, 0.6),
 }
 
 
@@ -832,6 +835,30 @@ def base_nivel4(dur: float = 26.0) -> np.ndarray:
     return reverberar(x, SALAS["sala_piedra"], 0.38)
 
 
+def base_nivel5(dur: float = 22.0) -> np.ndarray:
+    """Nivel 5, la biblioteca.
+
+    El sitio mas quieto. No hay maquinas ni fuego: hay una sala grande llena de
+    papel que se traga el sonido. La base es un room tone muy bajo -el silencio
+    tiene su propio color- con el rumor apenas audible de una calle o un patio
+    detras del ventanal, muy filtrado, que nunca termina de estar.
+    """
+    t = tiempo(dur)
+
+    # Room tone: ruido rosa muy filtrado y bajo. El silencio de una sala real
+    # no es cero, es esto.
+    cuarto = pasabajos(rosa(dur), 400.0, 2) * 0.9 * deriva(dur, 0.017, 0.20)
+
+    # La calle detras del ventanal: banda media-baja, lejanisima y sorda, como
+    # a traves de un vidrio grueso. Sube y baja como el trafico que no se ve.
+    calle = pasabanda(rosa(dur), 120.0, 800.0, 2) * 0.6
+    calle *= 0.4 + 0.6 * np.clip(np.sin(2 * np.pi * 0.02 * t) * 0.5 + 0.5, 0.0, None)
+    calle = pasabajos(calle, 600.0, 2)
+
+    x = cuarto * 0.09 + calle * 0.05
+    return reverberar(x, SALAS["biblioteca"], 0.18)
+
+
 # ==========================================================================
 # 2b. Capa de caracter: la segunda cama, tambien continua
 # ==========================================================================
@@ -1028,6 +1055,36 @@ def caracter_nivel4(dur: float = 39.0) -> np.ndarray:
 
     x = llama * 0.070 + chas * 0.42
     return reverberar(x, SALAS["sala_piedra"], 0.44)
+
+
+def caracter_nivel5(dur: float = 33.0) -> np.ndarray:
+    """Nivel 5. La madera y el papel de la biblioteca, respirando.
+
+    No es una fuente continua fuerte: es el mueble viejo que se acomoda -tics de
+    madera secos y espaciados- y el zumbido finisimo de un tubo o un filamento
+    de las lamparas de mesa. Casi nada, que es el punto: hay que aguzar el oido
+    para notar que la sala esta viva, y esa atencion es la incomodidad.
+    """
+    t = tiempo(dur)
+
+    # Zumbido finisimo de las lamparas: una senoidal muy baja y estable.
+    zumbido = np.sin(2 * np.pi * 120.0 * t) * 0.02 * deriva(dur, 0.05, 0.4)
+    zumbido += pasabanda(rosa(dur), 3_000.0, 6_000.0, 2) * 0.05 * deriva(dur, 0.2, 0.5)
+
+    # Tics de madera: transitorios secos, cortos, muy espaciados.
+    tics = np.zeros(len(t))
+    for _ in range(18):
+        pos = muestras(RNG.uniform(0.3, dur - 0.3))
+        largo = min(muestras(RNG.uniform(0.004, 0.02)), len(t) - pos)
+        if largo <= 0:
+            continue
+        tc = np.arange(largo) / SR
+        c = pasabanda(RNG.normal(0, 1, largo), 400.0, 3_000.0, 2)
+        c *= np.exp(-tc / RNG.uniform(0.003, 0.010)) * RNG.uniform(0.08, 0.28)
+        tics[pos:pos + largo] += c
+
+    x = zumbido * 0.5 + tics * 0.30
+    return reverberar(x, SALAS["biblioteca"], 0.22)
 
 
 
@@ -1257,6 +1314,33 @@ def actividad_nivel4(dur: float = 57.0) -> np.ndarray:
     _sembrar(x, piedra, 26.2, 0.12)
 
     return reverberar(x, SALAS["sala_piedra"], 0.70)
+
+
+def actividad_nivel5(dur: float = 51.0) -> np.ndarray:
+    """Nivel 5. La biblioteca, donde lo unico que pasa es que algo cae.
+
+    Sucesos raros y sordos, casi todos de papel y madera: un libro que se cae
+    de una balda en otro pasillo, una silla que se corre sola, el crujido de una
+    escalera de mano. La sala se traga la cola, asi que cada suceso es seco y se
+    acaba enseguida -y por eso inquieta: no hay eco que lo explique-.
+    """
+    x = np.zeros(muestras(dur))
+
+    # Un libro cayendo al piso: golpe sordo de papel y tapa.
+    libro = _lejos(cargar("impactSoft_medium_000"), 0.6, 1_400.0, 210.0)
+    for s, g in ((9.1, 0.22), (30.7, 0.26), (46.3, 0.18)):
+        _sembrar(x, libro, s, g)
+
+    # Una silla que se corre: madera arrastrada, corta.
+    silla = _lejos(cargar("impactWood_light_000"), 1.0, 1_100.0, 160.0)
+    _sembrar(x, silla, 18.5, 0.20)
+    _sembrar(x, silla, 40.2, 0.16)
+
+    # La escalera de mano de los estantes crujiendo.
+    escalera = _lejos(cargar("impactPlank_medium_000"), 1.3, 900.0, 140.0)
+    _sembrar(x, escalera, 24.8, 0.15)
+
+    return reverberar(x, SALAS["biblioteca"], 0.40)
 
 
 # ==========================================================================
@@ -1519,6 +1603,66 @@ def ev_nivel4_piedra() -> np.ndarray:
     return rampa(reverberar(x, SALAS["sala_piedra"], 0.72), 0.01, 0.95)
 
 
+def ev_nivel5_libro() -> np.ndarray:
+    """Un libro que se cae de un estante. Golpe de tapa y aleteo de paginas."""
+    dur = 1.8
+    n = muestras(dur)
+    tapa = pasabanda(RNG.normal(0, 1, n), 200.0, 1_600.0, 2) * envolvente(n, 0.002, 0.08, 4.0)
+    # Aleteo: dos o tres golpecitos de papel al abrirse en el aire.
+    aleteo = np.zeros(n)
+    for pos_s in (0.03, 0.11, 0.19):
+        pos = muestras(pos_s)
+        largo = min(muestras(0.05), n - pos)
+        if largo <= 0:
+            continue
+        tc = np.arange(largo) / SR
+        a = pasabanda(RNG.normal(0, 1, largo), 1_500.0, 5_000.0, 2)
+        a *= np.exp(-tc / 0.02) * RNG.uniform(0.15, 0.3)
+        aleteo[pos:pos + largo] += a
+    x = (tapa * 0.6 + aleteo * 0.5) * 0.32
+    return rampa(reverberar(x, SALAS["biblioteca"], 0.30), 0.002, 0.40)
+
+
+def ev_nivel5_susurro() -> np.ndarray:
+    """Un roce largo entre estantes: como paginas pasando, o algo que pasa.
+
+    El suceso mas inquietante del nivel: podria ser el aire moviendo un libro
+    abierto, o podria no serlo. Banda alta y suave, sin transitorio.
+    """
+    dur = 3.4
+    n = muestras(dur)
+    t = tiempo(dur)
+    roce = pasabanda(rosa(dur), 2_000.0, 6_500.0, 2)
+    sobre = np.sin(np.pi * np.clip(t / dur, 0, 1)) ** 2
+    # Modulacion como de paginas sucesivas.
+    roce *= 0.5 + 0.5 * np.clip(np.sin(2 * np.pi * 2.5 * t), 0, None)
+    x = roce * sobre * 0.16
+    return rampa(reverberar(x, SALAS["biblioteca"], 0.28), 0.05, 0.60)
+
+
+def ev_nivel5_reloj() -> np.ndarray:
+    """El pendulo de un reloj de pared, unos pocos golpes y para.
+
+    Grave, de madera, con una cola muy corta. Da una cadencia que arranca y se
+    interrumpe: un reloj al que se le acaba la cuerda.
+    """
+    dur = 3.6
+    n = muestras(dur)
+    x = np.zeros(n)
+    for k, g in enumerate((1.0, 0.9, 0.8, 0.55)):
+        pos = muestras(0.05 + k * 0.85)
+        if pos >= n:
+            break
+        largo = min(muestras(0.12), n - pos)
+        tc = np.arange(largo) / SR
+        tic = pasabanda(RNG.normal(0, 1, largo), 300.0, 1_800.0, 2)
+        tic *= np.exp(-tc / 0.03) * 0.4 * g
+        tic += np.sin(2 * np.pi * 90.0 * tc) * np.exp(-tc / 0.05) * 0.15 * g
+        x[pos:pos + largo] += tic
+    x = pasabajos(x, 2_500.0, 2) * 0.34
+    return rampa(reverberar(x, SALAS["biblioteca"], 0.30), 0.002, 0.55)
+
+
 # ==========================================================================
 # 4. Transicion entre niveles
 # ==========================================================================
@@ -1743,6 +1887,7 @@ PIEZAS = {
     "ambiente/nivel2": lambda: bucle_suave(base_nivel2(), 4.0),
     "ambiente/nivel3": lambda: bucle_suave(base_nivel3(), 6.0),
     "ambiente/nivel4": lambda: bucle_suave(base_nivel4(), 5.0),
+    "ambiente/nivel5": lambda: bucle_suave(base_nivel5(), 5.0),
 
     # Capa de caracter, tambien en bucle. Duraciones primas con las bases para
     # que las dos camas de cada nivel no vuelvan a alinearse en toda la sesion.
@@ -1751,6 +1896,7 @@ PIEZAS = {
     "caracter/nivel2": lambda: bucle_suave(caracter_nivel2(), 4.0),
     "caracter/nivel3": lambda: bucle_suave(caracter_nivel3(), 7.0),
     "caracter/nivel4": lambda: bucle_suave(caracter_nivel4(), 5.0),
+    "caracter/nivel5": lambda: bucle_suave(caracter_nivel5(), 4.0),
 
     # Capa de actividad: bucles largos, casi vacios, con sucesos lejanos. El
     # cruce es corto porque casi toda la junta cae sobre silencio.
@@ -1759,6 +1905,7 @@ PIEZAS = {
     "actividad/nivel2": lambda: bucle_suave(actividad_nivel2(), 2.0),
     "actividad/nivel3": lambda: bucle_suave(actividad_nivel3(), 2.0),
     "actividad/nivel4": lambda: bucle_suave(actividad_nivel4(), 2.0),
+    "actividad/nivel5": lambda: bucle_suave(actividad_nivel5(), 2.0),
 
     # Eventos
     "evento/nivel0_tubo": ev_nivel0_tubo,
@@ -1777,6 +1924,9 @@ PIEZAS = {
     "evento/nivel4_antorcha": ev_nivel4_antorcha,
     "evento/nivel4_cadena": ev_nivel4_cadena,
     "evento/nivel4_piedra": ev_nivel4_piedra,
+    "evento/nivel5_libro": ev_nivel5_libro,
+    "evento/nivel5_susurro": ev_nivel5_susurro,
+    "evento/nivel5_reloj": ev_nivel5_reloj,
 
     # Transicion
     "nivel/titileo": tr_titileo,

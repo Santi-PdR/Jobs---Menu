@@ -60,6 +60,7 @@ public final class SonidosNivel {
     public static final RegistryObject<SoundEvent> AMBIENTE_NIVEL2 = registrar("ambiente.nivel2");
     public static final RegistryObject<SoundEvent> AMBIENTE_NIVEL3 = registrar("ambiente.nivel3");
     public static final RegistryObject<SoundEvent> AMBIENTE_NIVEL4 = registrar("ambiente.nivel4");
+    public static final RegistryObject<SoundEvent> AMBIENTE_NIVEL5 = registrar("ambiente.nivel5");
 
     // ---- Capa de caracter -----------------------------------------------
     // La segunda cama continua de cada nivel. Suena siempre, a la vez que la
@@ -71,6 +72,7 @@ public final class SonidosNivel {
     public static final RegistryObject<SoundEvent> CARACTER_NIVEL2 = registrar("caracter.nivel2");
     public static final RegistryObject<SoundEvent> CARACTER_NIVEL3 = registrar("caracter.nivel3");
     public static final RegistryObject<SoundEvent> CARACTER_NIVEL4 = registrar("caracter.nivel4");
+    public static final RegistryObject<SoundEvent> CARACTER_NIVEL5 = registrar("caracter.nivel5");
 
     // ---- Capa de actividad ----------------------------------------------
     // La tercera cama. Al reves que las otras dos, esta casi todo el tiempo en
@@ -85,6 +87,7 @@ public final class SonidosNivel {
     public static final RegistryObject<SoundEvent> ACTIVIDAD_NIVEL2 = registrar("actividad.nivel2");
     public static final RegistryObject<SoundEvent> ACTIVIDAD_NIVEL3 = registrar("actividad.nivel3");
     public static final RegistryObject<SoundEvent> ACTIVIDAD_NIVEL4 = registrar("actividad.nivel4");
+    public static final RegistryObject<SoundEvent> ACTIVIDAD_NIVEL5 = registrar("actividad.nivel5");
 
     // ---- Eventos --------------------------------------------------------
     // Se disparan solos, con separacion y volumen variables.
@@ -109,6 +112,10 @@ public final class SonidosNivel {
     public static final RegistryObject<SoundEvent> EV_N4_ANTORCHA = registrar("evento.nivel4_antorcha");
     public static final RegistryObject<SoundEvent> EV_N4_CADENA = registrar("evento.nivel4_cadena");
     public static final RegistryObject<SoundEvent> EV_N4_PIEDRA = registrar("evento.nivel4_piedra");
+
+    public static final RegistryObject<SoundEvent> EV_N5_LIBRO = registrar("evento.nivel5_libro");
+    public static final RegistryObject<SoundEvent> EV_N5_SUSURRO = registrar("evento.nivel5_susurro");
+    public static final RegistryObject<SoundEvent> EV_N5_RELOJ = registrar("evento.nivel5_reloj");
 
     // ---- Transicion entre niveles ---------------------------------------
 
