@@ -1,14 +1,17 @@
 package com.santipdr.jobsmenu.client;
 
 import com.santipdr.jobsmenu.JobsMenu;
+import com.santipdr.jobsmenu.client.screen.PantallaEstancia;
 import com.santipdr.jobsmenu.client.screen.PantallaNivel;
 import com.santipdr.jobsmenu.client.sound.MezclaAudio;
 import com.santipdr.jobsmenu.client.sound.MusicaPropia;
 import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
+import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -60,9 +63,32 @@ public final class EscuchaCliente {
             MusicaPropia.preparar();
             siguiente = new PantallaNivel();
             evento.setNewScreen(siguiente);
+        } else if (ConfigTurno.pausaPropia() && esPausaReal(siguiente)) {
+            // Solo la pausa DE VERDAD, no la superposicion de F3+Esc.
+            siguiente = new PantallaEstancia();
+            evento.setNewScreen(siguiente);
         }
 
         gesto(anterior, siguiente);
+    }
+
+    /**
+     * Si esta pantalla es la pausa de verdad y no la superposicion de F3+Esc.
+     *
+     * PauseScreen se construye de dos formas: con menu (Escape, muestra los
+     * botones, titulo "menu.game") y sin menu (F3+Esc, solo el rotulo "Game
+     * Paused", titulo "menu.paused"). La segunda no lleva botones y no hay que
+     * tocarla: reemplazarla dejaria una hoja de pausa flotando cuando el
+     * jugador solo queria congelar el cuadro. Se distinguen por el titulo, que
+     * es lo unico publico que las separa -el campo showPauseMenu es privado-.
+     * Ademas se exige la clase exacta para no pisar pausas de otros mods.
+     */
+    private static boolean esPausaReal(Screen siguiente) {
+        if (siguiente == null || siguiente.getClass() != PauseScreen.class) {
+            return false;
+        }
+        Component titulo = siguiente.getTitle();
+        return titulo != null && Component.translatable("menu.game").equals(titulo);
     }
 
     /**

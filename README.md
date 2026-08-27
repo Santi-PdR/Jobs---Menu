@@ -14,11 +14,26 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
 
 | | |
 |---|---|
-| Versión | **0.7.2** |
+| Versión | **0.8.0** |
 | Minecraft | 1.20.1 |
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente (el servidor no necesita el mod) |
+
+## Qué trae la 0.8.0
+
+Dos pantallas nuevas con la misma piel del aviso, y por fin los ajustes al alcance de la mano:
+
+- **Condiciones de estancia: las opciones del mod, en la hoja.** El renglón "03 Condiciones de estancia" ya no
+  abre las opciones de Minecraft: abre una hoja propia con todos los ajustes del mod. Cada uno es una casilla
+  que se marca —imagen, sonido, accesibilidad— y los dos volúmenes son **reglas graduadas** dibujadas a mano,
+  no barras rellenas. Lo que tocás **se guarda solo**: ya no hay que editar ningún archivo a mano.
+- **Estancia en suspenso: la pausa, tematizada.** Al pausar la partida aparece el aviso en vez del menú gris:
+  *Retomar el turno*, *Condiciones de estancia* y *Dejar el turno*. El botón de salir replica **exactamente**
+  la secuencia de guardado de Minecraft, así que los mods que guardan o respaldan en segundo plano siguen
+  funcionando igual. Se puede apagar (`pausa_propia = false`) y vuelve la pausa de siempre.
+- La hoja de papel —el dibujo del papel, la cinta, el borde húmedo— pasó a ser una pieza compartida, así las
+  tres pantallas (aviso, condiciones y pausa) envejecen igual y no se separan con el tiempo.
 
 ## Qué trae la 0.7.2
 
@@ -272,7 +287,7 @@ Requiere JDK 17 instalado.
 .\gradlew build
 ```
 
-El `.jar` queda en `build\libs\jobsmenu-0.7.2.jar` y se copia a la carpeta `mods` de la instancia.
+El `.jar` queda en `build\libs\jobsmenu-0.8.0.jar` y se copia a la carpeta `mods` de la instancia.
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 
@@ -287,7 +302,7 @@ SKLauncher, pero sirve igual para `.minecraft` o cualquier lanzador.
 # --- 0. Rutas --------------------------------------------------------------
 $repo      = "C:\Users\santi\Desktop\Jobs---Menu"
 $instancia = "C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1"
-$version   = "0.7.2"
+$version   = "0.8.0"
 
 Set-Location $repo
 

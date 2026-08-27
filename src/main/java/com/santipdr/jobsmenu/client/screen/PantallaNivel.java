@@ -13,7 +13,6 @@ import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.network.chat.Component;
@@ -266,9 +265,16 @@ public class PantallaNivel extends Screen {
         cliente.setScreen(new ModListScreen(this));
     }
 
+    /**
+     * Las condiciones de estancia: los ajustes del mod, en la hoja.
+     *
+     * Antes esto abria las opciones de vanilla, que no tienen nada que ver con
+     * este menu y ademas dejaban los ajustes del mod fuera del alcance del
+     * jugador. Ahora abre una pantalla propia con la misma piel de papel, donde
+     * cada ajuste se marca y se guarda solo.
+     */
     private void abrirCondiciones() {
-        Minecraft cliente = Minecraft.getInstance();
-        cliente.setScreen(new OptionsScreen(this, cliente.options));
+        Minecraft.getInstance().setScreen(new PantallaCondiciones(this));
     }
 
     private void renunciar() {
@@ -387,26 +393,10 @@ public class PantallaNivel extends Screen {
 
     /** La hoja fotocopiada pegada a la pared, con su sombra y su cinta. */
     private void hoja(GuiGraphics grafico) {
-        int x0 = this.hojaX;
-        int y0 = this.hojaY;
-        int x1 = x0 + ANCHO_HOJA;
-        int y1 = y0 + this.hojaAlto;
-
-        // El papel se oscurece con el pasillo. No es tinta: es el blanco de la
-        // hoja, que sin fluorescente encima deja de ser blanco.
-        float luz = RotacionNiveles.luzDisponible();
-        int papel = Paleta.iluminar(Paleta.PAPEL, 0.22F + 0.78F * luz);
-
-        grafico.fill(x0 + 3, y0 + 4, x1 + 3, y1 + 4, Paleta.conAlfa(Paleta.VANO, 0.30F));
-        grafico.fill(x0, y0, x1, y1, Paleta.conAlfa(papel, 0.94F));
-        grafico.fill(x0, y0, x1, y0 + 1, Paleta.conAlfa(Paleta.MOHO, 0.35F));
-        grafico.fill(x0, y1 - 1, x1, y1, Paleta.conAlfa(Paleta.MOHO, 0.45F));
-        grafico.fill(x0, y0, x0 + 1, y1, Paleta.conAlfa(Paleta.MOHO, 0.35F));
-        grafico.fill(x1 - 1, y0, x1, y1, Paleta.conAlfa(Paleta.MOHO, 0.35F));
-
-        int cinta = 22;
-        int centro = (x0 + x1) / 2;
-        grafico.fill(centro - cinta, y0 - 4, centro + cinta, y0 + 4, Paleta.conAlfa(papel, 0.45F));
+        // El dibujo de la hoja vive en HojaPapel: es el mismo papel que usan la
+        // pantalla de condiciones y la de pausa, y tiene que envejecer igual.
+        com.santipdr.jobsmenu.client.ui.HojaPapel.dibujar(grafico,
+                this.hojaX, this.hojaY, this.hojaX + ANCHO_HOJA, this.hojaY + this.hojaAlto, true);
     }
 
     /**

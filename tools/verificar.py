@@ -255,8 +255,11 @@ def verificar_claves(es: dict[str, str]) -> None:
     usadas -= prefijos
     usadas -= {p for p, _ in horquillas}
 
+    # El mod tambien usa claves de Minecraft (menu.game, menu.savingLevel...):
+    # las provee el juego, no este mod, asi que no tienen que estar en los lang
+    # propios. Solo se exigen las claves 'jobsmenu.*', que son las nuestras.
     for clave in sorted(usadas):
-        if clave not in es:
+        if clave.startswith("jobsmenu.") and clave not in es:
             fallo(f"El codigo pide la clave '{clave}' y no existe en los idiomas.")
 
     cubiertas = set(usadas)
