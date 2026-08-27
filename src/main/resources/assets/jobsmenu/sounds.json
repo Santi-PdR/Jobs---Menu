@@ -1,0 +1,307 @@
+{
+  "ui.pasar": {
+    "category": "master",
+    "subtitle": "jobsmenu.subtitulo.ui.pasar",
+    "sounds": [
+      "jobsmenu:ui/pasar"
+    ]
+  },
+  "ui.elegir": {
+    "category": "master",
+    "subtitle": "jobsmenu.subtitulo.ui.elegir",
+    "sounds": [
+      "jobsmenu:ui/elegir"
+    ]
+  },
+  "ui.confirmar": {
+    "category": "master",
+    "subtitle": "jobsmenu.subtitulo.ui.confirmar",
+    "sounds": [
+      "jobsmenu:ui/confirmar"
+    ]
+  },
+  "ui.volver": {
+    "category": "master",
+    "subtitle": "jobsmenu.subtitulo.ui.volver",
+    "sounds": [
+      "jobsmenu:ui/volver"
+    ]
+  },
+  "ui.alternar": {
+    "category": "master",
+    "subtitle": "jobsmenu.subtitulo.ui.alternar",
+    "sounds": [
+      "jobsmenu:ui/alternar"
+    ]
+  },
+  "ui.abrir": {
+    "category": "master",
+    "subtitle": "jobsmenu.subtitulo.ui.abrir",
+    "sounds": [
+      "jobsmenu:ui/abrir"
+    ]
+  },
+  "ui.cerrar": {
+    "category": "master",
+    "subtitle": "jobsmenu.subtitulo.ui.cerrar",
+    "sounds": [
+      "jobsmenu:ui/cerrar"
+    ]
+  },
+  "ui.negado": {
+    "category": "master",
+    "subtitle": "jobsmenu.subtitulo.ui.negado",
+    "sounds": [
+      "jobsmenu:ui/negado"
+    ]
+  },
+  "ambiente.nivel0": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.ambiente.nivel0",
+    "sounds": [
+      {
+        "name": "jobsmenu:ambiente/nivel0",
+        "stream": false
+      }
+    ]
+  },
+  "ambiente.nivel1": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.ambiente.nivel1",
+    "sounds": [
+      {
+        "name": "jobsmenu:ambiente/nivel1",
+        "stream": false
+      }
+    ]
+  },
+  "ambiente.nivel2": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.ambiente.nivel2",
+    "sounds": [
+      {
+        "name": "jobsmenu:ambiente/nivel2",
+        "stream": false
+      }
+    ]
+  },
+  "ambiente.nivel3": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.ambiente.nivel3",
+    "sounds": [
+      {
+        "name": "jobsmenu:ambiente/nivel3",
+        "stream": false
+      }
+    ]
+  },
+  "caracter.nivel0": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.caracter.nivel0",
+    "sounds": [
+      {
+        "name": "jobsmenu:caracter/nivel0",
+        "stream": false
+      }
+    ]
+  },
+  "caracter.nivel1": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.caracter.nivel1",
+    "sounds": [
+      {
+        "name": "jobsmenu:caracter/nivel1",
+        "stream": false
+      }
+    ]
+  },
+  "caracter.nivel2": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.caracter.nivel2",
+    "sounds": [
+      {
+        "name": "jobsmenu:caracter/nivel2",
+        "stream": false
+      }
+    ]
+  },
+  "caracter.nivel3": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.caracter.nivel3",
+    "sounds": [
+      {
+        "name": "jobsmenu:caracter/nivel3",
+        "stream": false
+      }
+    ]
+  },
+  "actividad.nivel0": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel0",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel0",
+        "stream": true
+      }
+    ]
+  },
+  "actividad.nivel1": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel1",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel1",
+        "stream": true
+      }
+    ]
+  },
+  "actividad.nivel2": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel2",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel2",
+        "stream": true
+      }
+    ]
+  },
+  "actividad.nivel3": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.actividad.nivel3",
+    "sounds": [
+      {
+        "name": "jobsmenu:actividad/nivel3",
+        "stream": true
+      }
+    ]
+  },
+  "evento.nivel0_tubo": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel0_tubo",
+    "sounds": [
+      "jobsmenu:evento/nivel0_tubo"
+    ]
+  },
+  "evento.nivel0_placa": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel0_placa",
+    "sounds": [
+      "jobsmenu:evento/nivel0_placa"
+    ]
+  },
+  "evento.nivel0_puerta": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel0_puerta",
+    "sounds": [
+      "jobsmenu:evento/nivel0_puerta"
+    ]
+  },
+  "evento.nivel1_metal": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel1_metal",
+    "sounds": [
+      "jobsmenu:evento/nivel1_metal"
+    ]
+  },
+  "evento.nivel1_estructura": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel1_estructura",
+    "sounds": [
+      "jobsmenu:evento/nivel1_estructura"
+    ]
+  },
+  "evento.nivel1_lejano": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel1_lejano",
+    "sounds": [
+      "jobsmenu:evento/nivel1_lejano"
+    ]
+  },
+  "evento.nivel2_cano": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel2_cano",
+    "sounds": [
+      "jobsmenu:evento/nivel2_cano"
+    ]
+  },
+  "evento.nivel2_valvula": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel2_valvula",
+    "sounds": [
+      "jobsmenu:evento/nivel2_valvula"
+    ]
+  },
+  "evento.nivel2_goteo": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel2_goteo",
+    "sounds": [
+      "jobsmenu:evento/nivel2_goteo"
+    ]
+  },
+  "evento.nivel3_gota": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel3_gota",
+    "sounds": [
+      "jobsmenu:evento/nivel3_gota"
+    ]
+  },
+  "evento.nivel3_ondas": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel3_ondas",
+    "sounds": [
+      "jobsmenu:evento/nivel3_ondas"
+    ]
+  },
+  "evento.nivel3_ventilacion": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel3_ventilacion",
+    "sounds": [
+      "jobsmenu:evento/nivel3_ventilacion"
+    ]
+  },
+  "evento.nivel3_lejano": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.evento.nivel3_lejano",
+    "sounds": [
+      "jobsmenu:evento/nivel3_lejano"
+    ]
+  },
+  "nivel.titileo": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.nivel.titileo",
+    "sounds": [
+      "jobsmenu:nivel/titileo"
+    ]
+  },
+  "nivel.apagon": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.nivel.apagon",
+    "sounds": [
+      "jobsmenu:nivel/apagon"
+    ]
+  },
+  "nivel.encendido": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.nivel.encendido",
+    "sounds": [
+      "jobsmenu:nivel/encendido"
+    ]
+  },
+  "figura.presencia": {
+    "category": "ambient",
+    "subtitle": "jobsmenu.subtitulo.figura.presencia",
+    "sounds": [
+      "jobsmenu:figura/presencia"
+    ]
+  },
+  "musica.tema": {
+    "category": "music",
+    "subtitle": "jobsmenu.subtitulo.musica.tema",
+    "sounds": [
+      {
+        "name": "jobsmenu:musica/defecto",
+        "stream": true
+      }
+    ]
+  }
+}
