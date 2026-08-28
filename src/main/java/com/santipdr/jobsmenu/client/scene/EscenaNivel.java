@@ -11,16 +11,15 @@ import net.minecraft.client.gui.GuiGraphics;
 /**
  * El recinto del nivel, dibujado detras del aviso.
  *
- * Esta clase ya no dibuja paredes. Se ocupa de todo lo que es igual en los
- * cuatro niveles -cuanta luz hay, donde esta el punto de fuga, que polvo flota,
+ * Esta clase ya no dibuja paredes. Se ocupa de todo lo que es comun al
+ * catalogo -cuanta luz hay, donde esta el punto de fuga, que polvo flota,
  * como se cierran los bordes- y le pasa el encuadre a la {@link Planta} del
- * nivel, que es la que sabe si esto es una sala, una nave, un pasillo de
- * servicio o un natatorio.
+ * nivel, que es la que sabe que recinto concreto se esta mostrando.
  *
  * La division importa. Antes habia una sola geometria parametrizada y los
- * cuatro niveles eran esa misma geometria con otros colores: cambiar de nivel
- * no cambiaba de lugar. Ahora el catalogo de recintos crece agregando una
- * clase, no agregando banderas a esta.
+ * niveles eran esa misma geometria con otros colores: cambiar de nivel no
+ * cambiaba de lugar. Ahora el catalogo de recintos crece agregando una clase,
+ * no agregando banderas a esta.
  *
  * ENCUADRE
  *
@@ -33,10 +32,8 @@ import net.minecraft.client.gui.GuiGraphics;
  * cuatro semiejes independientes -izquierda, derecha, arriba y abajo-. Esa es
  * la pieza que faltaba. Mientras el marco tuvo un solo semiancho y un solo
  * semialto, las dos paredes laterales estaban obligadas a converger igual y
- * los cuatro niveles salian siendo el mismo tunel simetrico por mas plantas
- * distintas que se les dibujaran encima. Hoy la sala se ve desde una esquina,
- * la nave desde el suelo, el natatorio desde el borde largo y el servicio
- * sigue siendo el unico pasillo, que para eso es el de servicio.
+ * los niveles salian siendo el mismo tunel simetrico por mas plantas distintas
+ * que se les dibujaran encima.
  *
  * Su espejo en Python es tools/vista_previa.py. Si se toca una, se toca la otra.
  */
@@ -46,7 +43,7 @@ public final class EscenaNivel {
     }
 
     /** Motas de polvo suspendidas. */
-    private static final int MOTAS = 70;
+    private static final int MOTAS = 64;
 
     // ----------------------------------------------------------------------
     // Entrada
@@ -98,6 +95,10 @@ public final class EscenaNivel {
         planta.primerPlano(grafico, marco, nivel, luz, tiempo);
 
         if (movimiento) {
+            // Los eventos globales van antes de Presencia para que una aparicion
+            // importante nunca quede escondida detras de un brillo o una sombra
+            // ambiental de baja prioridad.
+            EventosAmbientales.dibujar(grafico, ancho, alto, nivel, luz);
             Presencia.dibujar(grafico, nivel, marco, luz, planta.pisoPresencia());
             motas(grafico, ancho, alto, tiempo, luz);
         }
