@@ -51,13 +51,17 @@ public final class EscenaNivel {
         Planta planta = nivel.planta;
         planta.dibujar(grafico, marco, nivel, luz, tiempo);
 
-        // Dos pasadas diferentes: TratamientoEscena trabaja materiales y
-        // profundidad global; DireccionArte agrega lenguaje propio a cada uno
-        // de los diez recintos a partir de las referencias visuales del mod.
+        // El detalle de material se pega a la arquitectura base antes de las
+        // capas de luz: asi una grieta o un remache recibe la misma atmosfera
+        // que el resto y no parece un sticker encima de la escena.
+        MaterialesEscena.dibujar(grafico, ancho, alto, nivel, luz, tiempo, movimiento);
+
+        // TratamientoEscena trabaja materiales/profundidad global y
+        // DireccionArte agrega el lenguaje propio de cada uno de los diez
+        // recintos a partir de las referencias visuales.
         TratamientoEscena.dibujar(grafico, ancho, alto, nivel, luz, tiempo, movimiento);
         DireccionArte.dibujar(grafico, ancho, alto, nivel, luz, tiempo);
 
-        // Lo cercano queda por encima del acabado y recupera bordes limpios.
         planta.primerPlano(grafico, marco, nivel, luz, tiempo);
 
         if (movimiento) {
