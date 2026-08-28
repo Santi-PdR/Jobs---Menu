@@ -101,6 +101,18 @@ public final class AtajoOverworld {
     }
 
     /**
+     * Recupera el pestillo si Alt+Tab o un cambio de pantalla se comio el
+     * evento KeyReleased. Se consulta el estado fisico, no un temporizador.
+     */
+    @SubscribeEvent
+    public static void alCambiarPantalla(ScreenEvent.Opening evento) {
+        Minecraft cliente = Minecraft.getInstance();
+        if (GLFW.glfwGetKey(cliente.getWindow().getWindow(), GLFW.GLFW_KEY_S) != GLFW.GLFW_PRESS) {
+            hundida = false;
+        }
+    }
+
+    /**
      * Solo desde el aviso del nivel o desde la pantalla de titulo vanilla.
      *
      * La segunda hace falta porque el mod se puede apagar por configuracion, y
@@ -108,6 +120,7 @@ public final class AtajoOverworld {
      */
     private static boolean admite(Screen pantalla) {
         return pantalla instanceof PantallaNivel
-                || pantalla instanceof net.minecraft.client.gui.screens.TitleScreen;
+                || (pantalla != null
+                    && pantalla.getClass() == net.minecraft.client.gui.screens.TitleScreen.class);
     }
 }

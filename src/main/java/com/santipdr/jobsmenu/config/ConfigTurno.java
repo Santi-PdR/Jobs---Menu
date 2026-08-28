@@ -259,6 +259,10 @@ public final class ConfigTurno {
         fijar(INSTANCE.rotarNiveles, valor);
     }
 
+    public static void fijarNivelFijo(int nivel) {
+        fijar(INSTANCE.nivelFijo, Math.max(0, Math.min(9, nivel)));
+    }
+
     public static void fijarMovimientoReducido(boolean valor) {
         fijar(INSTANCE.movimientoReducido, valor);
     }

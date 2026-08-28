@@ -2,6 +2,7 @@ package com.santipdr.jobsmenu.client.sound;
 
 import com.santipdr.jobsmenu.client.scene.Presencia;
 import com.santipdr.jobsmenu.client.scene.RotacionNiveles;
+import com.santipdr.jobsmenu.client.SesionMenu;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
@@ -15,16 +16,9 @@ import net.minecraft.util.RandomSource;
  *
  * SOBRE LA PISTA
  *
- * El evento musica.tema apunta al archivo musica/defecto.ogg, una pieza
- * ambiental compuesta y sintetizada para este mod (ver tools/sonidos.py):
- * ocho acordes largos sobre un pedal de la, sin ritmo ni melodia, pensada para
- * escucharse en bucle sin cansar. Es original, asi que el mod se puede repartir
- * sin arrastrar derechos de nadie.
- *
- * Si en algun momento hay una pista distinta con permiso de uso, no hace falta
- * tocar codigo: se agrega el archivo como musica/tema.ogg y se lo declara en
- * sounds.json junto al que ya esta. Todo lo de esta clase - el volumen, el
- * bucle, la continuidad durante el apagon - funciona igual con cualquier pista.
+ * El evento musica.tema apunta a musica/defecto.ogg. El recurso versionado es
+ * REQUIEM y su autoria se acredita desde los recursos de idioma. Un resource
+ * pack generado por MusicaPropia puede sustituirlo sin recompilar el mod.
  *
  * COMO SE COMPORTA
  *
@@ -45,13 +39,22 @@ public class GestorMusica extends AbstractTickableSoundInstance {
     /** Bajada al cerrar el menu. Tampoco de golpe. */
     private static final float SUAVIZADO_BAJADA = 0.045F;
 
+    /** Silencio deliberado entre vueltas completas de la pista. */
+    private static final int RETARDO_BUCLE = 40;
+
+    /** Evita reintentar cada tick cuando el motor rechazo un recurso. */
+    private static int reintento;
+
     private float actual;
     private int edad;
 
     private GestorMusica() {
-        super(SonidosNivel.MUSICA_TEMA.get(), SoundSource.MUSIC, RandomSource.create());
+        // MASTER evita que el deslizador Music de vanilla gobierne REQUIEM.
+        // El motor sigue aplicando el volumen maestro, y encima se aplican el
+        // deslizador propio y la mezcla del mod.
+        super(SonidosNivel.MUSICA_TEMA.get(), SoundSource.MASTER, RandomSource.create());
         this.looping = true;
-        this.delay = 0;
+        this.delay = RETARDO_BUCLE;
         this.volume = 0.0F;
         this.pitch = 1.0F;
         this.relative = true;
@@ -72,7 +75,7 @@ public class GestorMusica extends AbstractTickableSoundInstance {
      * la misma pista sonando desfasadas.
      */
     public static void asegurar() {
-        if (!ConfigTurno.musicaMenu()) {
+        if (!SesionMenu.activa() || !ConfigTurno.musicaMenu() || reintento > 0) {
             return;
         }
         if (activa != null && !activa.isStopped()) {
@@ -90,7 +93,35 @@ public class GestorMusica extends AbstractTickableSoundInstance {
 
     /** Deja de sonar, con caida. No corta en seco. */
     public static void soltar() {
+        // No se pierde la referencia: la instancia necesita seguir recibiendo
+        // ticks para completar la bajada y detenerse. Soltarla aqui permitiria
+        // crear otra copia mientras la anterior todavia se oye.
+    }
+
+    /**
+     * Coordinacion por tick, independiente de la Screen visible. Asi la pista
+     * continua en Opciones/Mods/Recursos y se detiene al entrar a un mundo.
+     */
+    public static void atender() {
+        if (reintento > 0) {
+            reintento--;
+        }
+        Minecraft cliente = Minecraft.getInstance();
+        if (SesionMenu.activa() && ConfigTurno.musicaMenu()) {
+            cliente.getMusicManager().stopPlaying();
+            asegurar();
+        }
+    }
+
+    /** Invalida referencias del SoundEngine anterior tras F3+T o packs. */
+    public static void recursosRecargados() {
+        GestorMusica anterior = activa;
         activa = null;
+        marcador = -1;
+        reintento = 20;
+        if (anterior != null) {
+            anterior.stop();
+        }
     }
 
     /** Si el tema esta sonando ahora mismo. */
@@ -192,8 +223,7 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         this.edad++;
 
         Minecraft cliente = Minecraft.getInstance();
-        boolean enMenu = cliente.screen instanceof com.santipdr.jobsmenu.client.screen.PantallaNivel;
-        boolean permitido = enMenu && ConfigTurno.musicaMenu();
+        boolean permitido = SesionMenu.activa() && ConfigTurno.musicaMenu();
 
         // POR QUE LA MUSICA NO SE OIA
         //
@@ -243,7 +273,7 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         }
         this.volume = this.actual;
 
-        if (!enMenu && this.actual <= 0.0F) {
+        if (!permitido && this.actual <= 0.0F) {
             this.stop();
             if (activa == this) {
                 activa = null;

@@ -189,6 +189,11 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
         return this.isStopped();
     }
 
+    /** Detencion explicita para cierres y reemplazos del SoundEngine. */
+    public void detenerAhora() {
+        this.stop();
+    }
+
     @Override
     public void tick() {
         this.edad++;

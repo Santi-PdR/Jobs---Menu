@@ -44,7 +44,7 @@ public class RenglonTablon extends AbstractButton {
     private static final int SANGRIA_ETIQUETA = 32;
 
     /** Cuanto se corre el renglon al enfocarlo. Tres pixeles y ni uno mas. */
-    private static final float DESPLAZAMIENTO = 3.0F;
+    private static final float DESPLAZAMIENTO = 2.0F;
 
     /** Cuanto se acerca el foco a su destino en cada fotograma. */
     private static final float SUAVIZADO = 0.25F;
@@ -146,10 +146,13 @@ public class RenglonTablon extends AbstractButton {
 
         // Al enfocar, el renglon se resalta como si lo hubiesen repasado a lapiz.
         if (this.foco > 0.0F) {
-            grafico.fill(this.getX() - 3, y, this.getX() + ancho + 3, y + alto,
+            // La respuesta visual ocupa exactamente la hitbox. Antes sobresalia
+            // cinco pixeles por la izquierda y tres por la derecha, de modo que
+            // zonas que parecian activas no eran clicables.
+            grafico.fill(this.getX(), y, this.getX() + ancho, y + alto,
                     Paleta.conAlfa(Paleta.TINTA_TENUE, 0.14F * this.foco * tinta));
-            // Marca al margen izquierdo, del alto exacto del renglon.
-            grafico.fill(this.getX() - 5, y + 2, this.getX() - 4, y + alto - 2,
+            // Marca dentro del margen izquierdo de la propia region.
+            grafico.fill(this.getX(), y + 2, this.getX() + 1, y + alto - 2,
                     Paleta.conAlfa(Paleta.TINTA, 0.55F * this.foco * tinta));
         }
 
@@ -187,7 +190,8 @@ public class RenglonTablon extends AbstractButton {
     private void puntosDeRelleno(GuiGraphics grafico, Minecraft cliente,
                                  int x, int ancho, int lineaBase, float tinta) {
         int inicio = x + SANGRIA_ETIQUETA + cliente.font.width(this.getMessage()) + 4;
-        int fin = x + ancho - 2;
+        // El contenido desplazado nunca rebasa el borde real del widget.
+        int fin = this.getX() + ancho - 2;
         if (fin <= inicio) {
             return;
         }

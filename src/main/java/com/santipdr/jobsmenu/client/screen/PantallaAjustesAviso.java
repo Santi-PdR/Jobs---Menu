@@ -60,6 +60,17 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
                 (v) -> fijar.accept(v));
     }
 
+    /** Selector entero de nivel; el knob y el valor comparten exactamente el rango 0-9. */
+    private static OptionInstance<Integer> selectorNivel(int valor) {
+        String clave = "jobsmenu.ajustes.nivelfijo";
+        return new OptionInstance<>(clave,
+                OptionInstance.cachedConstantTooltip(Component.translatable(clave + ".detalle")),
+                (caption, v) -> Component.translatable("jobsmenu.ajustes.nivelvalor", caption, v),
+                new OptionInstance.IntRange(0, 9),
+                Math.max(0, Math.min(9, valor)),
+                ConfigTurno::fijarNivelFijo);
+    }
+
     @Override
     protected void init() {
         this.lista = new OptionsList(this.minecraft, this.width, this.height, 32, this.height - 32, 25);
@@ -72,6 +83,7 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
                         ConfigTurno.rotarNivelesBruto(), ConfigTurno::fijarRotarNiveles),
                 interruptor("jobsmenu.ajustes.cuenta",
                         ConfigTurno.mostrarCuentaRegresivaBruto(), ConfigTurno::fijarMostrarCuentaRegresiva));
+        this.lista.addBig(selectorNivel(ConfigTurno.nivelFijo()));
         this.lista.addSmall(
                 interruptor("jobsmenu.ajustes.avisos",
                         ConfigTurno.avisosRotativosBruto(), ConfigTurno::fijarAvisosRotativos),

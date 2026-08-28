@@ -90,7 +90,7 @@ public class NotaAviso extends AbstractButton {
      * en ciertas fechas y horas la administracion cuela una nota propia.
      *
      * ES UN GUINO, NO UN CARTEL. Solo aparece cuando la fecha real coincide, y
-     * ademas solo en una de cada tres vueltas de la rotacion, para que quien
+     * ademas solo en una de cada cinco vueltas de la rotacion, para que quien
      * este mirando justo esos dias tenga que tener algo de suerte para leerla.
      * El que nunca abra el menu un 31 de octubre no se entera de que existe, y
      * esa es la idea: se descubre, no se anuncia. Todo sale del reloj del
@@ -101,8 +101,8 @@ public class NotaAviso extends AbstractButton {
      */
     private static Component textoActual() {
         int i = indice();
-        // La nota especial no se roba todas las vueltas: una de cada tres.
-        if (i % 3 == 0) {
+        // La nota especial no se roba todas las vueltas: una de cada cinco.
+        if (i % 5 == 0) {
             String especial = especialDeHoy();
             if (especial != null) {
                 return Component.translatable(especial);
@@ -125,6 +125,7 @@ public class NotaAviso extends AbstractButton {
         int mes = ahora.getMonthValue();
         int dia = ahora.getDayOfMonth();
         int hora = ahora.getHour();
+        int minuto = ahora.getMinute();
 
         // --- Fechas concretas: lo mas raro, gana siempre. ---
         if (mes == 1 && dia == 1) {
@@ -145,14 +146,12 @@ public class NotaAviso extends AbstractButton {
         }
 
         // --- Horas del dia: lo mas comun, solo si no cayo ninguna fecha. ---
-        // La hora de las brujas: de 3:00 a 3:59, cualquier dia.
-        if (hora == 3) {
+        // La hora de las brujas: una ventana corta, no una hora entera diaria.
+        if (hora == 3 && minuto >= 13 && minuto < 18) {
             return "jobsmenu.aviso.especial.madrugada";
         }
-        // El cambio de turno: la hora cero, de 0:00 a 0:59. Se acota a la hora
-        // entera -y no al minuto justo- para que llegue a verse: con el minuto
-        // exacto y la regla de una vuelta de cada tres, no aparecia casi nunca.
-        if (hora == 0) {
+        // El cambio de turno solo durante los primeros cinco minutos.
+        if (hora == 0 && minuto < 5) {
             return "jobsmenu.aviso.especial.medianoche";
         }
         return null;

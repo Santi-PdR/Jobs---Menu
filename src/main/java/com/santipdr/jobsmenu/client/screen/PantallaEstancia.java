@@ -169,7 +169,7 @@ public class PantallaEstancia extends Screen {
         grafico.fill(0, 0, this.width, this.height, Paleta.conAlfa(Paleta.VANO, 0.42F));
 
         HojaPapel.dibujar(grafico, this.hojaX, this.hojaY,
-                this.hojaX + ANCHO_HOJA, this.hojaY + this.hojaAlto, true);
+                this.hojaX + ANCHO_HOJA, this.hojaY + this.hojaAlto, true, 1.0F);
 
         cabecera(grafico);
         super.render(grafico, ratonX, ratonY, parcial);

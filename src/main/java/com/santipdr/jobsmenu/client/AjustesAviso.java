@@ -43,9 +43,14 @@ public final class AjustesAviso {
     @SubscribeEvent
     public static void alArmarPantalla(ScreenEvent.Init.Post evento) {
         Screen pantalla = evento.getScreen();
-        if (!(pantalla instanceof OptionsScreen)) {
+        // No se modifica una subclase: otros mods pueden usar OptionsScreen
+        // como base y reservar esta esquina para sus propios controles.
+        if (pantalla == null || pantalla.getClass() != OptionsScreen.class) {
             return;
         }
+
+        int ancho = Math.max(80, Math.min(120, pantalla.width - 12));
+        int x = Math.max(6, pantalla.width - ancho - 6);
 
         Button boton = Button.builder(
                 Component.translatable("jobsmenu.ajustes.boton"),
@@ -53,7 +58,7 @@ public final class AjustesAviso {
                     Minecraft cliente = Minecraft.getInstance();
                     cliente.setScreen(new PantallaAjustesAviso(pantalla, cliente.options));
                 })
-                .bounds(6, 6, 120, 20)
+                .bounds(x, 6, ancho, 20)
                 .build();
         evento.addListener(boton);
     }

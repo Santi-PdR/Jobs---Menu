@@ -27,9 +27,15 @@ public final class HojaPapel {
      *                 con chinche no.
      */
     public static void dibujar(GuiGraphics grafico, int x0, int y0, int x1, int y1, boolean conCinta) {
+        dibujar(grafico, x0, y0, x1, y1, conCinta, RotacionNiveles.luzDisponible());
+    }
+
+    /** Variante para pantallas que no pertenecen al apagon del menu. */
+    public static void dibujar(GuiGraphics grafico, int x0, int y0, int x1, int y1,
+                               boolean conCinta, float luz) {
         // El papel se oscurece con el pasillo. No es tinta: es el blanco de la
         // hoja, que sin fluorescente encima deja de ser blanco.
-        float luz = RotacionNiveles.luzDisponible();
+        luz = Math.max(0.0F, Math.min(1.0F, luz));
         int papel = Paleta.iluminar(Paleta.PAPEL, 0.22F + 0.78F * luz);
 
         grafico.fill(x0 + 3, y0 + 4, x1 + 3, y1 + 4, Paleta.conAlfa(Paleta.VANO, 0.30F));
