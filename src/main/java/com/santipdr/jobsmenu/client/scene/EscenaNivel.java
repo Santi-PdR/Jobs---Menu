@@ -39,8 +39,6 @@ public final class EscenaNivel {
         float fx = ancho * nivel.fugaX;
         float fy = alto * nivel.fugaY;
 
-        // Respiracion de camara mas contenida: suficiente para dar vida sin
-        // convertir el fondo en una imagen que flota detras del menu.
         if (movimiento) {
             fx += (float) Math.sin(tiempo * 0.13F) * ancho * 0.0045F;
             fy += (float) Math.sin(tiempo * 0.087F + 1.3F) * alto * 0.0038F;
@@ -53,11 +51,13 @@ public final class EscenaNivel {
         Planta planta = nivel.planta;
         planta.dibujar(grafico, marco, nivel, luz, tiempo);
 
-        // Tratamiento global: separa profundidad, devuelve luz al suelo y suma
-        // humedad/grano segun el material del nivel antes del primer plano.
+        // Dos pasadas diferentes: TratamientoEscena trabaja materiales y
+        // profundidad global; DireccionArte agrega lenguaje propio a cada uno
+        // de los diez recintos a partir de las referencias visuales del mod.
         TratamientoEscena.dibujar(grafico, ancho, alto, nivel, luz, tiempo, movimiento);
+        DireccionArte.dibujar(grafico, ancho, alto, nivel, luz, tiempo);
 
-        // Elementos cercanos deben quedar limpios por encima del tratamiento.
+        // Lo cercano queda por encima del acabado y recupera bordes limpios.
         planta.primerPlano(grafico, marco, nivel, luz, tiempo);
 
         if (movimiento) {
@@ -68,7 +68,6 @@ public final class EscenaNivel {
         vineta(grafico, ancho, alto, penumbra);
     }
 
-    /** Polvo suspendido coloreado por la iluminacion del recinto. */
     private static void motas(GuiGraphics grafico, int ancho, int alto,
                               float tiempo, float luz, Nivel nivel) {
         for (int i = 0; i < MOTAS; i++) {
@@ -84,15 +83,11 @@ public final class EscenaNivel {
             int py = (int) (y * alto);
             int tam = Trazo.pseudo(i * 7 + 4) < 0.82F ? 1 : 2;
             float a = (0.07F + Trazo.pseudo(i * 7 + 5) * 0.17F) * luz;
-
-            // Ya no todo el polvo es el mismo amarillo fluorescente. Cada
-            // recinto contamina sus particulas con su fuente de luz.
             int color = (i % 4 == 0) ? nivel.luz : Paleta.FLUOR;
             grafico.fill(px, py, px + tam, py + tam, Paleta.conAlfa(color, a));
         }
     }
 
-    /** Vignette de varias bandas para bordes mas suaves y menos digitales. */
     private static void vineta(GuiGraphics grafico, int ancho, int alto, float penumbra) {
         int franja = Math.max(8, ancho / 6);
         float intensidad = 0.36F + 0.43F * penumbra;
@@ -114,7 +109,6 @@ public final class EscenaNivel {
         }
     }
 
-    /** Brillo de luminaria con microvariacion, sin destellos bruscos extra. */
     public static float brilloFluorescente(float tiempo, boolean destellos) {
         if (!destellos) {
             return 0.90F;
