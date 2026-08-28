@@ -3,216 +3,42 @@ package com.santipdr.jobsmenu.client.scene.planta;
 import com.santipdr.jobsmenu.client.scene.Marco;
 import com.santipdr.jobsmenu.client.scene.Nivel;
 import com.santipdr.jobsmenu.client.ui.Paleta;
-
 import net.minecraft.client.gui.GuiGraphics;
 
-/**
- * Nivel 8 - La cisterna.
- *
- * Un aljibe enorme bajo tierra: filas de columnas que se pierden en la
- * penumbra, naciendo de un agua negra y quieta que lo refleja todo. La luz es
- * escasa y de abajo -unos focos sumergidos que tinen el agua-, y cada gota que
- * cae se oye durante segundos. Combina las dos ideas que mejor funcionaron: el
- * agua del natatorio y los pilares de la nave, pero a oscuras y hacia abajo.
- *
- * Lo que la distingue: el AGUA CUBRE EL PISO y las columnas SE REFLEJAN en ella,
- * invertidas y deshechas por una ondulacion lentisima. La mitad de abajo del
- * cuadro es el reflejo de la mitad de arriba. No hay orilla: se mira desde una
- * pasarela, al ras del agua.
- */
+/** Nivel 8 reconstruido: cisterna inmensa de agua negra y columnas. */
 public final class Cisterna implements Planta {
+    private static final int TRAMOS = 11;
+    public int tramos(){ return TRAMOS; }
 
-    private static final int TRAMOS = 16;
-
-    /** A que dy esta la linea del agua (el resto hacia abajo es reflejo). */
-    private static final float ORILLA = 1.02F;
-
-    /** A que fraccion del semiancho corren las dos hileras de columnas. */
-    private static final float HILERA = 0.60F;
-
-    @Override
-    public int tramos() {
-        return TRAMOS;
-    }
-
-    @Override
-    public float pisoPresencia() {
-        return 1.00F;
-    }
-
-    @Override
-    public void dibujar(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
-        Trazo.fondo(grafico, m, nivel, luz,
-                Paleta.mezclar(nivel.fondo, nivel.paredBaja, 0.20F), 1.10F);
-
-        // Boveda de ladrillo baja.
-        Trazo.plano(grafico, m, true, Paleta.mezclar(nivel.techo, nivel.paredBaja, 0.35F),
-                Paleta.mezclar(nivel.techo, nivel.niebla, 0.55F), nivel.niebla, luz, 0.55F);
-        Trazo.transversales(grafico, m, true, nivel.techoJunta, nivel.niebla, luz, TRAMOS, 0.26F);
-
-        // El agua ocupa todo lo que hay por debajo de la orilla.
-        agua(grafico, m, nivel, luz, tiempo);
-
-        Trazo.paredes(grafico, m, nivel, luz);
-        Trazo.manchas(grafico, m, nivel, luz, TRAMOS);
-
-        // Columnas y su reflejo. Se dibujan de fondo a cerca.
-        columnas(grafico, m, nivel, luz, tiempo);
-
-        focos(grafico, m, nivel, luz, tiempo);
-        gotasSuperficie(grafico, m, nivel, luz, tiempo);
-    }
-
-    /**
-     * El agua negra: cubre desde la linea de orilla hasta abajo. Muy oscura,
-     * con un leve brillo de los focos y el color del nivel. El reflejo de las
-     * columnas lo agregan las columnas mismas.
-     */
-    private static void agua(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
-        int desde = Math.round(m.sueloEn(ORILLA));
-        for (int y = desde; y < m.alto(); y += Trazo.PASO) {
-            float dy = m.dy(y + Trazo.PASO * 0.5F);
-            float lej = Trazo.limitar(1.0F / dy, 0.0F, 1.0F);
-            // El agua es mas negra hacia la camara (mas honda) y toma algo de
-            // color del nivel hacia el fondo.
-            int aguaBase = Trazo.velar(Paleta.mezclar(nivel.suelo, nivel.fondo, 0.55F),
-                    nivel.niebla, lej, 0.30F);
-            grafico.fill(0, y, m.ancho(), y + Trazo.PASO,
-                    Paleta.iluminar(aguaBase, Trazo.atenuar(luz, lej) * 0.7F));
+    @Override public void dibujar(GuiGraphics g, Marco m, Nivel n, float luz, float tiempo){
+        NuevaEscena.base(g,m,n,luz,TRAMOS,0.62F);
+        NuevaEscena.agua(g,m,n,luz,tiempo,0.49F,14);
+        for(int j=3;j<=9;j+=2){
+            float dx=Trazo.profundidad(j,10);
+            if(dx>4.5F) continue;
+            for(float frac:new float[]{-0.72F,-0.24F,0.24F,0.72F}){
+                NuevaEscena.columna(g,m,n,dx,frac,0.035F,Paleta.mezclar(n.paredBaja,n.junta,0.35F),luz);
+            }
         }
-        // El filo de la orilla: una linea de luz donde el agua toca la pared.
-        int fy = desde;
-        if (fy >= 0 && fy < m.alto()) {
-            grafico.fill(0, fy, m.ancho(), fy + 1,
-                    Paleta.conAlfa(Paleta.iluminar(nivel.luz, luz * 0.5F), 0.35F));
+        for(int i=0;i<8;i++){
+            int x=(int)(m.ancho()*(0.08F+i*0.12F));
+            int y=(int)(m.alto()*(0.57F+(i%3)*0.055F));
+            NuevaEscena.glow(g,x,y,Math.max(8,m.ancho()/60),0xFF58FF85,0.58F*luz);
+        }
+        int pasarelaY=(int)(m.alto()*0.66F);
+        int ancho=(int)(m.ancho()*0.14F);
+        int cx=(int)(m.ancho()*0.50F);
+        g.fillGradient(cx-ancho,pasarelaY,cx+ancho,m.alto(),
+                Paleta.conAlfa(Paleta.mezclar(n.junta,n.suelo,0.35F),0.74F),Paleta.conAlfa(Paleta.VANO,0.95F));
+        for(int y=pasarelaY;y<m.alto();y+=Math.max(5,m.alto()/28)){
+            g.fill(cx-ancho,y,cx+ancho,y+1,Paleta.conAlfa(n.techoJunta,0.28F));
         }
     }
 
-    /**
-     * Las dos hileras de columnas, con su reflejo invertido en el agua.
-     *
-     * Cada columna nace en la orilla y sube hasta la boveda; su reflejo baja
-     * desde la orilla, invertido, mas tenue y partido por la ondulacion del
-     * agua. El reflejo es la mitad del efecto: sin el, es una nave seca.
-     */
-    private static void columnas(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
-        for (int j = 2; j <= TRAMOS; j += 2) {
-            float dx = Trazo.profundidad(j, TRAMOS);
-            if (dx > 7.0F) {
-                continue;
-            }
-            float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
-            float at = Trazo.atenuar(luz, lej);
-            float ancho = Math.max(2.0F, m.w() * dx * 0.05F);
-            float yTecho = m.techoEn(dx * 0.92F);
-            // La columna entra al agua a su propia profundidad; el fuste llega
-            // hasta esa linea y de ahi hacia abajo empieza el reflejo.
-            float yBase = m.sueloEn(Math.max(ORILLA, dx));
-
-            for (int signo = -1; signo <= 1; signo += 2) {
-                float x = m.lado(signo, dx * HILERA);
-                if (x < -ancho * 2 || x > m.ancho() + ancho * 2) {
-                    continue;
-                }
-                int frente = Paleta.iluminar(
-                        Trazo.velar(nivel.paredAlta, nivel.niebla, lej, 0.45F), at * 0.9F);
-                int costado = Paleta.iluminar(
-                        Trazo.velar(nivel.paredBaja, nivel.niebla, lej, 0.50F), at * 0.55F);
-                float corte = ancho * 0.42F * (signo < 0 ? 1 : -1);
-
-                // El fuste, del techo a la orilla.
-                grafico.fill((int) (x - ancho), (int) yTecho, (int) (x + corte), (int) yBase,
-                        signo < 0 ? costado : frente);
-                grafico.fill((int) (x + corte), (int) yTecho, (int) (x + ancho), (int) yBase,
-                        signo < 0 ? frente : costado);
-
-                // Capitel, un ensanche arriba.
-                float capA = m.h() * dx * 0.05F;
-                grafico.fill((int) (x - ancho * 1.3F), (int) yTecho, (int) (x + ancho * 1.3F), (int) (yTecho + capA),
-                        Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, lej, 0.4F), at * 0.8F));
-
-                // EL REFLEJO: baja desde la orilla, invertido y deshecho.
-                float largoReflejo = (yBase - yTecho) * 0.8F;
-                int pasos = 12;
-                for (int k = 0; k < pasos; k++) {
-                    float t = k / (float) pasos;
-                    int ry0 = (int) (yBase + largoReflejo * t);
-                    int ry1 = (int) (yBase + largoReflejo * (k + 1) / pasos);
-                    if (ry0 >= m.alto()) {
-                        break;
-                    }
-                    // La ondulacion parte el reflejo lateralmente.
-                    float onda = (float) Math.sin(tiempo * 0.5F + t * 6.0F + j) * ancho * 0.4F;
-                    float desvanece = (1.0F - t) * (1.0F - t) * 0.5F;
-                    grafico.fill((int) (x - ancho + onda), ry0, (int) (x + ancho + onda), Math.max(ry0 + 1, ry1),
-                            Paleta.conAlfa(Paleta.iluminar(Trazo.velar(nivel.paredAlta, nivel.niebla, lej, 0.5F),
-                                    at * 0.6F), desvanece * luz));
-                }
-            }
-        }
+    @Override public void primerPlano(GuiGraphics g, Marco m, Nivel n, float luz, float tiempo){
+        int h=Math.max(8,m.alto()/22);
+        g.fill(0,m.alto()-h,m.ancho(),m.alto(),Paleta.conAlfa(Paleta.VANO,0.80F));
     }
 
-    /**
-     * Los focos sumergidos: unos pocos puntos de luz bajo el agua que la tinen
-     * desde abajo. Es la unica fuente, y da esa luz teatral de aljibe turistico.
-     */
-    private static void focos(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
-        for (int j = 3; j <= TRAMOS; j += 4) {
-            float dx = Trazo.profundidad(j, TRAMOS);
-            if (dx > 6.0F) {
-                continue;
-            }
-            float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
-            float x = m.centro(dx);
-            float y = m.sueloEn(Math.max(ORILLA, dx));
-            float titil = 0.85F + 0.15F * (float) Math.sin(tiempo * 1.5F + j);
-            float at = Trazo.atenuar(luz, lej) * titil;
-            float medio = Math.max(2.0F, m.w() * dx * 0.06F);
-            // Un resplandor difuso subiendo desde el agua.
-            for (int k = 5; k >= 1; k--) {
-                float t = k / 5.0F;
-                float ex = medio * (1.0F + t * 3.0F);
-                float ey = medio * (1.0F + t * 5.0F);
-                grafico.fill((int) (x - ex), (int) (y - ey), (int) (x + ex), (int) (y + ey * 0.3F),
-                        Paleta.conAlfa(nivel.luz, 0.05F * at * (1.0F - t * 0.5F)));
-            }
-            // El nucleo, apenas bajo la superficie.
-            grafico.fill((int) (x - medio * 0.5F), (int) (y - 1), (int) (x + medio * 0.5F), (int) (y + 2),
-                    Paleta.conAlfa(Paleta.iluminar(nivel.luz, Math.min(1.0F, at * 1.2F)), 0.7F));
-        }
-    }
-
-    /**
-     * Las gotas que caen de la boveda al agua: un anillo que se abre en la
-     * superficie, deterministas en posicion, con un ciclo lento cada una.
-     */
-    private static void gotasSuperficie(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
-        int desde = Math.round(m.sueloEn(ORILLA));
-        for (int i = 0; i < 8; i++) {
-            float dx = 1.4F + Trazo.pseudo(i * 13) * (TRAMOS * 0.4F);
-            float frac = (Trazo.pseudo(i * 13 + 1) - 0.5F) * 1.6F;
-            float x = m.enX(dx, frac);
-            float y = m.sueloEn(Math.max(ORILLA, dx));
-            if (x < 0 || x > m.ancho() || y < desde) {
-                continue;
-            }
-            float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
-            float ciclo = (tiempo * 0.4F + Trazo.pseudo(i * 13 + 2)) % 1.0F;
-            // El anillo se abre en el primer tercio del ciclo y se desvanece.
-            if (ciclo > 0.4F) {
-                continue;
-            }
-            float r = ciclo / 0.4F;
-            float radio = m.w() * dx * 0.06F * r;
-            float a = (1.0F - r) * 0.5F * Trazo.atenuar(luz, lej);
-            int col = Paleta.conAlfa(Paleta.iluminar(nivel.luz, luz), a);
-            grafico.fill((int) (x - radio), (int) y, (int) (x + radio), (int) y + 1, col);
-            grafico.fill((int) (x - radio * 0.6F), (int) y + 2, (int) (x + radio * 0.6F), (int) y + 3, col);
-        }
-    }
-
-    @Override
-    public void primerPlano(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
-        PrimerPlano.cisterna(grafico, m, nivel, luz, tiempo);
-    }
+    @Override public float pisoPresencia(){ return 0.74F; }
 }
