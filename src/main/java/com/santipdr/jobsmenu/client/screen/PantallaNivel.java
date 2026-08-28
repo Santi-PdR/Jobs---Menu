@@ -37,9 +37,8 @@ import net.minecraftforge.client.gui.ModListScreen;
  *   --  (hueco)
  *   04  Renunciar al nivel       - lo unico irreversible, apartado del resto
  *
- * La partida de un jugador no figura: se abre con Control + S, sin pasar por
- * la lista. Es la salida de servicio, y las salidas de servicio no se anuncian
- * en el tablon; se aclara al pie, en letra chica, para quien la necesite.
+ * La partida de un jugador no figura: la herramienta administrativa que la
+ * abre es deliberadamente invisible para quien solo viene a jugar.
  *
  * El hueco antes de renunciar no es decorativo: separar lo destructivo del
  * resto es lo que evita que alguien lo pulse por inercia bajando la lista.
@@ -104,6 +103,10 @@ public class PantallaNivel extends Screen {
 
     /** Momento en que se instalo el nivel actual, para la entrada del rotulo. */
     private long desdeCambio;
+
+    /** El cierre exige dos pulsaciones dentro de una ventana corta. */
+    private RenglonTablon renglonRenunciar;
+    private long renunciaArmadaHasta;
 
     public PantallaNivel() {
         super(Component.translatable("jobsmenu.pantalla.nivel"));
@@ -174,8 +177,9 @@ public class PantallaNivel extends Screen {
         agregar(x, y, ancho, "01", "jobsmenu.tablon.cuadrilla", this::abrirCuadrilla, false);
         agregar(x, y + salto, ancho, "02", "jobsmenu.tablon.condiciones", this::abrirCondiciones, false);
         agregar(x, y + 2 * salto, ancho, "03", "jobsmenu.tablon.registro", this::abrirRegistro, false);
-        agregar(x, y + 3 * salto + HUECO_APARTE, ancho, "04", "jobsmenu.tablon.renunciar",
-                this::renunciar, true);
+        this.renglonRenunciar = agregar(x, y + 3 * salto + HUECO_APARTE, ancho, "04",
+                "jobsmenu.tablon.renunciar", this::renunciar, true);
+        this.renunciaArmadaHasta = 0L;
 
         // El aviso del pie es un widget y no un dibujo: se puede pasar a mano y
         // entra en el recorrido del tabulador como cualquier otro renglon. Va
@@ -245,10 +249,12 @@ public class PantallaNivel extends Screen {
         return Math.max(1, this.font.split(texto, ancho).size());
     }
 
-    private void agregar(int x, int y, int ancho, String orden, String clave,
-                         Runnable accion, boolean terminal) {
-        this.addRenderableWidget(new RenglonTablon(
-                x, y, ancho, ALTO_RENGLON, orden, Component.translatable(clave), accion, terminal));
+    private RenglonTablon agregar(int x, int y, int ancho, String orden, String clave,
+                                  Runnable accion, boolean terminal) {
+        RenglonTablon renglon = new RenglonTablon(
+                x, y, ancho, ALTO_RENGLON, orden, Component.translatable(clave), accion, terminal);
+        this.addRenderableWidget(renglon);
+        return renglon;
     }
 
     // ----------------------------------------------------------------------
@@ -281,6 +287,18 @@ public class PantallaNivel extends Screen {
     }
 
     private void renunciar() {
+        long ahora = System.currentTimeMillis();
+        if (ahora > this.renunciaArmadaHasta) {
+            // Salir del juego por un roce de raton no es una interaccion
+            // profesional. La segunda pulsacion confirma sin abrir una
+            // pantalla vanilla que rompa la escena.
+            this.renunciaArmadaHasta = ahora + 3_500L;
+            if (this.renglonRenunciar != null) {
+                this.renglonRenunciar.setMessage(
+                        Component.translatable("jobsmenu.tablon.renunciar.confirmar"));
+            }
+            return;
+        }
         GestorAmbiente.cerrar();
         GestorMusica.soltar();
         Minecraft.getInstance().stop();
@@ -303,6 +321,7 @@ public class PantallaNivel extends Screen {
     public void render(GuiGraphics grafico, int ratonX, int ratonY, float parcial) {
         GestorAmbiente.atender();
         seguirNivel();
+        desarmarRenunciaVencida();
 
         this.renderBackground(grafico);
 
@@ -320,6 +339,17 @@ public class PantallaNivel extends Screen {
             rotuloNivel(grafico);
         }
         credito(grafico);
+    }
+
+    private void desarmarRenunciaVencida() {
+        if (this.renunciaArmadaHasta > 0L
+                && System.currentTimeMillis() > this.renunciaArmadaHasta) {
+            this.renunciaArmadaHasta = 0L;
+            if (this.renglonRenunciar != null) {
+                this.renglonRenunciar.setMessage(
+                        Component.translatable("jobsmenu.tablon.renunciar"));
+            }
+        }
     }
 
     /**

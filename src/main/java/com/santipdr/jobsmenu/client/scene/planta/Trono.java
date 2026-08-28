@@ -415,3 +415,4 @@ public final class Trono implements Planta {
         PrimerPlano.trono(grafico, m, nivel, luz, tiempo);
     }
 }
+

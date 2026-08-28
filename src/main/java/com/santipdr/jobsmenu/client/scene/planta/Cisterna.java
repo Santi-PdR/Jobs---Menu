@@ -216,3 +216,4 @@ public final class Cisterna implements Planta {
         PrimerPlano.cisterna(grafico, m, nivel, luz, tiempo);
     }
 }
+

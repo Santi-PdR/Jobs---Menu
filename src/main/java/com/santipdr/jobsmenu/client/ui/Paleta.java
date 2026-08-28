@@ -84,3 +84,4 @@ public final class Paleta {
         return mezclar(VANO, color, Math.max(0.0F, factor));
     }
 }
+

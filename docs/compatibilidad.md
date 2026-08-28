@@ -58,3 +58,4 @@ Algunos nombres renombrados de la lista (`IMPR`, `paulbear`, `panasonic`, `turbo
 parecen mods de menu, pero sin abrirlos no hay garantia. Si alguno reemplaza el titulo o
 la pausa, se notaria al instante en el juego, y se resuelve con `menu_propio = false` o
 `pausa_propia = false`.
+

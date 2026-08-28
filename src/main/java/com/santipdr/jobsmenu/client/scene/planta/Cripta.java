@@ -492,3 +492,4 @@ public final class Cripta implements Planta {
         PrimerPlano.cripta(grafico, m, nivel, luz, tiempo);
     }
 }
+

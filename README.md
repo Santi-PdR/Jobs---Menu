@@ -14,11 +14,27 @@ No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de
 
 | | |
 |---|---|
-| Versión | **0.8.3** |
+| Versión | **0.9.0** |
 | Minecraft | 1.20.1 |
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente (el servidor no necesita el mod) |
+
+## Qué trae la 0.9.0
+
+- **Tres dimensiones laborales nuevas, trece fondos en total.** La lavandería industrial tiene dos hileras
+  de máquinas, vapor, pilotos y un canasto en primer plano; el cyber encierra la cámara entre racks, LEDs,
+  bandejas de cable y una terminal activa; el comedor de turno suma mesas, campanas, barra de servicio y una
+  bandeja que nadie retiró. Son trabajos del servidor Jobs, no Backrooms genéricos repintados.
+- **Nuevo acabado para los trece recintos.** Bruma de profundidad, contaminación del aire por la fuente de
+  luz, grano material, humedad en lente y viñeta más suave. Las partículas ahora dependen del ambiente: una
+  biblioteca polvorienta y una piscina húmeda ya no comparten exactamente el mismo aire.
+- **Selector de nivel fijo dentro de Ajustes del aviso.** Al apagar los traslados automáticos ya se puede
+  elegir desde la interfaz cuál de los trece recintos queda asignado, sin editar el TOML.
+- **Salida protegida.** «Renunciar al nivel» exige una segunda pulsación dentro de 3,5 segundos. Un roce de
+  ratón ya no cierra Minecraft.
+- **Música con respiración.** Cuando la pista termina, espera dos segundos antes de empezar de nuevo; mantiene
+  el fundido, el volumen propio y la independencia del deslizador interno del aviso.
 
 ## Qué trae la 0.8.3
 
@@ -324,7 +340,7 @@ Requiere JDK 17 instalado.
 .\gradlew build
 ```
 
-El `.jar` queda en `build\libs\jobsmenu-0.8.3.jar` y se copia a la carpeta `mods` de la instancia.
+El `.jar` queda en `build\libs\jobsmenu-0.9.0.jar` y se copia a la carpeta `mods` de la instancia.
 
 > Si `gradle\wrapper\gradle-wrapper.jar` no existe todavía, el bloque de despliegue lo descarga solo.
 
@@ -347,7 +363,7 @@ SKLauncher, pero sirve igual para `.minecraft` o cualquier lanzador.
 # --- 0. Rutas --------------------------------------------------------------
 $repo      = "C:\Users\santi\Desktop\Jobs---Menu"
 $instancia = "C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1"
-$version   = "0.8.3"
+$version   = "0.9.0"
 
 Set-Location $repo
 

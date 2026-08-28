@@ -58,3 +58,4 @@ public final class AjustesAviso {
         evento.addListener(boton);
     }
 }
+

@@ -60,6 +60,17 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
                 (v) -> fijar.accept(v));
     }
 
+    /** Selector del recinto que queda cuando la rotacion esta apagada. */
+    private static OptionInstance<Integer> selectorNivel() {
+        return new OptionInstance<>("jobsmenu.ajustes.nivelfijo",
+                OptionInstance.cachedConstantTooltip(
+                        Component.translatable("jobsmenu.ajustes.nivelfijo.detalle")),
+                (caption, v) -> Component.translatable("jobsmenu.ajustes.nivelvalor", caption, v),
+                new OptionInstance.IntRange(0, 12),
+                ConfigTurno.nivelFijoBruto(),
+                ConfigTurno::fijarNivelFijo);
+    }
+
     @Override
     protected void init() {
         this.lista = new OptionsList(this.minecraft, this.width, this.height, 32, this.height - 32, 25);
@@ -72,6 +83,7 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
                         ConfigTurno.rotarNivelesBruto(), ConfigTurno::fijarRotarNiveles),
                 interruptor("jobsmenu.ajustes.cuenta",
                         ConfigTurno.mostrarCuentaRegresivaBruto(), ConfigTurno::fijarMostrarCuentaRegresiva));
+        this.lista.addBig(selectorNivel());
         this.lista.addSmall(
                 interruptor("jobsmenu.ajustes.avisos",
                         ConfigTurno.avisosRotativosBruto(), ConfigTurno::fijarAvisosRotativos),

@@ -216,3 +216,4 @@ public final class Sala implements Planta {
         PrimerPlano.sala(grafico, m, nivel, luz, tiempo);
     }
 }
+

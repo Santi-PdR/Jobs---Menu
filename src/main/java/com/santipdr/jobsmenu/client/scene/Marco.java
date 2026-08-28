@@ -141,3 +141,4 @@ public record Marco(int ancho, int alto, float fx, float fy,
         return (this.ha + this.hb) * 0.5F;
     }
 }
+

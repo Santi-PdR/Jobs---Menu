@@ -97,11 +97,17 @@ public final class EscenaNivel {
         // lejano y le da al cuadro la profundidad que un tubo no tiene.
         planta.primerPlano(grafico, marco, nivel, luz, tiempo);
 
+        // Acabado de camara: separa los planos y deja que la luz contamine el
+        // aire. Va despues de la arquitectura y antes de la presencia, que
+        // tiene que conservar una silueta mas firme que el fondo.
+        AcabadoEscena.profundidad(grafico, marco, nivel, luz);
+
         if (movimiento) {
             Presencia.dibujar(grafico, nivel, marco, luz, planta.pisoPresencia());
-            motas(grafico, ancho, alto, tiempo, luz);
+            motas(grafico, ancho, alto, nivel, tiempo, luz);
         }
-        vineta(grafico, ancho, alto, penumbra);
+        AcabadoEscena.patina(grafico, ancho, alto, nivel, luz, tiempo, movimiento);
+        vineta(grafico, ancho, alto, nivel, penumbra);
     }
 
     // ----------------------------------------------------------------------
@@ -109,34 +115,45 @@ public final class EscenaNivel {
     // ----------------------------------------------------------------------
 
     /** Polvo suspendido, subiendo muy despacio. */
-    private static void motas(GuiGraphics grafico, int ancho, int alto, float tiempo, float luz) {
-        for (int i = 0; i < MOTAS; i++) {
-            float baseX = Trazo.pseudo(i * 7);
-            float baseY = Trazo.pseudo(i * 7 + 1);
-            float velocidad = 0.10F + Trazo.pseudo(i * 7 + 2) * 0.30F;
-            float deriva = (float) Math.sin(tiempo * (0.25F + Trazo.pseudo(i * 7 + 3) * 0.4F) + i) * 0.012F;
+    private static void motas(GuiGraphics grafico, int ancho, int alto, Nivel nivel,
+                              float tiempo, float luz) {
+        // Un deposito o una biblioteca cargan el aire; una piscina o cisterna
+        // no pueden tener la misma tormenta de polvo. Reflejo y humedad bajan
+        // la cantidad sin eliminar la vida del fondo.
+        float densidad = 0.42F + nivel.humedad * 0.34F + (1.0F - nivel.reflejo) * 0.24F;
+        int total = Math.max(18, Math.min(MOTAS, Math.round(MOTAS * densidad)));
+        int sesgo = nivel.numero() * 211;
+        for (int i = 0; i < total; i++) {
+            float baseX = Trazo.pseudo(sesgo + i * 7);
+            float baseY = Trazo.pseudo(sesgo + i * 7 + 1);
+            float velocidad = 0.10F + Trazo.pseudo(sesgo + i * 7 + 2) * 0.30F;
+            float deriva = (float) Math.sin(tiempo * (0.25F + Trazo.pseudo(sesgo + i * 7 + 3) * 0.4F) + i) * 0.012F;
 
             float y = (baseY + tiempo * velocidad * 0.045F) % 1.0F;
             float x = (baseX + deriva + 1.0F) % 1.0F;
             int px = (int) (x * ancho);
             int py = (int) (y * alto);
-            int tam = Trazo.pseudo(i * 7 + 4) < 0.75F ? 1 : 2;
-            float a = (0.10F + Trazo.pseudo(i * 7 + 5) * 0.22F) * luz;
+            int tam = Trazo.pseudo(sesgo + i * 7 + 4) < 0.82F ? 1 : 2;
+            float a = (0.07F + Trazo.pseudo(sesgo + i * 7 + 5) * 0.18F) * luz;
             grafico.fill(px, py, px + tam, py + tam, Paleta.conAlfa(Paleta.FLUOR, a));
         }
     }
 
     /** Los bordes de la pantalla se apagan. Se cierran mas cuando ronda. */
-    private static void vineta(GuiGraphics grafico, int ancho, int alto, float penumbra) {
+    private static void vineta(GuiGraphics grafico, int ancho, int alto,
+                               Nivel nivel, float penumbra) {
         int franja = Math.max(8, ancho / 6);
-        float intensidad = 0.38F + 0.42F * penumbra;
-        final int paso = 4;
+        float intensidad = 0.31F + 0.45F * penumbra;
+        final int paso = 2;
 
         for (int x = 0; x < franja; x += paso) {
             float t = 1.0F - x / (float) franja;
-            int color = Paleta.conAlfa(Paleta.VANO, intensidad * t * t);
-            grafico.fill(x, 0, x + paso, alto, color);
-            grafico.fill(ancho - x - paso, 0, ancho - x, alto, color);
+            float izquierda = 0.88F + nivel.fugaX * 0.18F;
+            float derecha = 1.06F - nivel.fugaX * 0.18F;
+            grafico.fill(x, 0, x + paso, alto,
+                    Paleta.conAlfa(Paleta.VANO, intensidad * izquierda * t * t));
+            grafico.fill(ancho - x - paso, 0, ancho - x, alto,
+                    Paleta.conAlfa(Paleta.VANO, intensidad * derecha * t * t));
         }
 
         int franjaV = Math.max(6, alto / 7);

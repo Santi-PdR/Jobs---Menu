@@ -409,3 +409,4 @@ public final class Trazo {
                 (int) (y + grueso), oscuro);
     }
 }
+

@@ -260,3 +260,4 @@ public final class Invernadero implements Planta {
         PrimerPlano.invernadero(grafico, m, nivel, luz, tiempo);
     }
 }
+

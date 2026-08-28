@@ -28,3 +28,4 @@ displayTest="IGNORE_ALL_VERSION"
     versionRange="${minecraft_version_range}"
     ordering="NONE"
     side="CLIENT"
+

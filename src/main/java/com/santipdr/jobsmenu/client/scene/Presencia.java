@@ -380,3 +380,4 @@ public final class Presencia {
         }
     }
 }
+

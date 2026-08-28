@@ -239,6 +239,33 @@ NIVELES = [
           fuga_x=0.500, fuga_y=0.500,
           semi_izq=0.150, semi_der=0.150, semi_alto=0.185, semi_bajo=0.140,
           reflejo=0.26, humedad=0.55),
+
+    Nivel(clave="nivel10", planta="lavanderia",
+          pared_alta=0xFFC6CEC8, pared_baja=0xFF75817C, junta=0xFF46524F,
+          suelo=0xFF6D807D, suelo_lejos=0xFF405754, suelo_junta=0xFF324744,
+          techo=0xFFD5DBD5, techo_junta=0xFF7E8984,
+          niebla=0xFF93A6A0, luz=0xFFFFE8AA, fondo=0xFF101918,
+          fuga_x=0.535, fuga_y=0.485,
+          semi_izq=0.145, semi_der=0.170, semi_alto=0.130, semi_bajo=0.125,
+          reflejo=0.48, humedad=0.92),
+
+    Nivel(clave="nivel11", planta="cyber",
+          pared_alta=0xFF263443, pared_baja=0xFF131D29, junta=0xFF0A1018,
+          suelo=0xFF192431, suelo_lejos=0xFF0C141E, suelo_junta=0xFF253847,
+          techo=0xFF202C38, techo_junta=0xFF0D1720,
+          niebla=0xFF152938, luz=0xFF72D7D0, fondo=0xFF03070B,
+          fuga_x=0.475, fuga_y=0.515,
+          semi_izq=0.092, semi_der=0.106, semi_alto=0.145, semi_bajo=0.112,
+          reflejo=0.32, humedad=0.22),
+
+    Nivel(clave="nivel12", planta="comedor",
+          pared_alta=0xFFD2C5A7, pared_baja=0xFF88795E, junta=0xFF514735,
+          suelo=0xFF807764, suelo_lejos=0xFF554F42, suelo_junta=0xFF3D382E,
+          techo=0xFFC9C4B7, techo_junta=0xFF777267,
+          niebla=0xFF9D9277, luz=0xFFFFD58A, fondo=0xFF120F0A,
+          fuga_x=0.560, fuga_y=0.465,
+          semi_izq=0.190, semi_der=0.145, semi_alto=0.135, semi_bajo=0.130,
+          reflejo=0.34, humedad=0.58),
 ]
 
 
@@ -644,12 +671,15 @@ def dibujar(lz: Lienzo, nivel: Nivel, tiempo: float = 3.0, penumbra: float = 0.0
     if primer_plano:
         PRIMEROS_PLANOS[nivel.planta](lz, m, nivel, luz, tiempo)
 
+    acabado_profundidad(lz, m, nivel, luz)
+
     if presencia_v > 0.0:
         presencia(lz, nivel, m, presencia_v, luz,
                   presencia_segunda, tiempo, PISO_PRESENCIA[nivel.planta],
                   presencia_modo)
     if polvo:
-        motas(lz, fx, fy, tiempo, luz)
+        motas(lz, nivel, tiempo, luz)
+    patina(lz, nivel, tiempo, luz, polvo)
     vineta(lz, nivel, penumbra, luz)
 
 
@@ -2986,6 +3016,133 @@ def pp_trono(lz, m, nivel, luz, tiempo) -> None:
         lz.fill(cx, cy, cx + cw, cy + 1, con_alfa(piedra_luz, 0.5))
 
 
+# --------------------------------------------------------------------------
+# Niveles laborales 10-12
+# --------------------------------------------------------------------------
+def lavanderia(lz, m, n, luz, tiempo) -> None:
+    tramos = 16
+    t_fondo(lz, m, n, luz, mezclar(n.pared_baja, n.techo, 0.34), 1.8)
+    t_plano(lz, m, True, n.techo, mezclar(n.techo, n.niebla, 0.35), n.niebla, luz, 0.48)
+    t_plano(lz, m, False, n.suelo, n.suelo_lejos, n.niebla, luz, 0.62)
+    t_transversales(lz, m, True, n.techo_junta, n.niebla, luz, tramos, 0.38)
+    t_transversales(lz, m, False, n.suelo_junta, n.niebla, luz, tramos, 0.56)
+    t_paredes(lz, m, n, luz)
+    t_juntas(lz, m, n, luz, tramos, 1.0, 0.40)
+    t_manchas(lz, m, n, luz, tramos)
+    for j in range(3, tramos + 1):
+        d = profundidad(j, tramos)
+        if d > 6.2:
+            continue
+        lejos = limitar(1.0 / d, 0, 1)
+        at = atenuar(luz, lejos)
+        for signo in (-1, 1):
+            cx, base = m.lado(signo, d * 0.74), m.suelo_en(d)
+            ancho, alto = max(4, m.w * d * 0.30), max(7, m.h * d * 0.62)
+            x0, x1 = round(cx - ancho / 2), round(cx + ancho / 2)
+            y0, y1 = round(base - alto), round(base)
+            lz.fill(x0, y0, x1, y1, iluminar(velar(n.pared_alta, n.niebla, lejos, 0.42), at * 0.82))
+            lz.fill(x0, y0, x1, y0 + max(1, round(alto * 0.15)), iluminar(n.techo, at * 0.72))
+            lado = max(3, round(min(ancho, alto) * 0.58))
+            px0, py0 = round(cx) - lado // 2, round(base - alto * 0.47) - lado // 2
+            lz.fill(px0, py0, px0 + lado, py0 + lado, con_alfa(iluminar(n.junta, at * 0.72), 0.92))
+            borde = max(1, lado // 6)
+            lz.fill(px0 + borde, py0 + borde, px0 + lado - borde, py0 + lado - borde,
+                    iluminar(mezclar(n.fondo, n.luz, 0.12), at * 0.58))
+            if (j + signo) % 4 == 0:
+                led = max(1, round(ancho * 0.06))
+                lz.fill(x1 - led * 2, y0 + led, x1 - led, y0 + led * 2, con_alfa(n.luz, 0.72 * at))
+    for j in range(3, tramos + 1, 2):
+        d = profundidad(j, tramos)
+        if d <= 6:
+            t_luminaria(lz, m, n, d, 0.86, 0.34, 0.9, luz)
+
+
+def pp_lavanderia(lz, m, n, luz, tiempo) -> None:
+    x0, y0 = round(m.ancho * 0.72 + math.sin(tiempo * 0.08) * 3), round(m.alto * 0.78)
+    lz.fill_gradient(x0, y0, m.ancho, m.alto,
+                     iluminar(n.pared_baja, 0.48 + 0.28 * luz), iluminar(n.fondo, 0.28 + 0.12 * luz))
+    for x in range(x0 + 5, m.ancho, 12):
+        lz.fill(x, y0 + 5, x + 2, m.alto, con_alfa(n.junta, 0.55))
+    lz.fill(x0 - 8, y0 - 8, x0 + 34, y0 + 7, con_alfa(iluminar(n.techo, 0.62 + 0.26 * luz), 0.88))
+
+
+def cyber(lz, m, n, luz, tiempo) -> None:
+    tramos = 18
+    t_fondo(lz, m, n, luz, mezclar(n.fondo, n.pared_baja, 0.28), 1.4)
+    t_plano(lz, m, True, n.techo, n.niebla, n.niebla, luz, 0.72)
+    t_plano(lz, m, False, n.suelo, n.suelo_lejos, n.niebla, luz, 0.70)
+    t_transversales(lz, m, True, n.techo_junta, n.niebla, luz, tramos, 0.30)
+    t_transversales(lz, m, False, n.suelo_junta, n.niebla, luz, tramos, 0.48)
+    t_paredes(lz, m, n, luz)
+    for j in range(2, tramos + 1):
+        d = profundidad(j, tramos)
+        if d > 6.5:
+            continue
+        at = atenuar(luz, limitar(1 / d, 0, 1))
+        for signo in (-1, 1):
+            cx, y1, y0 = m.lado(signo, d * 0.70), m.suelo_en(d), m.techo_en(d * 0.82)
+            medio = max(3, m.w * d * 0.25)
+            x0, x1, top, bottom = round(cx - medio), round(cx + medio), round(y0), round(y1)
+            lz.fill_gradient(x0, top, x1, bottom, iluminar(n.pared_alta, at * 0.70), iluminar(n.pared_baja, at * 0.46))
+            for u in range(1, 9):
+                y = top + (bottom - top) * u // 9
+                lz.fill(x0 + 1, y, x1 - 1, y + 1, con_alfa(n.junta, 0.62))
+                if (u + j + signo) % 3 == 0:
+                    led = max(1, round(medio * 0.08))
+                    lx = x1 - led * 2 if signo < 0 else x0 + led
+                    lz.fill(lx, y - led, lx + led, y, con_alfa(n.luz, 0.58 * at))
+    w, h, cx, cy = max(8, round(m.w * 0.44)), max(5, round(m.h * 0.42)), round(m.fx), round(m.fy)
+    lz.fill(cx - w, cy - h, cx + w, cy + h, iluminar(n.fondo, luz * 0.45))
+    margen = max(1, w // 8)
+    lz.fill(cx - w + margen, cy - h + margen, cx + w - margen, cy + h - margen,
+            con_alfa(iluminar(mezclar(n.fondo, n.luz, 0.30), luz), 0.88))
+
+
+def pp_cyber(lz, m, n, luz, tiempo) -> None:
+    x1 = round(m.ancho * 0.27 + math.sin(tiempo * 0.07) * 4)
+    lz.fill_gradient(0, 0, x1, m.alto, iluminar(n.pared_alta, 0.52 + 0.25 * luz), iluminar(n.fondo, 0.22 + 0.14 * luz))
+    for y in range(24, m.alto, 28):
+        lz.fill(x1 - 8, y, x1 - 3, y + 2, con_alfa(n.luz, 0.25 * luz))
+
+
+def comedor(lz, m, n, luz, tiempo) -> None:
+    tramos = 13
+    t_fondo(lz, m, n, luz, mezclar(n.pared_alta, n.niebla, 0.30), 2.0)
+    t_plano(lz, m, True, n.techo, n.niebla, n.niebla, luz, 0.48)
+    t_plano(lz, m, False, n.suelo, n.suelo_lejos, n.niebla, luz, 0.58)
+    t_transversales(lz, m, True, n.techo_junta, n.niebla, luz, tramos, 0.38)
+    t_transversales(lz, m, False, n.suelo_junta, n.niebla, luz, tramos, 0.52)
+    t_paredes(lz, m, n, luz)
+    t_juntas(lz, m, n, luz, tramos, 1.0, 0.36)
+    for j in range(3, tramos + 1, 2):
+        d = profundidad(j, tramos)
+        if d > 5.5:
+            continue
+        for signo in (-1, 1):
+            cx, y = m.lado(signo, d * 0.32), m.suelo_en(d * 0.72)
+            w, h = max(3, round(m.w * d * 0.22)), max(1, round(m.h * d * 0.055))
+            lz.fill(round(cx) - w, round(y) - h, round(cx) + w, round(y) + h,
+                    iluminar(n.techo_junta, atenuar(luz, 1 / d) * 0.86))
+            lz.fill(round(cx) - 1, round(y) + h, round(cx) + 1, round(m.suelo_en(d)), con_alfa(n.junta, 0.72))
+    for j in range(3, tramos + 1, 3):
+        d = profundidad(j, tramos)
+        if d > 5:
+            continue
+        cx, y = m.centro(d), m.techo_en(d * 0.60)
+        w, h = max(3, m.w * d * 0.18), max(2, m.h * d * 0.08)
+        lz.fill(round(cx - w), round(y), round(cx + w), round(y + h), iluminar(n.techo_junta, luz * 0.70))
+        lz.fill(round(cx - w * 0.72), round(y + h), round(cx + w * 0.72), round(y + h + 1), con_alfa(n.luz, 0.72 * luz))
+
+
+def pp_comedor(lz, m, n, luz, tiempo) -> None:
+    y = round(m.alto * 0.80 + math.sin(tiempo * 0.09) * 2.5)
+    lz.fill_gradient(0, y, m.ancho, m.alto, iluminar(n.pared_baja, 0.48 + 0.30 * luz), iluminar(n.fondo, 0.20 + 0.12 * luz))
+    borde = max(3, round(m.alto * 0.025))
+    lz.fill(0, y - borde, m.ancho, y, iluminar(n.techo, 0.58 + 0.30 * luz))
+    bx = round(m.ancho * 0.62)
+    lz.fill(bx, y - borde - 7, bx + 58, y - borde - 1, con_alfa(n.techo_junta, 0.82))
+
+
 PRIMEROS_PLANOS = {
     "sala": pp_sala,
     "nave": pp_nave,
@@ -2997,15 +3154,20 @@ PRIMEROS_PLANOS = {
     "catacumba": pp_catacumba,
     "cisterna": pp_cisterna,
     "trono": pp_trono,
+    "lavanderia": pp_lavanderia,
+    "cyber": pp_cyber,
+    "comedor": pp_comedor,
 }
 
 
 PLANTAS = {"sala": sala, "nave": nave, "servicio": servicio, "natatorio": natatorio,
            "cripta": cripta, "biblioteca": biblioteca, "invernadero": invernadero,
-           "catacumba": catacumba, "cisterna": cisterna, "trono": trono}
+           "catacumba": catacumba, "cisterna": cisterna, "trono": trono,
+           "lavanderia": lavanderia, "cyber": cyber, "comedor": comedor}
 PISO_PRESENCIA = {"sala": 0.94, "nave": 1.30, "servicio": 0.98, "natatorio": 1.18,
                   "cripta": 0.98, "biblioteca": 0.96, "invernadero": 0.96,
-                  "catacumba": 0.97, "cisterna": 1.00, "trono": 0.98}
+                  "catacumba": 0.97, "cisterna": 1.00, "trono": 0.98,
+                  "lavanderia": 0.96, "cyber": 0.96, "comedor": 0.96}
 
 
 # --------------------------------------------------------------------------
@@ -3166,31 +3328,101 @@ def reflejo_presencia(lz, x, base, altura, w, alfa, tiempo, tinte) -> None:
                 con_alfa(tinte, desvanecido))
 
 
-def motas(lz, fx, fy, tiempo, luz) -> None:
-    for i in range(MOTAS):
-        base_x = pseudo(i * 7)
-        base_y = pseudo(i * 7 + 1)
-        velocidad = 0.10 + pseudo(i * 7 + 2) * 0.30
-        deriva = math.sin(tiempo * (0.25 + pseudo(i * 7 + 3) * 0.4) + i) * 0.012
+def acabado_profundidad(lz, m, nivel, luz) -> None:
+    """Bruma de distancia y contaminacion de luz, espejo de AcabadoEscena."""
+    capas = 9
+    for i in range(capas, 0, -1):
+        d = 1.0 + i * 0.22
+        x0 = max(0, round(m.izq(d)))
+        x1 = min(lz.ancho, round(m.der(d)))
+        y0 = max(0, round(m.techo_en(d)))
+        y1 = min(lz.alto, round(m.suelo_en(d)))
+        if x1 <= x0 or y1 <= y0:
+            continue
+        lejos = 1.0 / d
+        alfa = (0.010 + 0.020 * lejos * lejos) * luz
+        color = con_alfa(nivel.niebla, alfa)
+        borde = max(1, min(3, round(min(m.w, m.h) * d * 0.018)))
+        lz.fill(x0, y0, x1, min(y1, y0 + borde), color)
+        lz.fill(x0, max(y0, y1 - borde), x1, y1, color)
+        lz.fill(x0, y0, min(x1, x0 + borde), y1, color)
+        lz.fill(max(x0, x1 - borde), y0, x1, y1, color)
+
+    for i in range(7, 0, -1):
+        escala = i / 7.0
+        rx = max(2, round(m.w * (0.55 + escala * 2.8)))
+        ry = max(2, round(m.h * (0.45 + escala * 2.2)))
+        x0 = max(0, round(m.fx) - rx)
+        x1 = min(lz.ancho, round(m.fx) + rx)
+        y0 = max(0, round(m.fy) - ry)
+        y1 = min(lz.alto, round(m.fy) + ry)
+        alfa = (0.006 + (1.0 - escala) * 0.006) * luz
+        lz.fill(x0, y0, x1, y1, con_alfa(nivel.luz, alfa))
+
+
+def patina(lz, nivel, tiempo, luz, movimiento) -> None:
+    """Grano material y rastros humedos que no parpadean entre fotogramas."""
+    semilla_nivel = NIVELES.index(nivel) * 997
+    total = 54 + round(nivel.humedad * 42.0)
+    for i in range(total):
+        nx = pseudo(semilla_nivel + i * 5)
+        ny = pseudo(semilla_nivel + i * 5 + 1)
+        if (0.16 < nx < 0.84 and 0.12 < ny < 0.88
+                and pseudo(semilla_nivel + i * 5 + 2) < 0.78):
+            continue
+        x = round(nx * (lz.ancho - 1))
+        y = round(ny * (lz.alto - 1))
+        largo = 2 if pseudo(semilla_nivel + i * 5 + 3) > 0.86 else 1
+        claro = pseudo(semilla_nivel + i * 5 + 4) > 0.58
+        tinte = nivel.luz if claro else VANO
+        alfa = (0.035 if claro else 0.045) * (0.45 + 0.55 * luz)
+        lz.fill(x, y, min(lz.ancho, x + largo), y + 1, con_alfa(tinte, alfa))
+
+    if nivel.humedad < 0.55:
+        return
+    rastros = 3 + round(nivel.humedad * 5.0)
+    for i in range(rastros):
+        base = pseudo(semilla_nivel + 500 + i * 3)
+        x = (round(base * lz.ancho * 0.24) if base < 0.5
+             else lz.ancho - round((1.0 - base) * lz.ancho * 0.24))
+        avance = ((tiempo * (0.006 + i * 0.0007)) % 1.0) if movimiento else 0.35
+        y = round((pseudo(semilla_nivel + 501 + i * 3) * 0.55 + avance * 0.45) * lz.alto)
+        largo = max(3, round(lz.alto * (0.018 + pseudo(semilla_nivel + 502 + i * 3) * 0.045)))
+        lz.fill(x, y, x + 1, min(lz.alto, y + largo),
+                con_alfa(nivel.niebla, 0.028 * nivel.humedad * luz))
+
+
+def motas(lz, nivel, tiempo, luz) -> None:
+    densidad = 0.42 + nivel.humedad * 0.34 + (1.0 - nivel.reflejo) * 0.24
+    total = max(18, min(MOTAS, round(MOTAS * densidad)))
+    sesgo = NIVELES.index(nivel) * 211
+    for i in range(total):
+        base_x = pseudo(sesgo + i * 7)
+        base_y = pseudo(sesgo + i * 7 + 1)
+        velocidad = 0.10 + pseudo(sesgo + i * 7 + 2) * 0.30
+        deriva = math.sin(tiempo * (0.25 + pseudo(sesgo + i * 7 + 3) * 0.4) + i) * 0.012
         y = (base_y + tiempo * velocidad * 0.045) % 1.0
         x = (base_x + deriva) % 1.0
         px = int(x * lz.ancho)
         py = int(y * lz.alto)
-        tam = 1 if pseudo(i * 7 + 4) < 0.75 else 2
-        a = (0.10 + pseudo(i * 7 + 5) * 0.22) * luz
+        tam = 1 if pseudo(sesgo + i * 7 + 4) < 0.82 else 2
+        a = (0.07 + pseudo(sesgo + i * 7 + 5) * 0.18) * luz
         lz.fill(px, py, px + tam, py + tam, con_alfa(0xFFFFF7D2, a))
 
 
 def vineta(lz, nivel, penumbra, luz) -> None:
     franja = max(8, lz.ancho // 6)
-    intensidad = 0.38 + 0.42 * penumbra
-    paso = 4
+    intensidad = 0.31 + 0.45 * penumbra
+    paso = 2
     x = 0
     while x < franja:
         t = 1.0 - x / franja
-        a = intensidad * t * t
-        lz.fill(x, 0, x + paso, lz.alto, con_alfa(VANO, a))
-        lz.fill(lz.ancho - x - paso, 0, lz.ancho - x, lz.alto, con_alfa(VANO, a))
+        izquierda = 0.88 + nivel.fuga_x * 0.18
+        derecha = 1.06 - nivel.fuga_x * 0.18
+        lz.fill(x, 0, x + paso, lz.alto,
+                con_alfa(VANO, intensidad * izquierda * t * t))
+        lz.fill(lz.ancho - x - paso, 0, lz.ancho - x, lz.alto,
+                con_alfa(VANO, intensidad * derecha * t * t))
         x += paso
     franja_v = max(6, lz.alto // 7)
     y = 0

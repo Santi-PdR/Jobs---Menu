@@ -254,3 +254,4 @@ public final class Catacumba implements Planta {
         PrimerPlano.catacumba(grafico, m, nivel, luz, tiempo);
     }
 }
+

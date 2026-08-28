@@ -281,3 +281,4 @@ public final class RotacionNiveles {
         return Math.floorMod(System.currentTimeMillis(), total) % CICLO_MS;
     }
 }
+

@@ -224,3 +224,4 @@ public class NotaAviso extends AbstractButton {
                 textoActual());
     }
 }
+

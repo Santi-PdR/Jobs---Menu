@@ -51,7 +51,10 @@ public class GestorMusica extends AbstractTickableSoundInstance {
     private GestorMusica() {
         super(SonidosNivel.MUSICA_TEMA.get(), SoundSource.MUSIC, RandomSource.create());
         this.looping = true;
-        this.delay = 0;
+        // El bucle respiraba demasiado poco: al terminar, empezaba otra vez en
+        // el mismo instante y delataba el punto de corte. El motor de sonido de
+        // Minecraft interpreta delay en ticks para los sonidos repetidos.
+        this.delay = 40; // dos segundos de aire entre reproducciones
         this.volume = 0.0F;
         this.pitch = 1.0F;
         this.relative = true;

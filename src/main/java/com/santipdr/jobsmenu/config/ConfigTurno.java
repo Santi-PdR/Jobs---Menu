@@ -76,7 +76,7 @@ public final class ConfigTurno {
 
         this.nivelFijo = builder
                 .comment("Nivel a mostrar cuando la rotacion esta apagada. 0 es el papel mural.")
-                .defineInRange("nivel_fijo", 0, 0, 9);
+                .defineInRange("nivel_fijo", 0, 0, 12);
 
         this.sonidoBotones = builder
                 .comment("Sonar la casilla al recorrer y al marcar los renglones del aviso.")
@@ -243,6 +243,11 @@ public final class ConfigTurno {
         return SPEC.isLoaded() ? INSTANCE.volumenAmbiente.get() : 55;
     }
 
+    /** Nivel fijo en la escala que ve el jugador (0 a 12). */
+    public static int nivelFijoBruto() {
+        return SPEC.isLoaded() ? INSTANCE.nivelFijo.get() : 0;
+    }
+
     public static void fijarMenuPropio(boolean valor) {
         fijar(INSTANCE.menuPropio, valor);
     }
@@ -301,5 +306,9 @@ public final class ConfigTurno {
 
     public static void fijarVolumenAmbiente(int porcentaje) {
         fijar(INSTANCE.volumenAmbiente, Math.max(0, Math.min(100, porcentaje)));
+    }
+
+    public static void fijarNivelFijo(int nivel) {
+        fijar(INSTANCE.nivelFijo, Math.max(0, Math.min(12, nivel)));
     }
 }

@@ -214,3 +214,4 @@ public class RenglonTablon extends AbstractButton {
         this.defaultButtonNarrationText(salida);
     }
 }
+

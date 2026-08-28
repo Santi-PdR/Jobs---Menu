@@ -518,3 +518,4 @@ public final class Natatorio implements Planta {
         PrimerPlano.natatorio(grafico, m, nivel, luz, tiempo);
     }
 }
+

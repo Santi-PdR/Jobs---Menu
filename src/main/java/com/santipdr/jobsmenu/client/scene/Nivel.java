@@ -3,8 +3,11 @@ package com.santipdr.jobsmenu.client.scene;
 import com.santipdr.jobsmenu.client.scene.planta.Biblioteca;
 import com.santipdr.jobsmenu.client.scene.planta.Catacumba;
 import com.santipdr.jobsmenu.client.scene.planta.Cisterna;
+import com.santipdr.jobsmenu.client.scene.planta.Comedor;
 import com.santipdr.jobsmenu.client.scene.planta.Cripta;
+import com.santipdr.jobsmenu.client.scene.planta.Cyber;
 import com.santipdr.jobsmenu.client.scene.planta.Invernadero;
+import com.santipdr.jobsmenu.client.scene.planta.Lavanderia;
 import com.santipdr.jobsmenu.client.scene.planta.Nave;
 import com.santipdr.jobsmenu.client.scene.planta.Natatorio;
 import com.santipdr.jobsmenu.client.scene.planta.Planta;
@@ -261,6 +264,36 @@ public final class Nivel {
                     // el trono cae justo en la fuga, al fondo.
                     0.500F, 0.500F, 0.150F, 0.150F, 0.185F, 0.140F,
                     0.26F, 0.55F),
+
+            // Nivel 10 - Lavanderia industrial. Dos hileras de maquinas,
+            // azulejo humedo, vapor y pilotos que siguen encendidos sin nadie.
+            new Nivel("nivel10", new Lavanderia(),
+                    0xFFC6CEC8, 0xFF75817C, 0xFF46524F,
+                    0xFF6D807D, 0xFF405754, 0xFF324744,
+                    0xFFD5DBD5, 0xFF7E8984,
+                    0xFF93A6A0, 0xFFFFE8AA, 0xFF101918,
+                    0.535F, 0.485F, 0.145F, 0.170F, 0.130F, 0.125F,
+                    0.48F, 0.92F),
+
+            // Nivel 11 - Cyber. Racks en los dos costados, bandejas de cable y
+            // una terminal que sigue esperando una sesion al fondo.
+            new Nivel("nivel11", new Cyber(),
+                    0xFF263443, 0xFF131D29, 0xFF0A1018,
+                    0xFF192431, 0xFF0C141E, 0xFF253847,
+                    0xFF202C38, 0xFF0D1720,
+                    0xFF152938, 0xFF72D7D0, 0xFF03070B,
+                    0.475F, 0.515F, 0.092F, 0.106F, 0.145F, 0.112F,
+                    0.32F, 0.22F),
+
+            // Nivel 12 - Comedor de turno. Cocina institucional, acero viejo,
+            // mesas alineadas y una bandeja que nadie vino a retirar.
+            new Nivel("nivel12", new Comedor(),
+                    0xFFD2C5A7, 0xFF88795E, 0xFF514735,
+                    0xFF807764, 0xFF554F42, 0xFF3D382E,
+                    0xFFC9C4B7, 0xFF777267,
+                    0xFF9D9277, 0xFFFFD58A, 0xFF120F0A,
+                    0.560F, 0.465F, 0.190F, 0.145F, 0.135F, 0.130F,
+                    0.34F, 0.58F),
     };
 
     /** Cuantos niveles hay en la rotacion. */

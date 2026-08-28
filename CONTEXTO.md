@@ -10,7 +10,7 @@
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
 | Paquete Java | `com.santipdr.jobsmenu` |
-| Versión actual | **0.8.3** |
+| Versión actual | **0.9.0** |
 | Plataforma | Minecraft **1.20.1** · Forge **47.x** · Java **17** |
 | Alcance | Menús (Title / Pause / Options), escena viva, audio, lore. **Sin gameplay.** |
 | Lado | **Cliente**. El mod no toca el servidor ni exige instalarse en él. |
@@ -215,6 +215,9 @@ cuelgan de las paredes:
 | `nivel7` | Las catacumbas | 0.24 | Túnel de piedra fría, nichos, farol — el pariente oscuro de la sala |
 | `nivel8` | La cisterna | 0.80 | Columnas sobre agua negra que las refleja, focos sumergidos |
 | `nivel9` | El salón del trono | 0.26 | Ruinas, columnas partidas, un trono vacío bajo un haz de luz |
+| `nivel10` | La lavandería | 0.48 | Máquinas industriales, vapor, pilotos, azulejo húmedo y canasto cercano |
+| `nivel11` | El cyber | 0.32 | Racks, LEDs, bandejas de cable y una terminal que no cierra sesión |
+| `nivel12` | El comedor | 0.34 | Cocina institucional, mesas, campanas y barra de servicio abandonada |
 
 **Nivel 4 es la otra cara del mod.** Los cuatro primeros son backrooms: fluorescente que no se apaga, terror
 burocrático y luminoso. La sala es lo contrario —piedra excavada, antorchas, un candelabro de rueda con
@@ -537,6 +540,7 @@ editar el `.toml` a mano.
 | **0.8.0** | Condiciones de estancia (opciones del mod con la piel del aviso: casillas y reglas graduadas que escriben y guardan la config sin tocar el archivo) y pausa propia ("Estancia en suspenso"), replicando la salida guardada de vanilla para no chocar con los mods de guardado en segundo plano | **Entregado** |
 | **0.8.1** | Las condiciones de estancia recuperan el acceso a las opciones reales del juego: un renglon "Ajustes del equipo" al pie de la hoja abre el `OptionsScreen` de vanilla (imagen, sonido, controles, idioma, recursos). Los ajustes del mod y los del equipo conviven sin que se pierda ninguno | **Entregado** |
 | **0.8.2** | Un solo menu de ajustes: se retira la hoja de opciones propia y los ajustes del mod pasan a una subpantalla de opciones nativa (`OptionsSubScreen` + `OptionsList` + `OptionInstance`), a la que se llega por un boton "Ajustes del aviso" que el mod inserta en la pantalla de opciones del juego. Arreglo de la musica: se calla al gestor de musica de vanilla mientras el aviso esta abierto, para que el tema no compita por el canal `MUSIC` (era la causa de que el ambiente se oyera y la musica no) | **Entregado** |
+| **0.9.0** | Pase profesional de identidad Jobs: tres dimensiones laborales nuevas (lavanderia, cyber y comedor), trece fondos en total, acabado atmosferico comun con bruma de profundidad, luz volumetrica, patina y particulas por material. Selector de nivel fijo en la interfaz, renuncia con doble confirmacion y pausa musical de dos segundos entre bucles. Preview Python ampliada y sincronizada con los trece recintos | **Entregado** |
 | **0.8.3** | Arreglo real de la musica: la pista era estereo y las camas que si sonaban eran mono; el motor las trata distinto. Se re-codifico REQUIEM a mono (mas volumen) y `stream:false`, igual que el ambiente. Nivel 9 rehecho: trono alto y coronado (brazos, cojin, hueco de la corona) sobre estrado de cinco escalones, abside de piedra al fondo y haz cenital con polvo. Nueva respiracion de camara: la fuga deriva unos pixeles en un vaiven lentisimo en todos los niveles (se apaga con movimiento reducido). El espejo Python queda sincronizado | **Entregado** |
 | 0.9.0 | Texturas propias (papel mural, alfombra, hoja) y viñeta en textura | Pendiente |
 | 0.10.0 | Lore: expediente de niveles, avisos con memoria, easter eggs por fecha/hora | Pendiente |

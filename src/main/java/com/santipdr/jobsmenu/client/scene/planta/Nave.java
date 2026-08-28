@@ -311,3 +311,4 @@ public final class Nave implements Planta {
         PrimerPlano.nave(grafico, m, nivel, luz, tiempo);
     }
 }
+

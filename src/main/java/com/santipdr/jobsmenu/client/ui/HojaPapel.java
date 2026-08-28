@@ -51,3 +51,4 @@ public final class HojaPapel {
         return 0.10F + 0.90F * RotacionNiveles.luzDisponible();
     }
 }
+

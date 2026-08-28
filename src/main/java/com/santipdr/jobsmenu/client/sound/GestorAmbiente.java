@@ -303,6 +303,12 @@ public final class GestorAmbiente {
                 return SonidosNivel.AMBIENTE_NIVEL8;
             case 9:
                 return SonidosNivel.AMBIENTE_NIVEL9;
+            case 10: // lavanderia: agua, ventilacion y motores lejanos
+                return SonidosNivel.AMBIENTE_NIVEL3;
+            case 11: // cyber: ventiladores graves de la nave tecnica
+                return SonidosNivel.AMBIENTE_NIVEL1;
+            case 12: // comedor: zumbido institucional del nivel administrativo
+                return SonidosNivel.AMBIENTE_NIVEL0;
             default:
                 return SonidosNivel.AMBIENTE_NIVEL0;
         }
@@ -328,6 +334,12 @@ public final class GestorAmbiente {
                 return SonidosNivel.CARACTER_NIVEL8;
             case 9:
                 return SonidosNivel.CARACTER_NIVEL9;
+            case 10:
+                return SonidosNivel.CARACTER_NIVEL3;
+            case 11:
+                return SonidosNivel.CARACTER_NIVEL2;
+            case 12:
+                return SonidosNivel.CARACTER_NIVEL0;
             default:
                 return SonidosNivel.CARACTER_NIVEL0;
         }
@@ -353,6 +365,12 @@ public final class GestorAmbiente {
                 return SonidosNivel.ACTIVIDAD_NIVEL8;
             case 9:
                 return SonidosNivel.ACTIVIDAD_NIVEL9;
+            case 10:
+                return SonidosNivel.ACTIVIDAD_NIVEL3;
+            case 11:
+                return SonidosNivel.ACTIVIDAD_NIVEL1;
+            case 12:
+                return SonidosNivel.ACTIVIDAD_NIVEL4;
             default:
                 return SonidosNivel.ACTIVIDAD_NIVEL0;
         }
@@ -474,7 +492,7 @@ public final class GestorAmbiente {
             return;
         }
 
-        Repertorio repertorio = REPERTORIOS[Math.floorMod(nivel, REPERTORIOS.length)];
+        Repertorio repertorio = REPERTORIOS[indiceRepertorio(nivel)];
         Evento elegido = sortear(repertorio.eventos());
         if (elegido != null) {
             float volumen = mezclar(elegido.volMin(), elegido.volMax())
@@ -552,7 +570,7 @@ public final class GestorAmbiente {
      * siguiente suceso todo el peso que tenia el primero.
      */
     private static void reprogramarEvento(int nivel) {
-        Repertorio repertorio = REPERTORIOS[Math.floorMod(nivel, REPERTORIOS.length)];
+        Repertorio repertorio = REPERTORIOS[indiceRepertorio(nivel)];
 
         // Raiz, no cuadrado: ahora si la tirada tiende al final de la ventana
         // y las pausas largas son mas frecuentes que las cortas.
@@ -569,5 +587,19 @@ public final class GestorAmbiente {
 
     private static float mezclar(float minimo, float maximo) {
         return minimo + AZAR.nextFloat() * (maximo - minimo);
+    }
+
+    /** Mapa sonoro provisional y coherente para las tres dimensiones laborales. */
+    private static int indiceRepertorio(int nivel) {
+        switch (nivel) {
+            case 10:
+                return 3; // lavanderia: agua y ventilacion
+            case 11:
+                return 1; // cyber: estructura y maquinaria
+            case 12:
+                return 0; // comedor: edificio administrativo
+            default:
+                return Math.floorMod(nivel, REPERTORIOS.length);
+        }
     }
 }

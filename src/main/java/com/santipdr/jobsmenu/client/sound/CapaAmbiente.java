@@ -141,7 +141,10 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
         // Cada nivel tiene su propia red electrica y su propio tamano: un tono
         // ligeramente distinto por nivel hace que no se perciba que las cuatro
         // capas salen del mismo generador.
-        this.pitch = 0.96F + 0.03F * nivel;
+        // El catalogo ya supera los diez niveles. Usar el numero absoluto
+        // llevaba el nivel 12 a 1.32x y convertia maquinaria grave en un
+        // silbido. El perfil tonal se repite por decena, no crece sin limite.
+        this.pitch = 0.96F + 0.03F * Math.floorMod(nivel, 10);
 
         // Las camas del mismo nivel no arrancan con la misma edad. Si lo
         // hicieran, sus respiraciones subirian y bajarian juntas y el conjunto
