@@ -5,23 +5,33 @@ import com.santipdr.jobsmenu.config.ConfigTurno;
 /**
  * Decide en que nivel esta parado el menu y como se pasa de uno al siguiente.
  *
- * La rotacion normal se calcula desde el reloj del sistema. Encima de ella hay
- * un modo de inspeccion TEMPORAL, usado solo mientras el menu esta abierto para
- * recorrer los fondos a mano. No toca la configuracion ni se persiste.
+ * El cambio no es un fundido de postal. Aca la transicion es lo que le pasa a
+ * cualquiera que se mueva entre niveles: los tubos se apagan, hay un momento en
+ * que no hay nada, y cuando la luz vuelve el pasillo ya no es el mismo. Nadie
+ * lo anuncia y nadie lo comenta.
+ *
+ * Todo se calcula desde el reloj del sistema, sin estado mutable: dos clientes
+ * abiertos al mismo tiempo ven el mismo nivel.
  */
 public final class RotacionNiveles {
 
     private RotacionNiveles() {
     }
 
+    /** Cuanto se queda quieto cada nivel antes de empezar a irse. */
     private static final long ESTANCIA_MS = 24_000L;
-    private static final long TRANSICION_MS = 2_600L;
-    private static final float REPARTO_APAGADO = 0.42F;
-    private static final long AVISO_MS = 1_400L;
-    private static final long CICLO_MS = ESTANCIA_MS + TRANSICION_MS;
 
-    /** -1 = rotacion/config normal; 0..N = nivel temporal elegido a mano. */
-    private static int inspeccionNivel = -1;
+    /** Cuanto dura el apagon completo, de la primera falla a la luz firme. */
+    private static final long TRANSICION_MS = 2_600L;
+
+    /** Parte de la transicion que se va en apagar el nivel viejo. */
+    private static final float REPARTO_APAGADO = 0.42F;
+
+    /** Cuanto antes del corte empieza el pasillo a dar senales. */
+    private static final long AVISO_MS = 1_400L;
+
+    /** Un ciclo entero: un nivel quieto mas su salida. */
+    private static final long CICLO_MS = ESTANCIA_MS + TRANSICION_MS;
 
     private static final float[][] AVISO_CHISPAZOS = {
             {0.28F, 0.34F, 0.72F},
@@ -35,15 +45,13 @@ public final class RotacionNiveles {
 
     /** Indice del nivel que se esta mostrando ahora mismo. */
     public static int indiceActual() {
-        if (inspeccionNivel >= 0) {
-            return Math.floorMod(inspeccionNivel, Nivel.cantidad());
-        }
         if (!ConfigTurno.rotarNiveles()) {
             return ConfigTurno.nivelFijo();
         }
         long total = CICLO_MS * Nivel.cantidad();
         long t = Math.floorMod(System.currentTimeMillis(), total);
         int indice = (int) (t / CICLO_MS);
+
         long dentro = t % CICLO_MS;
         if (dentro >= ESTANCIA_MS + (long) (TRANSICION_MS * REPARTO_APAGADO)) {
             indice++;
@@ -55,31 +63,7 @@ public final class RotacionNiveles {
         return Nivel.porIndice(indiceActual());
     }
 
-    /** Activa inspeccion temporal y avanza un recinto. */
-    public static void inspeccionarSiguiente() {
-        int base = inspeccionNivel >= 0 ? inspeccionNivel : indiceActual();
-        inspeccionNivel = Math.floorMod(base + 1, Nivel.cantidad());
-    }
-
-    /** Activa inspeccion temporal y retrocede un recinto. */
-    public static void inspeccionarAnterior() {
-        int base = inspeccionNivel >= 0 ? inspeccionNivel : indiceActual();
-        inspeccionNivel = Math.floorMod(base - 1, Nivel.cantidad());
-    }
-
-    /** Vuelve al comportamiento configurado sin guardar nada. */
-    public static void terminarInspeccion() {
-        inspeccionNivel = -1;
-    }
-
-    public static boolean inspeccionActiva() {
-        return inspeccionNivel >= 0;
-    }
-
     public static float luzDisponible() {
-        if (inspeccionActiva()) {
-            return 1.0F;
-        }
         if (!ConfigTurno.rotarNiveles()) {
             return 1.0F;
         }
@@ -126,7 +110,7 @@ public final class RotacionNiveles {
     }
 
     public static int chispazoActual() {
-        if (inspeccionActiva() || !ConfigTurno.rotarNiveles() || ConfigTurno.destellosReducidos()) {
+        if (!ConfigTurno.rotarNiveles() || ConfigTurno.destellosReducidos()) {
             return -1;
         }
         long dentro = posicionEnCiclo();
@@ -173,26 +157,42 @@ public final class RotacionNiveles {
     }
 
     public static float arranqueTubo(float avance) {
-        if (avance <= 0.0F) return 0.0F;
-        if (avance >= 1.0F) return 1.0F;
-        if (ConfigTurno.destellosReducidos()) return avance;
-        if (avance < 0.12F) return 0.55F;
-        if (avance < 0.20F) return 0.05F;
-        if (avance < 0.30F) return 0.80F;
-        if (avance < 0.36F) return 0.10F;
-        if (avance < 0.46F) return 0.35F;
+        if (avance <= 0.0F) {
+            return 0.0F;
+        }
+        if (avance >= 1.0F) {
+            return 1.0F;
+        }
+        if (ConfigTurno.destellosReducidos()) {
+            return avance;
+        }
+        if (avance < 0.12F) {
+            return 0.55F;
+        }
+        if (avance < 0.20F) {
+            return 0.05F;
+        }
+        if (avance < 0.30F) {
+            return 0.80F;
+        }
+        if (avance < 0.36F) {
+            return 0.10F;
+        }
+        if (avance < 0.46F) {
+            return 0.35F;
+        }
         return Math.min(1.0F, 0.35F + (avance - 0.46F) / 0.54F * 0.65F);
     }
 
     public static boolean enTransicion() {
-        if (inspeccionActiva() || !ConfigTurno.rotarNiveles()) {
+        if (!ConfigTurno.rotarNiveles()) {
             return false;
         }
         return posicionEnCiclo() >= ESTANCIA_MS;
     }
 
     public static boolean porTransicionar() {
-        if (inspeccionActiva() || !ConfigTurno.rotarNiveles()) {
+        if (!ConfigTurno.rotarNiveles()) {
             return false;
         }
         long dentro = posicionEnCiclo();
@@ -200,7 +200,9 @@ public final class RotacionNiveles {
     }
 
     public static float avanceTransicion() {
-        if (!enTransicion()) return 0.0F;
+        if (!enTransicion()) {
+            return 0.0F;
+        }
         return (posicionEnCiclo() - ESTANCIA_MS) / (float) TRANSICION_MS;
     }
 
