@@ -52,9 +52,9 @@ accesibilidad y la legibilidad de sus diez recintos.
   propia, materiales distinguibles, luz principal, rebotes y un punto focal. El
   Trono fue ajustado para que el ábside, el haz cenital, las columnas y el
   estrado conduzcan la mirada hacia un asiento vacío realmente legible.
-- **Entrega verificable.** La auditoría estática, la workflow de CI y el informe
-  de compatibilidad están sincronizados con Forge 47.x, Java 17 y el nombre real
-  del JAR. La auditoría de decisiones está en
+- **Entrega verificable.** La auditoría estática, el procedimiento reproducible de
+  compilación y el informe de compatibilidad están sincronizados con Forge 47.x,
+  Java 17 y el nombre real del JAR. La auditoría de decisiones está en
   [`docs/PROPUESTA_EVOLUCION_2.md`](docs/PROPUESTA_EVOLUCION_2.md), el informe histórico
   [`docs/INFORME_FINAL_EVOLUCION_3.md`](docs/INFORME_FINAL_EVOLUCION_3.md) y la versión vigente
   [`docs/EVOLUCION_4.md`](docs/EVOLUCION_4.md).

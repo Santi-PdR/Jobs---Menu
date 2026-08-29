@@ -63,8 +63,10 @@ no línea por línea. Revisar `test-1\mods` y la carpeta fechada
 - La Suspensión puede desactivarse desde Opciones, pero el timing, el ducking y
   la ausencia de duplicados de audio necesitan una sesión real de 52 minutos.
 - En este entorno no está instalado Java 17; por eso `./gradlew clean build` no
-  puede ejecutarse aquí. La workflow de GitHub lo ejecuta con Temurin 17 y el
-  wrapper. No se debe presentar el JAR como validado hasta que ese job termine.
+  puede ejecutarse aquí. La rama publicada no incluye un workflow de GitHub porque
+  la conexión de Arena no tiene permiso `Workflows`; el build debe ejecutarse
+  localmente con JDK 17. No se debe presentar el JAR como validado hasta que el
+  build local termine con `BUILD SUCCESSFUL` y se pruebe dentro de Minecraft.
 
 ## Mitigaciones ya aplicadas
 
