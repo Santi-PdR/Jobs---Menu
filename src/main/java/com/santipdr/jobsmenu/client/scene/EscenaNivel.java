@@ -12,13 +12,13 @@ import net.minecraft.client.gui.GuiGraphics;
  * El recinto del nivel, dibujado detras del aviso.
  *
  * Esta clase ya no dibuja paredes. Se ocupa de todo lo que es igual en los
- * cuatro niveles -cuanta luz hay, donde esta el punto de fuga, que polvo flota,
+ * diez niveles -cuanta luz hay, donde esta el punto de fuga, que queda suspendido,
  * como se cierran los bordes- y le pasa el encuadre a la {@link Planta} del
  * nivel, que es la que sabe si esto es una sala, una nave, un pasillo de
  * servicio o un natatorio.
  *
  * La division importa. Antes habia una sola geometria parametrizada y los
- * cuatro niveles eran esa misma geometria con otros colores: cambiar de nivel
+ * primeros niveles eran esa misma geometria con otros colores: cambiar de nivel
  * no cambiaba de lugar. Ahora el catalogo de recintos crece agregando una
  * clase, no agregando banderas a esta.
  *
@@ -33,7 +33,7 @@ import net.minecraft.client.gui.GuiGraphics;
  * cuatro semiejes independientes -izquierda, derecha, arriba y abajo-. Esa es
  * la pieza que faltaba. Mientras el marco tuvo un solo semiancho y un solo
  * semialto, las dos paredes laterales estaban obligadas a converger igual y
- * los cuatro niveles salian siendo el mismo tunel simetrico por mas plantas
+ * los recintos salian siendo el mismo tunel simetrico por mas plantas
  * distintas que se les dibujaran encima. Hoy la sala se ve desde una esquina,
  * la nave desde el suelo, el natatorio desde el borde largo y el servicio
  * sigue siendo el unico pasillo, que para eso es el de servicio.
@@ -44,9 +44,6 @@ public final class EscenaNivel {
 
     private EscenaNivel() {
     }
-
-    /** Motas de polvo suspendidas. */
-    private static final int MOTAS = 70;
 
     // ----------------------------------------------------------------------
     // Entrada
@@ -83,8 +80,8 @@ public final class EscenaNivel {
         // es que el pasillo nunca esta del todo quieto, como si el que mira
         // respirara. Se apaga con movimiento reducido o la escena quieta.
         if (movimiento) {
-            fx += (float) Math.sin(tiempo * 0.13F) * ancho * 0.006F;
-            fy += (float) Math.sin(tiempo * 0.087F + 1.3F) * alto * 0.005F;
+            fx += (float) Math.sin(tiempo * 0.13F) * ancho * 0.0035F;
+            fy += (float) Math.sin(tiempo * 0.087F + 1.3F) * alto * 0.0030F;
         }
 
         Marco marco = new Marco(ancho, alto, fx, fy,
@@ -93,13 +90,16 @@ public final class EscenaNivel {
 
         Planta planta = nivel.planta;
         planta.dibujar(grafico, marco, nivel, luz, tiempo);
+        if (movimiento) {
+            EventosAmbientales.dibujar(grafico, marco, nivel, luz, tiempo);
+        }
         // Lo que esta mas cerca que la camara va despues del recinto: tapa lo
         // lejano y le da al cuadro la profundidad que un tubo no tiene.
         planta.primerPlano(grafico, marco, nivel, luz, tiempo);
 
         if (movimiento) {
             Presencia.dibujar(grafico, nivel, marco, luz, planta.pisoPresencia());
-            motas(grafico, ancho, alto, tiempo, luz);
+            motasDelLugar(grafico, ancho, alto, tiempo, luz, nivel.numero());
         }
         vineta(grafico, ancho, alto, penumbra);
     }
@@ -108,20 +108,31 @@ public final class EscenaNivel {
     // Lo que flota por encima de cualquier recinto
     // ----------------------------------------------------------------------
 
-    /** Polvo suspendido, subiendo muy despacio. */
-    private static void motas(GuiGraphics grafico, int ancho, int alto, float tiempo, float luz) {
-        for (int i = 0; i < MOTAS; i++) {
-            float baseX = Trazo.pseudo(i * 7);
-            float baseY = Trazo.pseudo(i * 7 + 1);
-            float velocidad = 0.10F + Trazo.pseudo(i * 7 + 2) * 0.30F;
+    /** Particulas solo en los lugares donde el material las justifica. */
+    private static void motasDelLugar(GuiGraphics grafico, int ancho, int alto,
+                                     float tiempo, float luz, int nivel) {
+        int cantidad = switch (nivel) {
+            case 0 -> 12;
+            case 1 -> 20;
+            case 4 -> 14;
+            case 5 -> 24;
+            case 7 -> 10;
+            case 9 -> 22;
+            default -> 0;
+        };
+        int semilla = 4000 + nivel * 211;
+        for (int i = 0; i < cantidad; i++) {
+            float baseX = Trazo.pseudo(semilla + i * 7);
+            float baseY = Trazo.pseudo(semilla + i * 7 + 1);
+            float velocidad = 0.10F + Trazo.pseudo(semilla + i * 7 + 2) * 0.30F;
             float deriva = (float) Math.sin(tiempo * (0.25F + Trazo.pseudo(i * 7 + 3) * 0.4F) + i) * 0.012F;
 
             float y = (baseY + tiempo * velocidad * 0.045F) % 1.0F;
             float x = (baseX + deriva + 1.0F) % 1.0F;
             int px = (int) (x * ancho);
             int py = (int) (y * alto);
-            int tam = Trazo.pseudo(i * 7 + 4) < 0.75F ? 1 : 2;
-            float a = (0.10F + Trazo.pseudo(i * 7 + 5) * 0.22F) * luz;
+            int tam = Trazo.pseudo(semilla + i * 7 + 4) < 0.82F ? 1 : 2;
+            float a = (0.08F + Trazo.pseudo(semilla + i * 7 + 5) * 0.18F) * luz;
             grafico.fill(px, py, px + tam, py + tam, Paleta.conAlfa(Paleta.FLUOR, a));
         }
     }

@@ -33,21 +33,12 @@ public interface Planta {
     void dibujar(GuiGraphics grafico, Marco marco, Nivel nivel, float luz, float tiempo);
 
     /**
-     * Cuantos tramos de profundidad tiene el recinto.
-     *
-     * Un pasillo de servicio se lee en tramos cortos y frecuentes; una nave,
-     * en tramos largos y espaciados. Es la diferencia entre caminar por un
-     * sitio y cruzarlo.
-     */
-    int tramos();
-
-    /**
      * Lo que esta mas cerca que la camara.
      *
      * Se dibuja despues del recinto y antes de la presencia: lo cercano tapa
      * lo lejano, y lo que se aparece vive dentro del recinto, no delante del
-     * mostrador. Ver {@link PrimerPlano} para por que esto existe -en dos
-     * palabras: sin nada cerca, cualquier recinto se lee como un tubo-.
+     * mostrador. Sin una silueta cercana, cualquier recinto se lee como una
+     * maqueta sin escala.
      *
      * Una planta que no tenga primer plano puede no implementarlo, pero
      * deberia tenerlo: es lo que la distingue de un pasillo.

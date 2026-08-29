@@ -287,7 +287,7 @@ public final class Presencia {
      * La solucion no es fijar un color sino derivarlo del fondo de cada nivel.
      * Contra un fondo oscuro la presencia queda un punto MAS clara que el,
      * como una silueta a contraluz; contra un fondo claro queda mas oscura. El
-     * contraste es parecido en los cuatro niveles y en ninguno se la ve del
+     * contraste es parecido en los diez niveles y en ninguno se la ve del
      * todo, que es exactamente lo que hace falta.
      */
     private static int tinte(Nivel nivel) {

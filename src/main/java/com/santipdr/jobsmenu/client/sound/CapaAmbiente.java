@@ -14,7 +14,7 @@ import net.minecraft.util.RandomSource;
  * Una cama de sonido continuo de un nivel, en bucle mientras el nivel este a la vista.
  *
  * Hay una instancia viva por nivel, no una sola que cambia de archivo: asi los
- * cuatro ambientes pueden solaparse durante la transicion y el pasillo nuevo
+ * varias camas pueden solaparse durante la transicion y el pasillo nuevo
  * empieza a escucharse mientras el viejo todavia se esta yendo. Cambiar el
  * archivo de una unica instancia obligaria a cortar en seco, y el corte se oye.
  *
@@ -138,10 +138,9 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
         this.actual = 0.0F;
         this.edad = 0;
 
-        // Cada nivel tiene su propia red electrica y su propio tamano: un tono
-        // ligeramente distinto por nivel hace que no se perciba que las cuatro
-        // capas salen del mismo generador.
-        this.pitch = 0.96F + 0.03F * nivel;
+        // Variacion minima: el antiguo +0.03 por nivel llevaba el nivel 9 a
+        // 1.23 y convertia agua, piedra y metal en objetos mucho mas pequenos.
+        this.pitch = 0.97F + 0.006F * nivel;
 
         // Las camas del mismo nivel no arrancan con la misma edad. Si lo
         // hicieran, sus respiraciones subirian y bajarian juntas y el conjunto

@@ -1,5 +1,7 @@
 package com.santipdr.jobsmenu.client.screen;
 
+import com.santipdr.jobsmenu.client.scene.EscenaNivel;
+import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.OptionInstance;
@@ -130,5 +132,15 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
         // basicListRender es el render estandar de las subpantallas de opciones:
         // fondo, la lista con su barra, el titulo centrado arriba y los widgets.
         this.basicListRender(grafico, this.lista, ratonX, ratonY, parcial);
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics grafico) {
+        if (this.minecraft != null && this.minecraft.level == null) {
+            EscenaNivel.dibujar(grafico, this.width, this.height);
+            grafico.fill(0, 0, this.width, this.height, Paleta.conAlfa(Paleta.VANO, .48F));
+        } else {
+            super.renderBackground(grafico);
+        }
     }
 }
