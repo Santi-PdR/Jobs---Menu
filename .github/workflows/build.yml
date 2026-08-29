@@ -3,7 +3,7 @@ name: Build Forge 1.20.1
 on:
   push:
     branches:
-      - codex/jobs-menu-professional-v100-2026-08-28
+      - codex/jobs-menu-backgrounds-v2-2026-08-29
   pull_request:
     branches:
       - main
@@ -40,7 +40,6 @@ jobs:
       - name: Publish JAR
         uses: actions/upload-artifact@v4
         with:
-          name: jobsmenu-1.0.0
-          path: build/libs/jobsmenu-1.0.0.jar
+          name: jobsmenu-1.0.1
+          path: build/libs/jobsmenu-1.0.1.jar
           if-no-files-found: error
-

@@ -17,7 +17,13 @@ La pista:
   Multijugador y Seleccionar mundo;
 - deja 40 ticks entre vueltas;
 - se invalida y recrea después de F3+T o packs;
+- descarta el canal de la visita anterior al volver de un mundo o servidor;
 - no se duplica durante resize, reload o cambios rápidos.
+
+Minecraft puede vaciar canales OpenAL al cargar un mundo sin actualizar el
+estado Java de la instancia tickable. `SesionMenu` distingue una visita nueva
+de una pantalla hija: en la visita nueva invalida esa referencia fantasma y
+permite relanzar la pista; al pasar por Opciones o Mods conserva la instancia.
 
 ## Sustituir la pista
 

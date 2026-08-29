@@ -4,7 +4,7 @@ Mod visual y sonoro exclusivamente de cliente para Minecraft Forge 1.20.1.
 Reemplaza el título y, opcionalmente, la pausa por una interfaz diegética del
 servidor Jobs: un aviso administrativo pegado dentro de diez recintos vivos.
 
-Versión actual: **1.0.0**
+Versión actual: **1.0.1**
 
 Minecraft: **1.20.1** · Forge: **47.x** · Java: **17**
 
@@ -26,22 +26,22 @@ Minecraft: **1.20.1** · Forge: **47.x** · Java: **17**
 
 | Nivel | Identidad |
 |---|---|
-| 0 | Administración abandonada: recepción, archivo, accesos de personal |
-| 1 | Nave de carga: cerchas, puente grúa, portón y escala industrial |
-| 2 | Servicio: tuberías, válvula, paneles, vapor y un codo ciego |
-| 3 | Natatorio: vaso dominante, calles, gradería, vidrio y reflejos |
-| 4 | Cripta: nave pétrea, arcos, altar y braseros |
-| 5 | Biblioteca: doble altura, balcón, estanterías, escalera y mesa |
-| 6 | Invernadero: cubierta de vidrio, bancales, vegetación y condensación |
-| 7 | Catacumbas: nichos, bifurcación, derrumbe y un solo farol |
-| 8 | Cisterna: columnas verticales, pasarela y agua negra |
-| 9 | Trono: abside ceremonial, columnata, graderío y foco cenital |
+| 0 | Administración: vestíbulo brutalista, mampara, archivo y techo colapsado |
+| 1 | Nave: terminal de carga, dársenas, contenedores, vías y puente grúa |
+| 2 | Servicio: cámara de calderas, recipiente de presión, colectores y pasarela |
+| 3 | Natatorio: vista desde plataforma, vaso diagonal, torre, vidrio y graderío |
+| 4 | Cripta: rotonda radial, capillas, óculo, relicario y velas |
+| 5 | Biblioteca: archivo circular, tres galerías, pozo y escalera helicoidal |
+| 6 | Invernadero: conservatorio colapsado, árbol, raíces, vidrio y condensación |
+| 7 | Catacumbas: descenso en zigzag, rellanos, nichos y un solo farol |
+| 8 | Cisterna: pozo visto desde arriba, anillos, escalera y agua negra distante |
+| 9 | Trono: óculo monumental, abismo, puentes rotos y estrado suspendido |
 
 ## Instalación
 
 1. Instala Minecraft 1.20.1, Java 17 y Forge 47.x.
 2. Ejecuta `gradlew clean build`.
-3. Copia `build/libs/jobsmenu-1.0.0.jar` a la carpeta `mods` de la instancia.
+3. Copia `build/libs/jobsmenu-1.0.1.jar` a la carpeta `mods` de la instancia.
 
 El servidor no necesita instalarlo. `displayTest="IGNORE_ALL_VERSION"` y las
 dependencias de cliente mantienen la conexión con servidores sin el mod.
@@ -77,7 +77,9 @@ Ruta: `sounds.json` → `SoundEvent` → `GestorMusica` → `SoundManager` → `
 REQUIEM no depende de Music de vanilla. Master en 0 % la silencia. Cambiar
 Master o el volumen del mod se aplica mientras suena. Solo puede existir una
 instancia; F3+T y las recargas de packs invalidan la referencia anterior. Cada
-vuelta deja 40 ticks de silencio y la pista usa streaming.
+vuelta deja 40 ticks de silencio y la pista usa streaming. Al regresar de un
+mundo o servidor se descarta cualquier referencia de canal antigua y se crea
+una reproducción nueva; pasar por una pantalla hija conserva la pista actual.
 
 Detalles y sustitución legal en [docs/musica.md](docs/musica.md).
 

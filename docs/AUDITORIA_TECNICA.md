@@ -1,7 +1,13 @@
-# Auditoría técnica y de diseño — Jobs Menu 1.0.0
+# Auditoría técnica y de diseño — Jobs Menu 1.0.1
 
-Fecha de corte: 2026-08-28. Base oficial auditada:
+Fecha de corte inicial: 2026-08-28. Revisión V2: 2026-08-29. Base oficial:
 `dc9ccca960ba3d797c6980c7cc3f34bccffd3747` de `main`.
+
+La evolución 1.0.1 parte del estado 1.0.0 preservado en
+`backup/codex-v100-d-before-backgrounds-v2-2026-08-29`. No modifica ni fusiona
+`main`; sustituye la dirección visual 1.0.0 porque su estilo no cumplía el
+resultado artístico esperado y corrige una regresión real observada al volver
+de un mundo o servidor.
 
 ## Alcance revisado
 
@@ -51,6 +57,11 @@ El resultado es una integración curada sobre `main`, no un arrastre de historia
 - El loop usa streaming y `delay=40`; se evita reiniciar por cambio de nivel.
 - La música vanilla se detiene durante la visita, sin cambiar las opciones del
   jugador, y vuelve a quedar bajo control vanilla al salir.
+- Se detectó una referencia fantasma al volver de mundo/servidor: el SoundEngine
+  podía retirar el canal OpenAL sin ejecutar otro tick de la instancia Java.
+  `SesionMenu.abrir()` distingue una visita realmente nueva, llama a
+  `GestorMusica.nuevaVisita()` y fuerza una instancia limpia. Volver desde una
+  pantalla hija no invalida el tema ni pierde su posición.
 - El OGG personalizado se valida por contenedor y firma Vorbis, se copia solo
   cuando cambia y el pack obsoleto se deselecciona si la fuente deja de servir.
 - Un archivo truncado después de una cabecera válida sigue siendo responsabilidad
@@ -84,40 +95,56 @@ El resultado es una integración curada sobre `main`, no un arrastre de historia
 
 ### Render y rendimiento
 
-- La antigua geometría de primer plano común fue eliminada. Ningún escenario
-  nuevo depende de un filtro u overlay para adquirir identidad.
-- `Arquitectura` contiene primitivas raster pequeñas y sin listas temporales.
-- Los eventos raros retornan antes de calcular cuando su ventana no está activa.
-- El polvo genérico pasó de una densidad global a 0–24 motas según material.
-- Se redujo la deriva de cámara y se respetan movimiento/destellos reducidos.
-- Se eliminaron `PrimerPlano` y gran parte de la infraestructura duplicada de
-  `Trazo`; quedaron matemática, profundidad, perspectiva y niebla reutilizables.
+- Las diez clases 1.0.0 fueron reemplazadas por composiciones nuevas; no se
+  superpuso una capa de luces, niebla o partículas sobre la geometría anterior.
+- `Arquitectura` fue eliminado. `Lienzo` no sabe construir habitaciones: solo
+  pinta materiales procedurales en bandas anchas y primitivas raster acotadas.
+- Revoque, piedra, metal, madera, vidrio, azulejo y agua tienen tratamientos
+  diferentes; el agua usa masa estratificada y luces quebradas, no color plano.
+- `EventosAmbientales` y las motas globales fueron eliminados. `PulsoLugar`
+  retorna inmediatamente fuera de una ventana breve de 137–236 segundos.
+- Polvo, vapor, condensación, hojas y gotas existen solo en las plantas donde
+  aportan lectura material. El movimiento se apaga con movimiento reducido.
+- Las primitivas evitan listas y objetos temporales por frame. Los bucles más
+  densos avanzan en 2–5 píxeles y la cantidad de detalle escala con el tamaño.
+- La deriva traslada arquitectura, primer plano, presencia y pulso en conjunto;
+  la viñeta se dibuja después y cubre los mínimos bordes expuestos.
 
-## Los diez fondos reconstruidos
+## Los diez fondos reconstruidos V2
 
-1. **Administración:** encuadre lateral de una recepción abandonada, puertas de
-   personal, archivo y mostrador cercano; escala humana e institucional.
-2. **Nave:** vista baja de hangar con cerchas en A, pilares, puente grúa, cabina
-   y portón distante; la altura domina la lectura.
-3. **Servicio:** corredor técnico estrecho con tuberías a distintas cotas, codo
-   ciego, panel, manómetros y válvula foreground.
-4. **Natatorio:** el vaso ocupa la composición; calles, escalerilla, gradería,
-   vidrio y reflejos separan agua, azulejo y aire húmedo.
-5. **Cripta:** nave de piedra monumental con arco central, arcadas laterales,
-   altar, braseros, pavimento y sarcófago cercano.
-6. **Biblioteca:** doble altura en madera, estantes profundos, balcón, escalera,
-   ventana, lámparas de lectura, mesa y papeles.
-7. **Invernadero:** cubierta inclinada de vidrio con nervios metálicos, bancales,
-   vegetación, luz filtrada y condensación.
-8. **Catacumbas:** bóveda baja e irregular, nichos, restos, ramal oscuro,
-   derrumbe y una única luz; más cerrada que la cripta.
-9. **Cisterna:** espacio vertical con columnas que entran en agua negra,
-   arcadas, pasarela, luces sumergidas y reflejos.
-10. **Trono:** ábside ceremonial, columnata, eje de alfombra, cinco gradas,
-    trono vacío coronado, estandartes, haz cenital y ruinas foreground.
+1. **Administración:** vestíbulo brutalista visto desde la esquina de atención.
+   Techo suspendido roto, banda institucional, archivo, reloj, mamparas y fila
+   describen un lugar de trabajo abandonado. Un escritorio corta el foreground.
+2. **Nave:** terminal subterránea de carga, no hangar axial. Cinco dársenas,
+   vías diagonales, torres desiguales de contenedores y un puente grúa forman
+   un patio de escala industrial con haces de luz muy localizados.
+3. **Servicio:** cámara de calderas dominada por un recipiente circular remachado.
+   Colectores con cotas y diámetros distintos, manómetros, válvula y pasarela
+   sustituyen por completo el antiguo corredor técnico.
+4. **Natatorio:** cámara alta desde una plataforma de salto. El vaso se abre en
+   diagonal; torre, graderío, ventanales, calles y baranda separan aire, azulejo,
+   estructura y agua estratificada.
+5. **Cripta:** rotonda funeraria radial con tambor, nervios, óculo, siete capillas
+   y relicario central. La piedra pesada y cuatro velas controlan el foco.
+6. **Biblioteca:** archivo circular de tres galerías alrededor de un pozo de
+   lectura, con escalera helicoidal, lámpara central y atril cercano. No existen
+   dos paredes paralelas de estantes.
+7. **Invernadero:** conservatorio de cúpula rota atravesado por un árbol maduro.
+   El boquete, raíces, bancales absorbidos, hojas, hierro y condensación crean
+   un volumen orgánico y asimétrico.
+8. **Catacumbas:** excavación que desciende en tres rellanos de ejes distintos.
+   Nichos irregulares, escalones y un farol producen profundidad subterránea sin
+   recurrir a un túnel frontal.
+9. **Cisterna:** pozo hidráulico observado desde arriba. Anillos concéntricos,
+   contrafuertes, bajante, escalera y plataformas en U hacen que el agua negra
+   se perciba muy lejos bajo el jugador.
+10. **Trono:** cámara ceremonial fracturada bajo un óculo inmenso. Un abismo,
+    puentes incompletos, estandartes y estrado suspendido aíslan el trono como
+    único foco, con columnas rotas y cadenas en los bordes.
 
-Cada lugar recibe un suceso raro propio: fluorescente, gancho, presión, onda,
-brasas, papel, hoja, sombra, anillos de agua o estandarte.
+Cada lugar recibe un pulso raro propio: sombra de mampara, chispas de grúa,
+descarga de presión, onda, humo de vela, hoja, gota sobre vidrio, sombra de
+rellano, impacto en agua o polvo del óculo.
 
 ## Decisiones deliberadas de no cambio
 

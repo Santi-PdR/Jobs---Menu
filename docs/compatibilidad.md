@@ -1,6 +1,6 @@
 # Compatibilidad
 
-Jobs Menu 1.0.0 es de cliente para Minecraft 1.20.1 y Forge 47.x.
+Jobs Menu 1.0.1 es de cliente para Minecraft 1.20.1 y Forge 47.x.
 
 ## Integración
 

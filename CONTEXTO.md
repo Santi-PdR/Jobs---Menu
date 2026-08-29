@@ -1,6 +1,6 @@
-# Contexto técnico — Jobs Menu 1.0.0
+# Contexto técnico — Jobs Menu 1.0.1
 
-Versión mantenida: **1.0.0**.
+Versión mantenida: **1.0.1**.
 
 Este documento describe el código real. La historia vive en CHANGELOG.md; los
 riesgos abiertos, en KNOWN_ISSUES.md.
@@ -25,15 +25,21 @@ En menos de 310 píxeles lógicos se activa modo compacto: conserva las cuatro
 acciones, reduce márgenes y omite solo la nota decorativa. La salida requiere
 una segunda confirmación dentro de 3,5 segundos.
 
-## Escenas
+## Escenas V2
 
-Nivel conserva paleta, cámara y Planta. Marco resuelve fuga y cuatro semiejes.
-Cada Planta construye una arquitectura distinta. Arquitectura solo aporta
-raster de trapecios, líneas, arcos, círculos, halos y reflejos.
+`Nivel` conserva paleta, cámara de presencia y `Planta`. `Marco` sigue siendo
+la referencia para presencia y perspectiva analítica. Las diez plantas
+componen arquitectura independiente en vez de heredar un corredor común.
 
-Se eliminaron PrimerPlano y la geometría anterior. Los foregrounds viven en
-cada recinto. EventosAmbientales habilita cinco segundos en uno de cada cuatro
-ciclos de 97 segundos y dibuja un suceso distinto por nivel.
+`Lienzo` es únicamente un taller de superficie: revoque, piedra, metal, madera,
+vidrio, azulejo y agua con juntas, desgaste, vetas, condensación y reflejos. No
+contiene edificios prefabricados. Foreground, midground, background, foco e
+iluminación se definen dentro de cada recinto.
+
+`PulsoLugar` reemplaza los eventos visuales genéricos. Cada nivel tiene una
+ventana breve dentro de un periodo de 137–236 segundos y un incidente propio;
+fuera de esa ventana retorna antes de crear geometría. Las motas permanentes
+solo existen donde el material las justifica.
 
 ## Sonido
 
@@ -52,6 +58,8 @@ GestorMusica usa SoundSource.MASTER:
 - El slider propio se aplica en tiempo real.
 - Vanilla Music se detiene solo durante la sesión Jobs.
 - La pista continúa por pantallas hijas y sale al entrar a mundo.
+- Una visita nueva después de un mundo o servidor invalida el canal Java
+  superviviente y relanza la pista; una pantalla hija no la reinicia.
 - Existe una única instancia, usa streaming y espera 40 ticks entre vueltas.
 
 MusicaPropia valida OGG Vorbis, compara contenido con Files.mismatch, registra

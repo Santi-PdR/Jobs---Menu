@@ -9,6 +9,9 @@ de runtime, imposibles de sustituir con una revisión estática:
   mezclas Master; la ausencia de clipping estructural no determina percepción.
 - Dejar terminar la pista completa y observar varias vueltas para comprobar el
   silencio de 40 ticks con el backend OpenAL de la máquina objetivo.
+- Verificar en un cliente real la regresión corregida: entrar en un mundo local
+  y en un servidor, volver al título y confirmar que REQUIEM reaparece una sola
+  vez. La corrección está revisada estáticamente, pero necesita validación OpenAL.
 - Probar OGG truncados después de una cabecera inicialmente válida. La validación
   temprana rechaza archivos renombrados y cabeceras inválidas, pero la
   decodificación completa pertenece al SoundEngine.
@@ -19,4 +22,3 @@ de runtime, imposibles de sustituir con una revisión estática:
 
 La hoja `docs/vista_previa.png` es una referencia de silueta y composición, no
 una captura del renderer de Minecraft.
-

@@ -1,5 +1,42 @@
 # Historial de cambios
 
+## 1.0.1 — 2026-08-29
+
+### Música
+
+- Corregido el caso en que REQUIEM no regresaba después de entrar en un mundo
+  local o servidor y volver al título.
+- Una visita nueva invalida la instancia Java cuyo canal OpenAL pudo haber sido
+  retirado durante la carga; Opciones, Mods y demás pantallas hijas siguen
+  conservando la reproducción actual.
+- Se reinicia también el temporizador de reintento al comenzar una visita nueva,
+  sin permitir dos instancias simultáneas.
+
+### Dirección visual V2
+
+- Eliminadas completamente las diez implementaciones visuales 1.0.0 y su
+  lenguaje de pasillos, cerchas, naves axiales y rectángulos planos.
+- Eliminado `Arquitectura`; `Lienzo` lo sustituye como taller de materiales sin
+  composiciones prefabricadas: revoque, piedra, metal, madera, vidrio, azulejo
+  y agua incorporan juntas, desgaste, vetas, humedad y reflejos.
+- Los diez recintos reciben cámaras, masas y focos nuevos: vestíbulo brutalista,
+  terminal de carga, cámara de calderas, natatorio desde plataforma, rotonda,
+  archivo circular, conservatorio colapsado, descenso funerario, pozo hidráulico
+  cenital y estrado suspendido.
+- `PulsoLugar` reemplaza `EventosAmbientales`: ventanas raras de 137–236 segundos,
+  retorno temprano fuera de evento y un gesto visual exclusivo por nivel.
+- Eliminadas las partículas flotantes globales. Cada planta decide si su material
+  justifica polvo, vapor, gotas, hojas o reflejos.
+- La deriva reducida mueve la escena, foreground, presencia y evento como una
+  sola cámara; la viñeta permanece fija y movimiento reducido la desactiva.
+- Reconstruida la hoja conceptual `docs/vista_previa.png` para representar las
+  diez siluetas V2.
+
+### Proyecto
+
+- Versión 1.0.1, documentación y matriz de regresión actualizadas.
+- Nuevo backup previo y nueva rama de trabajo, sin modificar `main`.
+
 ## 1.0.0 — 2026-08-28
 
 ### Estabilidad y ciclo de vida
@@ -51,4 +88,3 @@
 - Versión 1.0.0 y Gradle Wrapper reproducible.
 - Documentación, verificador estático y hoja de dirección visual alineados con
   el código actual.
-

@@ -606,6 +606,49 @@ def verificar_niveles(es: dict[str, str]) -> None:
         )
 
 
+def verificar_direccion_v2() -> None:
+    """Invariantes de la reconstruccion visual y la reapertura musical.
+
+    Son controles pequenos pero importantes: impiden que un merge futuro
+    reviva la fabrica de composiciones V1 o quite la invalidacion del canal
+    fantasma sin que la auditoria estatica lo advierta.
+    """
+    plantas = RAIZ / "src/main/java/com/santipdr/jobsmenu/client/scene/planta"
+    esperadas = {
+        "Sala.java", "Nave.java", "Servicio.java", "Natatorio.java",
+        "Cripta.java", "Biblioteca.java", "Invernadero.java",
+        "Catacumba.java", "Cisterna.java", "Trono.java",
+    }
+    for nombre in sorted(esperadas):
+        if not (plantas / nombre).is_file():
+            fallo(f"La direccion V2 perdio la planta {nombre}.")
+
+    for obsoleto in (
+        plantas / "Arquitectura.java",
+        RAIZ / "src/main/java/com/santipdr/jobsmenu/client/scene/EventosAmbientales.java",
+    ):
+        if obsoleto.exists():
+            fallo(f"Volvio infraestructura visual V1 obsoleta: {obsoleto.relative_to(RAIZ)}")
+
+    for necesario in (plantas / "Lienzo.java", plantas / "PulsoLugar.java"):
+        if not necesario.is_file():
+            fallo(f"Falta la infraestructura V2 {necesario.name}.")
+
+    escena = leer(RAIZ / "src/main/java/com/santipdr/jobsmenu/client/scene/EscenaNivel.java")
+    if "PulsoLugar.dibujar" not in escena:
+        fallo("EscenaNivel no integra los pulsos especificos de lugar.")
+
+    sesion = leer(RAIZ / "src/main/java/com/santipdr/jobsmenu/client/SesionMenu.java")
+    if "if (!activa)" not in sesion or "GestorMusica.nuevaVisita()" not in sesion:
+        fallo("SesionMenu no invalida el canal musical al iniciar una visita nueva.")
+
+    musica = leer(RAIZ / "src/main/java/com/santipdr/jobsmenu/client/sound/GestorMusica.java")
+    if "void nuevaVisita()" not in musica:
+        fallo("GestorMusica no declara nuevaVisita().")
+    if "SoundSource.MASTER" not in musica:
+        fallo("REQUIEM dejo de usar MASTER y volveria a depender de Music vanilla.")
+
+
 def verificar_tipos_java() -> None:
     """Cazador de errores de tipo en las llamadas a la geometria de Marco.
 
@@ -785,6 +828,7 @@ def main() -> int:
     verificar_mezcla()
     verificar_simbolos()
     verificar_niveles(es)
+    verificar_direccion_v2()
     verificar_recursos()
 
     # Los subtitulos que declara sounds.json tambien son cadenas traducibles.

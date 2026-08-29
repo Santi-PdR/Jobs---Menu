@@ -1,4 +1,4 @@
-# Matriz manual de validación — Jobs Menu 1.0.0
+# Matriz manual de validación — Jobs Menu 1.0.1
 
 Registrar para cada caso: resultado, captura si es visual, dispositivo de audio,
 resolución, GUI Scale, mods activos y extracto de `latest.log` si falla.
@@ -83,7 +83,11 @@ resolución, GUI Scale, mods activos y extracto de `latest.log` si falla.
 - [ ] Abrir y cerrar Jobs Menu varias veces; nunca deben coexistir dos copias.
 - [ ] Pasar por Options, Sound, Video, Controls, Mods, Resource Packs,
       Singleplayer, Multiplayer y Select World sin reiniciar la pista.
-- [ ] Entrar a mundo y confirmar fade/salida; volver al título y confirmar reinicio.
+- [ ] Entrar a un mundo local y confirmar salida; volver al título y confirmar
+      que REQUIEM reaparece una sola vez.
+- [ ] Repetir entrando en un servidor dedicado y desconectando al título; la
+      música debe volver sin duplicarse ni conservar un canal fantasma.
+- [ ] Repetir mundo → título → mundo → título cinco veces seguidas y revisar OpenAL/log.
 - [ ] Hacer Alt+Tab, minimizar y perder foco durante la pista.
 - [ ] Ejecutar F3+T durante la pista y revisar recuperación sin duplicados.
 - [ ] Activar y desactivar un resource pack durante la pista.
@@ -107,16 +111,16 @@ resolución, GUI Scale, mods activos y extracto de `latest.log` si falla.
 
 ## Diez backgrounds
 
-- [ ] Nivel 0, Administración: recepción, archivo y accesos legibles.
-- [ ] Nivel 1, Nave: escala alta, cerchas, grúa y portón legibles.
-- [ ] Nivel 2, Servicio: claustrofobia, tuberías, panel y válvula legibles.
-- [ ] Nivel 3, Natatorio: agua dominante, calles, gradería y reflejos legibles.
-- [ ] Nivel 4, Cripta: nave, arcos, altar, piedra y braseros distinguibles.
-- [ ] Nivel 5, Biblioteca: doble altura, madera, balcón y profundidad entre estantes.
-- [ ] Nivel 6, Invernadero: vidrio, estructura, bancales, vegetación y humedad.
-- [ ] Nivel 7, Catacumbas: nichos, piedra irregular, ramal y derrumbe.
-- [ ] Nivel 8, Cisterna: escala vertical, columnas, pasarela y agua negra.
-- [ ] Nivel 9, Trono: simetría, escala ceremonial y punto focal del trono.
+- [ ] Nivel 0, Administración: mampara, archivo, banda institucional y techo roto.
+- [ ] Nivel 1, Nave: dársenas, contenedores, vías diagonales y puente grúa.
+- [ ] Nivel 2, Servicio: caldera circular, colectores, pasarela y válvula.
+- [ ] Nivel 3, Natatorio: vista alta, vaso diagonal, torre, graderío y reflejos.
+- [ ] Nivel 4, Cripta: rotonda, capillas, óculo, relicario, piedra y velas.
+- [ ] Nivel 5, Biblioteca: archivo circular, galerías, pozo y escalera helicoidal.
+- [ ] Nivel 6, Invernadero: cúpula rota, árbol, raíces, vidrio y condensación.
+- [ ] Nivel 7, Catacumbas: rellanos descendentes, nichos y un único farol.
+- [ ] Nivel 8, Cisterna: perspectiva cenital, anillos, escalera y agua profunda.
+- [ ] Nivel 9, Trono: óculo, abismo, puentes rotos y estrado suspendido.
 - [ ] En cada nivel distinguir foreground, midground y background sin el nombre.
 - [ ] En cada nivel revisar materiales, oscuridad, fuente principal y rebotes.
 - [ ] Esperar o registrar los eventos raros propios sin aumentar su frecuencia en
@@ -129,4 +133,3 @@ resolución, GUI Scale, mods activos y extracto de `latest.log` si falla.
 - [ ] Observar memoria durante 20 minutos de cambios de pantalla y resolución.
 - [ ] Revisar `latest.log` en busca de recursos, OpenAL, reload, NPE y listeners.
 - [ ] Confirmar ausencia de sonidos después de salir a mundo o cerrar Minecraft.
-
