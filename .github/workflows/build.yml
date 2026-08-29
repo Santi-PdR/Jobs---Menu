@@ -1,0 +1,46 @@
+name: Build Forge 1.20.1
+
+on:
+  push:
+    branches:
+      - codex/jobs-menu-professional-v100-2026-08-28
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  clean-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Configure Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.1.1"
+
+      - name: Static audit
+        run: python3 tools/verificar.py
+
+      - name: Clean build
+        run: gradle clean build --no-daemon --stacktrace
+
+      - name: Publish JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: jobsmenu-1.0.0
+          path: build/libs/jobsmenu-1.0.0.jar
+          if-no-files-found: error
+
