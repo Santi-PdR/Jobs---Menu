@@ -178,7 +178,7 @@
   "jobsmenu.ajustes.interfaz": "Minimal sheet",
   "jobsmenu.ajustes.interfaz.detalle": "Leaves only the essentials: no sheet, no clock, no notes.",
   "jobsmenu.ajustes.volmusica": "Music volume",
-  "jobsmenu.ajustes.volmusica.detalle": "The menu theme. Remember to also raise Music under Music & Sounds.",
+  "jobsmenu.ajustes.volmusica.detalle": "The menu theme. Master volume applies; Minecraft Music does not control it.",
   "jobsmenu.ajustes.volambiente": "Room volume",
   "jobsmenu.ajustes.volambiente.detalle": "The air, the water and the level's noises.",
   "jobsmenu.ajustes.musica": "Menu music",

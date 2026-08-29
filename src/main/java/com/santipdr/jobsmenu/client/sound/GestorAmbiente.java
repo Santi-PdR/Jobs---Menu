@@ -174,7 +174,7 @@ public final class GestorAmbiente {
 
     private static final Random AZAR = new Random();
 
-    /** Las camas que estan sonando. Dos por nivel, y hasta cuatro en el cambio. */
+    /** Las camas que estan sonando: tres por nivel, con solape durante el cambio. */
     private static final List<CapaAmbiente> CAPAS = new ArrayList<>();
 
     /** Cuando toca el proximo evento, en milisegundos del reloj del sistema. */

@@ -30,9 +30,9 @@ import net.minecraftforge.fml.common.Mod;
  * suelto, arriba a la izquierda, en una esquina que la grilla no usa. Es
  * discreto y no tapa ninguno de los botones de vanilla en ninguna resolucion.
  *
- * Solo actua sobre OptionsScreen y solo si el menu propio esta activo: si el
- * jugador apago el mod, no ensucia las opciones con un boton de algo que decidio
- * no usar.
+ * Solo actua sobre la clase OptionsScreen exacta. El acceso permanece si el
+ * menu propio esta desactivado: de otro modo no habria una ruta visible para
+ * volver a activarlo sin editar el TOML.
  */
 @Mod.EventBusSubscriber(modid = JobsMenu.MOD_ID, value = Dist.CLIENT)
 public final class AjustesAviso {

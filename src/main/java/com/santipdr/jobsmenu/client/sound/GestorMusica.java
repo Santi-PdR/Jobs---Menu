@@ -91,13 +91,6 @@ public class GestorMusica extends AbstractTickableSoundInstance {
                 "[jobsmenu] Musica del menu enviada a reproducir (musica/defecto.ogg).");
     }
 
-    /** Deja de sonar, con caida. No corta en seco. */
-    public static void soltar() {
-        // No se pierde la referencia: la instancia necesita seguir recibiendo
-        // ticks para completar la bajada y detenerse. Soltarla aqui permitiria
-        // crear otra copia mientras la anterior todavia se oye.
-    }
-
     /**
      * Coordinacion por tick, independiente de la Screen visible. Asi la pista
      * continua en Opciones/Mods/Recursos y se detiene al entrar a un mundo.
@@ -225,22 +218,10 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         Minecraft cliente = Minecraft.getInstance();
         boolean permitido = SesionMenu.activa() && ConfigTurno.musicaMenu();
 
-        // POR QUE LA MUSICA NO SE OIA
-        //
-        // Minecraft trae su propio gestor de musica de menu, que suena en el
-        // MISMO canal (SoundSource.MUSIC) que nuestro tema. Cuando el juego
-        // decide poner su musica de menu, la nuestra queda tapada o desalojada,
-        // y el ambiente -que va por otro canal (AMBIENT)- se seguia oyendo: de
-        // ahi el sintoma de "el ambiente suena pero la musica no".
-        //
-        // La solucion es callar al gestor de vanilla mientras nuestro menu esta
-        // abierto, para que el canal de musica quede libre para el tema del
-        // aviso. No toca los deslizadores del jugador: solo evita que dos
-        // musicas peleen por el mismo canal.
-        //
-        // AVISO honesto: si ademas el deslizador "Musica" del juego esta en
-        // cero, no hay codigo que valga -ese control lo manda el jugador-. Por
-        // eso el ajuste de volumen del aviso avisa que hay que subirlo tambien.
+        // REQUIEM usa MASTER para que el deslizador Music de vanilla no forme
+        // parte de su mezcla. El gestor de musica vanilla se detiene durante
+        // la visita para que no se superpongan dos composiciones; Master sigue
+        // siendo la autoridad global y se aplica dentro del SoundEngine.
         if (permitido) {
             cliente.getMusicManager().stopPlaying();
         }

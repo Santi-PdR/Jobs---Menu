@@ -38,9 +38,8 @@ import net.minecraftforge.client.gui.ModListScreen;
  *   --  (hueco)
  *   04  Renunciar al nivel       - lo unico irreversible, apartado del resto
  *
- * La partida de un jugador no figura: se abre con Control + S, sin pasar por
- * la lista. Es la salida de servicio, y las salidas de servicio no se anuncian
- * en el tablon; se aclara al pie, en letra chica, para quien la necesite.
+ * La partida de un jugador no figura en el tablon: el documento prioriza la
+ * entrada al servidor y conserva las utilidades administrativas habituales.
  *
  * El hueco antes de renunciar no es decorativo: separar lo destructivo del
  * resto es lo que evita que alguien lo pulse por inercia bajando la lista.
@@ -192,7 +191,7 @@ public class PantallaNivel extends Screen {
 
         // El aviso del pie es un widget y no un dibujo: se puede pasar a mano y
         // entra en el recorrido del tabulador como cualquier otro renglon. Va
-        // directo debajo de la lista: el atajo de servicio ya no ocupa el pie.
+        // directo debajo de la lista: el pie no reserva ninguna ayuda adicional.
         if (this.altoAviso > 0) {
             this.addRenderableWidget(new NotaAviso(
                     x, y + altoLista + airePie(), ancho, this.altoAviso));

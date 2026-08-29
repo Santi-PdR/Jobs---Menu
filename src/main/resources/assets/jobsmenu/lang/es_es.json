@@ -178,7 +178,7 @@
   "jobsmenu.ajustes.interfaz": "Hoja minima",
   "jobsmenu.ajustes.interfaz.detalle": "Deja solo lo indispensable: sin hoja, sin reloj, sin notas.",
   "jobsmenu.ajustes.volmusica": "Volumen de la musica",
-  "jobsmenu.ajustes.volmusica.detalle": "El tema del menu. Recorda subir tambien Musica en Musica y sonidos.",
+  "jobsmenu.ajustes.volmusica.detalle": "El tema del menu. Respeta el volumen maestro; Musica de Minecraft no lo controla.",
   "jobsmenu.ajustes.volambiente": "Volumen del recinto",
   "jobsmenu.ajustes.volambiente.detalle": "El aire, el agua y los ruidos del nivel.",
   "jobsmenu.ajustes.musica": "Musica del menu",

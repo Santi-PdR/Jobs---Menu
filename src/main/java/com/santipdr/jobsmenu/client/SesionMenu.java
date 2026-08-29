@@ -1,6 +1,5 @@
 package com.santipdr.jobsmenu.client;
 
-import com.santipdr.jobsmenu.client.sound.GestorMusica;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
@@ -28,7 +27,6 @@ public final class SesionMenu {
 
     public static void cerrar() {
         activa = false;
-        GestorMusica.soltar();
     }
 
     /**
