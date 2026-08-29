@@ -27,6 +27,9 @@ public final class MezclaAudio {
     private MezclaAudio() {
     }
 
+    /** El foco puede saltar entre widgets en el mismo frame al redimensionar. */
+    private static long ultimoRoceNanos;
+
     /**
      * MARGEN DE MEZCLA
      *
@@ -95,6 +98,13 @@ public final class MezclaAudio {
     public static void gesto(RegistryObject<SoundEvent> evento, float volumen) {
         if (!ConfigTurno.sonidoBotones()) {
             return;
+        }
+        if (evento == SonidosNivel.UI_PASAR) {
+            long ahora = System.nanoTime();
+            if (ahora - ultimoRoceNanos < 80_000_000L) {
+                return;
+            }
+            ultimoRoceNanos = ahora;
         }
         float tono = 0.98F + (float) Math.random() * 0.04F;
         Minecraft.getInstance().getSoundManager()

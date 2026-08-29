@@ -1,6 +1,7 @@
 package com.santipdr.jobsmenu.client.sound;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -129,6 +130,7 @@ public final class MusicaPropia {
             Path fuente = buscarPista(buzon);
             if (fuente == null) {
                 conMusica = false;
+                desactivarPaqueteAnterior();
                 return;
             }
             pista = fuente.getFileName().toString();
@@ -140,6 +142,13 @@ public final class MusicaPropia {
                 JobsMenu.LOG.warn("[jobsmenu] La pista '" + pista + "' no es OGG Vorbis. "
                         + "Minecraft solo reproduce OGG: convertila y volve a probar.");
                 conMusica = false;
+                desactivarPaqueteAnterior();
+                return;
+            }
+            if (!esOggVorbis(fuente)) {
+                JobsMenu.LOG.warn("[jobsmenu] La pista '{}' no contiene una cabecera OGG Vorbis valida.", pista);
+                conMusica = false;
+                desactivarPaqueteAnterior();
                 return;
             }
 
@@ -151,10 +160,7 @@ public final class MusicaPropia {
 
             // Solo se copia si cambio: copiar en cada arranque un archivo de
             // varios megas es tiempo de carga regalado.
-            if (!Files.exists(destino)
-                    || Files.size(destino) != Files.size(fuente)
-                    || Files.getLastModifiedTime(fuente).toMillis()
-                        > Files.getLastModifiedTime(destino).toMillis()) {
+            if (!Files.exists(destino) || Files.mismatch(fuente, destino) != -1L) {
                 Files.copy(fuente, destino, StandardCopyOption.REPLACE_EXISTING);
             }
 
@@ -162,8 +168,9 @@ public final class MusicaPropia {
             if (conMusica) {
                 JobsMenu.LOG.info("[jobsmenu] Musica del menu: '" + pista + "'.");
             }
-        } catch (IOException | RuntimeException ignorada) {
+        } catch (IOException | RuntimeException fallo) {
             conMusica = false;
+            JobsMenu.LOG.warn("[jobsmenu] No se pudo preparar la musica personalizada; se usara la pista del mod.", fallo);
         }
     }
 
@@ -186,7 +193,7 @@ public final class MusicaPropia {
 
         String id = null;
         for (String disponible : repositorio.getAvailableIds()) {
-            if (disponible.contains(PAQUETE)) {
+            if (esPaquetePropio(disponible)) {
                 id = disponible;
                 break;
             }
@@ -212,6 +219,47 @@ public final class MusicaPropia {
         // paga una sola vez y no en cada arranque.
         cliente.reloadResourcePacks();
         return true;
+    }
+
+    /** Quita el pack generado si ya no hay pista, evitando reproducir una copia vieja. */
+    private static void desactivarPaqueteAnterior() {
+        Minecraft cliente = Minecraft.getInstance();
+        PackRepository repositorio = cliente.getResourcePackRepository();
+        repositorio.reload();
+        Set<String> seleccion = new LinkedHashSet<>(repositorio.getSelectedIds());
+        boolean cambio = seleccion.removeIf(MusicaPropia::esPaquetePropio);
+        if (!cambio) {
+            return;
+        }
+        repositorio.setSelected(seleccion);
+        cliente.options.updateResourcePacks(repositorio);
+        cliente.options.save();
+        cliente.reloadResourcePacks();
+        JobsMenu.LOG.info("[jobsmenu] Paquete de musica personalizado desactivado; vuelve la pista del mod.");
+    }
+
+    private static boolean esPaquetePropio(String id) {
+        return id.equals(PAQUETE) || id.endsWith("/" + PAQUETE) || id.endsWith(":" + PAQUETE);
+    }
+
+    /** Comprobacion barata que rechaza archivos renombrados o truncados antes del SoundEngine. */
+    private static boolean esOggVorbis(Path archivo) throws IOException {
+        byte[] cabecera = new byte[96];
+        int leidos;
+        try (InputStream entrada = Files.newInputStream(archivo)) {
+            leidos = entrada.read(cabecera);
+        }
+        if (leidos < 12 || cabecera[0] != 'O' || cabecera[1] != 'g'
+                || cabecera[2] != 'g' || cabecera[3] != 'S') {
+            return false;
+        }
+        for (int i = 4; i + 5 < leidos; i++) {
+            if (cabecera[i] == 'v' && cabecera[i + 1] == 'o' && cabecera[i + 2] == 'r'
+                    && cabecera[i + 3] == 'b' && cabecera[i + 4] == 'i' && cabecera[i + 5] == 's') {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** El primer archivo de audio de la carpeta, por orden alfabetico. */

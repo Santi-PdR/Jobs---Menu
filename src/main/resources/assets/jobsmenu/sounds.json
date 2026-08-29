@@ -61,7 +61,7 @@
     "sounds": [
       {
         "name": "jobsmenu:ambiente/nivel0",
-        "stream": false
+        "stream": true
       }
     ]
   },

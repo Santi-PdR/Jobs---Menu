@@ -55,6 +55,9 @@ public final class GestorAmbiente {
     private GestorAmbiente() {
     }
 
+    /** Evita reiniciar relojes y sorteos cuando init() corre por un resize. */
+    private static boolean abierto;
+
     /**
      * Un sonido ocasional del nivel.
      *
@@ -208,19 +211,34 @@ public final class GestorAmbiente {
      * la ventana, no se apila una segunda copia del mismo bucle.
      */
     public static void abrir() {
+        if (abierto) {
+            atender();
+            return;
+        }
+        abierto = true;
         nivelSonando = -1;
-        proximoEvento = System.currentTimeMillis() + 6_000L;
+        proximoEvento = 0L;
         ultimoChispazo = -1;
         apagonSonado = false;
         encendidoSonado = false;
         presenciaSonada = false;
+        reprogramarEvento(RotacionNiveles.indiceActual());
         atender();
     }
 
-    /** Cierra todo lo que este sonando. Las capas se apagan solas, con caida. */
+    /** Cierra todo lo que este sonando y no deja instancias huerfanas. */
     public static void cerrar() {
+        for (CapaAmbiente capa : CAPAS) {
+            capa.detenerAhora();
+        }
         CAPAS.clear();
         nivelSonando = -1;
+        abierto = false;
+    }
+
+    /** El SoundEngine se reconstruyo: ninguna instancia anterior es valida. */
+    public static void recursosRecargados() {
+        cerrar();
     }
 
     /**
