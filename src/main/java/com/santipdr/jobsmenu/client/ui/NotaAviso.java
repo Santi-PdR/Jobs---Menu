@@ -1,6 +1,5 @@
 package com.santipdr.jobsmenu.client.ui;
 
-import com.santipdr.jobsmenu.client.scene.RotacionNiveles;
 import com.santipdr.jobsmenu.client.sound.MezclaAudio;
 import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.config.ConfigTurno;
@@ -14,6 +13,8 @@ import net.minecraft.util.FormattedCharSequence;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * La linea de la administracion al pie de la hoja.
@@ -58,8 +59,10 @@ public class NotaAviso extends AbstractButton {
             "jobsmenu.aviso.especial.medianoche",
     };
 
-    /** Cada cuantos milisegundos pasa solo al siguiente. */
-    private static final long ROTACION_MS = 7_000L;
+    /** Cada cuantos milisegundos pasa solo al siguiente (configurable). */
+    private static long rotacionMs() {
+        return ConfigTurno.duracionAvisos() * 1_000L;
+    }
 
     /** Cuanto se acerca el foco a su destino en cada fotograma. */
     private static final float SUAVIZADO = 0.25F;
@@ -72,6 +75,12 @@ public class NotaAviso extends AbstractButton {
 
     private float foco;
     private boolean sonaba;
+    private float luzFrame = 1.0F;
+
+    /** Cache de la particion de texto: la nota cambia cada siete segundos. */
+    private List<FormattedCharSequence> lineasCache = Collections.emptyList();
+    private Component textoMedido = Component.empty();
+    private int anchoMedido = -1;
 
     public NotaAviso(int x, int y, int ancho, int alto) {
         super(x, y, ancho, alto, Component.empty());
@@ -79,9 +88,14 @@ public class NotaAviso extends AbstractButton {
         this.sonaba = false;
     }
 
+    /** Actualiza la luz del snapshot de pantalla para evitar lecturas por widget. */
+    public void setLuzFrame(float luz) {
+        this.luzFrame = Math.max(0.0F, Math.min(1.0F, luz));
+    }
+
     /** El aviso que toca ahora mismo. */
     private static int indice() {
-        long vueltas = Math.floorDiv(System.currentTimeMillis() - base, ROTACION_MS);
+        long vueltas = Math.floorDiv(System.currentTimeMillis() - base, rotacionMs());
         return (int) Math.floorMod(vueltas + corrimiento, AVISOS);
     }
 
@@ -90,7 +104,7 @@ public class NotaAviso extends AbstractButton {
      * en ciertas fechas y horas la administracion cuela una nota propia.
      *
      * ES UN GUINO, NO UN CARTEL. Solo aparece cuando la fecha real coincide, y
-     * ademas solo en una de cada tres vueltas de la rotacion, para que quien
+     * ademas solo en una de cada cinco vueltas de la rotacion, para que quien
      * este mirando justo esos dias tenga que tener algo de suerte para leerla.
      * El que nunca abra el menu un 31 de octubre no se entera de que existe, y
      * esa es la idea: se descubre, no se anuncia. Todo sale del reloj del
@@ -101,8 +115,8 @@ public class NotaAviso extends AbstractButton {
      */
     private static Component textoActual() {
         int i = indice();
-        // La nota especial no se roba todas las vueltas: una de cada tres.
-        if (i % 3 == 0) {
+        // La nota especial no se roba todas las vueltas: una de cada cinco.
+        if (i % 5 == 0) {
             String especial = especialDeHoy();
             if (especial != null) {
                 return Component.translatable(especial);
@@ -125,6 +139,7 @@ public class NotaAviso extends AbstractButton {
         int mes = ahora.getMonthValue();
         int dia = ahora.getDayOfMonth();
         int hora = ahora.getHour();
+        int minuto = ahora.getMinute();
 
         // --- Fechas concretas: lo mas raro, gana siempre. ---
         if (mes == 1 && dia == 1) {
@@ -145,14 +160,12 @@ public class NotaAviso extends AbstractButton {
         }
 
         // --- Horas del dia: lo mas comun, solo si no cayo ninguna fecha. ---
-        // La hora de las brujas: de 3:00 a 3:59, cualquier dia.
-        if (hora == 3) {
+        // La hora de las brujas: una ventana corta, no una hora entera diaria.
+        if (hora == 3 && minuto >= 13 && minuto < 18) {
             return "jobsmenu.aviso.especial.madrugada";
         }
-        // El cambio de turno: la hora cero, de 0:00 a 0:59. Se acota a la hora
-        // entera -y no al minuto justo- para que llegue a verse: con el minuto
-        // exacto y la regla de una vuelta de cada tres, no aparecia casi nunca.
-        if (hora == 0) {
+        // El cambio de turno solo durante los primeros cinco minutos.
+        if (hora == 0 && minuto < 5) {
             return "jobsmenu.aviso.especial.medianoche";
         }
         return null;
@@ -168,6 +181,17 @@ public class NotaAviso extends AbstractButton {
         corrimiento++;
         base = System.currentTimeMillis();
         MezclaAudio.gesto(SonidosNivel.UI_ALTERNAR, 0.75F);
+    }
+
+    private List<FormattedCharSequence> lineas(Minecraft cliente, Component texto) {
+        float escala = ConfigTurno.textoGrande() ? 1.15F : 1.0F;
+        int ancho = Math.max(1, Math.round(this.getWidth() / escala));
+        if (ancho != this.anchoMedido || !texto.equals(this.textoMedido)) {
+            this.lineasCache = cliente.font.split(texto, ancho);
+            this.textoMedido = texto;
+            this.anchoMedido = ancho;
+        }
+        return this.lineasCache;
     }
 
     @Override
@@ -197,15 +221,25 @@ public class NotaAviso extends AbstractButton {
         int x = this.getX();
         int y = this.getY();
         int ancho = this.getWidth();
+        List<FormattedCharSequence> lineas = lineas(cliente, texto);
 
         // Con la luz cortada, la letra chica es lo primero que deja de leerse.
-        float tinta = 0.10F + 0.90F * RotacionNiveles.luzDisponible();
+        float tinta = 0.10F + 0.90F * this.luzFrame;
+        float escala = ConfigTurno.textoGrande() ? 1.15F : 1.0F;
         int color = Paleta.conAlfa(
-                Paleta.mezclar(Paleta.TINTA_TENUE, Paleta.TINTA, this.foco), tinta);
+                Paleta.mezclar(Paleta.tintaSecundaria(), Paleta.tintaPrincipal(), this.foco), tinta);
         int alto = 0;
-        for (FormattedCharSequence linea : cliente.font.split(texto, ancho)) {
-            grafico.drawString(cliente.font, linea, x, y + alto, color, false);
-            alto += 10;
+        for (FormattedCharSequence linea : lineas) {
+            if (escala == 1.0F) {
+                grafico.drawString(cliente.font, linea, x, y + alto, color, false);
+            } else {
+                grafico.pose().pushPose();
+                grafico.pose().translate(x, y + alto, 0.0D);
+                grafico.pose().scale(escala, escala, 1.0F);
+                grafico.drawString(cliente.font, linea, 0, 0, color, false);
+                grafico.pose().popPose();
+            }
+            alto += Math.round(10.0F * escala);
         }
 
         // Al pasar el cursor, una raya de lapiz por debajo que se dibuja sola

@@ -42,6 +42,9 @@ public final class Nave implements Planta {
      */
     private static final float LEJOS = 5.5F;
 
+    /** Alturas fijas de los largueros de una estanteria; evita un array por frame. */
+    private static final float[] ALTURAS_ESTANTERIA = {0.22F, 0.52F, 0.80F};
+
     @Override
     public int tramos() {
         return TRAMOS;
@@ -61,6 +64,7 @@ public final class Nave implements Planta {
         Trazo.fondo(grafico, m, nivel, luz,
                 Paleta.mezclar(nivel.paredBaja, nivel.niebla, 0.42F), 1.35F);
         porton(grafico, m, nivel, luz);
+        puertaMuelle(grafico, m, nivel, luz);
 
         Trazo.plano(grafico, m, true, Paleta.mezclar(nivel.techo, Paleta.VANO, 0.30F),
                 Paleta.mezclar(nivel.techo, nivel.niebla, 0.50F), nivel.niebla, luz, 0.62F);
@@ -111,6 +115,41 @@ public final class Nave implements Planta {
         grafico.fill(x0 - 1, y0 - 1, x1 + 1, y0 + 1,
                 Paleta.iluminar(Paleta.mezclar(nivel.junta, nivel.paredAlta, 0.25F), luz * 0.60F));
         grafico.fill(x0, y1 - 2, x1, y1, Paleta.conAlfa(nivel.luz, 0.12F * luz));
+    }
+
+    /**
+     * Puerta lateral de muelle, embutida en la pared derecha del deposito.
+     *
+     * El vano esta en el plano de la pared, no pegado al centro del cuadro:
+     * jambas, dintel y umbral hacen que el almacen tenga una segunda salida
+     * legible detras de la carga.
+     */
+    private static void puertaMuelle(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 1.35F;
+        float pared = m.lado(1.0F, dx);
+        float ancho = Math.max(5.0F, m.w() * dx * 0.13F);
+        float suelo = m.sueloEn(dx);
+        float alto = Math.max(10.0F, m.h() * dx * 0.62F);
+        float y0 = suelo - alto;
+        int x0 = Math.round(pared - ancho);
+        int x1 = Math.round(pared);
+        int y1 = Math.round(suelo);
+        int hueco = Paleta.conAlfa(Paleta.mezclar(Paleta.VANO, nivel.niebla, 0.15F), 0.94F);
+        grafico.fill(x0, Math.round(y0), x1, y1, hueco);
+        int marco = Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, 0.72F, 0.50F), luz * 0.72F);
+        int dintel = Math.max(2, Math.round(m.h() * dx * 0.035F));
+        grafico.fill(x0 - 2, Math.round(y0) - dintel, x1 + 2, Math.round(y0), marco);
+        grafico.fill(x0 - 2, Math.round(y0), x0 + 1, y1, marco);
+        grafico.fill(x1 - 1, Math.round(y0), x1 + 2, y1, marco);
+        grafico.fill(x0 - 2, y1 - Math.max(2, dintel / 2), x1 + 2, y1, marco);
+        // Umbral iluminado y dos bisagras: escala de muelle, no rectangulo negro.
+        grafico.fill(x0 + 2, y1 - Math.max(2, dintel / 2), x1 - 2, y1,
+                Paleta.conAlfa(Paleta.iluminar(nivel.luz, luz * 0.45F), 0.36F));
+        int bisagra = Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, luz), 0.65F);
+        grafico.fill(x0 + 2, Math.round(y0 + alto * 0.22F), x0 + 4,
+                Math.round(y0 + alto * 0.28F), bisagra);
+        grafico.fill(x0 + 2, Math.round(y0 + alto * 0.70F), x0 + 4,
+                Math.round(y0 + alto * 0.76F), bisagra);
     }
 
     /**
@@ -252,6 +291,11 @@ public final class Nave implements Planta {
             float ySuelo = m.sueloEn(dx);
 
             for (int signo = -1; signo <= 1; signo += 2) {
+                // Una bahia perdio el pilar derecho: el hueco se lee como
+                // espacio de carga y rompe la repeticion mecanica.
+                if (j == 8 && signo > 0) {
+                    continue;
+                }
                 float x = m.lado(signo, dx * HILERA);
                 if (x < -ancho * 2 || x > m.ancho() + ancho * 2) {
                     continue;
@@ -296,7 +340,7 @@ public final class Nave implements Planta {
             float ySuelo = m.sueloEn(dx);
             int color = Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, lej, 0.5F), at);
 
-            for (float a : new float[] {0.22F, 0.52F, 0.80F}) {
+            for (float a : ALTURAS_ESTANTERIA) {
                 float y = ySuelo - m.h() * dx * a;
                 int grosor = Math.max(1, (int) (m.h() * dx * 0.016F));
                 grafico.fill(x, (int) y, x + Trazo.PASO, (int) y + grosor,

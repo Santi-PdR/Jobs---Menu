@@ -20,10 +20,12 @@ gradle/wrapper/gradle-wrapper.jar
 bin/
 .vscode/
 
-# Forge
+# Forge / JVM
 logs/
 crash-reports/
 forge*changelog.txt
+hs_err_pid*.log
+replay_pid*.log
 
 # Sistema
 .DS_Store

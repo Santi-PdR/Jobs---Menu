@@ -257,9 +257,11 @@ public final class Nivel {
                     0xFF46445A, 0xFF2C2A3C, 0xFF181628,
                     0xFF56546A, 0xFF302E44,
                     0xFF34324A, 0xFFE8C878, 0xFF0A0812,
-                    // Nave alta y honda, vista de frente por la alfombra central;
-                    // el trono cae justo en la fuga, al fondo.
-                    0.500F, 0.500F, 0.150F, 0.150F, 0.185F, 0.140F,
+                    // Nave alta y honda, vista apenas desde el lado izquierdo:
+                    // el trono sigue en la fuga, pero el eje ya no es simetrico.
+                    // La piedra y el vacio de la sala necesitan esa pequena
+                    // incomodidad para no parecer una pantalla de carga.
+                    0.470F, 0.530F, 0.160F, 0.140F, 0.185F, 0.140F,
                     0.26F, 0.55F),
     };
 

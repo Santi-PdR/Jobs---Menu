@@ -52,12 +52,32 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
     /** Un deslizador de 0 a 100 con su valor al lado, como los de volumen. */
     private static OptionInstance<Integer> deslizador(String clave, int valor,
                                                       java.util.function.IntConsumer fijar) {
+        return deslizador(clave, valor, 0, 100,
+                "jobsmenu.ajustes.porciento", fijar);
+    }
+
+    /** Deslizador entero para duraciones y otros rangos que no son porcentajes. */
+    private static OptionInstance<Integer> deslizador(String clave, int valor,
+                                                      int minimo, int maximo,
+                                                      String formato,
+                                                      java.util.function.IntConsumer fijar) {
         return new OptionInstance<>(clave,
                 OptionInstance.cachedConstantTooltip(Component.translatable(clave + ".detalle")),
-                (caption, v) -> Component.translatable("jobsmenu.ajustes.porciento", caption, v),
-                new OptionInstance.IntRange(0, 100),
-                valor,
+                (caption, v) -> Component.translatable(formato, caption, v),
+                new OptionInstance.IntRange(minimo, maximo),
+                Math.max(minimo, Math.min(maximo, valor)),
                 (v) -> fijar.accept(v));
+    }
+
+    /** Selector entero de nivel; el knob y el valor comparten exactamente el rango 0-9. */
+    private static OptionInstance<Integer> selectorNivel(int valor) {
+        String clave = "jobsmenu.ajustes.nivelfijo";
+        return new OptionInstance<>(clave,
+                OptionInstance.cachedConstantTooltip(Component.translatable(clave + ".detalle")),
+                (caption, v) -> Component.translatable("jobsmenu.ajustes.nivelvalor", caption, v),
+                new OptionInstance.IntRange(0, 9),
+                Math.max(0, Math.min(9, valor)),
+                ConfigTurno::fijarNivelFijo);
     }
 
     @Override
@@ -68,17 +88,46 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
         this.lista.addBig(interruptor("jobsmenu.ajustes.escena",
                 ConfigTurno.escenaViva(), ConfigTurno::fijarEscenaViva));
         this.lista.addSmall(
+                interruptor("jobsmenu.ajustes.alto",
+                        ConfigTurno.altoContraste(), ConfigTurno::fijarAltoContraste),
+                interruptor("jobsmenu.ajustes.grande",
+                        ConfigTurno.textoGrande(), ConfigTurno::fijarTextoGrande));
+        this.lista.addSmall(
+                interruptor("jobsmenu.ajustes.papel",
+                        ConfigTurno.papelLimpio(), ConfigTurno::fijarPapelLimpio),
+                interruptor("jobsmenu.ajustes.guia",
+                        ConfigTurno.guiaLectura(), ConfigTurno::fijarGuiaLectura));
+        this.lista.addSmall(
+                interruptor("jobsmenu.ajustes.estado",
+                        ConfigTurno.mostrarEstadoInstalacion(), ConfigTurno::fijarMostrarEstadoInstalacion),
+                interruptor("jobsmenu.ajustes.respiracion",
+                        ConfigTurno.respiracionCamara(), ConfigTurno::fijarRespiracionCamara));
+        this.lista.addSmall(
                 interruptor("jobsmenu.ajustes.rotar",
+
                         ConfigTurno.rotarNivelesBruto(), ConfigTurno::fijarRotarNiveles),
                 interruptor("jobsmenu.ajustes.cuenta",
                         ConfigTurno.mostrarCuentaRegresivaBruto(), ConfigTurno::fijarMostrarCuentaRegresiva));
+        this.lista.addBig(selectorNivel(ConfigTurno.nivelFijo()));
         this.lista.addSmall(
+                interruptor("jobsmenu.ajustes.rotacioncalma",
+                        ConfigTurno.rotacionCalma(), ConfigTurno::fijarRotacionCalma),
                 interruptor("jobsmenu.ajustes.avisos",
-                        ConfigTurno.avisosRotativosBruto(), ConfigTurno::fijarAvisosRotativos),
+                        ConfigTurno.avisosRotativosBruto(), ConfigTurno::fijarAvisosRotativos));
+        this.lista.addBig(deslizador("jobsmenu.ajustes.duracion",
+                ConfigTurno.duracionAvisos(), 4, 15,
+                "jobsmenu.ajustes.segundos", ConfigTurno::fijarDuracionAvisos));
+        this.lista.addSmall(
+                interruptor("jobsmenu.ajustes.fecha",
+
+                        ConfigTurno.mostrarFechaBruto(), ConfigTurno::fijarMostrarFecha),
                 interruptor("jobsmenu.ajustes.interfaz",
                         ConfigTurno.interfazMinima(), ConfigTurno::fijarInterfazMinima));
 
-        // Sonido del recinto y del menu.
+        // Sonido del recinto y del menu. El volumen maestro va arriba, porque
+        // manda sobre todo lo demas: la musica, el ambiente y los gestos.
+        this.lista.addBig(deslizador("jobsmenu.ajustes.volaviso",
+                ConfigTurno.volumenAvisoPorcentaje(), ConfigTurno::fijarVolumenAviso));
         this.lista.addBig(deslizador("jobsmenu.ajustes.volmusica",
                 ConfigTurno.volumenMusicaPorcentaje(), ConfigTurno::fijarVolumenMusica));
         this.lista.addBig(deslizador("jobsmenu.ajustes.volambiente",
@@ -101,10 +150,17 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
                 interruptor("jobsmenu.ajustes.destellos",
                         ConfigTurno.destellosReducidos(), ConfigTurno::fijarDestellosReducidos));
         this.lista.addSmall(
+                interruptor("jobsmenu.ajustes.presencia",
+                        ConfigTurno.presenciaFondo(), ConfigTurno::fijarPresenciaFondo),
+                interruptor("jobsmenu.ajustes.eventos",
+                        ConfigTurno.eventosAmbientales(), ConfigTurno::fijarEventosAmbientales));
+        this.lista.addSmall(
+                interruptor("jobsmenu.ajustes.suspension",
+                        ConfigTurno.suspensionRara(), ConfigTurno::fijarSuspensionRara),
                 interruptor("jobsmenu.ajustes.menu",
-                        ConfigTurno.menuPropio(), ConfigTurno::fijarMenuPropio),
-                interruptor("jobsmenu.ajustes.pausa",
-                        ConfigTurno.pausaPropia(), ConfigTurno::fijarPausaPropia));
+                        ConfigTurno.menuPropio(), ConfigTurno::fijarMenuPropio));
+        this.lista.addBig(interruptor("jobsmenu.ajustes.pausa",
+                ConfigTurno.pausaPropia(), ConfigTurno::fijarPausaPropia));
 
         this.addWidget(this.lista);
 
@@ -118,5 +174,13 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
         // basicListRender es el render estandar de las subpantallas de opciones:
         // fondo, la lista con su barra, el titulo centrado arriba y los widgets.
         this.basicListRender(grafico, this.lista, ratonX, ratonY, parcial);
+    }
+
+    @Override
+    public void removed() {
+        // Al salir de la subpantalla se vuelca cualquier guardado diferido de
+        // los deslizadores (ver ConfigTurno.marcarGuardado).
+        ConfigTurno.guardarPendiente();
+        super.removed();
     }
 }

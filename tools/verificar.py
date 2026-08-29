@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Sello de verificacion estatica del mod Jobs - Aviso a los ocupantes.
 
-No sustituye a `gradlew build`, pero atrapa las erratas que cuestan una vuelta
+No sustituye a `gradlew.bat clean build --no-daemon`, pero atrapa las erratas que cuestan una vuelta
 entera de compilacion: versiones desincronizadas, claves de idioma faltantes,
-JSON invalido, acentos colados en el codigo y llaves sin cerrar.
+JSON invalido, acentos colados en el codigo, contratos de La Suspension,
+controles de percepcion desconectados y llaves sin cerrar.
 
 Uso:  python3 tools/verificar.py
 Sale con codigo 0 si todo esta en orden, 1 si hay algun fallo.
@@ -25,9 +26,12 @@ AVISOS: list[str] = []
 # Subtitulos declarados por sounds.json, que tambien deben estar traducidos.
 SUBTITULOS: set[str] = set()
 
-# Cuantas piezas de audio tiene la identidad sonora completa: 8 de interfaz,
-# 4 ambientes de sala, 13 eventos, 3 de transicion electrica, 1 de la figura
-# y 1 de musica. Si el numero baja, algo se perdio por el camino.
+# Cuantas piezas de audio tiene la identidad sonora completa:
+#   8 de interfaz (ui/) + 30 camas (10 niveles x ambiente/caracter/actividad)
+#   + 31 eventos de recinto (eventos/) + 3 de transicion electrica (nivel/)
+#   + 1 de la figura + 1 de musica = 74.
+# La cuenta se mantiene derivada: si sounds.json cambia de verdad, este
+# numero se actualiza a mano (y el fallo de abajo lo recuerda).
 PIEZAS_ESPERADAS = 74
 
 
@@ -373,6 +377,34 @@ def despojar(texto: str) -> str:
 # --------------------------------------------------------------------------
 # 6. Recursos varios
 # --------------------------------------------------------------------------
+def verificar_auditoria_fondos() -> None:
+    """Protege la matriz de aceptación: diez escenarios, cincuenta filas cada uno.
+
+    La matriz no certifica que el arte esté implementado; certifica que el
+    requisito no se haya reducido a una lista global de retoques. Cada escena
+    necesita sus propios criterios antes de aceptar una reescritura visual.
+    """
+    ruta = RAIZ / "docs/AUDITORIA_FONDOS_50X10.md"
+    if not ruta.is_file():
+        fallo("Falta docs/AUDITORIA_FONDOS_50X10.md: no hay auditoria por escenario.")
+        return
+
+    texto = leer(ruta)
+    encabezados = list(re.finditer(r"^## Nivel [0-9]+ — .+$", texto, re.MULTILINE))
+    if len(encabezados) != 10:
+        fallo(f"La auditoria de fondos tiene {len(encabezados)} escenarios; se esperan 10.")
+        return
+
+    patron_fila = re.compile(r"^- \*\*[^*]+-\d{2} · .+$", re.MULTILINE)
+    for indice, encabezado in enumerate(encabezados):
+        inicio = encabezado.end()
+        fin = encabezados[indice + 1].start() if indice + 1 < len(encabezados) else len(texto)
+        filas = patron_fila.findall(texto[inicio:fin])
+        if len(filas) != 50:
+            nombre = encabezado.group(0).removeprefix("## ")
+            fallo(f"{nombre} tiene {len(filas)} criterios; se esperan 50.")
+
+
 def verificar_recursos() -> None:
     ruta = RAIZ / "src/main/resources/pack.mcmeta"
     try:
@@ -544,10 +576,25 @@ def verificar_audio() -> None:
     if carpeta.is_dir():
         for ruta in sorted(carpeta.rglob("*.ogg")):
             presentes.add(ruta.relative_to(carpeta).with_suffix("").as_posix())
-            if ruta.read_bytes()[:4] != b"OggS":
-                fallo(f"{ruta.relative_to(RAIZ)} no es un OGG: Minecraft no lo va a reproducir.")
+            datos_ogg = ruta.read_bytes()
+            rel = ruta.relative_to(RAIZ)
+            if datos_ogg[:4] != b"OggS":
+                fallo(f"{rel} no es un OGG: Minecraft no lo va a reproducir.")
             if ruta.stat().st_size == 0:
-                fallo(f"{ruta.relative_to(RAIZ)} esta vacio.")
+                fallo(f"{rel} esta vacio.")
+            # Cabecera Vorbis de identificacion: despues de \\x01vorbis,
+            # channels ocupa un byte y sample rate cuatro. Firma OggS sola no
+            # descarta un Ogg Opus u otro codec que el evento no pueda abrir.
+            cabecera = datos_ogg.find(bytes((1,)) + b"vorbis")
+            if cabecera < 0 or cabecera + 16 > len(datos_ogg):
+                fallo(f"{rel} no contiene una cabecera Vorbis valida.")
+            else:
+                canales = datos_ogg[cabecera + 11]
+                frecuencia = int.from_bytes(datos_ogg[cabecera + 12:cabecera + 16], "little")
+                if canales != 1:
+                    fallo(f"{rel} tiene {canales} canales; el contrato del mod exige mono.")
+                if frecuencia != 44_100:
+                    fallo(f"{rel} usa {frecuencia} Hz; el contrato del mod exige 44100 Hz.")
         for ruta in sorted(carpeta.rglob("*")):
             if ruta.is_file() and ruta.suffix != ".ogg":
                 aviso(f"{ruta.relative_to(RAIZ)} no es un .ogg y esta en la carpeta de sonidos.")
@@ -576,8 +623,53 @@ def verificar_audio() -> None:
 
 
 # --------------------------------------------------------------------------
+# 9. Resolucion segura de sonidos
+# --------------------------------------------------------------------------
+def verificar_audio_seguro() -> None:
+    """Protege el render contra RegistryObject ausente.
+
+    El runtime reporto que un gesto de hover llamaba directamente a `get()` y
+    convertia un registro incompleto en un crash de pantalla. Este contrato
+    mantiene la defensa cerca del punto comun de mezcla y evita que otro
+    consumidor vuelva a introducir el acceso directo.
+    """
+    mezcla = leer(RAIZ / "src/main/java/com/santipdr/jobsmenu/client/sound/MezclaAudio.java")
+    ambiente = leer(RAIZ / "src/main/java/com/santipdr/jobsmenu/client/sound/GestorAmbiente.java")
+    musica = leer(RAIZ / "src/main/java/com/santipdr/jobsmenu/client/sound/GestorMusica.java")
+
+    if "evento.isPresent()" not in mezcla or "public static SoundEvent resolver" not in mezcla:
+        fallo("MezclaAudio no protege RegistryObject con resolver/isPresent().")
+    if "MezclaAudio.resolver(sonido, null)" not in ambiente:
+        fallo("GestorAmbiente resuelve una capa sin pasar por el guard de sonido.")
+    if "MezclaAudio.resolver(SonidosNivel.MUSICA_TEMA" not in musica:
+        fallo("GestorMusica resuelve la pista sin pasar por el guard de sonido.")
+
+    for ruta in (RAIZ / "src/main/java/com/santipdr/jobsmenu/client/sound").glob("*.java"):
+        texto = leer(ruta)
+        if re.search(r"SonidosNivel\.\w+\.get\(\)", texto):
+            fallo(f"{ruta.relative_to(RAIZ)} accede directamente a un SoundEvent registrado.")
+
+
+# --------------------------------------------------------------------------
 # 9. Niveles de la escena
 # --------------------------------------------------------------------------
+def verificar_alcance_opciones() -> None:
+    """La pantalla de Opciones se toca con el chequeo EXACTO de la clase.
+
+    AjustesAviso agrega su boton solo a `OptionsScreen` (y a las clases
+    anonimas que cuelgan directamente de ella). Un `instanceof OptionsScreen`
+    aceptaria pantallas de otros mods que extienden la de vanilla y les
+    ensuciaria su esquina: por eso este chequeo no debe existir nunca.
+    """
+    for ruta in archivos_java():
+        texto = leer(ruta)
+        if re.search(r"instanceof\s+OptionsScreen", texto):
+            fallo(
+                f"{ruta.relative_to(RAIZ)} usa 'instanceof OptionsScreen'. "
+                f"La pantalla de opciones se toca solo con la clase exacta."
+            )
+
+
 def verificar_niveles(es: dict[str, str]) -> None:
     """Cada nivel del catalogo necesita su nombre y su nota en los dos idiomas."""
     ruta = RAIZ / "src/main/java/com/santipdr/jobsmenu/client/scene/Nivel.java"
@@ -604,6 +696,66 @@ def verificar_niveles(es: dict[str, str]) -> None:
             f"config nivel_fijo llega hasta {tope.group(1)} y hay {len(claves)} "
             f"niveles (deberia llegar a {len(claves) - 1})."
         )
+
+
+def verificar_suspension(es: dict[str, str]) -> None:
+    """Comprueba los invariantes estáticos de La Suspensión.
+
+    La ventana rara no tiene prueba de reloj en este script, pero sus contratos
+    importantes sí pueden quedar protegidos: duración, rotación obligatoria,
+    oscurecimiento de escena, recorte de audio y texto localizado.
+    """
+    rotacion = leer(RAIZ / "src/main/java/com/santipdr/jobsmenu/client/scene/RotacionNiveles.java")
+    escena = leer(RAIZ / "src/main/java/com/santipdr/jobsmenu/client/scene/EscenaNivel.java")
+    ambiente = leer(RAIZ / "src/main/java/com/santipdr/jobsmenu/client/sound/GestorAmbiente.java")
+    capa = leer(RAIZ / "src/main/java/com/santipdr/jobsmenu/client/sound/CapaAmbiente.java")
+    pantalla = leer(RAIZ / "src/main/java/com/santipdr/jobsmenu/client/screen/PantallaNivel.java")
+
+    invariantes = (
+        ("SUSPENSION_MS = 22_000L", rotacion, "duración de 22 s"),
+        ("SUSPENSION_RANURA_MS = 48L * 60_000L", rotacion, "ranura de 48 min"),
+        ("!ConfigTurno.rotarNiveles()", rotacion, "bloqueo con rotación fija"),
+        ("estado.enSuspension()", escena, "oscurecimiento de escena"),
+        ("atenderSuspension(estado)", ambiente, "suspiro único"),
+        ("estado.enSuspension()", capa, "mezcla ambiental reducida"),
+        ("jobsmenu.suspension.nota", pantalla, "rótulo localizado"),
+    )
+    for fragmento, fuente, descripcion in invariantes:
+        if fragmento not in fuente:
+            fallo(f"La Suspension perdió el invariante de {descripcion}.")
+
+    for idioma in ("jobsmenu.suspension.nota",):
+        if idioma not in es:
+            fallo(f"Falta la cadena localizada de La Suspension: '{idioma}'.")
+
+
+def verificar_percepcion(es: dict[str, str]) -> None:
+    """Comprueba que los diez controles de percepción estén conectados.
+
+    Una opción visible pero sin setter, getter o entrada en la lista nativa es
+    peor que no tenerla: parece que funciona y no cambia nada. Este chequeo no
+    compila Forge, pero protege la cadena de configuración, UI y traducciones.
+    """
+    config = leer(RAIZ / "src/main/java/com/santipdr/jobsmenu/config/ConfigTurno.java")
+    opciones = leer(RAIZ / "src/main/java/com/santipdr/jobsmenu/client/screen/PantallaAjustesAviso.java")
+    nombres = (
+        ("alto_contraste", "altoContraste", "fijarAltoContraste", "jobsmenu.ajustes.alto"),
+        ("texto_grande", "textoGrande", "fijarTextoGrande", "jobsmenu.ajustes.grande"),
+        ("papel_limpio", "papelLimpio", "fijarPapelLimpio", "jobsmenu.ajustes.papel"),
+        ("presencia_fondo", "presenciaFondo", "fijarPresenciaFondo", "jobsmenu.ajustes.presencia"),
+        ("eventos_ambientales", "eventosAmbientales", "fijarEventosAmbientales", "jobsmenu.ajustes.eventos"),
+        ("duracion_avisos", "duracionAvisos", "fijarDuracionAvisos", "jobsmenu.ajustes.duracion"),
+        ("respiracion_camara", "respiracionCamara", "fijarRespiracionCamara", "jobsmenu.ajustes.respiracion"),
+        ("mostrar_estado_instalacion", "mostrarEstadoInstalacion", "fijarMostrarEstadoInstalacion", "jobsmenu.ajustes.estado"),
+        ("guia_lectura", "guiaLectura", "fijarGuiaLectura", "jobsmenu.ajustes.guia"),
+        ("suspension_rara", "suspensionRara", "fijarSuspensionRara", "jobsmenu.ajustes.suspension"),
+    )
+    for clave, getter, setter, idioma in nombres:
+        for fuente, descripcion in ((config, f"configuración {clave}"),
+                                    (opciones, f"control {clave}"),
+                                    (es, f"traducción {idioma}")):
+            if clave not in fuente and getter not in fuente and setter not in fuente and idioma not in fuente:
+                fallo(f"Falta la conexión de {descripcion}.")
 
 
 def verificar_tipos_java() -> None:
@@ -748,7 +900,10 @@ def verificar_mezcla() -> None:
         sr = int.from_bytes(datos[cabecera + 12:cabecera + 16], "little")
         return granulo / sr if sr else 0.0
 
-    for nivel in range(4):
+    # El catalogo ya tiene diez recintos; comprobar solo los cuatro originales
+    # dejaba seis niveles sin proteccion y hacia que una cama rota pasara como
+    # valida. La auditoria debe seguir la fuente de verdad de Nivel.java.
+    for nivel in range(10):
         duraciones = []
         for familia in ("ambiente", "caracter", "actividad"):
             ruta = sonidos / familia / f"nivel{nivel}.ogg"
@@ -778,6 +933,7 @@ def main() -> int:
     # El audio va antes que las claves: es quien llena SUBTITULOS, y sin esa
     # lista el control de cadenas huerfanas denunciaria los 30 subtitulos.
     verificar_audio()
+    verificar_audio_seguro()
     verificar_claves(es)
     verificar_java()
     verificar_tipos_java()
@@ -785,6 +941,10 @@ def main() -> int:
     verificar_mezcla()
     verificar_simbolos()
     verificar_niveles(es)
+    verificar_suspension(es)
+    verificar_percepcion(es)
+    verificar_alcance_opciones()
+    verificar_auditoria_fondos()
     verificar_recursos()
 
     # Los subtitulos que declara sounds.json tambien son cadenas traducibles.

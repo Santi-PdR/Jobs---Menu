@@ -15,7 +15,7 @@ import net.minecraftforge.fml.common.Mod;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * Control + S abre la lista de mundos sin pasar por el aviso.
+ * Un atajo de servicio abre la lista de mundos sin pasar por el aviso.
  *
  * HERRAMIENTA OCULTA, NO FUNCION DE USUARIO
  *
@@ -46,7 +46,7 @@ import org.lwjgl.glfw.GLFW;
  * CONFLICTOS
  *
  * El atajo se descarta si hay un cuadro de texto con el foco: cuando alguien
- * esta escribiendo el nombre de un servidor, Control + S es de quien escribe.
+ * esta escribiendo el nombre de un servidor, el atajo se deja pasar al campo.
  * Y solo actua desde pantallas propias del mod o desde la de titulo, para no
  * pisar atajos de otros mods en sus propias interfaces.
  */
@@ -101,6 +101,18 @@ public final class AtajoOverworld {
     }
 
     /**
+     * Recupera el pestillo si Alt+Tab o un cambio de pantalla se comio el
+     * evento KeyReleased. Se consulta el estado fisico, no un temporizador.
+     */
+    @SubscribeEvent
+    public static void alCambiarPantalla(ScreenEvent.Opening evento) {
+        Minecraft cliente = Minecraft.getInstance();
+        if (GLFW.glfwGetKey(cliente.getWindow().getWindow(), GLFW.GLFW_KEY_S) != GLFW.GLFW_PRESS) {
+            hundida = false;
+        }
+    }
+
+    /**
      * Solo desde el aviso del nivel o desde la pantalla de titulo vanilla.
      *
      * La segunda hace falta porque el mod se puede apagar por configuracion, y
@@ -108,6 +120,7 @@ public final class AtajoOverworld {
      */
     private static boolean admite(Screen pantalla) {
         return pantalla instanceof PantallaNivel
-                || pantalla instanceof net.minecraft.client.gui.screens.TitleScreen;
+                || (pantalla != null
+                    && pantalla.getClass() == net.minecraft.client.gui.screens.TitleScreen.class);
     }
 }

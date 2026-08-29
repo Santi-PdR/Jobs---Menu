@@ -4,16 +4,19 @@ import com.santipdr.jobsmenu.JobsMenu;
 import com.santipdr.jobsmenu.client.screen.PantallaEstancia;
 import com.santipdr.jobsmenu.client.screen.PantallaNivel;
 import com.santipdr.jobsmenu.client.sound.MezclaAudio;
+import com.santipdr.jobsmenu.client.sound.GestorMusica;
 import com.santipdr.jobsmenu.client.sound.MusicaPropia;
 import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -54,8 +57,18 @@ public final class EscuchaCliente {
         Screen anterior = evento.getCurrentScreen();
         Screen siguiente = evento.getNewScreen();
 
+        // Un cambio de pantalla es la frontera natural de la config: se vuelca
+        // cualquier guardado diferido de los deslizadores antes de pasar.
+        ConfigTurno.guardarPendiente();
+
+        boolean salidaAlTitulo = siguiente != null
+                && siguiente.getClass() == TitleScreen.class
+                && SesionMenu.consumirSalidaAlTitulo();
+
         if (ConfigTurno.menuPropio()
-                && siguiente instanceof TitleScreen
+                && siguiente != null
+                && siguiente.getClass() == TitleScreen.class
+                && !salidaAlTitulo
                 && !(siguiente instanceof PantallaNivel)) {
             // El hueco para la musica propia se prepara la primera vez que se
             // entra al menu, no al cargar el mod: asi no se toca el disco en
@@ -69,7 +82,32 @@ public final class EscuchaCliente {
             evento.setNewScreen(siguiente);
         }
 
+        if (siguiente instanceof PantallaNivel) {
+            SesionMenu.abrir();
+        } else if (salidaAlTitulo || siguiente == null || !ConfigTurno.menuPropio()) {
+            SesionMenu.cerrar();
+        }
+
         gesto(anterior, siguiente);
+    }
+
+    /** Cierre de pantalla: ultimo vuelco seguro del guardado diferido. */
+    @SubscribeEvent
+    public static void alCerrarPantalla(ScreenEvent.Closing evento) {
+        ConfigTurno.guardarPendiente();
+    }
+
+    /** Coordina musica y salida de mundo aun cuando no hay una Screen propia. */
+    @SubscribeEvent
+    public static void alTickCliente(TickEvent.ClientTickEvent evento) {
+        if (evento.phase != TickEvent.Phase.END) {
+            return;
+        }
+        Minecraft cliente = Minecraft.getInstance();
+        if (cliente.level != null || !ConfigTurno.menuPropio()) {
+            SesionMenu.cerrar();
+        }
+        GestorMusica.atender();
     }
 
     /**

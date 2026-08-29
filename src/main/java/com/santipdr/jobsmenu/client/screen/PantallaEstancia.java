@@ -1,8 +1,11 @@
 package com.santipdr.jobsmenu.client.screen;
 
+import com.santipdr.jobsmenu.client.SesionMenu;
+import com.santipdr.jobsmenu.client.sound.MezclaAudio;
 import com.santipdr.jobsmenu.client.ui.HojaPapel;
 import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.santipdr.jobsmenu.client.ui.RenglonTablon;
+import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
@@ -13,7 +16,11 @@ import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 
+import java.util.Collections;
+import java.util.List;
+
 import com.mojang.realmsclient.RealmsMainScreen;
+import org.lwjgl.glfw.GLFW;
 
 /**
  * Estancia en suspenso: la pausa, con la piel del aviso.
@@ -53,7 +60,13 @@ public class PantallaEstancia extends Screen {
     private int hojaX;
     private int hojaY;
     private int hojaAlto;
+    private int anchoHoja;
+    private int margenHoja;
     private int altoCabecera;
+    private int altoRenglonActual = ALTO_RENGLON;
+    private int separacionActual = SEPARACION;
+    private float escalaTipografia = 1.0F;
+    private List<FormattedCharSequence> lineasSubtitulo = Collections.emptyList();
 
     public PantallaEstancia() {
         super(Component.translatable("jobsmenu.pausa.titulo"));
@@ -61,40 +74,55 @@ public class PantallaEstancia extends Screen {
 
     @Override
     protected void init() {
-        int ancho = ANCHO_HOJA - 2 * MARGEN_HOJA;
+        // La pausa tambien debe sobrevivir a una ventana estrecha. El ancho de
+        // los renglones se deriva de la hoja real, no de la constante nominal;
+        // asi la hitbox y el texto siguen coincidiendo despues de un resize.
+        int margenPantalla = this.width < 270 ? 6 : MARGEN_PANTALLA;
+        this.anchoHoja = Math.max(1, Math.min(ANCHO_HOJA,
+                this.width - 2 * margenPantalla));
+        this.margenHoja = Math.min(MARGEN_HOJA, Math.max(2, (this.anchoHoja - 4) / 2));
+        this.escalaTipografia = ConfigTurno.textoGrande() && this.width >= 300 && this.height >= 360
+                ? 1.15F : 1.0F;
+        this.altoRenglonActual = Math.round(ALTO_RENGLON * this.escalaTipografia);
+        this.separacionActual = Math.round(SEPARACION * this.escalaTipografia);
+        int ancho = Math.max(1, this.anchoHoja - 2 * this.margenHoja);
+        int anchoMedido = Math.max(1, Math.round(ancho / this.escalaTipografia));
+        this.lineasSubtitulo = this.font.split(Component.translatable("jobsmenu.pausa.subtitulo"), anchoMedido);
 
-        this.altoCabecera = ALTO_TITULO + AIRE_TITULO
-                + lineas("jobsmenu.pausa.subtitulo", ancho) * ALTO_LINEA
-                + AIRE_REGLA + 1 + AIRE_REGLA;
+        this.altoCabecera = Math.round((ALTO_TITULO + AIRE_TITULO
+                + AIRE_REGLA + 1 + AIRE_REGLA) * this.escalaTipografia)
+                + this.lineasSubtitulo.size() * Math.round(ALTO_LINEA * this.escalaTipografia);
 
-        int salto = ALTO_RENGLON + SEPARACION;
-        int altoLista = 2 * salto + HUECO_APARTE + ALTO_RENGLON;
+        int salto = this.altoRenglonActual + this.separacionActual;
+        int altoLista = 2 * salto + Math.round(HUECO_APARTE * this.escalaTipografia)
+                + this.altoRenglonActual;
 
-        this.hojaAlto = MARGEN_HOJA + this.altoCabecera + AIRE_CABECERA + altoLista + MARGEN_HOJA;
-        this.hojaX = Math.max(14, (this.width - ANCHO_HOJA) / 2);
+        this.hojaAlto = this.margenHoja + this.altoCabecera + AIRE_CABECERA
+                + altoLista + this.margenHoja;
+        this.hojaX = Math.max(margenPantalla, (this.width - this.anchoHoja) / 2);
 
-        int disponible = this.height - 2 * MARGEN_PANTALLA;
+        int disponible = this.height - 2 * margenPantalla;
         if (this.hojaAlto > disponible) {
-            this.hojaY = MARGEN_PANTALLA;
+            this.hojaY = margenPantalla;
         } else {
-            this.hojaY = (this.height - this.hojaAlto) / 2;
+            this.hojaY = Math.max(margenPantalla, (this.height - this.hojaAlto) / 2);
         }
 
-        int x = this.hojaX + MARGEN_HOJA;
-        int y = this.hojaY + MARGEN_HOJA + this.altoCabecera + AIRE_CABECERA;
+        int x = this.hojaX + this.margenHoja;
+        int y = this.hojaY + this.margenHoja + this.altoCabecera + AIRE_CABECERA;
 
         agregar(x, y, ancho, "01", "jobsmenu.pausa.reanudar", this::reanudar, false);
         agregar(x, y + salto, ancho, "02", "jobsmenu.pausa.condiciones", this::abrirCondiciones, false);
         // Dejar el turno queda apartado por el hueco, como renunciar en el
         // aviso: es lo que saca del mundo, y no se pulsa por inercia.
-        agregar(x, y + 2 * salto + HUECO_APARTE, ancho, "03",
+        agregar(x, y + 2 * salto + Math.round(HUECO_APARTE * this.escalaTipografia), ancho, "03",
                 rotuloSalida(), this::dejarTurno, true);
     }
 
     private void agregar(int x, int y, int ancho, String orden, String clave,
                          Runnable accion, boolean terminal) {
         this.addRenderableWidget(new RenglonTablon(
-                x, y, ancho, ALTO_RENGLON, orden, Component.translatable(clave), accion, terminal));
+                x, y, ancho, this.altoRenglonActual, orden, Component.translatable(clave), accion, terminal));
     }
 
     /**
@@ -105,10 +133,6 @@ public class PantallaEstancia extends Screen {
         return this.minecraft.isLocalServer()
                 ? "jobsmenu.pausa.abandonar.local"
                 : "jobsmenu.pausa.abandonar.servidor";
-    }
-
-    private int lineas(String clave, int ancho) {
-        return Math.max(1, this.font.split(Component.translatable(clave), ancho).size());
     }
 
     // ----------------------------------------------------------------------
@@ -137,6 +161,12 @@ public class PantallaEstancia extends Screen {
         boolean local = this.minecraft.isLocalServer();
         boolean realms = this.minecraft.isConnectedToRealms();
 
+        // El TitleScreen siguiente debe ser el de vanilla. Sin esta marca,
+        // EscuchaCliente lo volveria a transformar en PantallaNivel porque el
+        // menu propio sigue habilitado para la proxima visita, atrapando al
+        // jugador en el aviso despues de abandonar el mundo.
+        SesionMenu.prepararSalidaAlTitulo();
+
         if (this.minecraft.level != null) {
             this.minecraft.level.disconnect();
         }
@@ -158,6 +188,23 @@ public class PantallaEstancia extends Screen {
     }
 
     // ----------------------------------------------------------------------
+    // Teclado
+    // ----------------------------------------------------------------------
+
+    /**
+     * La misma tecla M que en el aviso: silencia o restaura todo el audio del
+     * mod. La pausa suele ser el momento en que se baja el volumen.
+     */
+    @Override
+    public boolean keyPressed(int codigo, int escaneo, int modificadores) {
+        if (codigo == GLFW.GLFW_KEY_M) {
+            MezclaAudio.alternarSilencio();
+            return true;
+        }
+        return super.keyPressed(codigo, escaneo, modificadores);
+    }
+
+    // ----------------------------------------------------------------------
     // Dibujo
     // ----------------------------------------------------------------------
 
@@ -169,37 +216,49 @@ public class PantallaEstancia extends Screen {
         grafico.fill(0, 0, this.width, this.height, Paleta.conAlfa(Paleta.VANO, 0.42F));
 
         HojaPapel.dibujar(grafico, this.hojaX, this.hojaY,
-                this.hojaX + ANCHO_HOJA, this.hojaY + this.hojaAlto, true);
+                this.hojaX + this.anchoHoja, this.hojaY + this.hojaAlto, true, 1.0F);
 
         cabecera(grafico);
         super.render(grafico, ratonX, ratonY, parcial);
     }
 
     private void cabecera(GuiGraphics grafico) {
-        int x = this.hojaX + MARGEN_HOJA;
-        int ancho = ANCHO_HOJA - 2 * MARGEN_HOJA;
-        int y = this.hojaY + MARGEN_HOJA;
+        int x = this.hojaX + this.margenHoja;
+        int ancho = Math.max(1, this.anchoHoja - 2 * this.margenHoja);
+        int y = this.hojaY + this.margenHoja;
         // La hoja de pausa no depende de la luz del pasillo -no hay pasillo
         // detras- asi que su tinta es plena y estable.
         float tinta = 1.0F;
 
         grafico.pose().pushPose();
         grafico.pose().translate(x, y, 0.0D);
-        grafico.pose().scale(2.0F, 2.0F, 1.0F);
+        grafico.pose().scale(2.0F * this.escalaTipografia, 2.0F * this.escalaTipografia, 1.0F);
         grafico.drawString(this.font, Component.translatable("jobsmenu.pausa.titulo"), 0, 0,
-                Paleta.conAlfa(Paleta.TINTA, tinta), false);
+                Paleta.conAlfa(Paleta.tintaPrincipal(), tinta), false);
         grafico.pose().popPose();
 
-        y += ALTO_TITULO + AIRE_TITULO;
-        for (FormattedCharSequence linea : this.font.split(
-                Component.translatable("jobsmenu.pausa.subtitulo"), ancho)) {
-            grafico.drawString(this.font, linea, x, y,
-                    Paleta.conAlfa(Paleta.TINTA_TENUE, tinta), false);
-            y += ALTO_LINEA;
+        y += Math.round((ALTO_TITULO + AIRE_TITULO) * this.escalaTipografia);
+        for (FormattedCharSequence linea : this.lineasSubtitulo) {
+            dibujarLinea(grafico, linea, x, y, Paleta.conAlfa(Paleta.tintaSecundaria(), tinta));
+            y += Math.round(ALTO_LINEA * this.escalaTipografia);
         }
 
-        y += AIRE_REGLA;
-        grafico.fill(x, y, x + ancho, y + 1, Paleta.conAlfa(Paleta.TINTA_TENUE, 0.45F * tinta));
+        y += Math.round(AIRE_REGLA * this.escalaTipografia);
+        grafico.fill(x, y, x + ancho, y + 1,
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.45F * tinta));
+    }
+
+    private void dibujarLinea(GuiGraphics grafico, FormattedCharSequence linea,
+                              int x, int y, int color) {
+        if (this.escalaTipografia == 1.0F) {
+            grafico.drawString(this.font, linea, x, y, color, false);
+            return;
+        }
+        grafico.pose().pushPose();
+        grafico.pose().translate(x, y, 0.0D);
+        grafico.pose().scale(this.escalaTipografia, this.escalaTipografia, 1.0F);
+        grafico.drawString(this.font, linea, 0, 0, color, false);
+        grafico.pose().popPose();
     }
 
     /** Escape reanuda el turno, como en la pausa de vanilla. */

@@ -55,6 +55,9 @@ public final class GestorAmbiente {
     private GestorAmbiente() {
     }
 
+    /** Evita reiniciar relojes y sorteos cuando init() corre por un resize. */
+    private static boolean abierto;
+
     /**
      * Un sonido ocasional del nivel.
      *
@@ -201,6 +204,9 @@ public final class GestorAmbiente {
     /** Si la figura de este ciclo ya se anuncio. */
     private static boolean presenciaSonada;
 
+    /** Ranura de La Suspension cuyo suspiro ya se reprodujo. */
+    private static long suspensionSonada = Long.MIN_VALUE;
+
     /**
      * Arranca el ambiente al abrirse el menu.
      *
@@ -208,19 +214,39 @@ public final class GestorAmbiente {
      * la ventana, no se apila una segunda copia del mismo bucle.
      */
     public static void abrir() {
+        if (abierto) {
+            atender();
+            return;
+        }
+        abierto = true;
         nivelSonando = -1;
-        proximoEvento = System.currentTimeMillis() + 6_000L;
+        proximoEvento = 0L;
         ultimoChispazo = -1;
         apagonSonado = false;
         encendidoSonado = false;
         presenciaSonada = false;
+        suspensionSonada = Long.MIN_VALUE;
+        reprogramarEvento(RotacionNiveles.indiceActual());
         atender();
     }
 
-    /** Cierra todo lo que este sonando. Las capas se apagan solas, con caida. */
+    /** Cierra todo lo que este sonando y no deja instancias huerfanas. */
     public static void cerrar() {
+        detenerCapas();
+        abierto = false;
+    }
+
+    private static void detenerCapas() {
+        for (CapaAmbiente capa : CAPAS) {
+            capa.detenerAhora();
+        }
         CAPAS.clear();
         nivelSonando = -1;
+    }
+
+    /** El SoundEngine se reconstruyo: ninguna instancia anterior es valida. */
+    public static void recursosRecargados() {
+        cerrar();
     }
 
     /**
@@ -231,6 +257,16 @@ public final class GestorAmbiente {
      * sistema, asi que la frecuencia de llamada no cambia el resultado.
      */
     public static void atender() {
+        atender(RotacionNiveles.capturar());
+    }
+
+    /**
+     * Atiende el audio con el mismo snapshot que acaba de usar el renderer.
+     * Los ticks de las camas siguen siendo independientes, pero los disparos
+     * puntuales ya no pueden caer en el frame equivocado al cruzar una frontera
+     * de nivel.
+     */
+    public static void atender(RotacionNiveles.Estado estado) {
         Minecraft cliente = Minecraft.getInstance();
         if (!(cliente.screen instanceof com.santipdr.jobsmenu.client.screen.PantallaNivel)) {
             return;
@@ -239,14 +275,19 @@ public final class GestorAmbiente {
         CAPAS.removeIf(CapaAmbiente::agotada);
 
         if (!ConfigTurno.sonidoAmbiente()) {
+            // El cambio de config llega mientras la pantalla sigue abierta. No
+            // basta con no crear nuevas capas: las que ya estaban vivas deben
+            // detenerse aqui mismo para que el silencio sea real.
+            detenerCapas();
             return;
         }
 
-        int nivel = RotacionNiveles.indiceActual();
+        int nivel = estado.indice();
         asegurarCamas(nivel);
-        atenderTransicion();
-        atenderPresencia();
-        atenderEventos(nivel);
+        atenderSuspension(estado);
+        atenderTransicion(estado);
+        atenderPresencia(estado.ahora());
+        atenderEventos(nivel, estado);
     }
 
     /**
@@ -278,7 +319,11 @@ public final class GestorAmbiente {
             }
         }
 
-        CapaAmbiente capa = new CapaAmbiente(sonido.get(), nivel, papel);
+        SoundEvent recurso = MezclaAudio.resolver(sonido, null);
+        if (recurso == null) {
+            return;
+        }
+        CapaAmbiente capa = new CapaAmbiente(recurso, nivel, papel);
         CAPAS.add(capa);
         Minecraft.getInstance().getSoundManager().play(capa);
     }
@@ -359,6 +404,22 @@ public final class GestorAmbiente {
     }
 
     /**
+     * La Suspension usa el sonido de apagado existente, una sola vez por ranura.
+     *
+     * No se agrega otro recurso para un evento de 22 segundos: el suspiro grave
+     * es el mismo edificio perdiendo corriente, no una alarma nueva. El resto
+     * de la mezcla se agacha en CapaAmbiente y la musica, pero no se detiene.
+     */
+    private static void atenderSuspension(RotacionNiveles.Estado estado) {
+        if (!estado.enSuspension() || estado.cicloSuspension() == suspensionSonada) {
+            return;
+        }
+        suspensionSonada = estado.cicloSuspension();
+        MezclaAudio.ambiental(SonidosNivel.NIVEL_APAGON,
+                MezclaAudio.TRANSICION * 0.60F * ConfigTurno.volumenAmbiente(), 0.82F);
+    }
+
+    /**
      * Los tres golpes de la transicion, cada uno en su momento exacto.
      *
      * El orden importa y es el que se ve en pantalla: primero el tubo duda,
@@ -366,19 +427,29 @@ public final class GestorAmbiente {
      * antes de que la luz empiece a caer, porque un aviso que llega junto con
      * la cosa avisada no avisa nada.
      */
-    private static void atenderTransicion() {
-        // Cada parpadeo que se VE se OYE, y en el mismo fotograma. La imagen y
-        // el sonido ya no llevan cada uno su cuenta: los dos preguntan por el
-        // mismo chispazo a RotacionNiveles, que es quien tiene la tabla.
-        atenderChispazos();
-
-        if (!RotacionNiveles.enTransicion()) {
+    private static void atenderTransicion(RotacionNiveles.Estado estado) {
+        if (estado.enSuspension()) {
+            // La Suspension es un corte sostenido, no una segunda secuencia de
+            // parpadeos. Si coincide con una transicion normal, gana el
+            // silencio raro y no se superponen dos apagones sonoros.
+            ultimoChispazo = -1;
             apagonSonado = false;
             encendidoSonado = false;
             return;
         }
 
-        float avance = RotacionNiveles.avanceTransicion();
+        // Cada parpadeo que se VE se OYE, y en el mismo fotograma. La imagen y
+        // el sonido ya no llevan cada uno su cuenta: los dos preguntan por el
+        // mismo chispazo a RotacionNiveles, que es quien tiene la tabla.
+        atenderChispazos(estado);
+
+        if (!estado.enTransicion()) {
+            apagonSonado = false;
+            encendidoSonado = false;
+            return;
+        }
+
+        float avance = estado.avanceTransicion();
 
         if (!apagonSonado) {
             apagonSonado = true;
@@ -406,8 +477,8 @@ public final class GestorAmbiente {
      * tono sube un poco en los chispazos del corte: ahi el tubo ya no esta
      * dudando, se esta yendo.
      */
-    private static void atenderChispazos() {
-        int chispazo = RotacionNiveles.chispazoActual();
+    private static void atenderChispazos(RotacionNiveles.Estado estado) {
+        int chispazo = RotacionNiveles.chispazoActual(estado);
         if (chispazo < 0) {
             ultimoChispazo = -1;
             return;
@@ -432,11 +503,11 @@ public final class GestorAmbiente {
      * igual, el oido aprende el sonido y deja de creerle a la imagen: lo que
      * se ve cambia y lo que se escucha no. Cada modo suena como se ve.
      */
-    private static void atenderPresencia() {
-        boolean hay = Presencia.presente();
+    private static void atenderPresencia(long ahora) {
+        boolean hay = Presencia.presente(ahora);
         if (hay && !presenciaSonada) {
             presenciaSonada = true;
-            int modo = Presencia.modo();
+            int modo = Presencia.modo(ahora);
 
             // Corte: seco y un punto mas agudo, como el sonido se recorta con
             // la imagen. Sumergida: apagado y grave, porque viene del agua y
@@ -456,20 +527,25 @@ public final class GestorAmbiente {
 
             MezclaAudio.ambiental(SonidosNivel.FIGURA_PRESENCIA,
                     volumen * ConfigTurno.volumenAmbiente(), tono);
-        } else if (!hay && Presencia.avance() < 0.0F) {
+        } else if (!hay && Presencia.avance(ahora) < 0.0F) {
             presenciaSonada = false;
         }
     }
 
     /** Si llego la hora, saca un evento del repertorio del nivel y lo suena. */
-    private static void atenderEventos(int nivel) {
-        long ahora = System.currentTimeMillis();
+    private static void atenderEventos(int nivel, RotacionNiveles.Estado estado) {
+        if (!ConfigTurno.eventosAmbientales()) {
+            return;
+        }
+        long ahora = estado.ahora();
         if (ahora < proximoEvento) {
             return;
         }
 
-        // Durante el apagon no suena nada del nivel: no hay nivel.
-        if (RotacionNiveles.luzDisponible() < 0.25F) {
+        // Durante el apagon no suena nada del nivel: no hay nivel. La
+        // Suspension ademas conserva su propio silencio; no debe confundirse
+        // con un evento ambiental ordinario.
+        if (estado.enSuspension() || estado.luz() < 0.25F) {
             proximoEvento = ahora + 2_000L;
             return;
         }
@@ -481,7 +557,8 @@ public final class GestorAmbiente {
                     * MezclaAudio.EVENTO * ConfigTurno.volumenAmbiente();
 
             // Con algo al fondo, hasta los eventos se retiran.
-            volumen *= 1.0F - (1.0F - MezclaAudio.AGACHE_FIGURA) * Presencia.visibilidad();
+            volumen *= 1.0F - (1.0F - MezclaAudio.AGACHE_FIGURA)
+                    * Presencia.visibilidad(estado.ahora());
 
             MezclaAudio.ambiental(elegido.sonido(), volumen,
                     mezclar(elegido.tonoMin(), elegido.tonoMax()));

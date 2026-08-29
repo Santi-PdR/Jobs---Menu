@@ -72,19 +72,14 @@ tasks.named('processResources', ProcessResources).configure {
     }
     // NOTA SOBRE LA MUSICA
     //
-    // La pista del menu es el propio archivo versionado
-    // assets/jobsmenu/sounds/musica/defecto.ogg. Desde 0.6.4 es REQUIEM
-    // directamente -no se hornea en tiempo de compilacion-, porque el paso de
-    // build que la copiaba era fragil y podia no ejecutarse (cache de
-    // processResources), y de hecho la pista no llegaba a sonar. Ahora el .ogg
-    // que suena ES el que esta en el arbol de recursos, sin magia de Gradle: lo
-    // que ves en el repo es lo que entra al JAR. El original de la pista, tal
-    // como lo subio el owner, queda archivado en music/ como respaldo.
+    // La pista de fabrica es el archivo original y versionado
+    // assets/jobsmenu/sounds/musica/defecto.ogg. No se copia material externo
+    // desde music/ durante el build: ese directorio conserva una referencia que
+    // requiere permiso antes de redistribuirse.
     //
-    // Para cambiar de pista: reemplazar assets/jobsmenu/sounds/musica/defecto.ogg
-    // por otro OGG Vorbis. El credito de pantalla lo activa el recurso
-    // assets/jobsmenu/musica_creditada.txt (si no debe haber credito -tema
-    // propio del mod-, se borra ese archivo).
+    // Para una pista propia con licencia: reemplazar el .ogg de recursos por
+    // otro OGG Vorbis mono. El credito debe vivir en lang y solo habilitarse
+    // cuando la autoria y los derechos de distribucion esten confirmados.
 }
 
 tasks.named('jar', Jar).configure {
