@@ -5,6 +5,7 @@ import com.santipdr.jobsmenu.client.screen.PantallaAjustesAviso;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -27,8 +28,10 @@ import net.minecraftforge.fml.common.Mod;
  * La pantalla de opciones ordena sus botones con una grilla centrada que ya
  * esta armada cuando llega este evento. Meter un boton en esa grilla a
  * posteriori no se puede sin rehacerla, asi que el boton del mod se coloca
- * suelto, arriba a la izquierda, en una esquina que la grilla no usa. Es
+ * suelto, ARRIBA A LA DERECHA, en una esquina que la grilla no usa. Es
  * discreto y no tapa ninguno de los botones de vanilla en ninguna resolucion.
+ * (Antes el comentario decia "izquierda" y el codigo siempre lo puso a la
+ * derecha: un comentario que miente cuesta mas que la esquina que corrige.)
  *
  * Solo actua sobre OptionsScreen y solo si el menu propio esta activo: si el
  * jugador apago el mod, no ensucia las opciones con un boton de algo que decidio
@@ -43,17 +46,56 @@ public final class AjustesAviso {
     @SubscribeEvent
     public static void alArmarPantalla(ScreenEvent.Init.Post evento) {
         Screen pantalla = evento.getScreen();
-        if (!(pantalla instanceof OptionsScreen)) {
+        // No se modifica una subclase: otros mods pueden usar OptionsScreen
+        // como base y reservar esta esquina para sus propios controles.
+        if (pantalla == null || pantalla.getClass() != OptionsScreen.class) {
+            return;
+        }
+        // En una ventana tan estrecha no existe una esquina segura: no se
+        // agrega un widget con ancho negativo ni se tapa el titulo vanilla.
+        // La funcion propia sigue disponible desde PantallaNivel y pausa.
+        if (pantalla.width < 130 || pantalla.height < 36) {
             return;
         }
 
+        // El boton mide lo que necesita el rotulo mas un margen, con un piso y
+        // un techo: si el idioma alarga el texto no se desborda de la pantalla,
+        // y en textos cortos no queda un boton gigante vacio.
+        Minecraft cliente = Minecraft.getInstance();
+        Component rotulo = Component.translatable("jobsmenu.ajustes.boton");
+        // Init.Post puede recibirse mas de una vez cuando otro mod reconstruye
+        // la pantalla. No agregamos un segundo boton: la identidad visible del
+        // control es estable y la narracion de vanilla sigue intacta.
+        for (var hijo : pantalla.children()) {
+            if (hijo instanceof Button existente && existente.getMessage().equals(rotulo)) {
+                return;
+            }
+        }
+        int anchoTexto = cliente.font.width(rotulo);
+        int ancho = Math.max(90, Math.min(140, anchoTexto + 16));
+        ancho = Math.min(ancho, pantalla.width - 12);
+        int x = Math.max(6, pantalla.width - ancho - 6);
+
+        // La esquina derecha parece libre en resolucion grande, pero el titulo
+        // centrado puede invadirla en una ventana pequena. Se prueba primero la
+        // derecha y luego la izquierda; si ninguna queda fuera del titulo, no
+        // se fuerza el boton y se conserva la cabecera de vanilla intacta.
+        int tituloAncho = cliente.font.width(pantalla.getTitle());
+        int tituloIzq = (pantalla.width - tituloAncho) / 2;
+        int tituloDer = tituloIzq + tituloAncho;
+        if (x < tituloDer + 6 && x + ancho > tituloIzq - 6) {
+            int alternativa = 6;
+            if (alternativa + ancho > tituloIzq - 6) {
+                return;
+            }
+            x = alternativa;
+        }
+
         Button boton = Button.builder(
-                Component.translatable("jobsmenu.ajustes.boton"),
-                (b) -> {
-                    Minecraft cliente = Minecraft.getInstance();
-                    cliente.setScreen(new PantallaAjustesAviso(pantalla, cliente.options));
-                })
-                .bounds(6, 6, 120, 20)
+                rotulo,
+                (b) -> cliente.setScreen(new PantallaAjustesAviso(pantalla, cliente.options)))
+                .bounds(x, 6, ancho, 20)
+                .tooltip(Tooltip.create(Component.translatable("jobsmenu.ajustes.boton.detalle")))
                 .build();
         evento.addListener(boton);
     }

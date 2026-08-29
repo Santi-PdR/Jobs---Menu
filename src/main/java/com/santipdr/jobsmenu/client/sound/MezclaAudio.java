@@ -5,6 +5,7 @@ import com.santipdr.jobsmenu.config.ConfigTurno;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraftforge.registries.RegistryObject;
 
 /**
@@ -27,6 +28,12 @@ public final class MezclaAudio {
     private MezclaAudio() {
     }
 
+    /** El foco puede saltar entre widgets en el mismo frame al redimensionar. */
+    private static long ultimoRoceNanos;
+
+    /** Evita repetir el mismo aviso si un pack/arranque deja un registro incompleto. */
+    private static boolean avisoRegistroFaltante;
+
     /**
      * MARGEN DE MEZCLA
      *
@@ -46,10 +53,10 @@ public final class MezclaAudio {
      * Tema del menu.
      *
      * Subido de 0.34 a 0.55 en 0.6.4. Con la pista propia sintetizada el 0.34
-     * bastaba -era un lecho armonico de fondo-, pero la pista actual (REQUIEM)
-     * es un tema de lobby con melodia, pensado para escucharse, y a 0.34 con la
-     * entrada lenta el jugador entraba, miraba y salia sin oir una nota. Sigue
-     * por debajo de un evento o de la transicion: acompana, pero ahora se oye.
+     * bastaba -era un lecho armonico de fondo-, pero una pista musical con
+     * melodia necesita margen para escucharse. A 0.34, con la entrada lenta, el
+     * jugador podia entrar, mirar y salir sin oir una nota. Sigue por debajo de
+     * un evento o de la transicion: acompana, pero ahora se oye.
      */
     public static final float MUSICA = 0.55F;
 
@@ -77,6 +84,28 @@ public final class MezclaAudio {
     public static final float FIGURA = 0.40F;
 
     /**
+     * Silencio de un toque: el volumen guardado antes de silenciar.
+     *
+     * Vive aca, en la mesa de mezcla, porque lo que se silencia es la mezcla
+     * entera (musica + ambiente + gestos) y no un grupo en particular.
+     */
+    private static int silencioPrevio = 100;
+
+    /**
+     * Alterna el volumen maestro del aviso entre cero y el ultimo valor
+     * recordado. Se engancha a la tecla M del aviso y de la pausa.
+     */
+    public static void alternarSilencio() {
+        int actual = ConfigTurno.volumenAvisoPorcentaje();
+        if (actual > 0) {
+            silencioPrevio = actual;
+            ConfigTurno.fijarVolumenAviso(0);
+        } else {
+            ConfigTurno.fijarVolumenAviso(silencioPrevio);
+        }
+    }
+
+    /**
      * Cuanto baja el resto mientras la figura esta presente.
      *
      * No se corta nada: se afloja. Un corte se nota como un corte y delata el
@@ -96,14 +125,46 @@ public final class MezclaAudio {
         if (!ConfigTurno.sonidoBotones()) {
             return;
         }
+        if (evento == SonidosNivel.UI_PASAR) {
+            long ahora = System.nanoTime();
+            if (ahora - ultimoRoceNanos < 80_000_000L) {
+                return;
+            }
+            ultimoRoceNanos = ahora;
+        }
         float tono = 0.98F + (float) Math.random() * 0.04F;
+        SoundEvent sonido = resolver(evento, SoundEvents.UI_BUTTON_CLICK);
         Minecraft.getInstance().getSoundManager()
-                .play(SimpleSoundInstance.forUI(evento.get(), tono, volumen * INTERFAZ));
+                .play(SimpleSoundInstance.forUI(sonido, tono,
+                        volumen * INTERFAZ * ConfigTurno.volumenAviso()));
     }
 
     /** Un sonido de ambiente suelto, sin posicion, con tono y volumen dados. */
     public static void ambiental(RegistryObject<SoundEvent> evento, float volumen, float tono) {
+        SoundEvent sonido = resolver(evento, SoundEvents.AMBIENT_CAVE);
         Minecraft.getInstance().getSoundManager()
-                .play(SimpleSoundInstance.forUI(evento.get(), tono, volumen));
+                .play(SimpleSoundInstance.forUI(sonido, tono,
+                        volumen * ConfigTurno.volumenAviso()));
+    }
+
+    /**
+     * Obtiene un sonido sin convertir un registro incompleto en un crash de render.
+     *
+     * Un JAR viejo, un registro de otro entorno o una carga parcial de recursos
+     * puede dejar un RegistryObject sin valor. get() lanza en ese caso, y el
+     * camino de dibujo de un widget no debe propagarlo. Los gestos conservan
+     * una respuesta vanilla; los consumidores que pasan null pueden omitir una
+     * capa ambiental sin inventar ruido.
+     */
+    public static SoundEvent resolver(RegistryObject<SoundEvent> evento, SoundEvent respaldo) {
+        if (evento != null && evento.isPresent()) {
+            return evento.get();
+        }
+        if (!avisoRegistroFaltante) {
+            avisoRegistroFaltante = true;
+            com.santipdr.jobsmenu.JobsMenu.LOG.warn(
+                    "[jobsmenu] Falta un SoundEvent registrado; se usara un respaldo seguro.");
+        }
+        return respaldo;
     }
 }

@@ -37,6 +37,7 @@ public final class Sala implements Planta {
         Trazo.fondo(grafico, m, nivel, luz,
                 Paleta.mezclar(nivel.paredBaja, nivel.techo, 0.45F), 1.5F);
         puertasFondo(grafico, m, nivel, luz);
+        dintelPrincipal(grafico, m, nivel, luz);
 
         Trazo.plano(grafico, m, true, nivel.techo,
                 Paleta.mezclar(nivel.techo, nivel.niebla, 0.35F), nivel.niebla, luz, 0.50F);
@@ -53,6 +54,40 @@ public final class Sala implements Planta {
         Trazo.juntasVerticales(grafico, m, nivel, luz, TRAMOS, 1.0F, 0.45F);
         Trazo.manchas(grafico, m, nivel, luz, TRAMOS);
         cuadros(grafico, m, nivel, luz);
+        placaAdministracion(grafico, m, nivel, luz);
+    }
+
+    /** Placa metalica lateral con remaches anclados a su propio perimetro. */
+    private static void placaAdministracion(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 1.20F;
+        float x = m.lado(-1.0F, dx * 0.76F);
+        float y = m.techoEn(dx * 0.45F) + m.h() * dx * 0.26F;
+        int ancho = Math.max(8, Math.round(m.w() * dx * 0.18F));
+        int alto = Math.max(10, Math.round(m.h() * dx * 0.22F));
+        int placa = Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, 0.83F, 0.35F), luz * 0.70F);
+        int borde = Paleta.conAlfa(Paleta.iluminar(nivel.luz, luz * 0.58F), 0.45F);
+        int x0 = Math.round(x - ancho * 0.5F);
+        int y0 = Math.round(y);
+        grafico.fill(x0, y0, x0 + ancho, y0 + alto, placa);
+        grafico.fill(x0, y0, x0 + ancho, y0 + 1, borde);
+        grafico.fill(x0, y0 + alto - 1, x0 + ancho, y0 + alto, borde);
+        grafico.fill(x0, y0, x0 + 1, y0 + alto, borde);
+        grafico.fill(x0 + ancho - 1, y0, x0 + ancho, y0 + alto, borde);
+        // Remaches: cada uno queda sobre una esquina del marco, no perdido en
+        // la superficie de la placa.
+        int remache = Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, luz), 0.78F);
+        int margen = Math.max(2, ancho / 7);
+        for (int lado = -1; lado <= 1; lado += 2) {
+            int rx = lado < 0 ? x0 + margen : x0 + ancho - margen - 1;
+            grafico.fill(rx, y0 + margen, rx + 2, y0 + margen + 2, remache);
+            grafico.fill(rx, y0 + alto - margen - 2, rx + 2, y0 + alto - margen, remache);
+        }
+        // Tres ranuras grabadas: senal de procedimiento, no texto de interfaz.
+        for (int i = 0; i < 3; i++) {
+            int yy = y0 + alto / 3 + i * Math.max(2, alto / 9);
+            grafico.fill(x0 + margen, yy, x0 + ancho - margen, yy + 1,
+                    Paleta.conAlfa(nivel.paredBaja, 0.55F));
+        }
     }
 
     /**
@@ -100,6 +135,32 @@ public final class Sala implements Planta {
     }
 
     /**
+     * Dintel pesado del vano central: una sola pieza de arquitectura que
+     * conecta pared y techo y le da escala institucional a la sala.
+     */
+    private static void dintelPrincipal(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 1.0F;
+        float techo = m.techoEn(dx);
+        float suelo = m.sueloEn(dx);
+        float ancho = m.anchoEn(dx) * 0.40F;
+        float alto = m.h() * 0.10F;
+        float y = techo + (suelo - techo) * 0.22F;
+        int piedra = Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, 1.0F, 0.45F), luz * 0.72F);
+        int canto = Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, luz * 0.65F), 0.38F);
+        grafico.fill(Math.round(m.centro(dx) - ancho), Math.round(y),
+                Math.round(m.centro(dx) + ancho), Math.round(y + alto), piedra);
+        grafico.fill(Math.round(m.centro(dx) - ancho), Math.round(y),
+                Math.round(m.centro(dx) + ancho), Math.round(y + 2.0F), canto);
+        // Tres juntas cortas: el dintel se construyo con bloques, no es una
+        // barra continua dibujada sobre el fondo.
+        for (int i = 1; i < 4; i++) {
+            int x = Math.round(m.centro(dx) - ancho + (2.0F * ancho * i / 4.0F));
+            grafico.fill(x, Math.round(y + 2.0F), x + 1, Math.round(y + alto),
+                    Paleta.conAlfa(nivel.paredBaja, 0.45F));
+        }
+    }
+
+    /**
      * La grilla del cielorraso: las longitudinales que faltan.
      *
      * Las transversales ya las puso {@link Trazo}. Estas son las que corren
@@ -135,6 +196,11 @@ public final class Sala implements Planta {
      */
     private static void filaLuminarias(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
         for (int j = 2; j <= TRAMOS; j++) {
+            // El tubo del sexto tramo esta fuera de servicio: una interrupcion
+            // puntual rompe la simetria sin convertir el techo en ruido.
+            if (j == 6) {
+                continue;
+            }
             float dx = Trazo.profundidad(j, TRAMOS);
             if (dx > 6.0F) {
                 continue;
@@ -179,10 +245,12 @@ public final class Sala implements Planta {
     }
 
     /**
-     * Las marcas rectangulares que quedan donde hubo algo colgado.
+     * Las marcas donde hubo algo colgado: el empapelado menos desvaido.
      *
-     * No hay cuadros: hay el rectangulo mas limpio que dejo el cuadro cuando
-     * se lo llevaron. Es el detalle que dice que aca antes trabajaba gente.
+     * El papel que el cuadro protegio del sol es MAS OSCURO y rico que el
+     * resto; antes la marca se pintaba mas clara y se leia como un rectangulo
+     * luminoso flotante. Ademas la alfa se modula por ruido, asi el contorno
+     * se quiebra como el papel real y no es una linea recta.
      */
     private static void cuadros(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
         for (int j = 3; j < TRAMOS; j++) {
@@ -200,12 +268,16 @@ public final class Sala implements Planta {
                 continue;
             }
 
+            int tinta = Paleta.mezclar(nivel.paredAlta, 0xFF000000, 0.42F);
             for (int col = Math.max(0, x0); col < Math.min(m.ancho(), x1); col++) {
                 float dxc = m.dx(col + 0.5F);
                 float centro = m.techoEn(dxc * 0.30F);
                 float medio = m.h() * dxc * 0.22F;
+                // Alfa por columna: el contorno se quiebra como el papel real.
+                float quiebre = 0.70F + 0.60F * Trazo.pseudo(888 + col * 7);
+                float alfa = (0.10F * lej + 0.04F) * quiebre;
                 grafico.fill(col, (int) (centro - medio), col + 1, (int) (centro + medio),
-                        Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, luz), 0.16F * lej + 0.06F));
+                        Paleta.conAlfa(Paleta.iluminar(tinta, luz), alfa));
             }
         }
     }

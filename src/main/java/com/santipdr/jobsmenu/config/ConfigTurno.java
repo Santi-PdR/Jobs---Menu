@@ -17,17 +17,30 @@ public final class ConfigTurno {
     public final ForgeConfigSpec.BooleanValue escenaViva;
     public final ForgeConfigSpec.BooleanValue movimientoReducido;
     public final ForgeConfigSpec.BooleanValue destellosReducidos;
+    public final ForgeConfigSpec.BooleanValue altoContraste;
+    public final ForgeConfigSpec.BooleanValue textoGrande;
+    public final ForgeConfigSpec.BooleanValue papelLimpio;
     public final ForgeConfigSpec.BooleanValue interfazMinima;
     public final ForgeConfigSpec.BooleanValue mostrarCuentaRegresiva;
+    public final ForgeConfigSpec.BooleanValue mostrarFecha;
+    public final ForgeConfigSpec.BooleanValue mostrarEstadoInstalacion;
+    public final ForgeConfigSpec.BooleanValue guiaLectura;
     public final ForgeConfigSpec.BooleanValue avisosRotativos;
+    public final ForgeConfigSpec.IntValue duracionAvisos;
     public final ForgeConfigSpec.BooleanValue rotarNiveles;
+    public final ForgeConfigSpec.BooleanValue rotacionCalma;
     public final ForgeConfigSpec.IntValue nivelFijo;
     public final ForgeConfigSpec.BooleanValue sonidoBotones;
     public final ForgeConfigSpec.BooleanValue sonidoAmbiente;
     public final ForgeConfigSpec.IntValue volumenAmbiente;
+    public final ForgeConfigSpec.IntValue volumenAviso;
     public final ForgeConfigSpec.BooleanValue musicaMenu;
     public final ForgeConfigSpec.IntValue volumenMusica;
     public final ForgeConfigSpec.BooleanValue creditoMusica;
+    public final ForgeConfigSpec.BooleanValue eventosAmbientales;
+    public final ForgeConfigSpec.BooleanValue presenciaFondo;
+    public final ForgeConfigSpec.BooleanValue respiracionCamara;
+    public final ForgeConfigSpec.BooleanValue suspensionRara;
 
     static {
         Pair<ConfigTurno, ForgeConfigSpec> par = new ForgeConfigSpec.Builder().configure(ConfigTurno::new);
@@ -51,12 +64,24 @@ public final class ConfigTurno {
                 .define("escena_viva", true);
 
         this.movimientoReducido = builder
-                .comment("Apagar el polvo en suspension y lo que se ve al fondo del recinto.")
+                .comment("Congelar la animacion de la escena y ocultar lo que se ve al fondo del recinto.")
                 .define("movimiento_reducido", false);
 
         this.destellosReducidos = builder
                 .comment("Congelar el parpadeo de los fluorescentes y el pulso de alerta.")
                 .define("destellos_reducidos", false);
+
+        this.altoContraste = builder
+                .comment("Aumentar el contraste de la tinta, el papel y los indicadores del aviso.")
+                .define("alto_contraste", false);
+
+        this.textoGrande = builder
+                .comment("Usar una tipografia mas grande y mas aire entre los bloques de la hoja.")
+                .define("texto_grande", false);
+
+        this.papelLimpio = builder
+                .comment("Quitar cinta y sombra decorativas sin ocultar el contenido del aviso.")
+                .define("papel_limpio", false);
 
         this.interfazMinima = builder
                 .comment("Dejar solo la cabecera y los renglones, sin la hoja del aviso.")
@@ -66,13 +91,33 @@ public final class ConfigTurno {
                 .comment("Mostrar el tiempo estimado hasta la proxima ronda.")
                 .define("mostrar_cuenta_regresiva", true);
 
+        this.mostrarFecha = builder
+                .comment("Estampar la fecha del turno en la hoja del aviso.")
+                .define("mostrar_fecha", true);
+
+        this.mostrarEstadoInstalacion = builder
+                .comment("Mostrar en una esquina si la instalacion esta normal, en traslado o suspendida.")
+                .define("mostrar_estado_instalacion", true);
+
+        this.guiaLectura = builder
+                .comment("Mostrar una guia fina de lectura al enfocar un renglon.")
+                .define("guia_lectura", true);
+
         this.avisosRotativos = builder
                 .comment("Mostrar los avisos de la administracion al pie de la hoja.")
                 .define("avisos_rotativos", true);
 
+        this.duracionAvisos = builder
+                .comment("Segundos que dura cada aviso rotativo, de 4 a 15.")
+                .defineInRange("duracion_avisos", 7, 4, 15);
+
         this.rotarNiveles = builder
                 .comment("Ir cambiando de nivel solo, con el apagon entre uno y otro.")
                 .define("rotar_niveles", true);
+
+        this.rotacionCalma = builder
+                .comment("Cada nivel se queda el doble de tiempo antes del apagon.")
+                .define("rotacion_calma", false);
 
         this.nivelFijo = builder
                 .comment("Nivel a mostrar cuando la rotacion esta apagada. 0 es el papel mural.")
@@ -90,6 +135,10 @@ public final class ConfigTurno {
                 .comment("Volumen del ambiente del nivel, de 0 a 100.")
                 .defineInRange("volumen_ambiente", 55, 0, 100);
 
+        this.volumenAviso = builder
+                .comment("Volumen maestro del aviso: musica, ambiente y gestos. La tecla M en el aviso alterna silencio.")
+                .defineInRange("volumen_aviso", 100, 0, 100);
+
         this.musicaMenu = builder
                 .comment("Dejar sonando el tema del menu por debajo de todo lo demas.")
                 .define("musica_menu", true);
@@ -101,6 +150,22 @@ public final class ConfigTurno {
         this.creditoMusica = builder
                 .comment("Mostrar el credito de la pista (titulo y autor) al empezar a sonar, arriba a la derecha.")
                 .define("credito_musica", true);
+
+        this.eventosAmbientales = builder
+                .comment("Permitir destellos, humedad, polvo y siluetas ambientales del recinto.")
+                .define("eventos_ambientales", true);
+
+        this.presenciaFondo = builder
+                .comment("Permitir la presencia ambigua que aparece al fondo del recinto.")
+                .define("presencia_fondo", true);
+
+        this.respiracionCamara = builder
+                .comment("Mover muy lentamente el punto de fuga, independientemente de la escena viva.")
+                .define("respiracion_camara", true);
+
+        this.suspensionRara = builder
+                .comment("Permitir el apagon raro y prolongado de La Suspension.")
+                .define("suspension_rara", true);
 
         builder.pop();
     }
@@ -130,6 +195,18 @@ public final class ConfigTurno {
 
     public static boolean destellosReducidos() {
         return leer(INSTANCE.destellosReducidos, false);
+    }
+
+    public static boolean altoContraste() {
+        return leer(INSTANCE.altoContraste, false);
+    }
+
+    public static boolean textoGrande() {
+        return leer(INSTANCE.textoGrande, false);
+    }
+
+    public static boolean papelLimpio() {
+        return leer(INSTANCE.papelLimpio, false);
     }
 
     public static boolean interfazMinima() {
@@ -171,6 +248,22 @@ public final class ConfigTurno {
         return leer(INSTANCE.creditoMusica, true);
     }
 
+    public static boolean eventosAmbientales() {
+        return leer(INSTANCE.eventosAmbientales, true);
+    }
+
+    public static boolean presenciaFondo() {
+        return leer(INSTANCE.presenciaFondo, true);
+    }
+
+    public static boolean respiracionCamara() {
+        return leer(INSTANCE.respiracionCamara, true);
+    }
+
+    public static boolean suspensionRara() {
+        return leer(INSTANCE.suspensionRara, true);
+    }
+
     /** Volumen del tema del menu, ya convertido a la escala 0.0 - 1.0 del motor. */
     public static float volumenMusica() {
         if (!SPEC.isLoaded()) {
@@ -202,12 +295,28 @@ public final class ConfigTurno {
     // destildada aunque el jugador la hubiese marcado.
     // ----------------------------------------------------------------------
 
+    // ----------------------------------------------------------------------
+    // Guardado diferido
+    //
+    // Un deslizador de Opciones llama al setter en CADA movimiento del raton:
+    // escribir el .toml por cada uno era decenas de escrituras por segundo.
+    // Ahora set() aplica el valor al instante (el volumen se oye en vivo) y el
+    // guardado se limita a uno cada GUARDAR_MS, con volcado garantizado al
+    // cerrar la pantalla de ajustes o al cambiar de pantalla.
+    // ----------------------------------------------------------------------
+
+    private static final long GUARDAR_MS = 250L;
+
+    private static long ultimoGuardadoMs;
+    private static boolean guardadoPendiente;
+    private static ForgeConfigSpec.ConfigValue<?> valorPendiente;
+
     private static void fijar(ForgeConfigSpec.BooleanValue destino, boolean valor) {
         if (!SPEC.isLoaded()) {
             return;
         }
         destino.set(valor);
-        destino.save();
+        marcarGuardado(destino);
     }
 
     private static void fijar(ForgeConfigSpec.IntValue destino, int valor) {
@@ -215,12 +324,75 @@ public final class ConfigTurno {
             return;
         }
         destino.set(valor);
-        destino.save();
+        marcarGuardado(destino);
+    }
+
+    private static void marcarGuardado(ForgeConfigSpec.ConfigValue<?> destino) {
+        valorPendiente = destino;
+        guardadoPendiente = true;
+        long ahora = System.currentTimeMillis();
+        if (ahora - ultimoGuardadoMs >= GUARDAR_MS) {
+            volcarGuardado();
+        }
+    }
+
+    /** Fuerza el volcado de un guardado diferido (cierre de pantalla o cambio). */
+    public static void guardarPendiente() {
+        volcarGuardado();
+    }
+
+    private static void volcarGuardado() {
+        if (!guardadoPendiente || !SPEC.isLoaded() || valorPendiente == null) {
+            return;
+        }
+        guardadoPendiente = false;
+        ultimoGuardadoMs = System.currentTimeMillis();
+        ForgeConfigSpec.ConfigValue<?> valor = valorPendiente;
+        valorPendiente = null;
+        valor.save();
     }
 
     /** El valor guardado de rotar niveles, sin combinar con escena viva. */
     public static boolean rotarNivelesBruto() {
         return leer(INSTANCE.rotarNiveles, true);
+    }
+
+    public static boolean rotacionCalma() {
+        return leer(INSTANCE.rotacionCalma, false);
+    }
+
+    public static boolean mostrarFecha() {
+        return !interfazMinima() && leer(INSTANCE.mostrarFecha, true);
+    }
+
+    public static boolean mostrarEstadoInstalacion() {
+        return !interfazMinima() && leer(INSTANCE.mostrarEstadoInstalacion, true);
+    }
+
+    public static boolean guiaLectura() {
+        return leer(INSTANCE.guiaLectura, true);
+    }
+
+    public static int duracionAvisos() {
+        if (!SPEC.isLoaded()) {
+            return 7;
+        }
+        return INSTANCE.duracionAvisos.get();
+    }
+
+    /** El valor guardado de la fecha, sin combinar con interfaz minima. */
+    public static boolean mostrarFechaBruto() {
+        return leer(INSTANCE.mostrarFecha, true);
+    }
+
+    /** Volumen maestro del aviso en la escala 0 a 100 que ve el jugador. */
+    public static int volumenAvisoPorcentaje() {
+        return SPEC.isLoaded() ? INSTANCE.volumenAviso.get() : 100;
+    }
+
+    /** Volumen maestro del aviso en la escala 0.0 - 1.0 del motor. */
+    public static float volumenAviso() {
+        return volumenAvisoPorcentaje() / 100.0F;
     }
 
     /** El valor guardado de la cuenta, sin combinar con interfaz minima. */
@@ -259,12 +431,32 @@ public final class ConfigTurno {
         fijar(INSTANCE.rotarNiveles, valor);
     }
 
+    public static void fijarRotacionCalma(boolean valor) {
+        fijar(INSTANCE.rotacionCalma, valor);
+    }
+
+    public static void fijarNivelFijo(int nivel) {
+        fijar(INSTANCE.nivelFijo, Math.max(0, Math.min(9, nivel)));
+    }
+
     public static void fijarMovimientoReducido(boolean valor) {
         fijar(INSTANCE.movimientoReducido, valor);
     }
 
     public static void fijarDestellosReducidos(boolean valor) {
         fijar(INSTANCE.destellosReducidos, valor);
+    }
+
+    public static void fijarAltoContraste(boolean valor) {
+        fijar(INSTANCE.altoContraste, valor);
+    }
+
+    public static void fijarTextoGrande(boolean valor) {
+        fijar(INSTANCE.textoGrande, valor);
+    }
+
+    public static void fijarPapelLimpio(boolean valor) {
+        fijar(INSTANCE.papelLimpio, valor);
     }
 
     public static void fijarInterfazMinima(boolean valor) {
@@ -275,8 +467,28 @@ public final class ConfigTurno {
         fijar(INSTANCE.mostrarCuentaRegresiva, valor);
     }
 
+    public static void fijarMostrarFecha(boolean valor) {
+        fijar(INSTANCE.mostrarFecha, valor);
+    }
+
+    public static void fijarMostrarEstadoInstalacion(boolean valor) {
+        fijar(INSTANCE.mostrarEstadoInstalacion, valor);
+    }
+
+    public static void fijarGuiaLectura(boolean valor) {
+        fijar(INSTANCE.guiaLectura, valor);
+    }
+
+    public static void fijarDuracionAvisos(int segundos) {
+        fijar(INSTANCE.duracionAvisos, Math.max(4, Math.min(15, segundos)));
+    }
+
     public static void fijarAvisosRotativos(boolean valor) {
         fijar(INSTANCE.avisosRotativos, valor);
+    }
+
+    public static void fijarVolumenAviso(int porcentaje) {
+        fijar(INSTANCE.volumenAviso, Math.max(0, Math.min(100, porcentaje)));
     }
 
     public static void fijarSonidoBotones(boolean valor) {
@@ -293,6 +505,22 @@ public final class ConfigTurno {
 
     public static void fijarCreditoMusica(boolean valor) {
         fijar(INSTANCE.creditoMusica, valor);
+    }
+
+    public static void fijarEventosAmbientales(boolean valor) {
+        fijar(INSTANCE.eventosAmbientales, valor);
+    }
+
+    public static void fijarPresenciaFondo(boolean valor) {
+        fijar(INSTANCE.presenciaFondo, valor);
+    }
+
+    public static void fijarRespiracionCamara(boolean valor) {
+        fijar(INSTANCE.respiracionCamara, valor);
+    }
+
+    public static void fijarSuspensionRara(boolean valor) {
+        fijar(INSTANCE.suspensionRara, valor);
     }
 
     public static void fijarVolumenMusica(int porcentaje) {

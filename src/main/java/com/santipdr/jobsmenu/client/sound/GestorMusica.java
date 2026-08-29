@@ -2,11 +2,14 @@ package com.santipdr.jobsmenu.client.sound;
 
 import com.santipdr.jobsmenu.client.scene.Presencia;
 import com.santipdr.jobsmenu.client.scene.RotacionNiveles;
+import com.santipdr.jobsmenu.client.SesionMenu;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 
@@ -15,24 +18,20 @@ import net.minecraft.util.RandomSource;
  *
  * SOBRE LA PISTA
  *
- * El evento musica.tema apunta al archivo musica/defecto.ogg, una pieza
- * ambiental compuesta y sintetizada para este mod (ver tools/sonidos.py):
- * ocho acordes largos sobre un pedal de la, sin ritmo ni melodia, pensada para
- * escucharse en bucle sin cansar. Es original, asi que el mod se puede repartir
- * sin arrastrar derechos de nadie.
- *
- * Si en algun momento hay una pista distinta con permiso de uso, no hace falta
- * tocar codigo: se agrega el archivo como musica/tema.ogg y se lo declara en
- * sounds.json junto al que ya esta. Todo lo de esta clase - el volumen, el
- * bucle, la continuidad durante el apagon - funciona igual con cualquier pista.
+ * El evento musica.tema apunta a musica/defecto.ogg. La ranura de fabrica es
+ * un recurso original del mod y no reclama autoria de una obra de terceros. Un
+ * resource pack generado por MusicaPropia puede sustituirlo sin recompilar el
+ * mod; el credito solo se habilita cuando el paquete empaquetado trae su propio
+ * marcador.
  *
  * COMO SE COMPORTA
  *
  * Una sola instancia, viva mientras el menu este abierto. No se reinicia al
  * cambiar de nivel ni al reconstruirse la pantalla, y sigue sonando durante el
  * apagon: es lo unico que no se apaga cuando se corta la luz, porque no es un
- * sonido del pasillo sino de la escena. Eso ademas le da continuidad al cambio
- * de nivel, que sin ella se sentiria como un corte.
+ * sonido del pasillo sino de la escena. La ranura de fabrica contiene la pieza
+ * original del mod; una pista local autorizada puede sustituirla sin cambiar
+ * este gestor.
  */
 public class GestorMusica extends AbstractTickableSoundInstance {
 
@@ -45,13 +44,22 @@ public class GestorMusica extends AbstractTickableSoundInstance {
     /** Bajada al cerrar el menu. Tampoco de golpe. */
     private static final float SUAVIZADO_BAJADA = 0.045F;
 
+    /** Silencio deliberado entre vueltas completas de la pista. */
+    private static final int RETARDO_BUCLE = 40;
+
+    /** Evita reintentar cada tick cuando el motor rechazo un recurso. */
+    private static int reintento;
+
     private float actual;
     private int edad;
 
-    private GestorMusica() {
-        super(SonidosNivel.MUSICA_TEMA.get(), SoundSource.MUSIC, RandomSource.create());
+    private GestorMusica(SoundEvent evento) {
+        // MASTER evita que el deslizador Music de vanilla gobierne la pista
+        // del mod. El motor sigue aplicando el volumen maestro, y encima se
+        // aplican el deslizador propio y la mezcla del mod.
+        super(evento, SoundSource.MASTER, RandomSource.create());
         this.looping = true;
-        this.delay = 0;
+        this.delay = RETARDO_BUCLE;
         this.volume = 0.0F;
         this.pitch = 1.0F;
         this.relative = true;
@@ -72,13 +80,14 @@ public class GestorMusica extends AbstractTickableSoundInstance {
      * la misma pista sonando desfasadas.
      */
     public static void asegurar() {
-        if (!ConfigTurno.musicaMenu()) {
+        if (!SesionMenu.activa() || !ConfigTurno.musicaMenu() || reintento > 0) {
             return;
         }
         if (activa != null && !activa.isStopped()) {
             return;
         }
-        activa = new GestorMusica();
+        SoundEvent tema = MezclaAudio.resolver(SonidosNivel.MUSICA_TEMA, SoundEvents.MUSIC_MENU);
+        activa = new GestorMusica(tema);
         Minecraft.getInstance().getSoundManager().play(activa);
         // Un rastro en el log: si la musica no se oye, esto dice si al menos se
         // mando a reproducir. Un SoundManager que descarta el sonido lo hace en
@@ -88,9 +97,48 @@ public class GestorMusica extends AbstractTickableSoundInstance {
                 "[jobsmenu] Musica del menu enviada a reproducir (musica/defecto.ogg).");
     }
 
-    /** Deja de sonar, con caida. No corta en seco. */
-    public static void soltar() {
+    /**
+     * Coordinacion por tick, independiente de la Screen visible. Asi la pista
+     * continua en Opciones/Mods/Recursos y se detiene al entrar a un mundo.
+     */
+    public static void atender() {
+        if (reintento > 0) {
+            reintento--;
+        }
+        Minecraft cliente = Minecraft.getInstance();
+        if (SesionMenu.activa() && ConfigTurno.musicaMenu()) {
+            cliente.getMusicManager().stopPlaying();
+            asegurar();
+        }
+    }
+
+    /**
+     * Descarta cualquier referencia superviviente de la visita anterior.
+     *
+     * Al entrar a un mundo el motor puede vaciar sus canales sin llamar a
+     * {@link #tick()} otra vez. En ese caso isStopped() sigue devolviendo false
+     * aunque el sonido ya no exista en OpenAL. Una visita nueva debe crear una
+     * instancia nueva; una pantalla hija de la misma visita no llama a este
+     * metodo y conserva la posicion de la pista.
+     */
+    public static void nuevaVisita() {
+        GestorMusica anterior = activa;
         activa = null;
+        reintento = 0;
+        if (anterior != null) {
+            anterior.stop();
+        }
+    }
+
+    /** Invalida referencias del SoundEngine anterior tras F3+T o packs. */
+    public static void recursosRecargados() {
+        GestorMusica anterior = activa;
+        activa = null;
+        marcador = -1;
+        reintento = 20;
+        if (anterior != null) {
+            anterior.stop();
+        }
     }
 
     /** Si el tema esta sonando ahora mismo. */
@@ -138,21 +186,16 @@ public class GestorMusica extends AbstractTickableSoundInstance {
     /**
      * Si la pista que suena tiene un autor al que acreditar.
      *
-     * Se cumple en dos casos, y solo en esos dos:
-     *
-     *   - el JAR trae una pista horneada con credito. El build deja un recurso
-     *     marca (assets/jobsmenu/musica_creditada.txt) cuando reemplaza el tema por
-     *     REQUIEM; si no se horneo nada, el marcador no existe;
-     *   - el jugador dejo su propia pista en la carpeta de runtime.
-     *
-     * La pieza sintetizada que viene de fabrica NO se acredita a nadie: es del
-     * mod. Por eso, sin marca y sin pista propia, el credito no aparece y nunca
-     * se le atribuye a un autor una musica que no compuso.
+     * Solo se cumple cuando el JAR trae una pista empaquetada con un marcador
+     * de credito. La pieza original que viene de fabrica no se acredita a nadie:
+     * es del mod. Una pista local puede sustituirla, pero no activa por error las
+     * cadenas de otra pista del idioma: el mod no conoce su autoria y no inventa
+     * atribuciones.
      */
     private static boolean hayPistaCreditada() {
-        if (MusicaPropia.tieneMusicaPropia()) {
-            return true;
-        }
+        // Una pista local no modifica este marcador: las cadenas por defecto
+        // podrian pertenecer a otra obra y no deben mostrarse automaticamente.
+        // Solo el recurso empaquetado con permiso trae la senal inequivoca.
         return marcadorHorneado();
     }
 
@@ -192,32 +235,22 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         this.edad++;
 
         Minecraft cliente = Minecraft.getInstance();
-        boolean enMenu = cliente.screen instanceof com.santipdr.jobsmenu.client.screen.PantallaNivel;
-        boolean permitido = enMenu && ConfigTurno.musicaMenu();
+        boolean permitido = SesionMenu.activa() && ConfigTurno.musicaMenu();
 
-        // POR QUE LA MUSICA NO SE OIA
-        //
-        // Minecraft trae su propio gestor de musica de menu, que suena en el
-        // MISMO canal (SoundSource.MUSIC) que nuestro tema. Cuando el juego
-        // decide poner su musica de menu, la nuestra queda tapada o desalojada,
-        // y el ambiente -que va por otro canal (AMBIENT)- se seguia oyendo: de
-        // ahi el sintoma de "el ambiente suena pero la musica no".
-        //
-        // La solucion es callar al gestor de vanilla mientras nuestro menu esta
-        // abierto, para que el canal de musica quede libre para el tema del
-        // aviso. No toca los deslizadores del jugador: solo evita que dos
-        // musicas peleen por el mismo canal.
-        //
-        // AVISO honesto: si ademas el deslizador "Musica" del juego esta en
-        // cero, no hay codigo que valga -ese control lo manda el jugador-. Por
-        // eso el ajuste de volumen del aviso avisa que hay que subirlo tambien.
-        if (permitido) {
-            cliente.getMusicManager().stopPlaying();
-        }
+        // El canal de musica lo arbitra GestorMusica.atender() una sola vez
+        // por tick: mientras el aviso esta abierto se le deja el canal MUSIC
+        // al tema del mod y no se pelea con el gestor de vanilla. Aca ya no se
+        // repite la llamada (antes sonaba dos veces por tick).
+        // La pista del mod suena por SoundSource.MASTER: la gobiernan el
+        // deslizador Maestro del juego, el volumen propio del aviso y el volumen maestro
+        // del aviso (tecla M), nunca el deslizador Musica de vanilla.
 
+        RotacionNiveles.Estado estado = RotacionNiveles.capturar();
         float objetivo = 0.0F;
         if (permitido) {
-            objetivo = ConfigTurno.volumenMusica() * MezclaAudio.MUSICA;
+            // Volumen maestro del aviso: la tecla M silencia toda la mezcla.
+            objetivo = ConfigTurno.volumenMusica() * MezclaAudio.MUSICA
+                    * ConfigTurno.volumenAviso();
 
             // Entrada suave pero no eterna: unos seis segundos hasta el volumen
             // pleno (antes eran veinte, y con la curva al cuadrado el tema no se
@@ -228,12 +261,18 @@ public class GestorMusica extends AbstractTickableSoundInstance {
 
             // Durante el apagon la musica se sostiene, pero cede un poco de
             // lugar para que el corte electrico tenga el frente para el solo.
-            if (RotacionNiveles.enTransicion()) {
+            if (estado.enTransicion()) {
                 objetivo *= 0.78F;
+            }
+            if (estado.enSuspension()) {
+                // La musica no se corta, pero deja el frente al suspiro y al
+                // silencio del edificio. Volvera con el suavizado normal.
+                objetivo *= 0.18F;
             }
 
             // Con la presencia al fondo, tambien se retira.
-            objetivo *= 1.0F - (1.0F - MezclaAudio.AGACHE_FIGURA) * 0.5F * Presencia.visibilidad();
+            objetivo *= 1.0F - (1.0F - MezclaAudio.AGACHE_FIGURA)
+                    * 0.5F * Presencia.visibilidad(estado.ahora());
         }
 
         float paso = objetivo > this.actual ? SUAVIZADO_SUBIDA : SUAVIZADO_BAJADA;
@@ -243,7 +282,7 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         }
         this.volume = this.actual;
 
-        if (!enMenu && this.actual <= 0.0F) {
+        if (!permitido && this.actual <= 0.0F) {
             this.stop();
             if (activa == this) {
                 activa = null;

@@ -1,5 +1,7 @@
 package com.santipdr.jobsmenu.client.ui;
 
+import com.santipdr.jobsmenu.config.ConfigTurno;
+
 /**
  * Paleta unica del mod. Colores en ARGB con alfa explicito.
  *
@@ -56,6 +58,21 @@ public final class Paleta {
 
     /** Executores, pulso de ronda inminente. */
     public static final int ALERTA_BRILLO = 0xFFC42B18;
+
+    /** Tinta legible; el modo alto contraste refuerza el negro sin usar rojo. */
+    public static int tintaPrincipal() {
+        return ConfigTurno.altoContraste() ? 0xFF080704 : TINTA;
+    }
+
+    /** Tinta secundaria legible sobre papel y fondo oscuro. */
+    public static int tintaSecundaria() {
+        return ConfigTurno.altoContraste() ? 0xFF241C0D : TINTA_TENUE;
+    }
+
+    /** Papel ligeramente mas claro en modo alto contraste. */
+    public static int papelAviso() {
+        return ConfigTurno.altoContraste() ? 0xFFFFFBEA : PAPEL;
+    }
 
     /** Devuelve el mismo color con el alfa indicado (0.0 a 1.0). */
     public static int conAlfa(int color, float alfa) {

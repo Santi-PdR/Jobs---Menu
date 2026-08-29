@@ -47,8 +47,11 @@ public final class Servicio implements Planta {
         Trazo.manchas(grafico, m, nivel, luz, TRAMOS);
 
         bifurcacion(grafico, m, nivel, luz);
+        compuertaInspeccion(grafico, m, nivel, luz);
         haz(grafico, m, nivel, luz, tiempo);
         apliques(grafico, m, nivel, luz);
+        valvulaPrincipal(grafico, m, nivel, luz);
+        mangueraCaida(grafico, m, nivel, luz);
         rejillas(grafico, m, nivel, luz);
     }
 
@@ -123,6 +126,40 @@ public final class Servicio implements Planta {
         int px = x1 - Math.max(3, (x1 - x0) / 8);
         int py = y0 + Math.max(3, (y1 - y0) / 6);
         grafico.fill(px, py, px + 2, py + 2, Paleta.conAlfa(Paleta.ALERTA_BRILLO, 0.85F * luz + 0.15F));
+    }
+
+    /**
+     * Compuerta de inspeccion entre dos juntas, abierta apenas hacia la camara.
+     */
+    private static void compuertaInspeccion(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 1.65F;
+        float x = m.lado(-1.0F, dx * 0.92F);
+        float suelo = m.sueloEn(dx);
+        float alto = Math.max(9.0F, m.h() * dx * 0.34F);
+        float ancho = Math.max(7.0F, m.w() * dx * 0.26F);
+        int x0 = Math.round(x);
+        int x1 = Math.round(x + ancho);
+        int y0 = Math.round(suelo - alto);
+        int y1 = Math.round(suelo);
+        int interior = Paleta.conAlfa(Paleta.mezclar(nivel.fondo, Paleta.VANO, 0.22F), 0.96F);
+        grafico.fill(x0, y0, x1, y1, interior);
+        int marco = Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, 0.60F, 0.45F), luz * 0.68F);
+        grafico.fill(x0, y0, x1, y0 + 2, marco);
+        grafico.fill(x0, y0, x0 + 2, y1, marco);
+        grafico.fill(x1 - 2, y0, x1, y1, marco);
+        grafico.fill(x0, y1 - 2, x1, y1, marco);
+        // Dos bisagras y una manija hacen legible el volumen de la compuerta.
+        int herraje = Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, luz), 0.70F);
+        grafico.fill(x0 + 3, y0 + Math.max(3, Math.round(alto * 0.20F)),
+                x0 + 5, y0 + Math.max(4, Math.round(alto * 0.28F)), herraje);
+        grafico.fill(x0 + 3, y0 + Math.round(alto * 0.70F),
+                x0 + 5, y0 + Math.round(alto * 0.78F), herraje);
+        grafico.fill(x1 - Math.max(4, Math.round(ancho * 0.18F)),
+                y0 + Math.round(alto * 0.46F), x1 - 2,
+                y0 + Math.round(alto * 0.52F), herraje);
+        // La hoja queda entreabierta: una cuna oscura desplaza el plano frontal.
+        grafico.fill(x0 + 3, y0 + 3, x0 + Math.max(5, Math.round(ancho * 0.20F)), y1 - 3,
+                Paleta.conAlfa(Paleta.VANO, 0.48F));
     }
 
     /**
@@ -261,6 +298,60 @@ public final class Servicio implements Planta {
                         Paleta.conAlfa(nivel.luz, 0.075F * at * (1.0F - t * 0.45F)));
             }
         }
+    }
+
+    /**
+     * Valvula de rueda en la pared derecha: nucleo, aro, eje y manija.
+     *
+     * La rueda no es un circulo perfecto de una sola tinta; el hueco y el eje
+     * la separan de la pared y hacen que se entienda como mecanismo.
+     */
+    private static void valvulaPrincipal(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 2.15F;
+        float x = m.lado(1.0F, dx * 0.92F);
+        float y = m.techoEn(dx * 0.46F);
+        float radio = Math.max(4.0F, m.w() * dx * 0.075F);
+        int metal = Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, 0.45F, 0.40F), luz * 0.72F);
+        int sombra = Paleta.conAlfa(Paleta.VANO, 0.70F);
+        // Placa de anclaje y aro octogonal aproximado.
+        grafico.fill(Math.round(x - radio * 1.25F), Math.round(y - radio * 1.25F),
+                Math.round(x + radio * 1.25F), Math.round(y + radio * 1.25F), sombra);
+        for (int i = 0; i < 8; i++) {
+            double a = Math.PI * 2.0D * i / 8.0D;
+            float px = x + (float) Math.cos(a) * radio;
+            float py = y + (float) Math.sin(a) * radio;
+            grafico.fill(Math.round(px - 1.5F), Math.round(py - 1.5F),
+                    Math.round(px + 1.5F), Math.round(py + 1.5F), metal);
+        }
+        grafico.fill(Math.round(x - radio * 0.95F), Math.round(y - 1.0F),
+                Math.round(x + radio * 0.95F), Math.round(y + 2.0F), metal);
+        grafico.fill(Math.round(x - 1.0F), Math.round(y - radio * 0.95F),
+                Math.round(x + 2.0F), Math.round(y + radio * 0.95F), metal);
+        grafico.fill(Math.round(x - 2.0F), Math.round(y - 2.0F),
+                Math.round(x + 3.0F), Math.round(y + 3.0F),
+                Paleta.iluminar(nivel.luz, luz * 0.70F));
+        // Cal mineral debajo del codo: una marca material, no un halo global.
+        grafico.fill(Math.round(x - radio * 0.75F), Math.round(y + radio * 1.3F),
+                Math.round(x + radio * 0.70F), Math.round(y + radio * 1.55F),
+                Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, luz * 0.42F), 0.30F));
+    }
+
+    /** Manguera de goma que cae en una curva irregular y termina en una brida. */
+    private static void mangueraCaida(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 1.85F;
+        float xBase = m.lado(-1.0F, dx * 0.83F);
+        float yBase = m.sueloEn(dx) - m.h() * dx * 0.13F;
+        int goma = Paleta.iluminar(Trazo.velar(nivel.paredBaja, nivel.niebla, 0.54F, 0.48F), luz * 0.68F);
+        for (int i = 0; i < 9; i++) {
+            float t = i / 8.0F;
+            float x = xBase + (float) Math.sin(t * Math.PI * 1.35F) * m.w() * dx * 0.085F;
+            float y = yBase - m.h() * dx * (0.34F - t * 0.24F);
+            grafico.fill(Math.round(x), Math.round(y), Math.round(x + Math.max(2.0F, m.w() * dx * 0.016F)),
+                    Math.round(y + Math.max(2.0F, m.h() * dx * 0.026F)), goma);
+        }
+        int brida = Paleta.iluminar(nivel.junta, luz * 0.72F);
+        grafico.fill(Math.round(xBase - 3.0F), Math.round(yBase - 2.0F),
+                Math.round(xBase + 6.0F), Math.round(yBase + 2.0F), brida);
     }
 
     /** Las rejillas de extraccion al pie de la pared izquierda. */

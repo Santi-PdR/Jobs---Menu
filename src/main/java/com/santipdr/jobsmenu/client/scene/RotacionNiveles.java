@@ -10,8 +10,10 @@ import com.santipdr.jobsmenu.config.ConfigTurno;
  * que no hay nada, y cuando la luz vuelve el pasillo ya no es el mismo. Nadie
  * lo anuncia y nadie lo comenta.
  *
- * Todo se calcula desde el reloj del sistema, sin estado mutable: dos clientes
- * abiertos al mismo tiempo ven el mismo nivel.
+ * Todo se calcula desde el reloj del sistema, sin estado mutable. {@link Estado}
+ * permite que un frame use exactamente el mismo instante para nivel, luz y
+ * transicion; sin ese snapshot, una vuelta del reloj entre dos llamadas podia
+ * mostrar la planta nueva con la luz del nivel anterior.
  */
 public final class RotacionNiveles {
 
@@ -20,6 +22,22 @@ public final class RotacionNiveles {
 
     /** Cuanto se queda quieto cada nivel antes de empezar a irse. */
     private static final long ESTANCIA_MS = 24_000L;
+
+    /** Con la rotacion en calma, cada nivel se queda el doble de tiempo. */
+    private static final long ESTANCIA_CALMA_MS = 48_000L;
+
+    /** Duracion del apagon raro de La Suspension. */
+    private static final long SUSPENSION_MS = 22_000L;
+
+    /**
+     * Ranuras largas para La Suspension. El desfase determinista de cada ranura
+     * evita que el evento parezca un temporizador exacto, sin guardar estado en
+     * disco ni en la pantalla.
+     */
+    private static final long SUSPENSION_RANURA_MS = 48L * 60_000L;
+    private static final long SUSPENSION_INICIO_MS = 22L * 60_000L;
+    private static final long SUSPENSION_JITTER_MS = 3L * 60_000L + 30_000L;
+    private static final long SUSPENSION_BORDE_MS = 1_500L;
 
     /** Cuanto dura el apagon completo, de la primera falla a la luz firme. */
     private static final long TRANSICION_MS = 2_600L;
@@ -30,138 +48,200 @@ public final class RotacionNiveles {
     /** Cuanto antes del corte empieza el pasillo a dar senales. */
     private static final long AVISO_MS = 1_400L;
 
-    /** Un ciclo entero: un nivel quieto mas su salida. */
-    private static final long CICLO_MS = ESTANCIA_MS + TRANSICION_MS;
-
-    /**
-     * Los parpadeos del aviso: {desde, hasta, cuanta luz queda}.
-     *
-     * Es la unica definicion de cuando titila la luz antes del corte. La lee
-     * el dibujo, para bajar la luz, y la lee el audio, para sonar en el mismo
-     * fotograma. Tocar un numero de aca mueve la imagen y el sonido a la vez,
-     * que es la unica forma de que no se separen con el tiempo.
-     */
     private static final float[][] AVISO_CHISPAZOS = {
             {0.28F, 0.34F, 0.72F},
             {0.66F, 0.71F, 0.55F},
     };
 
-    /** Los parpadeos de la caida, en fraccion de lo que ya cayo la luz. */
     private static final float[][] CORTE_CHISPAZOS = {
             {0.35F, 0.44F, 0.25F},
             {0.62F, 0.68F, 0.40F},
     };
 
+    /**
+     * Estado inmutable de la rotacion en un instante concreto.
+     *
+     * No guarda una referencia global: cada frame captura uno y lo pasa por el
+     * renderer. El reloj de sonidos puede seguir consultando los metodos
+     * estaticos porque sus disparos son eventos puntuales, pero la imagen ya no
+     * mezcla dos lecturas de System.currentTimeMillis().
+     */
+    public record Estado(int indice, Nivel nivel, float luz, long ahora, long dentro,
+                          long estancia, boolean rotacion, boolean suspension,
+                          float avanceSuspension, long cicloSuspension) {
+
+        public boolean enTransicion() {
+            return this.rotacion && this.dentro >= this.estancia;
+        }
+
+        /** La Suspension esta activa en este instante. */
+        public boolean enSuspension() {
+            return this.suspension;
+        }
+
+        /** Avance 0..1 dentro del apagon raro, para diagnostico y audio. */
+        public float avanceSuspension() {
+            return this.avanceSuspension;
+        }
+
+        public float avanceTransicion() {
+            if (!enTransicion()) {
+                return 0.0F;
+            }
+            return Math.max(0.0F, Math.min(1.0F,
+                    (this.dentro - this.estancia) / (float) TRANSICION_MS));
+        }
+    }
+
+    /** Captura nivel, luz y posicion de la transicion con una sola lectura. */
+    public static Estado capturar() {
+        long ahora = System.currentTimeMillis();
+        if (!ConfigTurno.rotarNiveles()) {
+            int indice = ConfigTurno.nivelFijo();
+            return new Estado(indice, Nivel.porIndice(indice), 1.0F, ahora,
+                    0L, 0L, false, false, 0.0F, -1L);
+        }
+
+        long estancia = estanciaMs();
+        long ciclo = estancia + TRANSICION_MS;
+        long total = ciclo * Nivel.cantidad();
+        long reloj = Math.floorMod(ahora, total);
+        int indice = (int) (reloj / ciclo);
+        long dentro = reloj % ciclo;
+
+        // El salto sucede cuando vuelve la luz: el jugador no llega a ver
+        // geometria nueva completamente iluminada antes de que termine el corte.
+        if (dentro >= estancia + (long) (TRANSICION_MS * REPARTO_APAGADO)) {
+            indice = (indice + 1) % Nivel.cantidad();
+        }
+        float luz = luzPara(dentro, estancia);
+        long cicloSuspension = Math.floorDiv(ahora, SUSPENSION_RANURA_MS);
+        long inicioSuspension = inicioSuspension(cicloSuspension);
+        long dentroSuspension = ahora - inicioSuspension;
+        boolean suspension = ConfigTurno.suspensionRara()
+                && dentroSuspension >= 0L && dentroSuspension < SUSPENSION_MS;
+        float avanceSuspension = suspension
+                ? dentroSuspension / (float) SUSPENSION_MS : 0.0F;
+        if (suspension) {
+            luz = luzSuspension(avanceSuspension);
+        }
+
+        return new Estado(indice, Nivel.porIndice(indice), luz, ahora,
+                dentro, estancia, true, suspension, avanceSuspension, cicloSuspension);
+    }
+
     /** Indice del nivel que se esta mostrando ahora mismo. */
     public static int indiceActual() {
-        if (!ConfigTurno.rotarNiveles()) {
-            return ConfigTurno.nivelFijo();
-        }
-        long total = CICLO_MS * Nivel.cantidad();
-        long t = Math.floorMod(System.currentTimeMillis(), total);
-        int indice = (int) (t / CICLO_MS);
-
-        // Pasada la mitad de la transicion ya estamos del otro lado.
-        long dentro = t % CICLO_MS;
-        if (dentro >= ESTANCIA_MS + (long) (TRANSICION_MS * REPARTO_APAGADO)) {
-            indice++;
-        }
-        return indice % Nivel.cantidad();
+        return capturar().indice();
     }
 
-    /** El nivel que hay que dibujar en este fotograma. */
     public static Nivel actual() {
-        return Nivel.porIndice(indiceActual());
+        return capturar().nivel();
     }
 
-    /**
-     * Cuanta luz hay disponible ahora mismo, de 0.0 a 1.0.
-     *
-     * Vale 1.0 durante casi todo el ciclo. Cae a cero al final de la estancia y
-     * vuelve a subir a los tirones, como un tubo frio que le cuesta prender.
-     */
     public static float luzDisponible() {
-        if (!ConfigTurno.rotarNiveles()) {
-            return 1.0F;
-        }
-        long dentro = posicionEnCiclo();
-        if (dentro < ESTANCIA_MS) {
-            return preaviso(dentro);
-        }
+        return capturar().luz();
+    }
 
-        long transcurrido = dentro - ESTANCIA_MS;
-        long apagado = (long) (TRANSICION_MS * REPARTO_APAGADO);
+    private static float luzPara(long dentro, long estancia) {
+        float luz;
+        if (dentro < estancia) {
+            luz = preaviso(dentro, estancia);
+        } else {
+            long transcurrido = dentro - estancia;
+            long apagado = (long) (TRANSICION_MS * REPARTO_APAGADO);
 
-        if (transcurrido < apagado) {
-            // Se va yendo: primero titila, despues se rinde.
-            float t = (float) transcurrido / (float) apagado;
-            float caida = 1.0F - t * t;
-            if (!ConfigTurno.destellosReducidos()) {
-                for (int i = 0; i < CORTE_CHISPAZOS.length; i++) {
-                    float[] c = CORTE_CHISPAZOS[i];
-                    if (t > c[0] && t < c[1]) {
-                        caida *= c[2];
+            if (transcurrido < apagado) {
+                float t = (float) transcurrido / (float) apagado;
+                float caida = 1.0F - t * t;
+                if (!ConfigTurno.destellosReducidos()) {
+                    for (float[] c : CORTE_CHISPAZOS) {
+                        if (t > c[0] && t < c[1]) {
+                            caida *= c[2];
+                        }
                     }
                 }
+                luz = Math.max(0.0F, caida);
+            } else {
+                float t = (float) (transcurrido - apagado) / (float) (TRANSICION_MS - apagado);
+                luz = arranqueTubo(t);
             }
-            return Math.max(0.0F, caida);
         }
-
-        float t = (float) (transcurrido - apagado) / (float) (TRANSICION_MS - apagado);
-        return arranqueTubo(t);
+        return Math.max(0.0F, Math.min(1.0F, luz));
     }
 
     /**
-     * El pasillo dando senales antes del corte.
+     * Inicio determinista de la Suspension de una ranura.
      *
-     * Durante la ultima parte de la estancia la luz no esta del todo firme: dos
-     * caidas muy breves, de las que se ven de reojo. Es el primer paso del
-     * flujo completo de la transicion (alteracion, titileo, corte, negro,
-     * arranque) y sin el, el apagon aparece de la nada.
-     *
-     * Con destellos reducidos, la luz se queda quieta y el aviso desaparece.
+     * Cada ranura dura 48 minutos y el inicio se mueve hasta 3 minutos y medio
+     * dentro de ella. La separacion entre dos eventos queda aproximadamente
+     * entre 45 y 52 minutos, pero no hay un contador que pueda desincronizarse
+     * al redimensionar la pantalla o entrar en Opciones.
      */
-    private static float preaviso(long dentro) {
+    private static long inicioSuspension(long ciclo) {
+        long mezcla = ciclo * 0x9E3779B97F4A7C15L + 0xD1B54A32D192ED03L;
+        mezcla ^= mezcla >>> 30;
+        mezcla *= 0xBF58476D1CE4E5B9L;
+        mezcla ^= mezcla >>> 27;
+        mezcla *= 0x94D049BB133111EBL;
+        mezcla ^= mezcla >>> 31;
+        long jitter = Math.floorMod(mezcla, SUSPENSION_JITTER_MS);
+        return ciclo * SUSPENSION_RANURA_MS + SUSPENSION_INICIO_MS + jitter;
+    }
+
+    /** Luz monotona y sin parpadeos durante el apagon raro. */
+    private static float luzSuspension(float avance) {
+        if (avance <= 0.0F) {
+            return 1.0F;
+        }
+        if (avance >= 1.0F) {
+            return 0.04F;
+        }
+        float entrada = Math.min(1.0F, avance * SUSPENSION_MS / SUSPENSION_BORDE_MS);
+        float salida = Math.min(1.0F,
+                (1.0F - avance) * SUSPENSION_MS / SUSPENSION_BORDE_MS);
+        if (entrada < 1.0F) {
+            float suave = entrada * entrada * (3.0F - 2.0F * entrada);
+            return 1.0F - 0.96F * suave;
+        }
+        if (salida < 1.0F) {
+            float suave = salida * salida * (3.0F - 2.0F * salida);
+            return 0.04F + 0.96F * suave;
+        }
+        return 0.04F;
+    }
+
+    private static float preaviso(long dentro, long estancia) {
         if (ConfigTurno.destellosReducidos()) {
             return 1.0F;
         }
-        long falta = ESTANCIA_MS - dentro;
+        long falta = estancia - dentro;
         if (falta > AVISO_MS) {
             return 1.0F;
         }
         float t = 1.0F - falta / (float) AVISO_MS;
-        for (int i = 0; i < AVISO_CHISPAZOS.length; i++) {
-            float[] c = AVISO_CHISPAZOS[i];
+        for (float[] c : AVISO_CHISPAZOS) {
             if (t > c[0] && t < c[1]) {
                 return c[2];
             }
         }
-        // Entre chispazo y chispazo la luz baja apenas, sin que se note.
         return 1.0F - 0.06F * t;
     }
 
-    /**
-     * Cual de los parpadeos se esta viendo ahora mismo, o -1 si ninguno.
-     *
-     * Existe para que el audio pueda mirar exactamente lo mismo que la imagen.
-     * Antes el sonido electrico se disparaba una sola vez por transicion, con
-     * su propio criterio, mientras la luz pegaba cuatro bajones en momentos
-     * calculados aparte: se veian cuatro parpadeos y se oia uno, y encima
-     * ninguno de los dos caia donde el otro. Ahora los dos leen esta tabla, y
-     * si algo se ve, se oye.
-     *
-     * Los indices no se reutilizan entre fases -los del aviso van del 0 al 1 y
-     * los del corte del 10 en adelante- para que quien los siga pueda
-     * distinguir un parpadeo nuevo de otro sin llevar la cuenta de la fase.
-     */
     public static int chispazoActual() {
-        if (!ConfigTurno.rotarNiveles() || ConfigTurno.destellosReducidos()) {
+        return chispazoActual(capturar());
+    }
+
+    /** Chispazo visible en el estado que ya capturo el renderer. */
+    public static int chispazoActual(Estado estado) {
+        if (!estado.rotacion() || estado.enSuspension() || ConfigTurno.destellosReducidos()) {
             return -1;
         }
-        long dentro = posicionEnCiclo();
+        long dentro = estado.dentro();
+        long estancia = estado.estancia();
 
-        if (dentro < ESTANCIA_MS) {
-            long falta = ESTANCIA_MS - dentro;
+        if (dentro < estancia) {
+            long falta = estancia - dentro;
             if (falta > AVISO_MS) {
                 return -1;
             }
@@ -175,7 +255,7 @@ public final class RotacionNiveles {
             return -1;
         }
 
-        long transcurrido = dentro - ESTANCIA_MS;
+        long transcurrido = dentro - estancia;
         long apagado = (long) (TRANSICION_MS * REPARTO_APAGADO);
         if (transcurrido >= apagado) {
             return -1;
@@ -190,12 +270,6 @@ public final class RotacionNiveles {
         return -1;
     }
 
-    /**
-     * Cuanto pesa el parpadeo que se esta viendo, de 0 a 1.
-     *
-     * Un bajon del 28 por ciento no puede sonar igual que uno que deja el
-     * recinto casi a oscuras. El audio usa esto para el volumen del chasquido.
-     */
     public static float pesoChispazo(int indice) {
         if (indice < 0) {
             return 0.0F;
@@ -207,10 +281,6 @@ public final class RotacionNiveles {
         return indice < AVISO_CHISPAZOS.length ? 1.0F - AVISO_CHISPAZOS[indice][2] : 0.0F;
     }
 
-    /**
-     * Encendido de un fluorescente frio: dos chispazos, una duda, y recien ahi
-     * se queda prendido. Con destellos reducidos sube derecho.
-     */
     public static float arranqueTubo(float avance) {
         if (avance <= 0.0F) {
             return 0.0F;
@@ -239,45 +309,31 @@ public final class RotacionNiveles {
         return Math.min(1.0F, 0.35F + (avance - 0.46F) / 0.54F * 0.65F);
     }
 
-    /** Si en este momento el pasillo esta cambiando de nivel. */
     public static boolean enTransicion() {
-        if (!ConfigTurno.rotarNiveles()) {
-            return false;
-        }
-        return posicionEnCiclo() >= ESTANCIA_MS;
+        return capturar().enTransicion();
     }
 
-    /**
-     * Si falta poco para el cambio y conviene ir avisando.
-     *
-     * La ventana empieza AVISO_MS antes del corte. Sirve para que el titileo
-     * electrico se escuche mientras la luz todavia esta firme: primero se
-     * sospecha que algo va a pasar y despues pasa. Al reves no funciona.
-     */
     public static boolean porTransicionar() {
-        if (!ConfigTurno.rotarNiveles()) {
-            return false;
-        }
-        long dentro = posicionEnCiclo();
-        return dentro >= ESTANCIA_MS - AVISO_MS && dentro < ESTANCIA_MS;
+        Estado estado = capturar();
+        return esRotacionActiva()
+                && estado.dentro() >= estanciaMs() - AVISO_MS
+                && estado.dentro() < estanciaMs();
     }
 
-    /** Cuanto de la transicion actual ya paso, de 0 a 1. Fuera de ella, 0. */
     public static float avanceTransicion() {
-        if (!enTransicion()) {
-            return 0.0F;
-        }
-        return (posicionEnCiclo() - ESTANCIA_MS) / (float) TRANSICION_MS;
+        return capturar().avanceTransicion();
     }
 
-    /** Que fraccion de la transicion se va en apagar el nivel viejo. */
     public static float repartoApagado() {
         return REPARTO_APAGADO;
     }
 
-    /** Milisegundos transcurridos dentro del ciclo del nivel actual. */
-    private static long posicionEnCiclo() {
-        long total = CICLO_MS * Nivel.cantidad();
-        return Math.floorMod(System.currentTimeMillis(), total) % CICLO_MS;
+    private static boolean esRotacionActiva() {
+        return ConfigTurno.rotarNiveles();
+    }
+
+    /** La estancia del nivel segun la cadencia elegida. */
+    private static long estanciaMs() {
+        return ConfigTurno.rotacionCalma() ? ESTANCIA_CALMA_MS : ESTANCIA_MS;
     }
 }

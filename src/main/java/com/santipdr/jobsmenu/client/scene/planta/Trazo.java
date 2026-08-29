@@ -3,6 +3,7 @@ package com.santipdr.jobsmenu.client.scene.planta;
 import com.santipdr.jobsmenu.client.scene.Marco;
 import com.santipdr.jobsmenu.client.scene.Nivel;
 import com.santipdr.jobsmenu.client.ui.Paleta;
+import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.gui.GuiGraphics;
 
@@ -77,6 +78,24 @@ public final class Trazo {
     /** Atenuacion estandar por distancia: lo lejano recibe menos luz. */
     public static float atenuar(float luz, float lejos) {
         return luz * (0.52F + 0.48F * lejos);
+    }
+
+    /**
+     * Pulsacion de una fuente de luz respetando la preferencia de destellos.
+     *
+     * El movimiento reducido congela el tiempo de la escena desde
+     * {@link com.santipdr.jobsmenu.client.scene.EscenaNivel}; eso basta para
+     * telas, polvo y agua. Destellos reducidos es distinto: permite que algo
+     * se mueva, pero no permite que su luminancia suba y baje. Centralizar la
+     * distincion evita que cada planta implemente una version ligeramente
+     * distinta de accesibilidad.
+     */
+    public static float pulsoLuz(float base, float amplitud, float tiempo,
+                                 float frecuencia, float fase) {
+        if (ConfigTurno.destellosReducidos()) {
+            return base;
+        }
+        return base + amplitud * (float) Math.sin(tiempo * frecuencia + fase);
     }
 
     // ----------------------------------------------------------------------

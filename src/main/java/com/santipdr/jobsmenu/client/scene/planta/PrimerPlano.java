@@ -3,6 +3,7 @@ package com.santipdr.jobsmenu.client.scene.planta;
 import com.santipdr.jobsmenu.client.scene.Marco;
 import com.santipdr.jobsmenu.client.scene.Nivel;
 import com.santipdr.jobsmenu.client.ui.Paleta;
+import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.gui.GuiGraphics;
 
@@ -38,6 +39,9 @@ import net.minecraft.client.gui.GuiGraphics;
  * desde arriba -se esta debajo del trampolin, al borde del agua-.
  */
 public final class PrimerPlano {
+
+    /** Lados que reciben piezas del primer plano; compartido por todos los renders. */
+    private static final int[] LADOS = {-1, 1};
 
     private PrimerPlano() {
     }
@@ -305,8 +309,11 @@ public final class PrimerPlano {
     public static void cripta(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
         float balance = desvio(tiempo, 2.4F, 0.08F);
         // El titileo del fuego sobre la madera: comun a todo el primer plano.
-        float llama = 1.0F + 0.05F * (float) Math.sin(tiempo * 12.0F)
-                + 0.03F * (float) Math.sin(tiempo * 7.1F + 1.0F);
+        float llama = 1.0F;
+        if (!ConfigTurno.destellosReducidos()) {
+            llama += 0.05F * (float) Math.sin(tiempo * 12.0F)
+                    + 0.03F * (float) Math.sin(tiempo * 7.1F + 1.0F);
+        }
         int tapaY = (int) (m.alto() * 0.82F + balance);
         int x0 = (int) (m.ancho() * 0.14F + balance * 1.4F);
         int x1 = (int) (m.ancho() * 0.92F + balance * 1.4F);
@@ -354,32 +361,48 @@ public final class PrimerPlano {
                 Paleta.conAlfa(Paleta.iluminar(nivel.luz, luz * llama), 0.30F));
     }
 
-    /** Un candelabro bajo sobre la mesa, visto de canto, con dos velas vivas. */
+    /**
+     * Un candelabro bajo sobre la mesa, visto de canto, con dos velas vivas.
+     *
+     * Antes el brazo cruzaba el pie a mitad de altura y las velas eran dos
+     * puntos: a distancia se leia como una cruz flotante en la pared. Ahora el
+     * brazo nace cerca de la copa, tiene su caida y las velas son mas altas,
+     * con su copa de hierro: la silueta dice "candelabro" de una sola mirada.
+     */
     private static void candelabroMesa(GuiGraphics grafico, Nivel nivel, int x, int base,
                                        Marco m, float luz, float tiempo) {
         int alto = (int) (m.alto() * 0.10F);
-        int hierro = Paleta.iluminar(nivel.junta, 0.45F + 0.25F * luz);
-        // Pie y brazo.
-        grafico.fill(x - 1, base - alto, x + 2, base, Paleta.conAlfa(hierro, 0.92F));
-        grafico.fill(x - (int) (m.ancho() * 0.03F), base - (int) (alto * 0.55F),
-                x + (int) (m.ancho() * 0.03F), base - (int) (alto * 0.55F) + 2,
+        int hierro = Paleta.iluminar(Paleta.mezclar(nivel.junta, 0xFF000000, 0.25F), 0.55F + 0.25F * luz);
+        // Pie.
+        int pieY = base - alto;
+        grafico.fill(x - 1, pieY, x + 2, base, Paleta.conAlfa(hierro, 0.92F));
+        // Brazo a la altura de la copa, con caida en el medio.
+        int brazoY = pieY + (int) (alto * 0.12F);
+        grafico.fill(x - (int) (m.ancho() * 0.035F), brazoY, x + (int) (m.ancho() * 0.035F), brazoY + 2,
                 Paleta.conAlfa(hierro, 0.92F));
-        // Dos velas.
+        grafico.fill(x - (int) (m.ancho() * 0.012F), brazoY + (int) (alto * 0.06F),
+                x + (int) (m.ancho() * 0.012F), brazoY + (int) (alto * 0.06F) + 2,
+                Paleta.conAlfa(hierro, 0.85F));
+        // Dos velas, cada una con su copa.
         for (int s = -1; s <= 1; s += 2) {
-            int vx = x + s * (int) (m.ancho() * 0.03F);
-            int vy = base - (int) (alto * 0.55F);
-            float llama = 1.0F + 0.10F * (float) Math.sin(tiempo * 13.0F + s);
+            int vx = x + s * (int) (m.ancho() * 0.035F);
+            int vy = brazoY;
+            float llama = Trazo.pulsoLuz(1.0F, 0.10F, tiempo, 13.0F, s);
+            int velaH = (int) (alto * 0.26F);
+            // Copa.
+            grafico.fill(vx - 2, vy, vx + 2, vy + 2, Paleta.conAlfa(hierro, 0.92F));
+            // Cuerpo de vela.
+            grafico.fill(vx - 1, vy - velaH, vx + 2, vy,
+                    Paleta.conAlfa(Paleta.iluminar(Paleta.mezclar(nivel.paredAlta, 0xFFF0DC, 0.35F), 0.75F * luz), 0.92F));
             // Derrame: chico y contenido, no un halo enorme.
             for (int k = 3; k >= 1; k--) {
                 float t = k / 3.0F;
                 float e = m.ancho() * 0.010F * (1.0F + t * 2.2F);
-                grafico.fill((int) (vx - e), (int) (vy - e), (int) (vx + e), (int) (vy + e * 0.6F),
+                grafico.fill((int) (vx - e), (int) (vy - velaH - e), (int) (vx + e), (int) (vy - velaH + e * 0.6F),
                         Paleta.conAlfa(nivel.luz, 0.07F * luz * llama * (1.0F - t * 0.5F)));
             }
-            // Cuerpo de vela y nucleo.
-            grafico.fill(vx - 1, vy - (int) (alto * 0.22F), vx + 1, vy,
-                    Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, 0.7F * luz), 0.9F));
-            grafico.fill(vx - 1, vy - (int) (alto * 0.30F), vx + 1, vy - (int) (alto * 0.22F),
+            // Nucleo de la llama.
+            grafico.fill(vx - 1, vy - velaH - (int) (alto * 0.14F), vx + 1, vy - velaH,
                     Paleta.conAlfa(Paleta.iluminar(0xFFFFF3D8, Math.min(1.0F, luz * llama * 1.4F)), 0.95F));
         }
     }
@@ -548,13 +571,20 @@ public final class PrimerPlano {
         // Una vela consumida sobre la jamba derecha, cerca de la camara.
         int vx = w - jamba / 2;
         int vy = (int) (h * 0.55F);
-        float titil = 0.85F + 0.15F * (float) Math.sin(tiempo * 6.5F);
-        for (int k = 4; k >= 1; k--) {
-            float t = k / 4.0F;
-            float e = w * 0.03F * (1.0F + t * 2.2F);
-            grafico.fill((int) (vx - e), (int) (vy - e), (int) (vx + e), (int) (vy + e * 0.6F),
-                    Paleta.conAlfa(nivel.luz, 0.08F * luz * titil * (1.0F - t * 0.5F)));
+        float titil = Trazo.pulsoLuz(0.85F, 0.15F, tiempo, 6.5F, 0.0F);
+        // Halo corto, centrado en la LLAMA (no en el pie de la vela), con mas
+        // capas y menos alfa: cinco rectangulos pequenos escalonados dejan de
+        // leerse como una caja y pasan a ser un resplandor difuso.
+        int cy = vy - (int) (h * 0.055F);
+        for (int k = 5; k >= 1; k--) {
+            float t = k / 5.0F;
+            float e = w * 0.006F * (1.0F + t * 0.9F);
+            grafico.fill((int) (vx - e), (int) (cy - e), (int) (vx + e), (int) (cy + e * 0.7F),
+                    Paleta.conAlfa(nivel.luz, 0.040F * luz * titil * (1.0F - t * 0.55F)));
         }
+        // Un saliente de piedra donde descansa la vela: no flota en la jamba.
+        grafico.fill(vx - 6, vy + 1, vx + 6, vy + 4,
+                Paleta.conAlfa(Paleta.iluminar(nivel.junta, 0.4F * luz), 0.85F));
         grafico.fill(vx - 2, vy - (int) (h * 0.05F), vx + 2, vy,
                 Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, 0.6F * luz), 0.9F));
         grafico.fill(vx - 1, vy - (int) (h * 0.065F), vx + 1, vy - (int) (h * 0.05F),
@@ -607,7 +637,7 @@ public final class PrimerPlano {
         int fx = (int) (w * 0.24F + balance * 2.0F);
         int fy = pasY;
         int fh = (int) (h * 0.09F);
-        float titil = 0.85F + 0.15F * (float) Math.sin(tiempo * 6.0F);
+        float titil = Trazo.pulsoLuz(0.85F, 0.15F, tiempo, 6.0F, 0.0F);
         for (int k = 4; k >= 1; k--) {
             float t = k / 4.0F;
             float e = w * 0.03F * (1.0F + t * 2.4F);
@@ -620,64 +650,98 @@ public final class PrimerPlano {
     }
 
     // ----------------------------------------------------------------------
-    // Nivel 9 - El salon del trono: un tambor de columna caida en el suelo
-    // ----------------------------------------------------------------------
+    // Nivel 9 - El salon del trono: escombro bajo, no una pared diagonal.
 
     /**
-     * Un tambor de columna derribada, atravesado en el primer plano.
+     * Escombro del primer plano del salon del trono.
      *
-     * Un cilindro de piedra enorme, caido de lado, cruzando el borde inferior en
-     * diagonal, muy cerca. Es lo que dice que el salon esta en ruinas y pone al
-     * que mira detras de un escombro, agachado. La cara de arriba recibe la luz
-     * cenital; el resto, sombra. Al lado, cascotes menores.
+     * El antiguo tambor de columna cruzaba todo el borde inferior en diagonal y
+     * competia con el trono, que es el punto focal de este recinto. Este primer
+     * plano conserva profundidad y ruina, pero deja libre el eje: un zocalo
+     * irregular muy bajo y dos grupos de piedra en las esquinas. El vacio central
+     * no es espacio perdido; es la distancia que hace legible el asiento vacio.
      */
     public static void trono(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
         int w = m.ancho();
         int h = m.alto();
         int piedra = Paleta.mezclar(nivel.paredBaja, 0xFF000000, 0.35F);
-        int piedraLuz = Paleta.iluminar(Paleta.mezclar(nivel.paredAlta, 0xFF000000, 0.10F), 0.55F + 0.30F * luz);
-        int piedraSombra = Paleta.iluminar(Paleta.mezclar(piedra, 0xFF000000, 0.4F), 0.30F + 0.15F * luz);
+        int piedraLuz = Paleta.iluminar(Paleta.mezclar(nivel.paredAlta, 0xFF000000, 0.10F),
+                0.55F + 0.30F * luz);
+        int piedraSombra = Paleta.iluminar(Paleta.mezclar(piedra, 0xFF000000, 0.4F),
+                0.30F + 0.15F * luz);
 
-        // El tambor: una banda gruesa en diagonal suave por el borde inferior.
-        int yIzq = (int) (h * 0.74F);
-        int yDer = (int) (h * 0.84F);
-        int alto = (int) (h * 0.28F);
-        for (int x = 0; x < w; x += Trazo.PASO) {
-            float t = x / (float) w;
-            int yTop = (int) (yIzq + (yDer - yIzq) * t);
-            // Cara superior iluminada (una franja fina arriba).
-            grafico.fill(x, yTop, x + Trazo.PASO, yTop + Math.max(2, alto / 8),
-                    piedraLuz);
-            // Cuerpo del tambor.
-            grafico.fillGradient(x, yTop + Math.max(2, alto / 8), x + Trazo.PASO, h,
-                    Paleta.iluminar(piedra, 0.40F + 0.18F * luz), piedraSombra);
-        }
-        // Las molduras circulares de los extremos del tambor (anillos concentricos
-        // sugeridos con lineas horizontales cerca de los bordes).
-        for (int r = 1; r <= 3; r++) {
-            int yr = yIzq + r * alto / 10;
-            grafico.fill(0, yr, (int) (w * 0.10F), yr + 1, Paleta.conAlfa(piedraSombra, 0.7F));
-            int yrd = yDer + r * alto / 10;
-            grafico.fill((int) (w * 0.90F), yrd, w, yrd + 1, Paleta.conAlfa(piedraSombra, 0.7F));
-        }
-        // El filo iluminado del canto superior, a lo largo.
-        for (int x = 0; x < w; x += Trazo.PASO) {
-            float t = x / (float) w;
-            int yTop = (int) (yIzq + (yDer - yIzq) * t);
-            grafico.fill(x, yTop, x + Trazo.PASO, yTop + 1,
-                    Paleta.conAlfa(Paleta.iluminar(0xFFFFF0C0, luz), 0.14F));
+        losaRota(grafico, w, h, piedra, piedraLuz, piedraSombra, luz);
+
+        // Zocalo bajo: ancla la camara sin convertir el primer plano en una
+        // pared. La irregularidad es estable, por lo que no vibra al animarse.
+        int paso = Math.max(3, Trazo.PASO);
+        for (int x = 0; x < w; x += paso) {
+            float ruido = Trazo.pseudo(900 + x / paso);
+            int y = (int) (h * (0.90F + ruido * 0.045F));
+            grafico.fill(x, y, Math.min(w, x + paso + 1), h,
+                    Paleta.iluminar(piedra, 0.42F + 0.14F * luz));
+            grafico.fill(x, y, Math.min(w, x + paso + 1), y + 1,
+                    Paleta.conAlfa(piedraLuz, 0.35F));
         }
 
-        // Unos cascotes sueltos delante, silueta.
-        for (int i = 0; i < 4; i++) {
-            int cx = (int) (w * (0.20F + i * 0.22F));
-            int cw = (int) (w * (0.04F + Trazo.pseudo(i * 9) * 0.05F));
-            int cy = (int) (h * 0.72F) - (int) (Trazo.pseudo(i * 9 + 1) * h * 0.04F);
-            int ch = (int) (h * 0.06F);
-            grafico.fill(cx, cy, cx + cw, cy + ch,
-                    Paleta.iluminar(piedra, 0.32F + 0.16F * luz));
-            grafico.fill(cx, cy, cx + cw, cy + 1, Paleta.conAlfa(piedraLuz, 0.5F));
+        // Dos derrumbes laterales sugieren columnas caidas sin tapar el estrado.
+        for (int lado : LADOS) {
+            int cx = lado < 0 ? (int) (w * 0.10F) : (int) (w * 0.90F);
+            for (int i = 0; i < 3; i++) {
+                int ancho = Math.max(4, (int) (w * (0.045F + i * 0.012F)));
+                int alto = Math.max(3, (int) (h * (0.035F + i * 0.012F)));
+                int x = cx + lado * (i * ancho / 2) - ancho / 2;
+                int y = (int) (h * (0.84F + i * 0.025F));
+                grafico.fill(x, y, x + ancho, Math.min(h, y + alto),
+                        Paleta.iluminar(piedraSombra, 0.8F + 0.1F * luz));
+                grafico.fill(x, y, x + ancho, y + 1,
+                        Paleta.conAlfa(piedraLuz, 0.42F));
+            }
+        }
+
+        // Polvo de piedra en el hueco inferior: pequenos acentos, no una linea
+        // continua que vuelva a cerrar el eje de fuga.
+        for (int i = 0; i < 6; i++) {
+            float posicion = 0.28F + Trazo.pseudo(940 + i) * 0.44F;
+            int ancho = Math.max(2, (int) (w * (0.012F + Trazo.pseudo(950 + i) * 0.022F)));
+            int alto = Math.max(2, (int) (h * (0.012F + Trazo.pseudo(960 + i) * 0.018F)));
+            int x = (int) (w * posicion);
+            int y = (int) (h * (0.91F + Trazo.pseudo(970 + i) * 0.045F));
+            grafico.fill(x, y, x + ancho, Math.min(h, y + alto),
+                    Paleta.iluminar(piedra, 0.45F + 0.18F * luz));
         }
     }
+
+    /**
+     * Una losa rota entra por el borde derecho, en un plano anterior al
+     * zocalo. Son tres quiebres escalonados, no un rectangulo diagonal: aporta
+     * oclusion y escala sin cerrar el eje libre del trono.
+     */
+    private static void losaRota(GuiGraphics grafico, int w, int h,
+                                 int piedra, int piedraLuz, int piedraSombra, float luz) {
+        int x0 = Math.round(w * 0.76F);
+        int y0 = Math.round(h * 0.79F);
+        int ancho = Math.max(18, Math.round(w * 0.22F));
+        int alto = Math.max(3, Math.round(h * 0.034F));
+        for (int i = 0; i < 4; i++) {
+            int margen = Math.round(w * (0.012F * i));
+            int izquierda = x0 - margen;
+            int derecha = Math.min(w, x0 + ancho - margen * 2);
+            int arriba = y0 + Math.round(h * 0.025F * i);
+            grafico.fill(izquierda, arriba, derecha, arriba + alto,
+                    Paleta.iluminar(i == 1 ? piedraSombra : piedra, 0.52F + 0.10F * luz));
+            grafico.fill(izquierda, arriba, derecha - Math.max(1, w / 90), arriba + 1,
+                    Paleta.conAlfa(piedraLuz, 0.30F));
+        }
+        // La grieta corta el canto y se pierde dentro de la pila.
+        int grieta = Math.max(1, w / 240);
+        for (int i = 0; i < 5; i++) {
+            int x = x0 + Math.round(w * 0.055F) + i * Math.max(2, w / 110);
+            int y = y0 - Math.max(1, h / 150) + i * Math.max(1, h / 180);
+            grafico.fill(x, y, x + grieta, y + Math.max(2, h / 42),
+                    Paleta.conAlfa(Paleta.VANO, 0.58F));
+        }
+    }
+
 }
 

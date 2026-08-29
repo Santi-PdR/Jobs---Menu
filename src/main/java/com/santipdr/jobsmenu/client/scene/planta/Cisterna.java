@@ -54,13 +54,76 @@ public final class Cisterna implements Planta {
         agua(grafico, m, nivel, luz, tiempo);
 
         Trazo.paredes(grafico, m, nivel, luz);
+        compuertaInspeccion(grafico, m, nivel, luz);
         Trazo.manchas(grafico, m, nivel, luz, TRAMOS);
+        tuberiaEntrada(grafico, m, nivel, luz, tiempo);
 
         // Columnas y su reflejo. Se dibujan de fondo a cerca.
         columnas(grafico, m, nivel, luz, tiempo);
+        marcasNivelColumna(grafico, m, nivel, luz);
 
         focos(grafico, m, nivel, luz, tiempo);
         gotasSuperficie(grafico, m, nivel, luz, tiempo);
+    }
+
+    /** Compuerta de inspeccion en el muro, con perimetro y bisagras. */
+    private static void compuertaInspeccion(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 1.34F;
+        float centro = m.lado(1.0F, dx * 0.72F);
+        float ancho = m.w() * dx * 0.16F;
+        float alto = m.h() * dx * 0.30F;
+        int x0 = Math.round(centro - ancho);
+        int x1 = Math.round(centro + ancho);
+        int y1 = Math.round(m.sueloEn(dx * 0.72F) - m.h() * dx * 0.18F);
+        int y0 = Math.round(y1 - alto);
+        int marco = Paleta.iluminar(Paleta.mezclar(nivel.junta, nivel.paredAlta, 0.28F), luz * 0.64F);
+        grafico.fill(x0 - 2, y0 - 2, x1 + 2, y1 + 2, marco);
+        grafico.fill(x0, y0, x1, y1, Paleta.conAlfa(Paleta.VANO, 0.72F));
+        grafico.fill(x0 + 3, y0 + 3, x1 - 3, y1 - 3,
+                Paleta.conAlfa(Paleta.mezclar(nivel.paredBaja, Paleta.VANO, 0.35F), 0.72F));
+        grafico.fill(x0, y0, x1, y0 + 2,
+                Paleta.conAlfa(Paleta.iluminar(nivel.techo, luz), 0.52F));
+        grafico.fill(x0 - 2, y1 - 2, x1 + 2, y1 + 1,
+                Paleta.iluminar(nivel.junta, luz * 0.70F));
+        int bisagra = Paleta.conAlfa(Paleta.iluminar(nivel.luz, luz * 0.68F), 0.78F);
+        grafico.fill(x1 - 2, y0 + 4, x1 + 1, y0 + 7, bisagra);
+        grafico.fill(x1 - 2, y1 - 8, x1 + 1, y1 - 5, bisagra);
+        grafico.fill(x0 + 4, y0 + alto / 2, x0 + 8, y0 + alto / 2 + 2,
+                Paleta.conAlfa(nivel.luz, 0.54F));
+    }
+
+    /** Tuberia de entrada que acaba sobre el agua y deja una gota pendiente. */
+    private static void tuberiaEntrada(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
+        float dx = 2.05F;
+        float x = m.lado(-1.0F, dx * 0.70F);
+        int grosor = Math.max(2, Math.round(m.w() * dx * 0.024F));
+        int y0 = Math.round(m.techoEn(dx * 0.38F));
+        int y1 = Math.round(m.sueloEn(dx * 0.88F));
+        int metal = Paleta.iluminar(Paleta.mezclar(nivel.junta, nivel.paredAlta, 0.22F), luz * 0.66F);
+        grafico.fill(Math.round(x - grosor), y0, Math.round(x + grosor), y1, metal);
+        grafico.fill(Math.round(x - grosor), y0 - grosor, Math.round(x + grosor * 3), y0 + grosor, metal);
+        grafico.fill(Math.round(x - grosor), y1 - grosor, Math.round(x + grosor * 2), y1 + grosor, metal);
+        int gotaY = y1 + Math.round(m.h() * dx * 0.05F);
+        float fase = (tiempo * 0.25F) % 1.0F;
+        int caida = gotaY + Math.round(m.h() * dx * 0.09F * fase);
+        grafico.fill(Math.round(x), caida, Math.round(x + grosor), caida + Math.max(2, grosor),
+                Paleta.conAlfa(Paleta.iluminar(nivel.luz, luz), 0.54F));
+    }
+
+    /** Marcas de nivel discretas, ancladas a una columna sumergida. */
+    private static void marcasNivelColumna(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 2.25F;
+        float x = m.lado(1.0F, dx * HILERA);
+        float y0 = m.techoEn(dx * 0.92F);
+        float y1 = m.sueloEn(dx);
+        int ancho = Math.max(6, Math.round(m.w() * dx * 0.13F));
+        int color = Paleta.conAlfa(Paleta.iluminar(nivel.techo, luz * 0.62F), 0.58F);
+        for (int i = 1; i <= 3; i++) {
+            int y = Math.round(y0 + (y1 - y0) * (i / 4.0F));
+            grafico.fill(Math.round(x - ancho), y, Math.round(x + ancho * 0.20F), y + 2, color);
+            grafico.fill(Math.round(x - ancho), y + 2, Math.round(x - ancho + 3), y + 4,
+                    Paleta.conAlfa(nivel.junta, 0.48F));
+        }
     }
 
     /**
@@ -165,7 +228,7 @@ public final class Cisterna implements Planta {
             float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
             float x = m.centro(dx);
             float y = m.sueloEn(Math.max(ORILLA, dx));
-            float titil = 0.85F + 0.15F * (float) Math.sin(tiempo * 1.5F + j);
+            float titil = Trazo.pulsoLuz(0.85F, 0.15F, tiempo, 1.5F, j);
             float at = Trazo.atenuar(luz, lej) * titil;
             float medio = Math.max(2.0F, m.w() * dx * 0.06F);
             // Un resplandor difuso subiendo desde el agua.

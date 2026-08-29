@@ -37,6 +37,14 @@ public final class Cripta implements Planta {
     /** Cuantas dovelas tiene el arco de la boveda a lo ancho. */
     private static final int DOVELAS = 9;
 
+    /** Buffer fijo para el aro del candil; el renderer corre en un solo hilo. */
+    private static final int SEGMENTOS_CANDIL = 24;
+    private static final int[] CANDIL_X = new int[SEGMENTOS_CANDIL];
+    private static final int[] CANDIL_Y = new int[SEGMENTOS_CANDIL];
+
+    /** Radios fijos de las runas, sin arrays temporales durante cada frame. */
+    private static final float[] RADIOS_RUNAS = {0.45F, 0.85F};
+
     @Override
     public int tramos() {
         return TRAMOS;
@@ -73,6 +81,8 @@ public final class Cripta implements Planta {
 
         Trazo.paredes(grafico, m, nivel, luz);
         sillares(grafico, m, nivel, luz);
+        nichoLateral(grafico, m, nivel, luz);
+        marcaPeregrinacion(grafico, m, nivel, luz);
         Trazo.manchas(grafico, m, nivel, luz, TRAMOS);
         columnas(grafico, m, nivel, luz);
         estandartes(grafico, m, nivel, luz, tiempo);
@@ -80,6 +90,7 @@ public final class Cripta implements Planta {
         // El fuego va al final: ilumina por encima de todo lo construido.
         antorchas(grafico, m, nivel, luz, tiempo);
         candil(grafico, m, nivel, luz, tiempo, pulso);
+        ceraCandil(grafico, m, nivel, luz);
     }
 
     /**
@@ -91,6 +102,9 @@ public final class Cripta implements Planta {
      */
     private static float fuego(float tiempo, float desfase) {
         float t = tiempo + desfase;
+        if (com.santipdr.jobsmenu.config.ConfigTurno.destellosReducidos()) {
+            return 1.0F;
+        }
         float v = 1.0F
                 + 0.06F * (float) Math.sin(t * 11.0F)
                 + 0.04F * (float) Math.sin(t * 17.3F + 1.7F)
@@ -176,6 +190,56 @@ public final class Cripta implements Planta {
             int y = (int) (y0 + (y1 - y0) * t);
             grafico.fill(x, y, x + Trazo.PASO, y + grosor, color);
         }
+    }
+
+    /** Nicho ciego lateral: profundidad arquitectonica fuera del eje de la hoja. */
+    private static void nichoLateral(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 1.55F;
+        float centro = m.der(dx * 0.72F);
+        float ancho = m.w() * dx * 0.12F;
+        float alto = m.h() * dx * 0.46F;
+        float y1 = m.sueloEn(dx * 0.90F) - m.h() * dx * 0.12F;
+        float y0 = y1 - alto;
+        int x0 = Math.round(centro - ancho);
+        int x1 = Math.round(centro + ancho);
+        int iy0 = Math.round(y0 + alto * 0.15F);
+        int iy1 = Math.round(y1);
+        grafico.fill(x0 - 2, Math.round(y0), x1 + 2, iy1 + 2,
+                Paleta.iluminar(Paleta.mezclar(nivel.junta, nivel.paredAlta, 0.35F), luz * 0.56F));
+        grafico.fill(x0, iy0, x1, iy1, Paleta.conAlfa(Paleta.VANO, 0.78F));
+        grafico.fill(x0 + 2, iy0 + 2, x1 - 2, iy1,
+                Paleta.conAlfa(Paleta.mezclar(Paleta.VANO, nivel.paredBaja, 0.25F), 0.72F));
+        grafico.fill(x0 - 2, Math.round(y0), x1 + 2, Math.round(y0 + 3),
+                Paleta.iluminar(nivel.junta, luz * 0.62F));
+        grafico.fill(x0 - 2, iy1 - 2, x0 + 1, iy1 + 1,
+                Paleta.conAlfa(nivel.paredBaja, 0.70F));
+        grafico.fill(x1 - 1, iy1 - 2, x1 + 2, iy1 + 1,
+                Paleta.conAlfa(nivel.paredBaja, 0.70F));
+    }
+
+    /** Marca de peregrinacion gastada en un sillar, fuera de la interfaz. */
+    private static void marcaPeregrinacion(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 1.38F;
+        int x = Math.round(m.izq(dx * 0.70F) + m.w() * dx * 0.035F);
+        int y = Math.round(m.techoEn(dx * 0.42F) + m.h() * dx * 0.50F);
+        int color = Paleta.conAlfa(Paleta.iluminar(nivel.junta, luz * 0.58F), 0.56F);
+        trazoLinea(grafico, x - 7, y, x + 8, y - 2, 2, color);
+        trazoLinea(grafico, x, y - 8, x - 1, y + 8, 2, color);
+        trazoLinea(grafico, x - 8, y + 8, x - 3, y + 12, 1, Paleta.conAlfa(color, 0.52F));
+        grafico.fill(x + 9, y - 1, x + 12, y + 1,
+                Paleta.conAlfa(nivel.paredBaja, 0.44F));
+    }
+
+    /** Cera acumulada bajo el candil: residuo localizado junto al fuego. */
+    private static void ceraCandil(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 1.72F;
+        int cx = Math.round(m.centro(dx));
+        int y = Math.round(m.sueloEn(dx));
+        int cera = Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, luz * 0.74F), 0.62F);
+        grafico.fill(cx - 13, y - 2, cx - 5, y + 1, cera);
+        grafico.fill(cx - 5, y - 4, cx + 6, y + 1, cera);
+        grafico.fill(cx + 6, y - 2, cx + 16, y + 1, cera);
+        grafico.fill(cx - 2, y - 7, cx + 2, y - 2, Paleta.conAlfa(cera, 0.48F));
     }
 
     /**
@@ -279,6 +343,15 @@ public final class Cripta implements Planta {
             // Ondeo lentisimo del pano.
             float onda = (float) Math.sin(tiempo * 0.6F + j) * ancho * 0.15F;
 
+            // La cuerda: del techo al asta. Sin esto la tela parece colgar de
+            // la nada, y una tela colgada de la nada es un rectangulo flotante.
+            float yTecho = m.techoEn(dx * 0.92F);
+            grafico.fill((int) x, (int) yTecho, (int) x + 1, (int) yTop,
+                    Paleta.conAlfa(Paleta.iluminar(nivel.junta, at * 0.55F), 0.50F));
+            // Asta horizontal.
+            grafico.fill((int) (x - ancho * 0.5F), (int) yTop - 1, (int) (x + ancho * 0.5F), (int) yTop,
+                    Paleta.conAlfa(Paleta.iluminar(nivel.junta, at * 0.70F), 0.80F));
+
             int tela = Paleta.iluminar(Trazo.velar(Paleta.mezclar(nivel.paredBaja, nivel.junta, 0.35F), nivel.niebla, lej, 0.4F), at * 0.9F);
             for (int k = 0; k < 8; k++) {
                 float f = k / 8.0F;
@@ -379,25 +452,22 @@ public final class Cripta implements Planta {
         int grosoAro = Math.max(2, (int) (radio * 0.16F));
 
         // El aro de madera: un anillo aproximado por segmentos.
-        int seg = 24;
-        int[] px = new int[seg];
-        int[] py = new int[seg];
-        for (int i = 0; i < seg; i++) {
-            double a = 2 * Math.PI * i / seg;
-            px[i] = (int) (cx + Math.cos(a) * radio);
-            py[i] = (int) (cy + Math.sin(a) * radio * 0.42F);   // aplastado: se ve en escorzo
+        for (int i = 0; i < SEGMENTOS_CANDIL; i++) {
+            double a = 2 * Math.PI * i / SEGMENTOS_CANDIL;
+            CANDIL_X[i] = (int) (cx + Math.cos(a) * radio);
+            CANDIL_Y[i] = (int) (cy + Math.sin(a) * radio * 0.42F);   // aplastado: se ve en escorzo
         }
-        for (int i = 0; i < seg; i++) {
-            int n = (i + 1) % seg;
-            trazoLinea(grafico, px[i], py[i], px[n], py[n], grosoAro, madera);
+        for (int i = 0; i < SEGMENTOS_CANDIL; i++) {
+            int n = (i + 1) % SEGMENTOS_CANDIL;
+            trazoLinea(grafico, CANDIL_X[i], CANDIL_Y[i], CANDIL_X[n], CANDIL_Y[n], grosoAro, madera);
         }
         // Aro interior.
-        for (int i = 0; i < seg; i++) {
-            double a = 2 * Math.PI * i / seg;
+        for (int i = 0; i < SEGMENTOS_CANDIL; i++) {
+            double a = 2 * Math.PI * i / SEGMENTOS_CANDIL;
             int ix = (int) (cx + Math.cos(a) * radio * 0.55F);
             int iy = (int) (cy + Math.sin(a) * radio * 0.55F * 0.42F);
-            int nxp = (int) (cx + Math.cos(2 * Math.PI * ((i + 1) % seg) / seg) * radio * 0.55F);
-            int nyp = (int) (cy + Math.sin(2 * Math.PI * ((i + 1) % seg) / seg) * radio * 0.55F * 0.42F);
+            int nxp = (int) (cx + Math.cos(2 * Math.PI * ((i + 1) % SEGMENTOS_CANDIL) / SEGMENTOS_CANDIL) * radio * 0.55F);
+            int nyp = (int) (cy + Math.sin(2 * Math.PI * ((i + 1) % SEGMENTOS_CANDIL) / SEGMENTOS_CANDIL) * radio * 0.55F * 0.42F);
             trazoLinea(grafico, ix, iy, nxp, nyp, Math.max(1, grosoAro / 2), madera);
         }
         // Los radios.
@@ -471,7 +541,7 @@ public final class Cripta implements Planta {
                     Paleta.conAlfa(Paleta.iluminar(color, luz), base * (0.6F + 0.4F * lej)));
         }
         // Dos anillos concentricos.
-        for (float rr : new float[] {0.45F, 0.85F}) {
+        for (float rr : RADIOS_RUNAS) {
             int seg = 20;
             for (int i = 0; i < seg; i++) {
                 double a0 = 2 * Math.PI * i / seg;

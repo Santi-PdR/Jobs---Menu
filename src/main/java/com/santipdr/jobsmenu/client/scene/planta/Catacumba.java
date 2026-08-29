@@ -54,6 +54,9 @@ public final class Catacumba implements Planta {
 
         Trazo.paredes(grafico, m, nivel, luz);
         sillaresIrregulares(grafico, m, nivel, luz);
+        drenajeSuelo(grafico, m, nivel, luz);
+        reparacionMuro(grafico, m, nivel, luz);
+        aranazosUmbral(grafico, m, nivel, luz);
         Trazo.manchas(grafico, m, nivel, luz, TRAMOS);
 
         nichos(grafico, m, nivel, luz, tiempo);
@@ -138,6 +141,55 @@ public final class Catacumba implements Planta {
         Trazo.juntasVerticales(grafico, m, nivel, luz, TRAMOS, 1.0F, 0.26F);
     }
 
+    /** Canal de humedad estrecho que sigue el suelo hacia el fondo. */
+    private static void drenajeSuelo(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        int inicio = Math.round(m.sueloEn(1.04F));
+        for (int y = inicio; y < m.alto(); y += Trazo.PASO) {
+            float dx = m.dy(y + Trazo.PASO * 0.5F);
+            if (dx <= 1.0F) {
+                continue;
+            }
+            float x = m.lado(-1.0F, dx * 0.70F);
+            int ancho = Math.max(2, (int) (m.w() * dx * 0.018F));
+            float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
+            grafico.fill(Math.round(x - ancho), y, Math.round(x + ancho), y + Trazo.PASO,
+                    Paleta.conAlfa(Paleta.iluminar(nivel.junta, Trazo.atenuar(luz, lej)), 0.62F));
+            if (((int) (dx * 9.0F)) % 4 == 0) {
+                grafico.fill(Math.round(x - ancho * 0.35F), y - 1,
+                        Math.round(x + ancho * 0.35F), y + 1,
+                        Paleta.conAlfa(Paleta.iluminar(nivel.luz, luz), 0.18F));
+            }
+        }
+    }
+
+    /** Sillar de reparacion reciente: mismo muro, mortero y valor distinto. */
+    private static void reparacionMuro(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 1.42F;
+        int x = Math.round(m.lado(-1.0F, dx * 0.86F));
+        int y = Math.round(m.techoEn(dx * 0.48F) + m.h() * dx * 0.56F);
+        int ancho = Math.max(7, Math.round(m.w() * dx * 0.16F));
+        int alto = Math.max(5, Math.round(m.h() * dx * 0.13F));
+        int piedra = Paleta.iluminar(Paleta.mezclar(nivel.paredAlta, nivel.junta, 0.28F), luz * 0.72F);
+        grafico.fill(x - ancho / 2, y, x + ancho / 2, y + alto, piedra);
+        grafico.fill(x - ancho / 2, y, x + ancho / 2, y + 1,
+                Paleta.conAlfa(Paleta.iluminar(nivel.techo, luz), 0.32F));
+        grafico.fill(x - ancho / 4, y + alto / 2, x - ancho / 4 + 1, y + alto,
+                Paleta.conAlfa(nivel.junta, 0.58F));
+        grafico.fill(x + ancho / 3, y + alto / 3, x + ancho / 3 + 1, y + alto,
+                Paleta.conAlfa(nivel.junta, 0.46F));
+    }
+
+    /** Aranazos cortos en un umbral de paso, anclados a la base. */
+    private static void aranazosUmbral(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 1.62F;
+        int x = Math.round(m.lado(1.0F, dx * 0.76F));
+        int y = Math.round(m.sueloEn(dx));
+        int color = Paleta.conAlfa(Paleta.iluminar(nivel.junta, luz * 0.70F), 0.72F);
+        trazoLinea(grafico, x - 13, y - 2, x - 5, y - 6, 1, color);
+        trazoLinea(grafico, x - 3, y - 1, x + 5, y - 5, 1, color);
+        trazoLinea(grafico, x + 7, y - 2, x + 14, y - 4, 1, color);
+    }
+
     /**
      * Los nichos excavados en las dos paredes.
      *
@@ -168,15 +220,18 @@ public final class Catacumba implements Planta {
                 // El hueco negro.
                 grafico.fill(nx0, ny0, nx1, ny1,
                         Paleta.conAlfa(Paleta.mezclar(nivel.fondo, nivel.niebla, 0.10F), 0.95F));
-                // El borde de piedra alrededor.
-                int borde = Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, lej, 0.4F), at * 0.85F);
-                grafico.fill(nx0 - 1, ny0 - 1, nx1 + 1, ny0, borde);
-                grafico.fill(nx0 - 1, ny1, nx1 + 1, ny1 + 1, borde);
-                grafico.fill(nx0 - 1, ny0, nx0, ny1, borde);
-                grafico.fill(nx1, ny0, nx1 + 1, ny1, borde);
+                // Paredes del hueco en sombra (el lado de dentro de la roca).
+                int cornisa = Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, lej, 0.4F), at * 0.35F);
+                grafico.fill(nx0, ny0, nx1, ny0 + 2, cornisa);
+                grafico.fill(nx0, ny0, nx0 + 2, ny1, cornisa);
+                grafico.fill(nx1 - 2, ny0, nx1, ny1, cornisa);
+                // El hueco se excava en la pared: el borde inferior es el
+                // alfeizar, iluminado por la luz del tunel, no un marco.
+                int alfeizar = Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, lej, 0.35F), at * 0.60F);
+                grafico.fill(nx0 - 2, ny1, nx1 + 2, ny1 + Math.max(2, (int) (alto * 0.10F)), alfeizar);
                 // Una vela votiva encendida en algunos, siempre los mismos.
                 if (Trazo.pseudo(500 + j * 7 + (signo + 1) * 40) > 0.55F) {
-                    float titil = 0.85F + 0.15F * (float) Math.sin(tiempo * 6.0F + j);
+                    float titil = Trazo.pulsoLuz(0.85F, 0.15F, tiempo, 6.0F, j);
                     float av = at * titil;
                     int vx = (nx0 + nx1) / 2;
                     int vy = ny1 - Math.max(2, (int) (alto * 0.16F));
@@ -199,7 +254,7 @@ public final class Catacumba implements Planta {
         float cx = m.centro(dx) + (float) Math.sin(tiempo * 0.6F) * m.w() * dx * 0.02F;
         float cy = m.techoEn(dx * 0.55F);
         float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
-        float titil = 0.88F + 0.12F * (float) Math.sin(tiempo * 7.0F);
+        float titil = Trazo.pulsoLuz(0.88F, 0.12F, tiempo, 7.0F, 0.0F);
         float at = Trazo.atenuar(luz, lej) * titil;
         float medio = Math.max(2.0F, m.w() * dx * 0.03F);
 

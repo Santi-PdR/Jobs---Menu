@@ -115,10 +115,16 @@ public final class Presencia {
      * la cuenta del reloj en tres lugares distintos.
      */
     public static float avance() {
-        if (!ConfigTurno.escenaViva() || ConfigTurno.movimientoReducido()) {
+        return avance(System.currentTimeMillis());
+    }
+
+    /** Avance de la manifestacion usando un instante ya capturado. */
+    public static float avance(long ahora) {
+        if (!ConfigTurno.escenaViva() || ConfigTurno.movimientoReducido()
+                || !ConfigTurno.presenciaFondo()) {
             return -1.0F;
         }
-        long fase = Math.floorMod(System.currentTimeMillis(), PERIODO_MS);
+        long fase = Math.floorMod(ahora, PERIODO_MS);
         if (fase >= TOTAL_MS) {
             return -1.0F;
         }
@@ -127,7 +133,11 @@ public final class Presencia {
 
     /** Si en este instante hay algo al fondo. */
     public static boolean presente() {
-        return visibilidad() > 0.01F;
+        return presente(System.currentTimeMillis());
+    }
+
+    public static boolean presente(long ahora) {
+        return visibilidad(ahora) > 0.01F;
     }
 
     /**
@@ -138,10 +148,16 @@ public final class Presencia {
      * en que se pueda decir "ahora aparecio".
      */
     public static float visibilidad() {
-        if (!ConfigTurno.escenaViva() || ConfigTurno.movimientoReducido()) {
+        return visibilidad(System.currentTimeMillis());
+    }
+
+    /** Visibilidad usando el instante compartido del frame. */
+    public static float visibilidad(long ahora) {
+        if (!ConfigTurno.escenaViva() || ConfigTurno.movimientoReducido()
+                || !ConfigTurno.presenciaFondo()) {
             return 0.0F;
         }
-        long fase = Math.floorMod(System.currentTimeMillis(), PERIODO_MS);
+        long fase = Math.floorMod(ahora, PERIODO_MS);
 
         if (fase < PRIMERA_MS) {
             return campana(fase / (float) PRIMERA_MS);
@@ -163,7 +179,11 @@ public final class Presencia {
      * de ser raro si sale una de cada cuatro veces.
      */
     public static int modo() {
-        long ciclo = Math.floorDiv(System.currentTimeMillis(), PERIODO_MS);
+        return modo(System.currentTimeMillis());
+    }
+
+    public static int modo(long ahora) {
+        long ciclo = Math.floorDiv(ahora, PERIODO_MS);
         float r = Trazo.pseudo((int) (ciclo * 31L + 7L));
         if (r < 0.52F) {
             return MODO_QUIETA;
@@ -179,7 +199,11 @@ public final class Presencia {
 
     /** Si estamos en la segunda aparicion, la que esta corrida de lugar. */
     private static boolean esSegunda() {
-        long fase = Math.floorMod(System.currentTimeMillis(), PERIODO_MS);
+        return esSegunda(System.currentTimeMillis());
+    }
+
+    private static boolean esSegunda(long ahora) {
+        long fase = Math.floorMod(ahora, PERIODO_MS);
         return fase >= PRIMERA_MS + HUECO_MS;
     }
 
@@ -198,7 +222,11 @@ public final class Presencia {
      * nadie va a poder senalar y que todo el mundo va a sentir.
      */
     public static float sombra() {
-        return 1.0F - 0.08F * visibilidad();
+        return sombra(System.currentTimeMillis());
+    }
+
+    public static float sombra(long ahora) {
+        return 1.0F - 0.08F * visibilidad(ahora);
     }
 
     /**
@@ -215,12 +243,18 @@ public final class Presencia {
      */
     public static void dibujar(GuiGraphics grafico, Nivel nivel,
                                Marco m, float luz, float piso) {
-        float visible = visibilidad() * luz;
+        dibujar(grafico, nivel, m, luz, piso, System.currentTimeMillis());
+    }
+
+    /** Dibuja con el mismo instante usado por escena, luz y audio. */
+    public static void dibujar(GuiGraphics grafico, Nivel nivel,
+                               Marco m, float luz, float piso, long ahora) {
+        float visible = visibilidad(ahora) * luz;
         if (visible <= 0.01F) {
             return;
         }
 
-        int modo = modo();
+        int modo = modo(ahora);
 
         // En el modo corte la campana se estrangula: la figura solo existe en
         // el pico y los flancos se comen todo el resto de la aparicion.
@@ -233,45 +267,57 @@ public final class Presencia {
 
         // Nunca en el centro exacto del vano: siempre corrida hacia un costado,
         // como si estuviera parada contra una de las paredes del fondo.
-        float lado = esSegunda() ? -0.34F : 0.41F;
+        float lado = esSegunda(ahora) ? -0.34F : 0.41F;
         float w = m.w();
 
         // Los pies apoyan donde este el piso de este recinto, no en el aire.
         float base = m.fy() + m.hb() * piso;
         float altura = m.h() * ALTURA;
 
-        float t = System.currentTimeMillis() / 1000.0F;
+        float t = ahora / 1000.0F;
         float alfa = ALFA_MAXIMO * visible;
         int tinte = tinte(nivel);
 
-        // En el modo doble hay dos siluetas; en los demas, una.
-        float[][] posiciones = modo == MODO_DOBLE
-                ? new float[][] {{lado, 1.0F, 1.0F}, {-lado * 0.86F, 0.62F, 0.88F}}
-                : new float[][] {{lado, 1.0F, 1.0F}};
+        // En el modo doble hay dos siluetas; en los demas, una. Sin arreglos
+        // por frame: el caso doble son dos llamadas explicitas.
+        dibujarAparicion(grafico, nivel, m, lado, 1.0F, 1.0F,
+                base, altura, w, alfa, tinte, modo, t);
+        if (modo == MODO_DOBLE) {
+            dibujarAparicion(grafico, nivel, m, -lado * 0.86F, 0.62F, 0.88F,
+                    base, altura, w, alfa, tinte, modo, t);
+        }
+    }
 
-        for (float[] pos : posiciones) {
-            float x = m.enX(1.0F, pos[0]);
-            float peso = pos[1];
-            float escala = pos[2];
+    /**
+     * Una de las apariciones: cuerpo (salvo sumergida) y su reflejo si el
+     * suelo del recinto lo devuelve. El vaiven usa la fraccion de posicion
+     * como fase, igual que antes, para que las dos siluetas del modo doble no
+     * respiren al unisono.
+     */
+    private static void dibujarAparicion(GuiGraphics grafico, Nivel nivel,
+                                         Marco m, float frac, float peso,
+                                         float escala, float base, float altura,
+                                         float w, float alfa, int tinte,
+                                         int modo, float t) {
+        float x = m.enX(1.0F, frac);
 
-            // Respiracion: un pixel largo, muy lento. Basta para que no se lea
-            // como un elemento pintado sobre la pared.
-            float vaiven = (float) Math.sin(t * 0.55F + pos[0]) * (w * 0.012F);
+        // Respiracion: un pixel largo, muy lento. Basta para que no se lea
+        // como un elemento pintado sobre la pared.
+        float vaiven = (float) Math.sin(t * 0.55F + frac) * (w * 0.012F);
 
-            // En sumergida no hay cuerpo: solo lo que devuelve el agua.
-            if (modo != MODO_SUMERGIDA) {
-                dibujarCuerpo(grafico, x + vaiven, base, altura * escala, w,
-                        alfa * peso, tinte);
-            }
+        // En sumergida no hay cuerpo: solo lo que devuelve el agua.
+        if (modo != MODO_SUMERGIDA) {
+            dibujarCuerpo(grafico, x + vaiven, base, altura * escala, w,
+                    alfa * peso, tinte);
+        }
 
-            // El reflejo. En las piscinas es la mitad del efecto: se ve antes
-            // el borron en el suelo que la figura misma. Cuando es lo unico que
-            // hay, se lo sube: tiene que sostener la escena solo.
-            if (nivel.reflejo > 0.20F) {
-                float fuerza = modo == MODO_SUMERGIDA ? 1.35F : 0.85F;
-                dibujarReflejo(grafico, x + vaiven, base, altura * escala, w,
-                        alfa * peso * nivel.reflejo * fuerza, tinte);
-            }
+        // El reflejo. En las piscinas es la mitad del efecto: se ve antes
+        // el borron en el suelo que la figura misma. Cuando es lo unico que
+        // hay, se lo sube: tiene que sostener la escena solo.
+        if (nivel.reflejo > 0.20F) {
+            float fuerza = modo == MODO_SUMERGIDA ? 1.35F : 0.85F;
+            dibujarReflejo(grafico, x + vaiven, base, altura * escala, w,
+                    alfa * peso * nivel.reflejo * fuerza, tinte, t);
         }
     }
 
@@ -353,10 +399,10 @@ public final class Presencia {
 
     /** El reflejo en el suelo mojado: estirado, deshecho y mucho mas tenue. */
     private static void dibujarReflejo(GuiGraphics grafico, float x, float base,
-                                       float altura, float w, float alfa, int tinte) {
+                                       float altura, float w, float alfa, int tinte,
+                                       float t) {
         float largo = altura * 0.70F;
         int tramos = 9;
-        float t = System.currentTimeMillis() / 1000.0F;
 
         for (int i = 0; i < tramos; i++) {
             float desde = i / (float) tramos;

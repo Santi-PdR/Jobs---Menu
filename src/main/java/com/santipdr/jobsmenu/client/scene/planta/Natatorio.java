@@ -63,6 +63,7 @@ public final class Natatorio implements Planta {
         Trazo.fondo(grafico, m, nivel, luz,
                 Paleta.mezclar(nivel.paredBaja, nivel.techo, 0.70F), 2.15F);
         testero(grafico, m, nivel, luz);
+        ventanaRota(grafico, m, nivel, luz);
 
         Trazo.plano(grafico, m, true, nivel.techo,
                 Paleta.mezclar(nivel.techo, nivel.niebla, 0.30F), nivel.niebla, luz, 0.44F);
@@ -70,6 +71,7 @@ public final class Natatorio implements Planta {
         claraboyas(grafico, m, nivel, luz);
 
         borde(grafico, m, nivel, luz);
+        desagueLateral(grafico, m, nivel, luz);
         agua(grafico, m, nivel, luz, tiempo);
         calles(grafico, m, nivel, luz, tiempo);
         // El reflejo de los tubos sobre la superficie va DESPUES de las calles:
@@ -84,6 +86,7 @@ public final class Natatorio implements Planta {
 
         // La escalerilla va despues de las paredes: esta por delante de ellas.
         escalerilla(grafico, m, nivel, luz);
+        marcasProfundidad(grafico, m, nivel, luz);
         caustica(grafico, m, nivel, luz, tiempo);
 
         // El recinto entero se oscurece en los bordes: cuanto mas lejos del
@@ -170,6 +173,80 @@ public final class Natatorio implements Planta {
         grafico.fill(Math.round(m.izq(CABECERA)), y1 - 2,
                 Math.round(m.der(CABECERA)), y1,
                 Paleta.conAlfa(Paleta.iluminar(nivel.junta, luz), 0.40F));
+    }
+
+    /**
+     * Ventana alta rota en el testero: no es una fuente de luz limpia, sino una
+     * abertura imperfecta que deja ver que el edificio sigue hacia otro lado.
+     */
+    private static void ventanaRota(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 1.18F;
+        float centro = m.centro(dx) - m.w() * dx * 0.27F;
+        float ancho = m.w() * dx * 0.22F;
+        float alto = m.h() * dx * 0.22F;
+        float y = m.techoEn(dx) + m.h() * dx * 0.18F;
+        int x0 = Math.round(centro - ancho * 0.5F);
+        int x1 = Math.round(centro + ancho * 0.5F);
+        int y0 = Math.round(y);
+        int y1 = Math.round(y + alto);
+        grafico.fill(x0 - 3, y0 - 3, x1 + 3, y1 + 3,
+                Paleta.iluminar(nivel.junta, luz * 0.62F));
+        grafico.fill(x0, y0, x1, y1, Paleta.conAlfa(Paleta.VANO, 0.76F));
+        int ox = Math.max(2, (x1 - x0) / 7);
+        int oy = Math.max(2, (y1 - y0) / 7);
+        // Cuatro paneles sobreviven; los dos cortes diagonales hacen legible la
+        // rotura sin convertirla en una estrella decorativa.
+        grafico.fill(x0 + ox, y0 + oy, x0 + (x1 - x0) / 2 - 2, y0 + oy * 2,
+                Paleta.conAlfa(nivel.luz, 0.25F));
+        grafico.fill(x0 + (x1 - x0) / 2 + 2, y0 + oy, x1 - ox, y0 + oy * 2,
+                Paleta.conAlfa(nivel.luz, 0.18F));
+        grafico.fill(x0 + ox, y1 - oy * 2, x0 + (x1 - x0) / 2 - 3, y1 - oy,
+                Paleta.conAlfa(nivel.luz, 0.18F));
+        grafico.fill(x0 + (x1 - x0) / 2 + 3, y1 - oy * 2, x1 - ox, y1 - oy,
+                Paleta.conAlfa(nivel.luz, 0.14F));
+        grafico.fill(x0 + (x1 - x0) / 2 - ox, y0 + oy,
+                x0 + (x1 - x0) / 2, y1 - oy,
+                Paleta.conAlfa(nivel.junta, 0.58F));
+        grafico.fill(x0 + ox, y0 + oy, x1 - ox, y0 + oy + 1,
+                Paleta.conAlfa(Paleta.iluminar(nivel.techo, luz), 0.28F));
+        grafico.fill(x0 + (x1 - x0) / 3, y0 + oy * 2,
+                x0 + (x1 - x0) / 3 + 2, y1 - oy * 2,
+                Paleta.conAlfa(nivel.junta, 0.48F));
+    }
+
+    /** Rejilla de desague lateral: un punto fisico para el agua que se va. */
+    private static void desagueLateral(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 2.35F;
+        int x = Math.round(m.izq(dx * VASO));
+        int y = Math.round(m.sueloEn(dx) - m.h() * dx * 0.035F);
+        int ancho = Math.max(7, Math.round(m.w() * dx * 0.13F));
+        int alto = Math.max(4, Math.round(m.h() * dx * 0.035F));
+        int marco = Paleta.iluminar(Paleta.mezclar(nivel.junta, nivel.techo, 0.30F), luz * 0.58F);
+        grafico.fill(x - 2, y - 2, x + ancho + 2, y + alto + 2, marco);
+        grafico.fill(x, y, x + ancho, y + alto, Paleta.conAlfa(Paleta.VANO, 0.68F));
+        for (int r = 1; r < 5; r++) {
+            int rx = x + r * ancho / 5;
+            grafico.fill(rx, y + 1, rx + 1, y + alto - 1,
+                    Paleta.conAlfa(nivel.junta, 0.76F));
+        }
+    }
+
+    /** Placas fisicas de profundidad, ancladas al borde y no flotando en azul. */
+    private static void marcasProfundidad(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float[] distancias = {1.72F, 2.15F, 2.72F};
+        for (int i = 0; i < distancias.length; i++) {
+            float dx = distancias[i];
+            int x = Math.round(m.der(dx * VASO) - m.w() * dx * 0.17F);
+            int y = Math.round(m.sueloEn(dx) - m.h() * dx * 0.04F);
+            int ancho = Math.max(8, Math.round(m.w() * dx * 0.12F));
+            int alto = Math.max(3, Math.round(m.h() * dx * 0.025F));
+            int placa = Paleta.iluminar(Paleta.mezclar(nivel.junta, nivel.paredBaja, 0.20F), luz * 0.76F);
+            grafico.fill(x, y, x + ancho, y + alto, placa);
+            grafico.fill(x + 2, y + alto, x + ancho - 2, y + alto + 1,
+                    Paleta.conAlfa(Paleta.VANO, 0.55F));
+            grafico.fill(x + ancho / 2, y + 1, x + ancho / 2 + 1, y + alto - 1,
+                    Paleta.conAlfa(nivel.techo, 0.22F));
+        }
     }
 
     /** Lo unico que ilumina esto entra por arriba, y no alcanza. */
@@ -303,8 +380,8 @@ public final class Natatorio implements Planta {
             int niebla = Paleta.mezclar(nivel.paredAlta, nivel.paredBaja, 0.50F);
             int paso = Math.max(Trazo.PASO * 8, (x1i - x0i) / 10);
             for (int jx = x0i; jx < x1i; jx += paso) {
-                float onda = (float) Math.sin(tiempo * 0.16F + jx * 0.010F + dy * 0.6F)
-                        + 0.6F * (float) Math.sin(tiempo * 0.09F - jx * 0.017F);
+                float onda = Trazo.pulsoLuz(0.0F, 1.0F, tiempo, 0.16F, jx * 0.010F + dy * 0.6F)
+                        + 0.6F * Trazo.pulsoLuz(0.0F, 1.0F, tiempo, 0.09F, -jx * 0.017F);
                 float jiron = 0.55F + 0.45F * onda;   // 0.1 .. 1.15 aprox
                 float a = humedad * Trazo.limitar(jiron, 0.0F, 1.2F);
                 if (a <= 0.006F) {

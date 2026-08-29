@@ -55,6 +55,9 @@ public final class Biblioteca implements Planta {
         Trazo.manchas(grafico, m, nivel, luz, TRAMOS);
 
         estanterias(grafico, m, nivel, luz);
+        paginasDobladas(grafico, m, nivel, luz);
+        polvoEstantes(grafico, m, nivel, luz);
+        condensacionVentanal(grafico, m, nivel, luz);
         lamparas(grafico, m, nivel, luz, tiempo);
     }
 
@@ -154,6 +157,62 @@ public final class Biblioteca implements Planta {
         }
     }
 
+    /** Paginas dobladas que sobresalen solo de los estantes cercanos. */
+    private static void paginasDobladas(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float[] profundidades = {1.35F, 1.75F};
+        for (int i = 0; i < profundidades.length; i++) {
+            float dx = profundidades[i];
+            int signo = i == 0 ? -1 : 1;
+            float x = m.lado(signo, dx * (HILERA - 0.04F));
+            float y = m.techoEn(dx * 0.86F) + m.h() * dx * (0.30F + i * 0.18F);
+            int ancho = Math.max(4, Math.round(m.w() * dx * 0.055F));
+            int alto = Math.max(5, Math.round(m.h() * dx * 0.11F));
+            int papel = Paleta.iluminar(Paleta.mezclar(nivel.paredAlta, nivel.techo, 0.35F), luz * 0.72F);
+            int x0 = Math.round(x - signo * ancho * 0.30F);
+            int x1 = Math.round(x + signo * ancho * 0.70F);
+            int y0 = Math.round(y);
+            int y1 = y0 + alto;
+            grafico.fill(Math.min(x0, x1), y0, Math.max(x0, x1), y1, papel);
+            grafico.fill(Math.min(x0, x1), y0, Math.max(x0, x1), y0 + 1,
+                    Paleta.conAlfa(Paleta.iluminar(nivel.luz, luz), 0.30F));
+            grafico.fill(Math.min(x0, x1) + ancho / 3, y0 + alto / 2,
+                    Math.min(x0, x1) + ancho / 3 + 1, y1,
+                    Paleta.conAlfa(nivel.junta, 0.45F));
+        }
+    }
+
+    /** Polvo pegado en algunos recovecos de balda, no una capa uniforme. */
+    private static void polvoEstantes(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        for (int i = 0; i < 5; i++) {
+            float dx = 1.35F + i * 0.42F;
+            int signo = i % 2 == 0 ? -1 : 1;
+            int x = Math.round(m.lado(signo, dx * (HILERA + 0.02F)));
+            int y = Math.round(m.techoEn(dx * 0.86F) + m.h() * dx * (0.62F + (i % 3) * 0.10F));
+            int ancho = Math.max(3, Math.round(m.w() * dx * 0.06F));
+            grafico.fill(x - ancho / 2, y, x + ancho, y + Math.max(1, Math.round(m.h() * dx * 0.012F)),
+                    Paleta.conAlfa(Paleta.mezclar(nivel.junta, nivel.paredAlta, 0.45F), 0.28F * luz));
+        }
+    }
+
+    /** Condensacion minima en el ventanal, fuera de los libros. */
+    private static void condensacionVentanal(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float suelo = m.sueloEn(1.0F);
+        float alto = m.h() * 1.35F;
+        int x0 = Math.round(m.izq(0.34F));
+        int y0 = Math.round(suelo - alto);
+        int y1 = Math.round(suelo - m.h() * 0.25F);
+        int ancho = Math.max(2, (Math.round(m.der(0.34F)) - x0) / 4);
+        for (int i = 0; i < 4; i++) {
+            int x = x0 + ancho * (i + 1);
+            int inicio = y0 + (y1 - y0) * (i + 1) / 7;
+            int largo = Math.max(3, (y1 - y0) / (8 + i));
+            grafico.fill(x, inicio, x + Math.max(1, ancho / 16), inicio + largo,
+                    Paleta.conAlfa(Paleta.iluminar(nivel.techo, luz), 0.16F));
+            grafico.fill(x - 1, inicio + largo, x + Math.max(2, ancho / 12), inicio + largo + 1,
+                    Paleta.conAlfa(nivel.luz, 0.20F));
+        }
+    }
+
     /**
      * Las lamparas de mesa de pantalla verde, entre los estantes.
      *
@@ -174,7 +233,7 @@ public final class Biblioteca implements Planta {
                 continue;
             }
             float y = m.sueloEn(dx * 0.60F);
-            float titil = 0.9F + 0.1F * (float) Math.sin(tiempo * 5.0F + j * 1.3F);
+            float titil = Trazo.pulsoLuz(0.9F, 0.1F, tiempo, 5.0F, j * 1.3F);
             float at = Trazo.atenuar(luz, lej) * titil;
             float medio = Math.max(1.5F, m.w() * dx * 0.028F);
 
