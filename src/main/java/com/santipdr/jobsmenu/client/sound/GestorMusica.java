@@ -113,6 +113,24 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         }
     }
 
+    /**
+     * Descarta cualquier referencia superviviente de la visita anterior.
+     *
+     * Al entrar a un mundo el motor puede vaciar sus canales sin llamar a
+     * {@link #tick()} otra vez. En ese caso isStopped() sigue devolviendo false
+     * aunque el sonido ya no exista en OpenAL. Una visita nueva debe crear una
+     * instancia nueva; una pantalla hija de la misma visita no llama a este
+     * metodo y conserva la posicion de la pista.
+     */
+    public static void nuevaVisita() {
+        GestorMusica anterior = activa;
+        activa = null;
+        reintento = 0;
+        if (anterior != null) {
+            anterior.stop();
+        }
+    }
+
     /** Invalida referencias del SoundEngine anterior tras F3+T o packs. */
     public static void recursosRecargados() {
         GestorMusica anterior = activa;
