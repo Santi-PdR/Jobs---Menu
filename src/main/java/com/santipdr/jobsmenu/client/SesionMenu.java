@@ -1,5 +1,6 @@
 package com.santipdr.jobsmenu.client;
 
+import com.santipdr.jobsmenu.client.sound.GestorMusica;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
@@ -22,6 +23,14 @@ public final class SesionMenu {
     }
 
     public static void abrir() {
+        // Al volver de un mundo, Minecraft puede haber retirado todos los
+        // canales del SoundEngine sin marcar como detenida nuestra instancia
+        // Java. Si se conserva esa referencia, asegurar() cree que REQUIEM
+        // sigue sonando y no crea una nueva. Solo una visita realmente nueva
+        // invalida la referencia; volver desde Opciones mantiene continuidad.
+        if (!activa) {
+            GestorMusica.nuevaVisita();
+        }
         activa = true;
     }
 
