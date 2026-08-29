@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Genera la identidad sonora completa de Jobs - Aviso a los ocupantes.
 
-Todo lo que suena en el mod nace aca. No hay una sola muestra de terceros:
-cada pieza se sintetiza desde ruido y osciladores, se le da cuerpo con filtros
-y se la mete en la sala que le corresponde con una reverberacion convolutiva
-construida a mano. Eso resuelve de paso la cuestion de licencias: el mod puede
-repartirse sin arrastrar derechos ajenos.
+Todo el audio final del mod se construye aca. Las camas, transiciones y
+sucesos nacen de ruido y osciladores; los gestos de interfaz se diseñan a partir
+de grabaciones CC0 archivadas en tools/crudo/. A todo se le da cuerpo con filtros
+y se lo mete en la sala que le corresponde con reverberacion convolutiva
+construida a mano. La separacion deja claro que las muestras de trabajo no son
+los archivos finales del JAR.
 
 El criterio de diseno, en una linea: nada tiene que llamar la atencion. Un
 menu que se escucha una hora seguida no puede tener nada agudo, nada corto y
@@ -370,9 +371,10 @@ def escribir(nombre: str, datos: np.ndarray, pico: float = 0.85) -> None:
 #
 # MATERIA PRIMA
 #
-# Sigue sin sintetizarse nada. A las 28 grabaciones de impacto se sumaron 18
-# de otras clases -roces, trinquetes, pestillos, objetos que se posan- del
-# mismo origen CC0. Eran justamente las clases que faltaban.
+# Los gestos de interfaz siguen sin sintetizarse desde cero. El repositorio
+# conserva 33 grabaciones CC0: impactos de distintos materiales y otras clases
+# de gesto -roces, trinquetes, pestillos y objetos que se posan-. Eran justamente
+# las envolventes que faltaban.
 #
 # Reglas que sobreviven, porque estas si eran correctas:
 #   - Ningun ataque instantaneo. Se redondea con suavizar_ataque().
@@ -871,7 +873,7 @@ def base_nivel5(dur: float = 22.0) -> np.ndarray:
     return reverberar(x, SALAS["biblioteca"], 0.18)
 
 
-def base_nivel6(dur: float = 25.0) -> np.ndarray:
+def base_nivel6(dur: float = 28.0) -> np.ndarray:
     """Nivel 6, el invernadero.
 
     Una nave grande de vidrio. La base es el aire moviendose bajo la cristalera
@@ -910,7 +912,7 @@ def base_nivel7(dur: float = 24.0) -> np.ndarray:
     return reverberar(x, SALAS["catacumbas"], 0.30)
 
 
-def base_nivel8(dur: float = 27.0) -> np.ndarray:
+def base_nivel8(dur: float = 29.0) -> np.ndarray:
     """Nivel 8, la cisterna.
 
     Un volumen de aire enorme sobre agua quieta. La base es el grave hondo del
@@ -932,7 +934,7 @@ def base_nivel8(dur: float = 27.0) -> np.ndarray:
     return reverberar(x, SALAS["cisterna"], 0.50)
 
 
-def base_nivel9(dur: float = 25.0) -> np.ndarray:
+def base_nivel9(dur: float = 28.0) -> np.ndarray:
     """Nivel 9, el salon del trono.
 
     Una nave alta y en ruinas, abierta al cielo por los boquetes del techo. La
@@ -1182,7 +1184,7 @@ def caracter_nivel5(dur: float = 33.0) -> np.ndarray:
     return reverberar(x, SALAS["biblioteca"], 0.22)
 
 
-def caracter_nivel6(dur: float = 35.0) -> np.ndarray:
+def caracter_nivel6(dur: float = 36.0) -> np.ndarray:
     """Nivel 6. El agua y las hojas del invernadero, siempre.
 
     Lo que se mueve aca es la humedad: condensacion goteando del vidrio a las
@@ -1241,7 +1243,7 @@ def caracter_nivel7(dur: float = 37.0) -> np.ndarray:
     return reverberar(x, SALAS["catacumbas"], 0.42)
 
 
-def caracter_nivel8(dur: float = 41.0) -> np.ndarray:
+def caracter_nivel8(dur: float = 43.0) -> np.ndarray:
     """Nivel 8. El agua de la cisterna, siempre, con su eco larguisimo.
 
     Gotas que caen de la boveda al agua, cada una con una cola enorme -el
@@ -1270,7 +1272,7 @@ def caracter_nivel8(dur: float = 41.0) -> np.ndarray:
     return reverberar(x, SALAS["cisterna"], 0.56)
 
 
-def caracter_nivel9(dur: float = 38.0) -> np.ndarray:
+def caracter_nivel9(dur: float = 42.0) -> np.ndarray:
     """Nivel 9. Las ruinas del salon del trono, moviendose con el viento.
 
     Lo que se oye aca es la tela y la piedra suelta: los estandartes rotos
@@ -1564,7 +1566,7 @@ def actividad_nivel5(dur: float = 51.0) -> np.ndarray:
     return reverberar(x, SALAS["biblioteca"], 0.40)
 
 
-def actividad_nivel6(dur: float = 53.0) -> np.ndarray:
+def actividad_nivel6(dur: float = 55.0) -> np.ndarray:
     """Nivel 6. El invernadero, donde el vidrio y las plantas se mueven solos.
 
     Sucesos verdes y de vidrio: un panel que cruje al dilatarse, una maceta de
@@ -1613,7 +1615,7 @@ def actividad_nivel7(dur: float = 55.0) -> np.ndarray:
     return reverberar(x, SALAS["catacumbas"], 0.68)
 
 
-def actividad_nivel8(dur: float = 59.0) -> np.ndarray:
+def actividad_nivel8(dur: float = 61.0) -> np.ndarray:
     """Nivel 8. La cisterna, donde cada suceso tarda cinco segundos en morir.
 
     Casi vacio y con la cola mas larga de todas: algo cayendo al agua en otra
@@ -1639,7 +1641,7 @@ def actividad_nivel8(dur: float = 59.0) -> np.ndarray:
     return reverberar(x, SALAS["cisterna"], 0.80)
 
 
-def actividad_nivel9(dur: float = 56.0) -> np.ndarray:
+def actividad_nivel9(dur: float = 61.0) -> np.ndarray:
     """Nivel 9. El salon del trono, donde la ruina se derrumba de a poco.
 
     Sucesos de piedra grande y madera vieja: un cascote que cae de lo alto, una
