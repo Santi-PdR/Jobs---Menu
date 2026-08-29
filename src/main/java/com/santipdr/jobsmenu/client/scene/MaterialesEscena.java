@@ -8,7 +8,7 @@ import net.minecraft.client.gui.GuiGraphics;
  * Microdetalle de material por familia de recinto.
  *
  * Mantiene el renderer sin texturas y rompe superficies demasiado limpias con
- * señales físicas: juntas, vetas, remaches, grietas, condensación y depósitos.
+ * senales fisicas: juntas, vetas, remaches, grietas, condensacion y depositos.
  * Todo es determinista por nivel para que no parezca ruido de pantalla.
  */
 public final class MaterialesEscena {
