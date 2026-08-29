@@ -133,7 +133,7 @@ public final class MezclaAudio {
             ultimoRoceNanos = ahora;
         }
         float tono = 0.98F + (float) Math.random() * 0.04F;
-        SoundEvent sonido = resolver(evento, SoundEvents.UI_BUTTON_CLICK);
+        SoundEvent sonido = resolver(evento, SoundEvents.UI_BUTTON_CLICK.value());
         Minecraft.getInstance().getSoundManager()
                 .play(SimpleSoundInstance.forUI(sonido, tono,
                         volumen * INTERFAZ * ConfigTurno.volumenAviso()));
@@ -141,7 +141,7 @@ public final class MezclaAudio {
 
     /** Un sonido de ambiente suelto, sin posicion, con tono y volumen dados. */
     public static void ambiental(RegistryObject<SoundEvent> evento, float volumen, float tono) {
-        SoundEvent sonido = resolver(evento, SoundEvents.AMBIENT_CAVE);
+        SoundEvent sonido = resolver(evento, SoundEvents.AMBIENT_CAVE.value());
         Minecraft.getInstance().getSoundManager()
                 .play(SimpleSoundInstance.forUI(sonido, tono,
                         volumen * ConfigTurno.volumenAviso()));

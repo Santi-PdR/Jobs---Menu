@@ -86,7 +86,7 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         if (activa != null && !activa.isStopped()) {
             return;
         }
-        SoundEvent tema = MezclaAudio.resolver(SonidosNivel.MUSICA_TEMA, SoundEvents.MUSIC_MENU);
+        SoundEvent tema = MezclaAudio.resolver(SonidosNivel.MUSICA_TEMA, SoundEvents.MUSIC_MENU.value());
         activa = new GestorMusica(tema);
         Minecraft.getInstance().getSoundManager().play(activa);
         // Un rastro en el log: si la musica no se oye, esto dice si al menos se

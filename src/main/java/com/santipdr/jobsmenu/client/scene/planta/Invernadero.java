@@ -155,9 +155,12 @@ public final class Invernadero implements Planta {
         grafico.fill(x0 - 3, yf - 2, x1 + 4, yf + 1,
                 Paleta.iluminar(nivel.junta, luz * 0.72F));
         int bisagra = Paleta.conAlfa(Paleta.iluminar(nivel.luz, luz * 0.70F), 0.80F);
-        grafico.fill(x0 - 1, y0 + alto / 4, x0 + 2, y0 + alto / 4 + 3, bisagra);
-        grafico.fill(x0 - 1, y0 + alto * 3 / 4, x0 + 2, y0 + alto * 3 / 4 + 3, bisagra);
-        grafico.fill(x1 - 9, y0 + alto / 2, x1 - 5, y0 + alto / 2 + 2,
+        int bisagraAltaY = y0 + Math.round(alto / 4.0F);
+        int bisagraBajaY = y0 + Math.round(alto * 3.0F / 4.0F);
+        int tiradorY = y0 + Math.round(alto / 2.0F);
+        grafico.fill(x0 - 1, bisagraAltaY, x0 + 2, bisagraAltaY + 3, bisagra);
+        grafico.fill(x0 - 1, bisagraBajaY, x0 + 2, bisagraBajaY + 3, bisagra);
+        grafico.fill(x1 - 9, tiradorY, x1 - 5, tiradorY + 2,
                 Paleta.conAlfa(nivel.luz, 0.62F));
     }
 

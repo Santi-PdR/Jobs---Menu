@@ -88,7 +88,8 @@ public final class Cisterna implements Planta {
         int bisagra = Paleta.conAlfa(Paleta.iluminar(nivel.luz, luz * 0.68F), 0.78F);
         grafico.fill(x1 - 2, y0 + 4, x1 + 1, y0 + 7, bisagra);
         grafico.fill(x1 - 2, y1 - 8, x1 + 1, y1 - 5, bisagra);
-        grafico.fill(x0 + 4, y0 + alto / 2, x0 + 8, y0 + alto / 2 + 2,
+        int tiradorY = y0 + Math.round(alto / 2.0F);
+        grafico.fill(x0 + 4, tiradorY, x0 + 8, tiradorY + 2,
                 Paleta.conAlfa(nivel.luz, 0.54F));
     }
 

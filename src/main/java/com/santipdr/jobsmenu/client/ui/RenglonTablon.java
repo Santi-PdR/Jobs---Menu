@@ -223,7 +223,8 @@ public class RenglonTablon extends AbstractButton {
         int colorEtiqueta = Paleta.conAlfa(
                 Paleta.mezclar(Paleta.tintaSecundaria(), Paleta.tintaPrincipal(), this.foco), tinta);
 
-        dibujarTexto(grafico, cliente, this.orden, x + SANGRIA_ORDEN, lineaBase, colorOrden, escala);
+        dibujarTexto(grafico, cliente, Component.literal(this.orden),
+                x + SANGRIA_ORDEN, lineaBase, colorOrden, escala);
         dibujarTexto(grafico, cliente, this.getMessage(), x + SANGRIA_ETIQUETA, lineaBase,
                 colorEtiqueta, escala);
 
