@@ -1,5 +1,16 @@
 # Registro de cambios
 
+## Segunda auditoría — 2026-08-29
+
+- Se ejecutó la segunda auditoría estática sobre `8e5c0ef`.
+- La auditoría quedó con 0 fallos y 1 aviso: falta `gradle-wrapper.jar`; el
+  procedimiento manual usa Gradle 8.1.1 descargado directamente.
+- Se registraron los ocho errores de `compileJava` detectados en Windows y su
+  corrección en `8e5c0ef`.
+- Se deja explícito que el build posterior a esa corrección, el JAR 0.10.0 y la
+  prueba dentro de Minecraft todavía están pendientes.
+- El informe completo está en [`docs/AUDITORIA_SEGUNDA.md`](docs/AUDITORIA_SEGUNDA.md).
+
 ## Corrección de entrega — 2026-08-29
 
 - Se corrigió el bloque PowerShell del README para que no cambie de rama ni
