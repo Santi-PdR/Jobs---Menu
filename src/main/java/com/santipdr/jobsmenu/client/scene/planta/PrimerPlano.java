@@ -386,7 +386,7 @@ public final class PrimerPlano {
             grafico.fill(vx - 2, vy, vx + 2, vy + 2, Paleta.conAlfa(hierro, 0.92F));
             // Cuerpo de vela.
             grafico.fill(vx - 1, vy - velaH, vx + 2, vy,
-                    Paleta.conAlfa(Paleta.iluminar(Trazo.velar(nivel.paredAlta, 0xFFF0DC, 0.35F), 0.75F * luz), 0.92F));
+                    Paleta.conAlfa(Paleta.iluminar(Paleta.mezclar(nivel.paredAlta, 0xFFF0DC, 0.35F), 0.75F * luz), 0.92F));
             // Derrame: chico y contenido, no un halo enorme.
             for (int k = 3; k >= 1; k--) {
                 float t = k / 3.0F;
