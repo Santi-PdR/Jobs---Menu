@@ -1,60 +1,82 @@
-# Compatibilidad con otros mods
+# Compatibilidad y despliegue
 
-> Anotado a partir de la lista de mods de la instancia `jobs-2` (Forge 47.x / 1.20.1).
-> Es un analisis por conocimiento de los mods, **no** una prueba en vivo: el sandbox donde
-> se genera este mod no tiene JDK ni puede cargar los otros `.jar`. Lo definitivo se
-> confirma en el PC del owner.
+## Perfil soportado
 
-## Resumen
+| Componente | Estado documentado |
+|---|---|
+| Minecraft | 1.20.1 |
+| Forge | 47.x |
+| Java | 17 |
+| Lado | Cliente; el servidor no necesita Jobs Menu |
+| Versión del mod | **0.10.0** |
+| Artefacto | `build/libs/jobsmenu-0.10.0.jar` |
 
-De los ~110 mods de la instancia, casi ninguno toca los menus: son de juego, de
-optimizacion, de render del mundo o cosmeticos in-game. Jobs vive en las pantallas
-(titulo, pausa, opciones), asi que el solapamiento es minimo. Hay pocos puntos a vigilar.
+Jobs Menu dibuja su menú y sus overlays sin reemplazar indiscriminadamente las
+pantallas de otros mods. Las opciones del mod viven en la pantalla nativa de
+Opciones mediante `OptionsList` y `OptionInstance`, por lo que se conservan la
+navegación, la narración, el foco, el teclado, el mouse y el scroll de vanilla.
+La compatibilidad efectiva con el modpack debe confirmarse dentro de Minecraft;
+la compilación no prueba el render ni el audio.
 
-## Puntos que importan
+## Instancia de referencia: SKLauncher `test-1`
 
-### AmbientSounds (audio) — atencion media
+La instancia usada para el despliegue documentado es:
 
-`AmbientSounds` es el unico mod de ambiente sonoro fuerte del pack. Segun su config puede
-sonar tambien en el menu principal; si lo hace, se **solapa** con REQUIEM y con las camas
-de ambiente de Jobs (que usan `SoundSource.MUSIC` y `AMBIENT`). No es un fallo ni un
-crash: son dos capas de sonido a la vez. Si molesta, apagar el ambiente de menu en uno de
-los dos. Todo el audio de Jobs se puede bajar o apagar desde **Condiciones de estancia**.
+```text
+C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\
+```
 
-### FastQuit (pausa) — resuelto por diseno
+El JAR debe quedar únicamente en:
 
-`FastQuit` acelera el guardado al salir de un mundo, enganchando la secuencia de guardado
-por debajo con mixins no intrusivos (no toca el boton de la pausa). La pausa propia de
-Jobs (`PantallaEstancia`) **replica exactamente** la secuencia de salida de vanilla
-verificada contra el codigo de 1.20.1 (`level.disconnect()` -> `clearLevel(...)` ->
-titulo / multijugador / Realms), asi que FastQuit sigue operando igual. Si aun asi
-apareciera un choque, la pausa propia se apaga con `pausa_propia = false` y vuelve la de
-vanilla.
+```text
+C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.10.0.jar
+```
 
-### Sin competencia por el menu de titulo
+Antes de abrir el juego, cierra Minecraft y retira sólo los JARs anteriores que
+coincidan con `jobsmenu-*.jar`. No copies backups, tags ni otros mods a `mods`.
+El bloque PowerShell del README comprueba el artefacto nuevo antes de borrar
+versiones viejas y guarda una copia fechada de la configuración del mod. Se pega
+directamente en una terminal nueva; no se genera ningún archivo de PowerShell.
 
-No hay ningun mod de menu custom (FancyMenu, CustomMainMenu, Prism, etc.) en la lista, asi
-que la sustitucion de la pantalla de titulo de Jobs queda sola.
+## Límites conocidos de integración
 
-### Ctrl+S (atajo oculto) — sin conflicto
+- Embeddium, Oculus, ImmediatelyFast, Sophisticated Backpacks/Core, Architectury,
+  Cloth Config, Controlling, Searchables, Chat Heads, 3D Skin Layers, TRansition,
+  TRender, LowDragLib y los demás mods del pack deben probarse en conjunto. Jobs
+  Menu no debe interceptar sus pantallas ni asumir que su renderer es el activo.
+- La mezcla de REQUIEM o de una pista local usa `Master` y el volumen propio del
+  mod; las camas ambientales respetan su canal ambiental. Hay que verificar en
+  vivo que el gestor de música, el silencio y la suspensión no dejen sonidos
+  huérfanos.
+- Los `RegistryObject<SoundEvent>` se resuelven con presencia comprobada. Un
+  registro ausente ya no puede tumbar el render de un widget: UI vuelve al click
+  vanilla y una cama ambiental faltante se omite con un único aviso de log.
+- GUI scales extremos, narración, alto contraste, texto grande, movimiento y
+  destellos reducidos requieren comprobación manual en la instancia.
+- La auditoría estática no reemplaza la prueba con `SoundEngine`, GPU,
+  redimensionado, suspensión ni el arranque real del modpack.
 
-Ningun mod de la lista captura Ctrl+S en pantallas. `Controlling`, `MouseTweaks`,
-`clientsort` y `zergatul.freecam` usan otras teclas y otros contextos.
+## Estado de las comprobaciones
 
-## Higiene del pack (no es por Jobs, pero conviene saberlo)
+| Comprobación | Estado |
+|---|---|
+| `python3 tools/verificar.py` | Superada: 0 avisos, 0 fallos |
+| JSON de idiomas | Superado |
+| `py_compile` de herramientas | Superado |
+| `git diff --check` | Superado en la última validación registrada |
+| `clean build --no-daemon` | **Pendiente para esta rama con Java 17**; la prueba Windows del 29/08 usó la rama 0.9.0 y Java 21, por lo que no certifica 0.10.0 |
+| Arranque Forge en `test-1` | Pendiente |
+| Audio, modpack, GPU y GUI scales | Pendientes de prueba manual |
 
-- **`notenoughcrashes` esta duplicado**: `4.4.7` y `4.4.9` a la vez. Dos versiones del
-  mismo mod pueden impedir el arranque. Conviene dejar solo la `4.4.9`.
-- **`jobsmenu-0.6.5.jar` esta viejo**: la instancia trae la 0.6.5; la version al dia es la
-  0.8.0. El bloque de despliegue del README borra los `jobsmenu-*.jar` viejos antes de
-  copiar, asi que al desplegar se corrige solo.
-- `cullleaves` **y** `CullLessLeaves` hacen casi lo mismo (culling de hojas). Redundante,
-  no rompe nada.
+La prueba de despliegue que terminó con `BUILD SUCCESSFUL` no debe marcarse
+como build de 0.10.0: se realizó en `arena/01a04e0d-jobs-menu` y el artefacto
+esperado no apareció. El bloque vigente del README detiene el proceso si la rama,
+la versión, Python o Java no coinciden.
 
-## Lo que no se pudo verificar
+La matriz de aceptación de fondos de la próxima etapa está en
+[`AUDITORIA_FONDOS_50X10.md`](AUDITORIA_FONDOS_50X10.md), y el registro de la
+corrección de entrega está en [`EVOLUCION_5.md`](EVOLUCION_5.md).
 
-Algunos nombres renombrados de la lista (`IMPR`, `paulbear`, `panasonic`, `turbopaja`,
-"Archivos Secretos...", etc.) no se pudieron identificar con certeza. Por el nombre no
-parecen mods de menu, pero sin abrirlos no hay garantia. Si alguno reemplaza el titulo o
-la pausa, se notaria al instante en el juego, y se resuelve con `menu_propio = false` o
-`pausa_propia = false`.
+Las incidencias que afectan a la validación runtime se mantienen en
+[`KNOWN_ISSUES.md`](../KNOWN_ISSUES.md). Las pruebas paso a paso están en
+[`checklist-manual.md`](checklist-manual.md).

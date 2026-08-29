@@ -1,36 +1,35 @@
-MUSICA HORNEADA EN EL JAR
-=========================
+MUSICA LOCAL DE JOBS MENU
+==========================
 
-Cualquier archivo .ogg que dejes en esta carpeta se mete DENTRO del JAR al
-compilar (.\gradlew build) como el tema del menu, reemplazando la pieza
-sintetizada que viene de fabrica. La musica viaja con el mod: quien instale
-el .jar la escucha sin tener que poner nada.
+La pista de fabrica del mod esta en:
 
-El nombre del archivo da igual: se toma el primer .ogg por orden alfabetico.
-Aqui esta REQUIEM-Forsaken-OST.ogg, que es la pista que suena.
+  src/main/resources/assets/jobsmenu/sounds/musica/defecto.ogg
+
+Este directorio `music/` no se copia al JAR. La referencia REQUIEM — Forsaken
+OST, de Emmy Z, no debe redistribuirse sin permiso escrito para la distribucion
+concreta. No pongas aqui una grabacion de terceros esperando que el build la
+incluya.
+
+Para usar una pista propia o autorizada sin recompilar, deja un archivo en la
+raiz de la instancia, dentro de:
+
+  jobsmenu-musica/
+
+Por ejemplo, en la instancia SKLauncher documentada:
+
+  C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\jobsmenu-musica\
+
+El mod crea la carpeta y este archivo de instrucciones si no existen. El nombre
+de la pista puede ser cualquiera; si hay varias, se alternan en cada arranque.
+No hace falta renombrar el archivo ni activar un paquete desde Opciones.
 
 REQUISITOS
 
-  - Formato OGG Vorbis (.ogg). Es el unico que Minecraft decodifica. Un MP3
-    renombrado no suena. Convertilo antes con cualquier editor de audio o un
-    conversor en linea.
-  - Si no hay ningun .ogg, el build usa el tema sintetizado por defecto y no
-    falla.
+  - OGG Vorbis real, con extension .ogg; renombrar un MP3 no lo convierte.
+  - Un solo canal (mono), para que Minecraft lo decodifique de forma consistente.
+  - La pista local permanece en la maquina del usuario y no entra en el JAR.
 
-EL CREDITO EN PANTALLA
-
-Al empezar a sonar, el menu muestra arriba a la derecha el credito de la
-pista: REQUIEM . Emmy Z . Forsaken OST. Se edita en los archivos de idioma:
-
-    src/main/resources/assets/jobsmenu/lang/es_es.json
-    src/main/resources/assets/jobsmenu/lang/en_us.json
-  claves  jobsmenu.credito.titulo  y  jobsmenu.credito.autor
-
-Se apaga con  credito_musica = false  en la configuracion del mod.
-
-SOBRE LOS DERECHOS
-
-REQUIEM es obra de Emmy Z (Forsaken OST), una autora identificable. Esta
-pista esta incluida por decision del owner para un server entre amigos, con
-el credito puesto. Para repartir el mod publicamente hace falta permiso
-escrito de la autora.
+Si no hay pista local, el mod usa su pista original. Una pista local no activa
+por error el credito de la obra de fabrica: el mod no conoce su autoria y no
+inventa atribuciones. El credito sólo se habilita para una pista empaquetada
+con permiso y con sus cadenas de idioma configuradas.
