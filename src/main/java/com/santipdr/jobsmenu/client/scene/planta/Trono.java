@@ -161,15 +161,19 @@ public final class Trono implements Planta {
             }
             float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
             int signo = Trazo.pseudo(310 + j) < 0.5F ? -1 : 1;
-            float cx = m.enX(dx, signo * 0.4F);
-            float cy = m.techoEn(dx * 0.5F);
-            float w = m.w() * dx * 0.18F;
-            float h = m.h() * dx * 0.10F;
-            // El cielo por el boquete: un gris apenas mas claro y frio.
-            grafico.fill((int) (cx - w), (int) (cy - h), (int) (cx + w), (int) (cy + h),
-                    Paleta.conAlfa(Paleta.iluminar(Paleta.mezclar(nivel.niebla, 0xFF8090A0, 0.4F),
-                            luz * 0.7F), 0.8F));
-            // El borde roto, dentado.
+            float cx = m.enX(dx, signo * 0.34F);
+            // El hueco pertenece al plano del techo: usar su misma profundidad
+            // evita los "cuadrados flotantes" que aparecian al proyectarlo con
+            // dx * 0.5. Es pequeno y asimetrico para que lea como ruina.
+            float cy = m.techoEn(dx);
+            float w = Math.max(3.0F, m.w() * dx * 0.095F);
+            float h = Math.max(2.0F, m.h() * dx * 0.045F);
+            int cielo = Paleta.conAlfa(Paleta.iluminar(Paleta.mezclar(nivel.niebla, 0xFF8090A0, 0.4F),
+                    luz * 0.7F), 0.82F);
+            grafico.fill((int) (cx - w), (int) (cy - h * 0.35F), (int) (cx + w * 0.72F), (int) (cy + h), cielo);
+            grafico.fill((int) (cx + w * 0.72F), (int) (cy - h * 0.10F), (int) (cx + w), (int) (cy + h * 0.65F), cielo);
+            // Una junta rota abajo lo integra en la placa, en vez de dibujar
+            // un rectangulo aislado sobre la escena.
             grafico.fill((int) (cx - w), (int) (cy + h), (int) (cx + w), (int) (cy + h) + 2,
                     Paleta.conAlfa(Paleta.iluminar(nivel.junta, Trazo.atenuar(luz, lej)), 0.6F));
         }

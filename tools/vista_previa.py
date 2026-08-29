@@ -3403,12 +3403,14 @@ def tro_boquetes(lz, m, nivel, luz) -> None:
             continue
         lej = limitar(1.0 / dx, 0.0, 1.0)
         signo = -1 if pseudo(310 + j) < 0.5 else 1
-        cx = m.en_x(dx, signo * 0.4)
-        cy = m.techo_en(dx * 0.5)
-        w = m.w * dx * 0.18
-        h = m.h * dx * 0.10
-        lz.fill(int(cx - w), int(cy - h), int(cx + w), int(cy + h),
-                con_alfa(iluminar(mezclar(nivel.niebla, 0xFF8090A0, 0.4), luz * 0.7), 0.8))
+        cx = m.en_x(dx, signo * 0.34)
+        # El hueco sigue el mismo plano del techo; asi no parece flotante.
+        cy = m.techo_en(dx)
+        w = max(3.0, m.w * dx * 0.095)
+        h = max(2.0, m.h * dx * 0.045)
+        cielo = con_alfa(iluminar(mezclar(nivel.niebla, 0xFF8090A0, 0.4), luz * 0.7), 0.82)
+        lz.fill(int(cx - w), int(cy - h * 0.35), int(cx + w * 0.72), int(cy + h), cielo)
+        lz.fill(int(cx + w * 0.72), int(cy - h * 0.10), int(cx + w), int(cy + h * 0.65), cielo)
         lz.fill(int(cx - w), int(cy + h), int(cx + w), int(cy + h) + 2,
                 con_alfa(iluminar(nivel.junta, atenuar(luz, lej)), 0.6))
 
