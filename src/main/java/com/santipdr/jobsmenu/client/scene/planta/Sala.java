@@ -179,10 +179,12 @@ public final class Sala implements Planta {
     }
 
     /**
-     * Las marcas rectangulares que quedan donde hubo algo colgado.
+     * Las marcas donde hubo algo colgado: el empapelado menos desvaido.
      *
-     * No hay cuadros: hay el rectangulo mas limpio que dejo el cuadro cuando
-     * se lo llevaron. Es el detalle que dice que aca antes trabajaba gente.
+     * El papel que el cuadro protegio del sol es MAS OSCURO y rico que el
+     * resto; antes la marca se pintaba mas clara y se leia como un rectangulo
+     * luminoso flotante. Ademas la alfa se modula por ruido, asi el contorno
+     * se quiebra como el papel real y no es una linea recta.
      */
     private static void cuadros(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
         for (int j = 3; j < TRAMOS; j++) {
@@ -200,12 +202,16 @@ public final class Sala implements Planta {
                 continue;
             }
 
+            int tinta = Paleta.mezclar(nivel.paredAlta, 0xFF000000, 0.42F);
             for (int col = Math.max(0, x0); col < Math.min(m.ancho(), x1); col++) {
                 float dxc = m.dx(col + 0.5F);
                 float centro = m.techoEn(dxc * 0.30F);
                 float medio = m.h() * dxc * 0.22F;
+                // Alfa por columna: el contorno se quiebra como el papel real.
+                float quiebre = 0.70F + 0.60F * Trazo.pseudo(888 + col * 7);
+                float alfa = (0.10F * lej + 0.04F) * quiebre;
                 grafico.fill(col, (int) (centro - medio), col + 1, (int) (centro + medio),
-                        Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, luz), 0.16F * lej + 0.06F));
+                        Paleta.conAlfa(Paleta.iluminar(tinta, luz), alfa));
             }
         }
     }

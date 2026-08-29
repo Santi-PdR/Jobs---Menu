@@ -354,32 +354,48 @@ public final class PrimerPlano {
                 Paleta.conAlfa(Paleta.iluminar(nivel.luz, luz * llama), 0.30F));
     }
 
-    /** Un candelabro bajo sobre la mesa, visto de canto, con dos velas vivas. */
+    /**
+     * Un candelabro bajo sobre la mesa, visto de canto, con dos velas vivas.
+     *
+     * Antes el brazo cruzaba el pie a mitad de altura y las velas eran dos
+     * puntos: a distancia se leia como una cruz flotante en la pared. Ahora el
+     * brazo nace cerca de la copa, tiene su caida y las velas son mas altas,
+     * con su copa de hierro: la silueta dice "candelabro" de una sola mirada.
+     */
     private static void candelabroMesa(GuiGraphics grafico, Nivel nivel, int x, int base,
                                        Marco m, float luz, float tiempo) {
         int alto = (int) (m.alto() * 0.10F);
-        int hierro = Paleta.iluminar(nivel.junta, 0.45F + 0.25F * luz);
-        // Pie y brazo.
-        grafico.fill(x - 1, base - alto, x + 2, base, Paleta.conAlfa(hierro, 0.92F));
-        grafico.fill(x - (int) (m.ancho() * 0.03F), base - (int) (alto * 0.55F),
-                x + (int) (m.ancho() * 0.03F), base - (int) (alto * 0.55F) + 2,
+        int hierro = Paleta.iluminar(Paleta.mezclar(nivel.junta, 0xFF000000, 0.25F), 0.55F + 0.25F * luz);
+        // Pie.
+        int pieY = base - alto;
+        grafico.fill(x - 1, pieY, x + 2, base, Paleta.conAlfa(hierro, 0.92F));
+        // Brazo a la altura de la copa, con caida en el medio.
+        int brazoY = pieY + (int) (alto * 0.12F);
+        grafico.fill(x - (int) (m.ancho() * 0.035F), brazoY, x + (int) (m.ancho() * 0.035F), brazoY + 2,
                 Paleta.conAlfa(hierro, 0.92F));
-        // Dos velas.
+        grafico.fill(x - (int) (m.ancho() * 0.012F), brazoY + (int) (alto * 0.06F),
+                x + (int) (m.ancho() * 0.012F), brazoY + (int) (alto * 0.06F) + 2,
+                Paleta.conAlfa(hierro, 0.85F));
+        // Dos velas, cada una con su copa.
         for (int s = -1; s <= 1; s += 2) {
-            int vx = x + s * (int) (m.ancho() * 0.03F);
-            int vy = base - (int) (alto * 0.55F);
+            int vx = x + s * (int) (m.ancho() * 0.035F);
+            int vy = brazoY;
             float llama = 1.0F + 0.10F * (float) Math.sin(tiempo * 13.0F + s);
+            int velaH = (int) (alto * 0.26F);
+            // Copa.
+            grafico.fill(vx - 2, vy, vx + 2, vy + 2, Paleta.conAlfa(hierro, 0.92F));
+            // Cuerpo de vela.
+            grafico.fill(vx - 1, vy - velaH, vx + 2, vy,
+                    Paleta.conAlfa(Paleta.iluminar(Trazo.velar(nivel.paredAlta, 0xFFF0DC, 0.35F), 0.75F * luz), 0.92F));
             // Derrame: chico y contenido, no un halo enorme.
             for (int k = 3; k >= 1; k--) {
                 float t = k / 3.0F;
                 float e = m.ancho() * 0.010F * (1.0F + t * 2.2F);
-                grafico.fill((int) (vx - e), (int) (vy - e), (int) (vx + e), (int) (vy + e * 0.6F),
+                grafico.fill((int) (vx - e), (int) (vy - velaH - e), (int) (vx + e), (int) (vy - velaH + e * 0.6F),
                         Paleta.conAlfa(nivel.luz, 0.07F * luz * llama * (1.0F - t * 0.5F)));
             }
-            // Cuerpo de vela y nucleo.
-            grafico.fill(vx - 1, vy - (int) (alto * 0.22F), vx + 1, vy,
-                    Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, 0.7F * luz), 0.9F));
-            grafico.fill(vx - 1, vy - (int) (alto * 0.30F), vx + 1, vy - (int) (alto * 0.22F),
+            // Nucleo de la llama.
+            grafico.fill(vx - 1, vy - velaH - (int) (alto * 0.14F), vx + 1, vy - velaH,
                     Paleta.conAlfa(Paleta.iluminar(0xFFFFF3D8, Math.min(1.0F, luz * llama * 1.4F)), 0.95F));
         }
     }
@@ -549,12 +565,19 @@ public final class PrimerPlano {
         int vx = w - jamba / 2;
         int vy = (int) (h * 0.55F);
         float titil = 0.85F + 0.15F * (float) Math.sin(tiempo * 6.5F);
-        for (int k = 4; k >= 1; k--) {
-            float t = k / 4.0F;
-            float e = w * 0.03F * (1.0F + t * 2.2F);
-            grafico.fill((int) (vx - e), (int) (vy - e), (int) (vx + e), (int) (vy + e * 0.6F),
-                    Paleta.conAlfa(nivel.luz, 0.08F * luz * titil * (1.0F - t * 0.5F)));
+        // Halo corto, centrado en la LLAMA (no en el pie de la vela), con mas
+        // capas y menos alfa: cinco rectangulos pequenos escalonados dejan de
+        // leerse como una caja y pasan a ser un resplandor difuso.
+        int cy = vy - (int) (h * 0.055F);
+        for (int k = 5; k >= 1; k--) {
+            float t = k / 5.0F;
+            float e = w * 0.006F * (1.0F + t * 0.9F);
+            grafico.fill((int) (vx - e), (int) (cy - e), (int) (vx + e), (int) (cy + e * 0.7F),
+                    Paleta.conAlfa(nivel.luz, 0.040F * luz * titil * (1.0F - t * 0.55F)));
         }
+        // Un saliente de piedra donde descansa la vela: no flota en la jamba.
+        grafico.fill(vx - 6, vy + 1, vx + 6, vy + 4,
+                Paleta.conAlfa(Paleta.iluminar(nivel.junta, 0.4F * luz), 0.85F));
         grafico.fill(vx - 2, vy - (int) (h * 0.05F), vx + 2, vy,
                 Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, 0.6F * luz), 0.9F));
         grafico.fill(vx - 1, vy - (int) (h * 0.065F), vx + 1, vy - (int) (h * 0.05F),

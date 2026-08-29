@@ -157,12 +157,10 @@ public final class DireccionArte {
     private static void catacumbas(GuiGraphics g, int w, int h, Nivel n, float luz, float t) {
         cadena(g, (int) (w * 0.48F), 0, (int) (h * 0.28F), n.junta, luz, 9);
         antorcha(g, (int) (w * 0.13F), (int) (h * 0.47F), n.luz, luz * 0.85F, t, 0.7F);
-        // Nichos sugeridos con dobles bordes, para que la piedra gane volumen.
-        for (int i = 0; i < 3; i++) {
-            int y = (int) (h * (0.30F + i * 0.15F));
-            nicho(g, (int) (w * 0.06F), y, w, h, n, luz);
-            nicho(g, (int) (w * 0.88F), y, w, h, n, luz);
-        }
+        // Los nichos los dibuja la escena de la planta (Catacumba.nichos),
+        // excavados con su alfeizar. Los que habia aca, con dobles bordes
+        // claros sobre un fondo plano, se superponian a esos y se leian como
+        // cuadros flotantes en la pared: retirados en la revision 0.9.0.
     }
 
     private static void cisterna(GuiGraphics g, int w, int h, Nivel n, float luz, float t) {
@@ -220,17 +218,34 @@ public final class DireccionArte {
                 Paleta.conAlfa(color, 0.75F * luz * p));
     }
 
+    /**
+     * Antorcha de pared con soporte de hierro.
+     *
+     * El soporte es lo que evita que la llama se lea como un rectangulo
+     * flotando: una mensula vertical anclada a la pared, un brazo que sale
+     * hacia la escena y una copa donde descansa el fuego. La llama titila con
+     * su propia fase, como en la cripta.
+     */
     private static void antorcha(GuiGraphics g, int x, int y, int color,
                                  float luz, float t, float fase) {
         float p = 0.75F + 0.25F * (float) Math.sin(t * 7.0F + fase);
-        g.fill(x - 20, y - 16, x + 20, y + 18,
+        int hierro = Paleta.mezclar(Paleta.VANO, color, 0.22F);
+        // Soporte vertical contra la pared (quien sostiene la mensula).
+        g.fill(x - 1, y - 14, x + 2, y + 20, Paleta.conAlfa(hierro, 0.85F));
+        // Brazo: sale de la pared y termina debajo de la llama.
+        g.fill(x - 1, y + 8, x + 6, y + 12, Paleta.conAlfa(hierro, 0.80F));
+        // Copa del fuego.
+        g.fill(x, y + 2, x + 4, y + 9, Paleta.conAlfa(hierro, 0.90F));
+        // Derrame calido.
+        g.fill(x - 20, y - 16, x + 24, y + 18,
                 Paleta.conAlfa(color, 0.026F * luz * p));
-        g.fill(x - 8, y - 8, x + 8, y + 10,
+        g.fill(x - 8, y - 8, x + 12, y + 10,
                 Paleta.conAlfa(color, 0.075F * luz * p));
-        g.fill(x - 2, y - 8, x + 3, y + 3,
+        // Llama: nucleo y punta clara.
+        g.fill(x, y - 8, x + 5, y + 3,
                 Paleta.conAlfa(color, 0.80F * luz));
-        g.fill(x - 1, y + 3, x + 1, y + 12,
-                Paleta.conAlfa(Paleta.VANO, 0.70F));
+        g.fill(x + 1, y - 12, x + 4, y - 6,
+                Paleta.conAlfa(Paleta.mezclar(color, 0xFFF3D8, 0.60F), 0.70F * luz * p));
     }
 
     private static void cadena(GuiGraphics g, int x, int y0, int y1,
@@ -274,14 +289,4 @@ public final class DireccionArte {
         }
     }
 
-    private static void nicho(GuiGraphics g, int x, int y, int w, int h,
-                              Nivel n, float luz) {
-        int nw = Math.max(12, w / 18);
-        int nh = Math.max(14, h / 10);
-        g.fill(x, y, x + nw, y + nh, Paleta.conAlfa(Paleta.VANO, 0.32F));
-        g.fill(x + 2, y + 2, x + nw - 2, y + nh - 2,
-                Paleta.conAlfa(n.paredBaja, 0.10F * luz));
-        g.fill(x + 4, y + 4, x + nw - 4, y + nh - 4,
-                Paleta.conAlfa(Paleta.VANO, 0.26F));
-    }
 }

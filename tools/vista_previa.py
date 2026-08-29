@@ -979,10 +979,9 @@ def invernadero_arte(lz, w, h, nivel, luz, t) -> None:
 def catacumbas_arte(lz, w, h, nivel, luz, t) -> None:
     cadena(lz, int(w * 0.48), 0, int(h * 0.28), nivel.junta, luz, 9)
     antorcha(lz, int(w * 0.13), int(h * 0.47), nivel.luz, luz * 0.85, t, 0.7)
-    for i in range(3):
-        y = int(h * (0.30 + i * 0.15))
-        nicho(lz, int(w * 0.06), y, w, h, nivel, luz)
-        nicho(lz, int(w * 0.88), y, w, h, nivel, luz)
+    # Los nichos los dibuja la escena de la planta (cat_nichos), excavados con
+    # su alfeizar. Los de aca, con dobles bordes claros, se superponian a esos
+    # y se leian como cuadros flotantes en la pared: retirados en 0.9.0.
 
 
 def cisterna_arte(lz, w, h, nivel, luz, t) -> None:
@@ -1028,11 +1027,21 @@ def pulso(lz, x, y, color, luz, t, fase) -> None:
 
 
 def antorcha(lz, x, y, color, luz, t, fase) -> None:
+    """Antorcha de pared con soporte de hierro (espejo de DireccionArte.java)."""
     p = 0.75 + 0.25 * math.sin(t * 7.0 + fase)
-    lz.fill(x - 20, y - 16, x + 20, y + 18, con_alfa(color, 0.026 * luz * p))
-    lz.fill(x - 8, y - 8, x + 8, y + 10, con_alfa(color, 0.075 * luz * p))
-    lz.fill(x - 2, y - 8, x + 3, y + 3, con_alfa(color, 0.80 * luz))
-    lz.fill(x - 1, y + 3, x + 1, y + 12, con_alfa(VANO, 0.70))
+    hierro = mezclar(VANO, color, 0.22)
+    # Soporte vertical contra la pared (quien sostiene la mensula).
+    lz.fill(x - 1, y - 14, x + 2, y + 20, con_alfa(hierro, 0.85))
+    # Brazo: sale de la pared y termina debajo de la llama.
+    lz.fill(x - 1, y + 8, x + 6, y + 12, con_alfa(hierro, 0.80))
+    # Copa del fuego.
+    lz.fill(x, y + 2, x + 4, y + 9, con_alfa(hierro, 0.90))
+    # Derrame calido.
+    lz.fill(x - 20, y - 16, x + 24, y + 18, con_alfa(color, 0.026 * luz * p))
+    lz.fill(x - 8, y - 8, x + 12, y + 10, con_alfa(color, 0.075 * luz * p))
+    # Llama: nucleo y punta clara.
+    lz.fill(x, y - 8, x + 5, y + 3, con_alfa(color, 0.80 * luz))
+    lz.fill(x + 1, y - 12, x + 4, y - 6, con_alfa(mezclar(color, 0xFFF3D8, 0.60), 0.70 * luz * p))
 
 
 def cadena(lz, x, y0, y1, color, luz, eslabones) -> None:
@@ -1281,7 +1290,12 @@ def sala_zocalo(lz, m, nivel, luz) -> None:
 
 
 def sala_cuadros(lz, m, nivel, luz) -> None:
-    """La marca mas limpia que dejo el cuadro cuando se lo llevaron."""
+    """La marca que dejo el cuadro: el empapelado menos desvaido que el resto.
+
+    Antes se pintaba MAS claro que la pared y se leia como un rectangulo
+    luminoso flotante. El papel protegido por el cuadro es mas oscuro y rico;
+    y con la alfa modulada por ruido los bordes dejan de ser una linea recta.
+    """
     for j in range(3, SALA_TRAMOS):
         if pseudo(820 + j) > 0.38:
             continue
@@ -1293,12 +1307,16 @@ def sala_cuadros(lz, m, nivel, luz) -> None:
         x1 = int(max(m.lado(signo, dxa), m.lado(signo, dxb)))
         if x1 <= 0 or x0 >= m.ancho or x1 - x0 < 3:
             continue
+        tinta = mezclar(nivel.pared_alta, 0xFF000000, 0.42)
         for col in range(max(0, x0), min(m.ancho, x1)):
             dxc = m.dx(col + 0.5)
             centro = m.techo_en(1.0 * dxc * 0.30)
             medio = m.h * dxc * 0.22
+            # Alfa por columna: el contorno se quiebra como el papel real.
+            quiebre = 0.70 + 0.60 * pseudo(888 + col * 7)
+            alfa = (0.10 * lej + 0.04) * quiebre
             lz.fill(col, int(centro - medio), col + 1, int(centro + medio),
-                    con_alfa(iluminar(nivel.pared_alta, luz), 0.16 * lej + 0.06))
+                    con_alfa(iluminar(tinta, luz), alfa))
 
 
 # --------------------------------------------------------------------------
@@ -2350,6 +2368,13 @@ def cri_estandartes(lz, m, nivel, luz, tiempo) -> None:
         y_top = m.techo_en(dx * 0.60)
         alto = m.h * dx * 0.55
         onda = math.sin(tiempo * 0.6 + j) * ancho * 0.15
+        # La cuerda: del techo al asta. Sin esto la tela parece colgar de la
+        # nada, y una tela colgada de la nada es un rectangulo flotante.
+        y_techo = m.techo_en(dx * 0.92)
+        lz.fill(int(x), int(y_techo), int(x) + 1, int(y_top),
+                con_alfa(iluminar(nivel.junta, at * 0.55), 0.50))
+        lz.fill(int(x - ancho * 0.5), int(y_top) - 1, int(x + ancho * 0.5), int(y_top),
+                con_alfa(iluminar(nivel.junta, at * 0.70), 0.80))
         tela = iluminar(velar(mezclar(nivel.pared_baja, nivel.junta, 0.35), nivel.niebla, lej, 0.4), at * 0.9)
         for k in range(8):
             f = k / 8.0
@@ -2499,25 +2524,37 @@ def pp_cripta(lz, m, nivel, luz, tiempo) -> None:
     for k in range(1, 4):
         vy = tapa_y - espesor + k * espesor // 4
         lz.fill(x0, vy, x1, vy + 1, con_alfa(0x000000, 0.10))
-    # Candelabro de mesa.
+    # Candelabro de mesa: un pie, un brazo corto con sus dos copas y dos velas
+    # altas. Antes el brazo cruzaba el pie a mitad de altura y las velas eran
+    # dos puntos: a distancia se leia como una cruz flotante en la pared.
     velax = int(lz.ancho * 0.30 + balance * 1.4)
     alto = int(lz.alto * 0.10)
-    hierro = iluminar(nivel.junta, 0.45 + 0.25 * luz)
-    lz.fill(velax - 1, tapa_y - espesor - alto, velax + 2, tapa_y - espesor, con_alfa(hierro, 0.92))
-    lz.fill(velax - int(lz.ancho * 0.03), tapa_y - espesor - int(alto * 0.55),
-            velax + int(lz.ancho * 0.03), tapa_y - espesor - int(alto * 0.55) + 2, con_alfa(hierro, 0.92))
+    hierro = iluminar(mezclar(nivel.junta, 0x000000, 0.25), 0.55 + 0.25 * luz)
+    pie_y = tapa_y - espesor - alto
+    lz.fill(velax - 1, pie_y, velax + 2, tapa_y - espesor, con_alfa(hierro, 0.92))
+    # Brazo a la altura de la copa, con caida en el medio (silueta de candelabro).
+    brazo_y = pie_y + int(alto * 0.12)
+    lz.fill(velax - int(lz.ancho * 0.035), brazo_y, velax + int(lz.ancho * 0.035), brazo_y + 2,
+            con_alfa(hierro, 0.92))
+    lz.fill(velax - int(lz.ancho * 0.012), brazo_y + int(alto * 0.06),
+            velax + int(lz.ancho * 0.012), brazo_y + int(alto * 0.06) + 2,
+            con_alfa(hierro, 0.85))
     for s in (-1, 1):
-        vx = velax + s * int(lz.ancho * 0.03)
-        vy = tapa_y - espesor - int(alto * 0.55)
+        vx = velax + s * int(lz.ancho * 0.035)
+        vy = brazo_y
         ll = 1.0 + 0.10 * math.sin(tiempo * 13.0 + s)
+        # Copa y cuerpo de vela.
+        lz.fill(vx - 2, vy, vx + 2, vy + 2, con_alfa(hierro, 0.92))
+        vela_h = int(alto * 0.26)
+        lz.fill(vx - 1, vy - vela_h, vx + 2, vy,
+                con_alfa(iluminar(mezclar(nivel.pared_alta, 0xFFF0DC, 0.35), 0.75 * luz), 0.92))
+        # Llama: nucleo y punta, con derrame corto.
         for k in range(3, 0, -1):
             t = k / 3.0
             e = lz.ancho * 0.010 * (1.0 + t * 2.2)
-            lz.fill(int(vx - e), int(vy - e), int(vx + e), int(vy + e * 0.6),
+            lz.fill(int(vx - e), int(vy - vela_h - e), int(vx + e), int(vy - vela_h + e * 0.6),
                     con_alfa(nivel.luz, 0.07 * luz * ll * (1.0 - t * 0.5)))
-        lz.fill(vx - 1, vy - int(alto * 0.22), vx + 1, vy,
-                con_alfa(iluminar(nivel.pared_alta, 0.7 * luz), 0.9))
-        lz.fill(vx - 1, vy - int(alto * 0.30), vx + 1, vy - int(alto * 0.22),
+        lz.fill(vx - 1, vy - vela_h - int(alto * 0.14), vx + 1, vy - vela_h,
                 con_alfa(iluminar(0xFFFFF3D8, min(1.0, luz * ll * 1.4)), 0.95))
     # Jarra.
     jx = int(lz.ancho * 0.66 + balance * 1.4)
@@ -2705,18 +2742,54 @@ def invernadero(lz, m, nivel, luz, tiempo) -> None:
 
 
 def inv_porton(lz, m, nivel, luz) -> None:
+    """Porton de vidrio de dos hojas: travesano, mullion central y manijas.
+
+    El vidrio es verde y hacia abajo se ve la vegetacion del otro lado, para
+    que el conjunto no se lea como una heladera (un panel blanco con reticula).
+    """
     suelo = m.suelo_en(1.0)
     alto = m.h * 1.30
     x0, x1 = round(m.izq(0.40)), round(m.der(0.40))
     y0, y1 = round(suelo - alto), round(suelo)
+    w = x1 - x0
+    h = y1 - y0
+    an = m.ancho
+    # Fondo de vidrio: de la cumbrera clara al verde profundo del zocalo.
     lz.fill_gradient(x0, y0, x1, y1,
-                     iluminar(mezclar(nivel.techo, 0xFFFFFFFF, 0.20), luz * 0.90),
-                     iluminar(nivel.pared_baja, luz * 0.55))
-    marco = iluminar(nivel.junta, luz * 0.6)
-    for k in range(1, 3):
-        lz.fill(x0 + (x1 - x0) * k // 3, y0, x0 + (x1 - x0) * k // 3 + 1, y1, marco)
-    for k in range(1, 4):
-        lz.fill(x0, y0 + (y1 - y0) * k // 4, x1, y0 + (y1 - y0) * k // 4 + 1, marco)
+                     iluminar(mezclar(nivel.techo, 0xFFE9F2DC, 0.12), luz * 0.72),
+                     iluminar(mezclar(nivel.pared_baja, 0xFF2A3620, 0.25), luz * 0.40))
+    # Vegetacion al otro lado del vidrio: siluetas verdes en el tercio inferior.
+    for i in range(9):
+        fx = x0 + (w * (0.06 + (i * 37 % 89) / 89.0 * 0.88))
+        base_y = y1 - h * 0.02
+        top = y1 - h * (0.12 + (i * 53 % 71) / 71.0 * 0.14)
+        lz.fill(int(fx - w * 0.035), int(top), int(fx + w * 0.045), int(base_y),
+                con_alfa(iluminar(mezclar(0xFF2E4020, 0xFF5A7A34, (i * 29 % 17) / 17.0), luz * 0.35), 0.55))
+    # Marco perimetral (el dintel de piedra que abraza el porton).
+    marco = iluminar(mezclar(nivel.junta, 0xFF1A2412, 0.45), luz * 0.42)
+    lz.fill(x0, y0, x1, y0 + 3, marco)
+    lz.fill(x0, y1 - 3, x1, y1, marco)
+    lz.fill(x0, y0, x0 + 3, y1, marco)
+    lz.fill(x1 - 3, y0, x1, y1, marco)
+    # Travesano superior: una fila de paños chicos bajo el dintel.
+    trans_y = y0 + int(h * 0.16)
+    lz.fill(x0, trans_y, x1, trans_y + 3, marco)
+    for k in range(1, 6):
+        lz.fill(x0 + w * k // 6, y0 + 3, x0 + w * k // 6 + 1, trans_y, marco)
+    # Mullion central: separa las dos hojas.
+    lz.fill(x0 + w // 2 - 1, trans_y + 3, x0 + w // 2 + 2, y1 - 3, marco)
+    # Largueros de cada hoja y rieles horizontales (tres paños por hoja).
+    for k in (1, 5):
+        lz.fill(x0 + w * k // 6, trans_y + 3, x0 + w * k // 6 + 1, y1 - 3, marco)
+    for k in (1, 2):
+        yy = trans_y + 3 + (y1 - 3 - trans_y - 3) * k // 3
+        lz.fill(x0 + 3, yy, x1 - 3, yy + 2, marco)
+    # Manijas: dos tiradores verticales junto al mullion.
+    for s in (-1, 1):
+        hx = x0 + w // 2 + s * max(3, int(an * 0.009))
+        hy0 = trans_y + (y1 - trans_y) // 2
+        lz.fill(hx, hy0, hx + 2, hy0 + int(h * 0.10),
+                con_alfa(iluminar(0xFFF3D8, luz * 0.55), 0.85))
 
 
 def inv_cristalera(lz, m, nivel, luz) -> None:
@@ -2760,15 +2833,29 @@ def inv_bancos(lz, m, nivel, luz) -> None:
         lej = limitar(1.0 / dx, 0.0, 1.0)
         at = atenuar(luz, lej)
         for signo in (-1, 1):
-            x = m.lado(signo, dx * 0.62)
+            # La mesa vive a la profundidad del banco; antes la base usaba otra
+            # profundidad que la x, y la mesa quedaba flotando sobre el suelo.
+            prof = dx * 0.62
+            # Los tramos mas lejanos caen detras de la pared del fondo (dx<1);
+            # ahi no hay suelo, solo pared, y la mesa apareceria pegada a ella.
+            if prof < 1.02:
+                continue
+            x = m.lado(signo, prof)
             if x < -m.w or x > m.ancho + m.w:
                 continue
-            ancho = max(3.0, m.w * dx * 0.20)
-            y = m.suelo_en(dx * 0.72)
-            alto = m.h * dx * 0.05
-            mesa = iluminar(velar(nivel.junta, nivel.niebla, lej, 0.45), at * 0.7)
-            lz.fill(int(x - ancho * 0.5), int(y), int(x + ancho * 0.5), int(y + alto), mesa)
-            lz.fill(int(x - ancho * 0.5), int(y - alto * 0.4), int(x + ancho * 0.5), int(y),
+            ancho = max(3.0, m.w * prof * 0.20)
+            y = m.suelo_en(prof)
+            alto = m.h * prof * 0.05
+            # Sombra de contacto: una franja oscura justo debajo del cajon.
+            # Es lo que ancla el objeto al suelo; sin ella un cajon se lee
+            # como un rectangulo suelto sobre la pendiente de la pared.
+            lz.fill(int(x - ancho * 0.62), int(y), int(x + ancho * 0.62), int(y + max(2, alto * 0.5)),
+                    con_alfa(mezclar(nivel.fondo, 0x000000, 0.35), 0.30 * at))
+            # Cajon plantado en el suelo: el cuerpo va DE la base hacia arriba.
+            lz.fill(int(x - ancho * 0.5), int(y - alto), int(x + ancho * 0.5), int(y),
+                    iluminar(velar(mezclar(nivel.junta, nivel.pared_baja, 0.40), nivel.niebla, lej, 0.45), at * 0.9))
+            # La tierra encima, como un reborde oscuro bien apoyado en el cajon.
+            lz.fill(int(x - ancho * 0.5), int(y - alto * 1.35), int(x + ancho * 0.5), int(y - alto),
                     iluminar(velar(0xFF2C2415, nivel.niebla, lej, 0.4), at * 0.6))
 
 
@@ -2779,14 +2866,21 @@ def inv_vegetacion(lz, m, nivel, luz, tiempo) -> None:
             continue
         signo = -1 if pseudo(i * 5 + 1) < 0.5 else 1
         frac = 0.44 + pseudo(i * 5 + 2) * 0.55
-        x = m.lado(signo, dx * frac)
+        # La mata vive a la profundidad dx*frac: su base tiene que estar en el
+        # suelo de ESA columna. Antes la base usaba dx*0.72 y, cuando frac era
+        # mayor, la planta quedaba dibujada sobre la pared, flotando.
+        prof = dx * frac
+        # Detras de la pared del fondo (dx<1) no hay suelo: se salta.
+        if prof < 1.02:
+            continue
+        x = m.lado(signo, prof)
         if x < -20 or x > m.ancho + 20:
             continue
-        lej = limitar(1.0 / dx, 0.0, 1.0)
+        lej = limitar(1.0 / prof, 0.0, 1.0)
         at = atenuar(luz, lej)
-        base = m.suelo_en(dx * 0.72)
-        altura = m.h * dx * (0.10 + pseudo(i * 5 + 3) * 0.30)
-        ancho_mata = max(2.0, m.w * dx * (0.03 + pseudo(i * 5 + 4) * 0.06))
+        base = m.suelo_en(prof)
+        altura = m.h * prof * (0.10 + pseudo(i * 5 + 3) * 0.30)
+        ancho_mata = max(2.0, m.w * prof * (0.03 + pseudo(i * 5 + 4) * 0.06))
         verde = mezclar(0xFF3E5A28, 0xFF6E8A3A, pseudo(i * 7))
         verde = velar(verde, nivel.niebla, lej, 0.4)
         vaiven = math.sin(tiempo * 0.4 + i) * ancho_mata * 0.15
@@ -2964,11 +3058,15 @@ def cat_nichos(lz, m, nivel, luz, tiempo) -> None:
             nx0, nx1 = int(x - ancho * 0.5), int(x + ancho * 0.5)
             ny0, ny1 = int(centro_y - alto * 0.5), int(centro_y + alto * 0.5)
             lz.fill(nx0, ny0, nx1, ny1, con_alfa(mezclar(nivel.fondo, nivel.niebla, 0.10), 0.95))
-            borde = iluminar(velar(nivel.junta, nivel.niebla, lej, 0.4), at * 0.85)
-            lz.fill(nx0 - 1, ny0 - 1, nx1 + 1, ny0, borde)
-            lz.fill(nx0 - 1, ny1, nx1 + 1, ny1 + 1, borde)
-            lz.fill(nx0 - 1, ny0, nx0, ny1, borde)
-            lz.fill(nx1, ny0, nx1 + 1, ny1, borde)
+            # Paredes del hueco en sombra (el lado de dentro de la roca).
+            cornisa = iluminar(velar(nivel.junta, nivel.niebla, lej, 0.4), at * 0.35)
+            lz.fill(nx0, ny0, nx1, ny0 + 2, cornisa)
+            lz.fill(nx0, ny0, nx0 + 2, ny1, cornisa)
+            lz.fill(nx1 - 2, ny0, nx1, ny1, cornisa)
+            # El hueco se excava en la pared: el borde inferior es el
+            # alfeizar, iluminado por la luz del tunel, no un marco.
+            alfeizar = iluminar(velar(nivel.junta, nivel.niebla, lej, 0.35), at * 0.60)
+            lz.fill(nx0 - 2, ny1, nx1 + 2, ny1 + max(2, int(alto * 0.10)), alfeizar)
             if pseudo(500 + j * 7 + (signo + 1) * 40) > 0.55:
                 titil = 0.85 + 0.15 * math.sin(tiempo * 6.0 + j)
                 av = at * titil
@@ -3042,11 +3140,17 @@ def pp_catacumba(lz, m, nivel, luz, tiempo) -> None:
     vx = w - jamba // 2
     vy = int(h * 0.55)
     titil = 0.85 + 0.15 * math.sin(tiempo * 6.5)
-    for k in range(4, 0, -1):
-        t = k / 4.0
-        e = w * 0.03 * (1.0 + t * 2.2)
-        lz.fill(int(vx - e), int(vy - e), int(vx + e), int(vy + e * 0.6),
-                con_alfa(nivel.luz, 0.08 * luz * titil * (1.0 - t * 0.5)))
+    # Halo corto, centrado en la LLAMA (no en el pie de la vela), con mas
+    # capas y menos alfa: cinco rectangulos pequenos escalonados dejan de
+    # leerse como una caja y pasan a ser un resplandor difuso.
+    cy = vy - int(h * 0.055)
+    for k in range(5, 0, -1):
+        t = k / 5.0
+        e = w * 0.006 * (1.0 + t * 0.9)
+        lz.fill(int(vx - e), int(cy - e), int(vx + e), int(cy + e * 0.7),
+                con_alfa(nivel.luz, 0.040 * luz * titil * (1.0 - t * 0.55)))
+    # Un saliente de piedra donde descansa la vela: no flota en la jamba.
+    lz.fill(vx - 6, vy + 1, vx + 6, vy + 4, con_alfa(iluminar(nivel.junta, 0.4 * luz), 0.85))
     lz.fill(vx - 2, vy - int(h * 0.05), vx + 2, vy, con_alfa(iluminar(nivel.pared_alta, 0.6 * luz), 0.9))
     lz.fill(vx - 1, vy - int(h * 0.065), vx + 1, vy - int(h * 0.05),
             con_alfa(iluminar(0xFFFFE0A0, min(1.0, luz * titil * 1.4)), 0.95))
@@ -3462,13 +3566,28 @@ def tro_estandartes(lz, m, nivel, luz, tiempo) -> None:
         y_top = m.techo_en(dx * 0.72)
         alto = m.h * dx * 0.48
         onda = math.sin(tiempo * 0.5 + j) * ancho * 0.16
-        tela = iluminar(velar(mezclar(nivel.luz, nivel.pared_baja, 0.45), nivel.niebla, lej, 0.4), at * 0.85)
+        # La cuerda del techo al asta: el estandarte no cuelga de la nada.
+        y_techo = m.techo_en(dx * 0.95)
+        lz.fill(int(x), int(y_techo), int(x) + 1, int(y_top),
+                con_alfa(iluminar(nivel.junta, at * 0.55), 0.50))
+        lz.fill(int(x - ancho * 0.5), int(y_top) - 1, int(x + ancho * 0.5), int(y_top),
+                con_alfa(iluminar(nivel.junta, at * 0.70), 0.80))
+        # Tela: panio oscuro, no una banda de oro. El oro es solo el galon
+        # y el emblema, que es lo que dice "estandarte" en una sola mirada.
+        tela = iluminar(velar(mezclar(nivel.pared_baja, nivel.junta, 0.35), nivel.niebla, lej, 0.4), at * 0.85)
         for k in range(8):
             f = k / 8.0
             w = ancho * (1.0 - f * 0.5)
             ox = onda * f
             lz.fill(int(x - w * 0.5 + ox), int(y_top + alto * f), int(x + w * 0.5 + ox), int(y_top + alto * (f + 0.14)),
                     con_alfa(tela, 0.85 * (1.0 - f * 0.3)))
+        # Galon superior dorado.
+        lz.fill(int(x - ancho * 0.5), int(y_top), int(x + ancho * 0.5), int(y_top + max(1, int(alto * 0.06))),
+                con_alfa(iluminar(nivel.luz, at), 0.55))
+        # Emblema: un rombo tenue en el centro del panio.
+        ey = y_top + alto * 0.40
+        lz.fill(int(x - ancho * 0.18), int(ey), int(x + ancho * 0.18), int(ey + alto * 0.14),
+                con_alfa(iluminar(nivel.luz, at * 0.8), 0.30))
 
 
 def tro_haces(lz, m, nivel, luz, tiempo) -> None:

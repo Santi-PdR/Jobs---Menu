@@ -374,7 +374,16 @@ public final class Trono implements Planta {
             float yTop = m.techoEn(dx * 0.72F);
             float alto = m.h() * dx * 0.48F;
             float onda = (float) Math.sin(tiempo * 0.5F + j) * ancho * 0.16F;
-            int tela = Paleta.iluminar(Trazo.velar(Paleta.mezclar(nivel.luz, nivel.paredBaja, 0.45F),
+            // La cuerda del techo al asta: el estandarte no cuelga de la nada.
+            float yTecho = m.techoEn(dx * 0.95F);
+            grafico.fill((int) x, (int) yTecho, (int) x + 1, (int) yTop,
+                    Paleta.conAlfa(Paleta.iluminar(nivel.junta, at * 0.55F), 0.50F));
+            // Asta horizontal.
+            grafico.fill((int) (x - ancho * 0.5F), (int) yTop - 1, (int) (x + ancho * 0.5F), (int) yTop,
+                    Paleta.conAlfa(Paleta.iluminar(nivel.junta, at * 0.70F), 0.80F));
+            // Tela: panio oscuro, no una banda de oro. El oro es solo el galon
+            // y el emblema, que es lo que dice "estandarte" en una sola mirada.
+            int tela = Paleta.iluminar(Trazo.velar(Paleta.mezclar(nivel.paredBaja, nivel.junta, 0.35F),
                     nivel.niebla, lej, 0.4F), at * 0.85F);
             // La tela, rota al final (los ultimos jirones se afinan).
             for (int k = 0; k < 8; k++) {
@@ -384,6 +393,13 @@ public final class Trono implements Planta {
                 grafico.fill((int) (x - w * 0.5F + ox), (int) (yTop + alto * f), (int) (x + w * 0.5F + ox), (int) (yTop + alto * (f + 0.14F)),
                         Paleta.conAlfa(tela, 0.85F * (1.0F - f * 0.3F)));
             }
+            // Galon superior dorado.
+            grafico.fill((int) (x - ancho * 0.5F), (int) yTop, (int) (x + ancho * 0.5F), (int) (yTop + Math.max(1, alto * 0.06F)),
+                    Paleta.conAlfa(Paleta.iluminar(nivel.luz, at), 0.55F));
+            // Emblema: un rombo tenue en el centro del panio.
+            float ey = yTop + alto * 0.40F;
+            grafico.fill((int) (x - ancho * 0.18F), (int) ey, (int) (x + ancho * 0.18F), (int) (ey + alto * 0.14F),
+                    Paleta.conAlfa(Paleta.iluminar(nivel.luz, at * 0.8F), 0.30F));
         }
     }
 

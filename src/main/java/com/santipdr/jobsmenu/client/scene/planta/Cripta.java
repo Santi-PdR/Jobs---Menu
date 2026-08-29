@@ -279,6 +279,15 @@ public final class Cripta implements Planta {
             // Ondeo lentisimo del pano.
             float onda = (float) Math.sin(tiempo * 0.6F + j) * ancho * 0.15F;
 
+            // La cuerda: del techo al asta. Sin esto la tela parece colgar de
+            // la nada, y una tela colgada de la nada es un rectangulo flotante.
+            float yTecho = m.techoEn(dx * 0.92F);
+            grafico.fill((int) x, (int) yTecho, (int) x + 1, (int) yTop,
+                    Paleta.conAlfa(Paleta.iluminar(nivel.junta, at * 0.55F), 0.50F));
+            // Asta horizontal.
+            grafico.fill((int) (x - ancho * 0.5F), (int) yTop - 1, (int) (x + ancho * 0.5F), (int) yTop,
+                    Paleta.conAlfa(Paleta.iluminar(nivel.junta, at * 0.70F), 0.80F));
+
             int tela = Paleta.iluminar(Trazo.velar(Paleta.mezclar(nivel.paredBaja, nivel.junta, 0.35F), nivel.niebla, lej, 0.4F), at * 0.9F);
             for (int k = 0; k < 8; k++) {
                 float f = k / 8.0F;

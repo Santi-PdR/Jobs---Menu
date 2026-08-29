@@ -60,7 +60,15 @@ public final class Invernadero implements Planta {
         vahoSuperficie(grafico, m, nivel, luz, tiempo);
     }
 
-    /** Un porton de vidrio esmerilado al fondo: la luz sigue del otro lado. */
+    /**
+     * Porton de vidrio de dos hojas al fondo: la luz sigue del otro lado.
+     *
+     * Antes el vidrio se pintaba casi blanco con una reticula uniforme, y a
+     * distancia el conjunto se leia como un rectangulo claro -una heladera,
+     * dijeron los que miraron la vista previa-. Ahora hay travesano superior,
+     * mullion central, largueros, rieles, manijas y vegetacion visible al otro
+     * lado del vidrio inferior: la silueta dice "puerta de invernadero".
+     */
     private static void portonFondo(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
         float suelo = m.sueloEn(1.0F);
         float alto = m.h() * 1.30F;
@@ -68,16 +76,50 @@ public final class Invernadero implements Planta {
         int x1 = Math.round(m.der(0.40F));
         int y0 = Math.round(suelo - alto);
         int y1 = Math.round(suelo);
+        int w = x1 - x0;
+        int h = y1 - y0;
+        // Vidrio: verde emparentado con la cristalera, no blanco. El degradado
+        // va de la cumbrera (claro) al zocalo en sombra.
         grafico.fillGradient(x0, y0, x1, y1,
-                Paleta.iluminar(Paleta.mezclar(nivel.techo, 0xFFFFFFFF, 0.20F), luz * 0.90F),
-                Paleta.iluminar(nivel.paredBaja, luz * 0.55F));
-        // Cuarterones del porton.
-        int marco = Paleta.iluminar(nivel.junta, luz * 0.6F);
-        for (int k = 1; k < 3; k++) {
-            grafico.fill(x0 + (x1 - x0) * k / 3, y0, x0 + (x1 - x0) * k / 3 + 1, y1, marco);
+                Paleta.iluminar(Paleta.mezclar(nivel.techo, 0xFFE9F2DC, 0.12F), luz * 0.72F),
+                Paleta.iluminar(Paleta.mezclar(nivel.paredBaja, 0xFF2A3620, 0.25F), luz * 0.40F));
+        // Vegetacion al otro lado del vidrio: siluetas verdes en el tercio inferior.
+        for (int i = 0; i < 9; i++) {
+            int fx = x0 + (int) (w * (0.06F + (i * 37 % 89) / 89.0F * 0.88F));
+            int baseY = y1 - (int) (h * 0.02F);
+            int top = y1 - (int) (h * (0.12F + (i * 53 % 71) / 71.0F * 0.14F));
+            int verde = Paleta.iluminar(Paleta.mezclar(0xFF2E4020, 0xFF5A7A34, (i * 29 % 17) / 17.0F), luz * 0.35F);
+            grafico.fill(fx - (int) (w * 0.035F), top, fx + (int) (w * 0.045F), baseY,
+                    Paleta.conAlfa(verde, 0.55F));
         }
-        for (int k = 1; k < 4; k++) {
-            grafico.fill(x0, y0 + (y1 - y0) * k / 4, x1, y0 + (y1 - y0) * k / 4 + 1, marco);
+        // Marco perimetral (el dintel de piedra que abraza el porton).
+        int marco = Paleta.iluminar(Paleta.mezclar(nivel.junta, 0xFF1A2412, 0.45F), luz * 0.42F);
+        grafico.fill(x0, y0, x1, y0 + 3, marco);
+        grafico.fill(x0, y1 - 3, x1, y1, marco);
+        grafico.fill(x0, y0, x0 + 3, y1, marco);
+        grafico.fill(x1 - 3, y0, x1, y1, marco);
+        // Travesano superior: una fila de panos chicos bajo el dintel.
+        int transY = y0 + h * 16 / 100;
+        grafico.fill(x0, transY, x1, transY + 3, marco);
+        for (int k = 1; k < 6; k++) {
+            grafico.fill(x0 + w * k / 6, y0 + 3, x0 + w * k / 6 + 1, transY, marco);
+        }
+        // Mullion central: separa las dos hojas.
+        grafico.fill(x0 + w / 2 - 1, transY + 3, x0 + w / 2 + 2, y1 - 3, marco);
+        // Largueros de cada hoja y rieles horizontales (tres panos por hoja).
+        for (int k : new int[]{1, 5}) {
+            grafico.fill(x0 + w * k / 6, transY + 3, x0 + w * k / 6 + 1, y1 - 3, marco);
+        }
+        for (int k = 1; k <= 2; k++) {
+            int yy = transY + 3 + (y1 - 3 - transY - 3) * k / 3;
+            grafico.fill(x0 + 3, yy, x1 - 3, yy + 2, marco);
+        }
+        // Manijas: dos tiradores verticales junto al mullion.
+        for (int s : new int[]{-1, 1}) {
+            int hx = x0 + w / 2 + s * Math.max(3, (int) (m.ancho() * 0.009F));
+            int hy0 = transY + (y1 - transY) / 2;
+            grafico.fill(hx, hy0, hx + 2, hy0 + (int) (h * 0.10F),
+                    Paleta.conAlfa(Paleta.iluminar(0xFFFFF3D8, luz * 0.55F), 0.85F));
         }
     }
 
@@ -142,17 +184,26 @@ public final class Invernadero implements Planta {
             float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
             float at = Trazo.atenuar(luz, lej);
             for (int signo = -1; signo <= 1; signo += 2) {
-                float x = m.lado(signo, dx * 0.62F);
+                // La mesa vive a la profundidad del banco; antes la base usaba
+                // otra profundidad que la x, y la mesa quedaba flotando.
+                float prof = dx * 0.62F;
+                float x = m.lado(signo, prof);
                 if (x < -m.w() || x > m.ancho() + m.w()) {
                     continue;
                 }
-                float ancho = Math.max(3.0F, m.w() * dx * 0.20F);
-                float y = m.sueloEn(dx * 0.72F);
-                float alto = m.h() * dx * 0.05F;
-                int mesa = Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, lej, 0.45F), at * 0.7F);
-                grafico.fill((int) (x - ancho * 0.5F), (int) y, (int) (x + ancho * 0.5F), (int) (y + alto), mesa);
-                // La tierra en el banco, mas oscura.
-                grafico.fill((int) (x - ancho * 0.5F), (int) (y - alto * 0.4F), (int) (x + ancho * 0.5F), (int) y,
+                float ancho = Math.max(3.0F, m.w() * prof * 0.20F);
+                float y = m.sueloEn(prof);
+                float alto = m.h() * prof * 0.05F;
+                // Sombra de contacto: franja oscura justo debajo del cajon.
+                // Ancla el objeto al suelo; sin ella se lee como un rectangulo
+                // suelto sobre la pendiente de la pared.
+                grafico.fill((int) (x - ancho * 0.62F), (int) y, (int) (x + ancho * 0.62F), (int) (y + Math.max(2, alto * 0.5F)),
+                        Paleta.conAlfa(Paleta.mezclar(nivel.fondo, 0xFF000000, 0.35F), 0.30F * at));
+                // Cajon plantado en el suelo: el cuerpo va DE la base hacia arriba.
+                grafico.fill((int) (x - ancho * 0.5F), (int) (y - alto), (int) (x + ancho * 0.5F), (int) y,
+                        Paleta.iluminar(Trazo.velar(Paleta.mezclar(nivel.junta, nivel.paredBaja, 0.40F), nivel.niebla, lej, 0.45F), at * 0.9F));
+                // La tierra encima, como un reborde oscuro bien apoyado en el cajon.
+                grafico.fill((int) (x - ancho * 0.5F), (int) (y - alto * 1.35F), (int) (x + ancho * 0.5F), (int) (y - alto),
                         Paleta.iluminar(Trazo.velar(0xFF2C2415, nivel.niebla, lej, 0.4F), at * 0.6F));
             }
         }
@@ -172,15 +223,19 @@ public final class Invernadero implements Planta {
             }
             int signo = Trazo.pseudo(i * 5 + 1) < 0.5F ? -1 : 1;
             float frac = 0.44F + Trazo.pseudo(i * 5 + 2) * 0.55F;
-            float x = m.lado(signo, dx * frac);
+            // La mata vive a la profundidad dx*frac: su base tiene que estar en
+            // el suelo de ESA columna. Antes la base usaba dx*0.72 y, cuando
+            // frac era mayor, la planta quedaba dibujada sobre la pared.
+            float prof = dx * frac;
+            float x = m.lado(signo, prof);
             if (x < -20 || x > m.ancho() + 20) {
                 continue;
             }
-            float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
+            float lej = Trazo.limitar(1.0F / prof, 0.0F, 1.0F);
             float at = Trazo.atenuar(luz, lej);
-            float base = m.sueloEn(dx * 0.72F);
-            float altura = m.h() * dx * (0.10F + Trazo.pseudo(i * 5 + 3) * 0.30F);
-            float anchoMata = Math.max(2.0F, m.w() * dx * (0.03F + Trazo.pseudo(i * 5 + 4) * 0.06F));
+            float base = m.sueloEn(prof);
+            float altura = m.h() * prof * (0.10F + Trazo.pseudo(i * 5 + 3) * 0.30F);
+            float anchoMata = Math.max(2.0F, m.w() * prof * (0.03F + Trazo.pseudo(i * 5 + 4) * 0.06F));
             // Verde propio de la mata: del claro al oscuro segun ruido.
             int verde = Paleta.mezclar(0xFF3E5A28, 0xFF6E8A3A, Trazo.pseudo(i * 7));
             verde = Trazo.velar(verde, nivel.niebla, lej, 0.4F);

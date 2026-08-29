@@ -7,7 +7,9 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -44,8 +46,9 @@ import net.minecraft.server.packs.repository.PackRepository;
  *
  *     .minecraft/jobsmenu-musica/
  *
- * El nombre del archivo da igual. La extension puede ser .ogg o cualquier otra
- * que traiga Vorbis dentro; se toma el primero por orden alfabetico. El mod:
+ * El nombre del archivo da igual. Si hay varios, el mod los ALTERNA: en cada
+ * arranque suena uno distinto del que sono la ultima vez, asi la carpeta se
+ * convierte en la discografia del menu sin que haya que renombrar nada. El mod:
  *
  *   1. crea la carpeta en el primer arranque, con un LEEME al lado;
  *   2. busca dentro un archivo de audio;
@@ -87,6 +90,9 @@ public final class MusicaPropia {
     /** Formato de paquete de recursos de Minecraft 1.20.1. */
     private static final int FORMATO = 15;
 
+    /** Archivo oculto donde se recuerda la ultima pista para no repetirla. */
+    private static final String ULTIMA = ".ultima-ogg";
+
     /**
      * Extensiones que se aceptan.
      *
@@ -104,6 +110,9 @@ public final class MusicaPropia {
 
     /** Nombre del archivo que se encontro, para poder decirlo en el registro. */
     private static String pista = "";
+
+    /** Cuantas pistas validas hay en la carpeta (1 si una sola). */
+    private static int totalPistas;
 
     private MusicaPropia() {
     }
@@ -135,23 +144,6 @@ public final class MusicaPropia {
             }
             pista = fuente.getFileName().toString();
 
-            if (!pista.toLowerCase(Locale.ROOT).endsWith(".ogg")
-                    && !pista.toLowerCase(Locale.ROOT).endsWith(".oga")) {
-                // No se convierte: el mod no trae codificador. Pero se dice, en
-                // vez de dejar al usuario preguntandose por que no suena nada.
-                JobsMenu.LOG.warn("[jobsmenu] La pista '" + pista + "' no es OGG Vorbis. "
-                        + "Minecraft solo reproduce OGG: convertila y volve a probar.");
-                conMusica = false;
-                desactivarPaqueteAnterior();
-                return;
-            }
-            if (!esOggVorbis(fuente)) {
-                JobsMenu.LOG.warn("[jobsmenu] La pista '{}' no contiene una cabecera OGG Vorbis valida.", pista);
-                conMusica = false;
-                desactivarPaqueteAnterior();
-                return;
-            }
-
             Path raiz = juego.resolve("resourcepacks").resolve(PAQUETE);
             Path destino = raiz.resolve("assets").resolve("jobsmenu")
                     .resolve("sounds").resolve("musica").resolve(ARCHIVO);
@@ -166,7 +158,12 @@ public final class MusicaPropia {
 
             conMusica = activarPaquete();
             if (conMusica) {
-                JobsMenu.LOG.info("[jobsmenu] Musica del menu: '" + pista + "'.");
+                if (totalPistas > 1) {
+                    JobsMenu.LOG.info("[jobsmenu] Musica del menu: '" + pista
+                            + "' (" + totalPistas + " pistas en la carpeta; se alternan en cada arranque).");
+                } else {
+                    JobsMenu.LOG.info("[jobsmenu] Musica del menu: '" + pista + "'.");
+                }
             }
         } catch (IOException | RuntimeException fallo) {
             conMusica = false;
@@ -262,9 +259,16 @@ public final class MusicaPropia {
         return false;
     }
 
-    /** El primer archivo de audio de la carpeta, por orden alfabetico. */
+    /**
+     * Elige la pista de la carpeta.
+     *
+     * Se listan los candidatos por orden alfabetico, se descartan los que no
+     * son OGG Vorbis (con aviso en el registro, que es lo que evita el silencio
+     * sin explicacion) y, si queda mas de una, se toma la siguiente de la que
+     * sono la ultima vez: asi la carpeta se alterna sola en cada arranque.
+     */
     private static Path buscarPista(Path buzon) throws IOException {
-        Path elegida = null;
+        List<Path> candidatas = new ArrayList<>();
         try (DirectoryStream<Path> listado = Files.newDirectoryStream(buzon)) {
             for (Path candidata : listado) {
                 if (!Files.isRegularFile(candidata)) {
@@ -273,17 +277,79 @@ public final class MusicaPropia {
                 String nombre = candidata.getFileName().toString().toLowerCase(Locale.ROOT);
                 for (String extension : EXTENSIONES) {
                     if (nombre.endsWith(extension)) {
-                        if (elegida == null
-                                || candidata.getFileName().toString()
-                                    .compareToIgnoreCase(elegida.getFileName().toString()) < 0) {
-                            elegida = candidata;
-                        }
+                        candidatas.add(candidata);
                         break;
                     }
                 }
             }
         }
+        if (candidatas.isEmpty()) {
+            return null;
+        }
+        candidatas.sort((a, b) -> a.getFileName().toString()
+                .compareToIgnoreCase(b.getFileName().toString()));
+
+        List<Path> validas = new ArrayList<>();
+        List<String> omitidas = new ArrayList<>();
+        for (Path candidata : candidatas) {
+            String nombre = candidata.getFileName().toString();
+            String minuscula = nombre.toLowerCase(Locale.ROOT);
+            if (!minuscula.endsWith(".ogg") && !minuscula.endsWith(".oga")) {
+                // No se convierte: el mod no trae codificador. Pero se dice, en
+                // vez de dejar al usuario preguntandose por que no suena nada.
+                omitidas.add(nombre + " (no es OGG; Minecraft solo reproduce OGG)");
+                continue;
+            }
+            if (!esOggVorbis(candidata)) {
+                omitidas.add(nombre + " (cabecera OGG Vorbis invalida)");
+                continue;
+            }
+            validas.add(candidata);
+        }
+        if (validas.isEmpty()) {
+            for (String aviso : omitidas) {
+                JobsMenu.LOG.warn("[jobsmenu] Pista omitida: " + aviso);
+            }
+            return null;
+        }
+
+        // Rotacion: empieza despues de la que sono la ultima vez.
+        String ultima = leerUltima(buzon);
+        int inicio = 0;
+        if (ultima != null) {
+            for (int i = 0; i < validas.size(); i++) {
+                if (validas.get(i).getFileName().toString().equals(ultima)) {
+                    inicio = (i + 1) % validas.size();
+                    break;
+                }
+            }
+        }
+        Path elegida = validas.get(inicio);
+        totalPistas = validas.size();
+        guardarUltima(buzon, elegida.getFileName().toString());
+        for (String aviso : omitidas) {
+            JobsMenu.LOG.warn("[jobsmenu] Pista omitida: " + aviso);
+        }
         return elegida;
+    }
+
+    /** La ultima pista sonada, o null si no se recuerda (o se borro el archivo). */
+    private static String leerUltima(Path buzon) {
+        try {
+            String s = Files.readString(buzon.resolve(ULTIMA), StandardCharsets.UTF_8).trim();
+            return s.isEmpty() ? null : s;
+        } catch (IOException ignorada) {
+            return null;
+        }
+    }
+
+    /** Anota la pista elegida para no repetirla en el proximo arranque. */
+    private static void guardarUltima(Path buzon, String nombre) {
+        try {
+            Files.writeString(buzon.resolve(ULTIMA), nombre, StandardCharsets.UTF_8);
+        } catch (IOException ignorada) {
+            // Que no se pueda escribir no es motivo para que no suene nada.
+        }
     }
 
     /** Cierto si el que juega ya dejo su pista y quedo activa. */
@@ -325,12 +391,12 @@ public final class MusicaPropia {
                 "  - Formato OGG Vorbis (.ogg). Es el unico que Minecraft sabe",
                 "    reproducir. Si tiene un MP3, conviertalo antes; hay",
                 "    conversores en linea y en cualquier editor de audio.",
-                "  - Si deja varios archivos, se usa el primero por orden",
-                "    alfabetico.",
+                "  - Si deja varios archivos, el mod los alterna solo: en cada",
+                "    arranque suena uno distinto del anterior.",
                 "",
                 "PARA CAMBIAR DE PISTA",
                 "",
-                "  Reemplace el archivo y reinicie el juego.",
+                "  Agregue o reemplace archivos y reinicie el juego.",
                 "",
                 "PARA VOLVER A LA PISTA DEL MOD",
                 "",

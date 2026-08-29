@@ -168,12 +168,15 @@ public final class Catacumba implements Planta {
                 // El hueco negro.
                 grafico.fill(nx0, ny0, nx1, ny1,
                         Paleta.conAlfa(Paleta.mezclar(nivel.fondo, nivel.niebla, 0.10F), 0.95F));
-                // El borde de piedra alrededor.
-                int borde = Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, lej, 0.4F), at * 0.85F);
-                grafico.fill(nx0 - 1, ny0 - 1, nx1 + 1, ny0, borde);
-                grafico.fill(nx0 - 1, ny1, nx1 + 1, ny1 + 1, borde);
-                grafico.fill(nx0 - 1, ny0, nx0, ny1, borde);
-                grafico.fill(nx1, ny0, nx1 + 1, ny1, borde);
+                // Paredes del hueco en sombra (el lado de dentro de la roca).
+                int cornisa = Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, lej, 0.4F), at * 0.35F);
+                grafico.fill(nx0, ny0, nx1, ny0 + 2, cornisa);
+                grafico.fill(nx0, ny0, nx0 + 2, ny1, cornisa);
+                grafico.fill(nx1 - 2, ny0, nx1, ny1, cornisa);
+                // El hueco se excava en la pared: el borde inferior es el
+                // alfeizar, iluminado por la luz del tunel, no un marco.
+                int alfeizar = Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, lej, 0.35F), at * 0.60F);
+                grafico.fill(nx0 - 2, ny1, nx1 + 2, ny1 + Math.max(2, (int) (alto * 0.10F)), alfeizar);
                 // Una vela votiva encendida en algunos, siempre los mismos.
                 if (Trazo.pseudo(500 + j * 7 + (signo + 1) * 40) > 0.55F) {
                     float titil = 0.85F + 0.15F * (float) Math.sin(tiempo * 6.0F + j);
