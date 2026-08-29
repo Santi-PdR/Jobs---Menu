@@ -30,23 +30,59 @@ public final class RelojAparicion {
 
     /** Cierto durante los primeros segundos posteriores al cambio de ciclo. */
     public static boolean enRonda() {
-        return (CICLO_MS - restanteMs()) < VENTANA_RONDA_MS;
+        return enRonda(restanteMs());
     }
 
     public static boolean enAlerta() {
-        return restanteMs() <= UMBRAL_ALERTA_MS;
+        return enAlerta(restanteMs());
     }
 
     public static boolean inminente() {
-        return restanteMs() <= UMBRAL_INMINENTE_MS;
+        return inminente(restanteMs());
     }
 
     /** Formato MM:SS del tiempo restante. */
     public static String formatoRestante() {
-        long total = Math.max(0L, restanteMs()) / 1000L;
-        long minutos = total / 60L;
-        long segundos = total % 60L;
-        return String.format("%02d:%02d", minutos, segundos);
+        return formatoRestante(restanteMs());
+    }
+
+    // ----------------------------------------------------------------------
+    // Variantes con snapshot: la pantalla lee el reloj UNA vez por frame y
+    // reparte ese valor. Sin esto, cada consulta volvia a mirar el reloj y el
+    // rotulo podia cambiar entre "en ronda" y "falta poco" a mitad de frame.
+    // ----------------------------------------------------------------------
+
+    /** Cierto durante los primeros segundos posteriores al cambio de ciclo. */
+    public static boolean enRonda(long restante) {
+        return (CICLO_MS - restante) < VENTANA_RONDA_MS;
+    }
+
+    public static boolean enAlerta(long restante) {
+        return restante <= UMBRAL_ALERTA_MS;
+    }
+
+    public static boolean inminente(long restante) {
+        return restante <= UMBRAL_INMINENTE_MS;
+    }
+
+    /** Ultimo texto devuelto, para no formatear dos veces por segundo. */
+    private static String textoCache = "";
+
+    /** Segundo (de tiempo restante) al que corresponde el texto cacheado. */
+    private static long segundoCache = Long.MIN_VALUE;
+
+    /** Formato MM:SS del tiempo restante, cacheado por segundo. */
+    public static String formatoRestante(long restanteMs) {
+        long segundos = Math.max(0L, restanteMs) / 1000L;
+        if (segundos == segundoCache) {
+            return textoCache;
+        }
+        long minutos = segundos / 60L;
+        long resto = segundos % 60L;
+        String texto = String.format("%02d:%02d", minutos, resto);
+        segundoCache = segundos;
+        textoCache = texto;
+        return texto;
     }
 
     /**
@@ -54,17 +90,22 @@ public final class RelojAparicion {
      * pulso desaparece y el color queda fijo.
      */
     public static int color(boolean destellosReducidos) {
-        if (enRonda()) {
+        return color(destellosReducidos, restanteMs());
+    }
+
+    /** Igual que {@link #color(boolean)} sobre un snapshot ya leido. */
+    public static int color(boolean destellosReducidos, long restante) {
+        if (enRonda(restante)) {
             return destellosReducidos ? Paleta.ALERTA : Paleta.ALERTA_BRILLO;
         }
-        if (inminente()) {
+        if (inminente(restante)) {
             if (destellosReducidos) {
                 return Paleta.ALERTA;
             }
             boolean encendido = (System.currentTimeMillis() / 250L) % 2L == 0L;
             return encendido ? Paleta.ALERTA_BRILLO : Paleta.ALERTA;
         }
-        if (enAlerta()) {
+        if (enAlerta(restante)) {
             return Paleta.ALERTA;
         }
         return Paleta.TINTA_TENUE;

@@ -36,7 +36,11 @@ public final class SesionMenu {
 
     public static void cerrar() {
         activa = false;
-        GestorMusica.soltar();
+        // La instancia del tema sigue recibiendo ticks y baja sola hasta
+        // detenerse (ver GestorMusica.tick): detenerla aca la cortaria en seco,
+        // y soltar la referencia permitiria crear una copia mientras la
+        // anterior todavia se oye. No hay nada que hacer, y eso es lo que hay
+        // que decir.
     }
 
     /**

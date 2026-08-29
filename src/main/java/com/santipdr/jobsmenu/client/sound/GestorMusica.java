@@ -91,13 +91,6 @@ public class GestorMusica extends AbstractTickableSoundInstance {
                 "[jobsmenu] Musica del menu enviada a reproducir (musica/defecto.ogg).");
     }
 
-    /** Deja de sonar, con caida. No corta en seco. */
-    public static void soltar() {
-        // No se pierde la referencia: la instancia necesita seguir recibiendo
-        // ticks para completar la bajada y detenerse. Soltarla aqui permitiria
-        // crear otra copia mientras la anterior todavia se oye.
-    }
-
     /**
      * Coordinacion por tick, independiente de la Screen visible. Asi la pista
      * continua en Opciones/Mods/Recursos y se detiene al entrar a un mundo.
@@ -243,29 +236,19 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         Minecraft cliente = Minecraft.getInstance();
         boolean permitido = SesionMenu.activa() && ConfigTurno.musicaMenu();
 
-        // POR QUE LA MUSICA NO SE OIA
-        //
-        // Minecraft trae su propio gestor de musica de menu, que suena en el
-        // MISMO canal (SoundSource.MUSIC) que nuestro tema. Cuando el juego
-        // decide poner su musica de menu, la nuestra queda tapada o desalojada,
-        // y el ambiente -que va por otro canal (AMBIENT)- se seguia oyendo: de
-        // ahi el sintoma de "el ambiente suena pero la musica no".
-        //
-        // La solucion es callar al gestor de vanilla mientras nuestro menu esta
-        // abierto, para que el canal de musica quede libre para el tema del
-        // aviso. No toca los deslizadores del jugador: solo evita que dos
-        // musicas peleen por el mismo canal.
-        //
-        // AVISO honesto: si ademas el deslizador "Musica" del juego esta en
-        // cero, no hay codigo que valga -ese control lo manda el jugador-. Por
-        // eso el ajuste de volumen del aviso avisa que hay que subirlo tambien.
-        if (permitido) {
-            cliente.getMusicManager().stopPlaying();
-        }
+        // El canal de musica lo arbitra GestorMusica.atender() una sola vez
+        // por tick: mientras el aviso esta abierto se le deja el canal MUSIC
+        // al tema del mod y no se pelea con el gestor de vanilla. Aca ya no se
+        // repite la llamada (antes sonaba dos veces por tick).
+        // REQUIEM suena por SoundSource.MASTER: lo gobiernan el deslizador
+        // Maestro del juego, el volumen propio del aviso y el volumen maestro
+        // del aviso (tecla M), nunca el deslizador Musica de vanilla.
 
         float objetivo = 0.0F;
         if (permitido) {
-            objetivo = ConfigTurno.volumenMusica() * MezclaAudio.MUSICA;
+            // Volumen maestro del aviso: la tecla M silencia toda la mezcla.
+            objetivo = ConfigTurno.volumenMusica() * MezclaAudio.MUSICA
+                    * ConfigTurno.volumenAviso();
 
             // Entrada suave pero no eterna: unos seis segundos hasta el volumen
             // pleno (antes eran veinte, y con la curva al cuadrado el tema no se

@@ -6,6 +6,7 @@ import com.santipdr.jobsmenu.client.scene.Nivel;
 import com.santipdr.jobsmenu.client.scene.RotacionNiveles;
 import com.santipdr.jobsmenu.client.sound.GestorAmbiente;
 import com.santipdr.jobsmenu.client.sound.GestorMusica;
+import com.santipdr.jobsmenu.client.sound.MezclaAudio;
 import com.santipdr.jobsmenu.client.ui.NotaAviso;
 import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.santipdr.jobsmenu.client.ui.RelojAparicion;
@@ -20,6 +21,14 @@ import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraftforge.client.gui.ModListScreen;
+
+import org.lwjgl.glfw.GLFW;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Pantalla de titulo: el aviso pegado a la pared del nivel.
@@ -102,6 +111,23 @@ public class PantallaNivel extends Screen {
     /** Alto reservado para la nota rotativa, o 0 si esta desactivada. */
     private int altoAviso;
 
+    // ---- Cabecera medida una sola vez ------------------------------------
+    // font.split vuelve a partir el texto en cada llamada; la cabecera se
+    // mide en init() y ademas se DIBUJA todos los frames, asi que las lineas
+    // partidas se guardan aca y se reutilizan. La pantalla se reconstruye al
+    // cambiar el idioma o la resolucion, asi que el cache nunca queda viejo.
+    //
+    // El numero del nivel cambia solo con la rotacion y no reconstruye la
+    // pantalla, asi que el cache del nivel/tarifa se guarda POR NUMERO: en
+    // init() se parten una vez todas las variantes (0..cantidad) y en el
+    // render se elige la que toca. Antes se partia el texto con el numero
+    // maximo y el cartel decia "Nivel 10" para siempre.
+
+    private List<FormattedCharSequence> lineasSubtitulo = Collections.emptyList();
+    private List<List<FormattedCharSequence>> porNumeroNivelActual = Collections.emptyList();
+    private List<List<FormattedCharSequence>> porNumeroTarifa = Collections.emptyList();
+    private List<FormattedCharSequence> lineasFecha = Collections.emptyList();
+
     /** Ultimo nivel visto, para saber cuando cambio sin llevar temporizadores. */
     private int nivelVisto;
 
@@ -138,6 +164,22 @@ public class PantallaNivel extends Screen {
         // por eso la nota al pie caia encima del ultimo renglon en TODAS las
         // resoluciones: dos anclajes independientes dentro de la misma caja
         // siempre terminan chocando. Aca solo hay un anclaje, el de arriba.
+        int anchoTexto = this.anchoHoja - 2 * margenHoja();
+        int anchoMax = Nivel.cantidad();
+        this.lineasSubtitulo = this.font.split(
+                Component.translatable("jobsmenu.subtitulo"), anchoTexto);
+        List<List<FormattedCharSequence>> niveles = new ArrayList<>(anchoMax + 1);
+        List<List<FormattedCharSequence>> tarifas = new ArrayList<>(anchoMax + 1);
+        for (int i = 0; i <= anchoMax; i++) {
+            niveles.add(this.font.split(
+                    Component.translatable("jobsmenu.nivel.actual", i), anchoTexto));
+            tarifas.add(this.font.split(
+                    Component.translatable("jobsmenu.nivel.tarifa", i + 1), anchoTexto));
+        }
+        this.porNumeroNivelActual = niveles;
+        this.porNumeroTarifa = tarifas;
+        this.lineasFecha = this.font.split(fechaTurno(), anchoTexto);
+
         this.altoCabecera = medirCabecera();
 
         int salto = altoRenglon() + separacion();
@@ -210,16 +252,24 @@ public class PantallaNivel extends Screen {
      * unico que aguanta un idioma nuevo sin volver a tocar numeros.
      */
     private int medirCabecera() {
-        int ancho = this.anchoHoja - 2 * margenHoja();
         int alto = altoTitulo() + aireTitulo();
-        alto += lineas("jobsmenu.subtitulo", ancho) * altoLinea();
+        alto += this.lineasSubtitulo.size() * altoLinea();
         alto += aireRegla() + 1 + aireRegla();
-        // Se miden con el numero de nivel mas ancho posible (el de mas digitos
-        // del catalogo) para que la hoja reserve el alto correcto aunque el
-        // texto rote entre "Nivel 0" y "Nivel 10". Asi no cambia de tamano sola.
-        int anchoMax = Nivel.cantidad();
-        alto += lineasDe(Component.translatable("jobsmenu.nivel.actual", anchoMax), ancho) * altoLinea();
-        alto += lineasDe(Component.translatable("jobsmenu.nivel.tarifa", anchoMax), ancho) * altoLinea();
+        // Se miden con el renglon mas ancho de todas las variantes: la hoja
+        // reserva el alto del "Nivel 10" aunque ahora este el "Nivel 3", y
+        // nunca cambia de tamano sola. El maximo se recorre, no se indexa:
+        // asi el numero de niveles del catalogo puede cambiar sin romper nada.
+        int maximo = 1;
+        for (List<FormattedCharSequence> variante : this.porNumeroNivelActual) {
+            maximo = Math.max(maximo, variante.size());
+        }
+        for (List<FormattedCharSequence> variante : this.porNumeroTarifa) {
+            maximo = Math.max(maximo, variante.size());
+        }
+        alto += maximo * 2 * altoLinea();
+        if (ConfigTurno.mostrarFecha()) {
+            alto += this.lineasFecha.size() * altoLinea();
+        }
         return alto;
     }
 
@@ -253,9 +303,20 @@ public class PantallaNivel extends Screen {
         return Math.max(1, this.font.split(Component.translatable(clave), ancho).size());
     }
 
-    /** Igual que {@link #lineas(String, int)} pero para un texto ya compuesto. */
-    private int lineasDe(Component texto, int ancho) {
-        return Math.max(1, this.font.split(texto, ancho).size());
+    /**
+     * La fecha del turno, fijada al abrir la hoja.
+     *
+     * Es un documento: la fecha del turno se estampa cuando se pega el aviso y
+     * no se reescribe con el reloj. Sale del reloj del sistema, igual que las
+     * notas especiales.
+     */
+    private Component fechaTurno() {
+        LocalDateTime ahora = LocalDateTime.now();
+        return Component.translatable("jobsmenu.pantalla.fecha",
+                String.format(Locale.ROOT, "%02d", ahora.getDayOfMonth()),
+                String.format(Locale.ROOT, "%02d", ahora.getMonthValue()),
+                String.format(Locale.ROOT, "%02d", ahora.getHour()),
+                String.format(Locale.ROOT, "%02d", ahora.getMinute()));
     }
 
     private int margenHoja() { return this.compacta ? 6 : MARGEN_HOJA; }
@@ -467,7 +528,7 @@ public class PantallaNivel extends Screen {
         grafico.pose().popPose();
 
         y += altoTitulo() + aireTitulo();
-        y = parrafo(grafico, "jobsmenu.subtitulo", x, y, ancho,
+        y = parrafo(grafico, this.lineasSubtitulo, x, y,
                 Paleta.conAlfa(Paleta.TINTA_TENUE, tinta));
 
         y += aireRegla();
@@ -480,26 +541,21 @@ public class PantallaNivel extends Screen {
         // "Nivel 7" y "Salida al Nivel 8", no el eterno "Nivel 0" de antes. Es
         // el mismo aviso releido por la administracion de cada nivel, y hace
         // que la hoja pertenezca al recinto en vez de flotar por encima.
-        Nivel actual = RotacionNiveles.actual();
-        int n = actual.numero();
-        y = parrafo(grafico, Component.translatable("jobsmenu.nivel.actual", n), x, y, ancho,
+        int n = RotacionNiveles.indiceActual();
+        y = parrafo(grafico, this.porNumeroNivelActual.get(n), x, y,
                 Paleta.conAlfa(Paleta.TINTA_TENUE, tinta));
-        parrafo(grafico, Component.translatable("jobsmenu.nivel.tarifa", n + 1), x, y, ancho,
+        y = parrafo(grafico, this.porNumeroTarifa.get(n), x, y,
                 Paleta.conAlfa(Paleta.TINTA, tinta));
-    }
-
-    /** Dibuja un texto partido al ancho de la hoja y devuelve donde termino. */
-    private int parrafo(GuiGraphics grafico, Component texto, int x, int y, int ancho, int color) {
-        for (FormattedCharSequence linea : this.font.split(texto, ancho)) {
-            grafico.drawString(this.font, linea, x, y, color, false);
-            y += altoLinea();
+        if (ConfigTurno.mostrarFecha()) {
+            parrafo(grafico, this.lineasFecha, x, y,
+                    Paleta.conAlfa(Paleta.TINTA_TENUE, 0.70F * tinta));
         }
-        return y;
     }
 
-    /** Dibuja un texto partido al ancho de la hoja y devuelve donde termino. */
-    private int parrafo(GuiGraphics grafico, String clave, int x, int y, int ancho, int color) {
-        for (FormattedCharSequence linea : this.font.split(Component.translatable(clave), ancho)) {
+    /** Dibuja lineas ya medidas y devuelve donde termino. */
+    private int parrafo(GuiGraphics grafico, List<FormattedCharSequence> lineas,
+                        int x, int y, int color) {
+        for (FormattedCharSequence linea : lineas) {
             grafico.drawString(this.font, linea, x, y, color, false);
             y += altoLinea();
         }
@@ -510,17 +566,22 @@ public class PantallaNivel extends Screen {
     private void ronda(GuiGraphics grafico) {
         boolean destellosReducidos = ConfigTurno.destellosReducidos() || !ConfigTurno.escenaViva();
 
+        // Una sola lectura del reloj por frame: todas las preguntas y el
+        // formato salen del mismo valor. Antes eran cuatro lecturas y un
+        // String.format por frame.
+        long restante = RelojAparicion.restanteMs();
+
         Component rotulo;
-        if (RelojAparicion.enRonda()) {
+        if (RelojAparicion.enRonda(restante)) {
             rotulo = Component.translatable("jobsmenu.reloj.encurso");
-        } else if (RelojAparicion.inminente()) {
+        } else if (RelojAparicion.inminente(restante)) {
             rotulo = Component.translatable("jobsmenu.reloj.inminente");
         } else {
             rotulo = Component.translatable("jobsmenu.reloj.proxima");
         }
 
-        String tiempo = RelojAparicion.formatoRestante();
-        int color = RelojAparicion.color(destellosReducidos);
+        String tiempo = RelojAparicion.formatoRestante(restante);
+        int color = RelojAparicion.color(destellosReducidos, restante);
         int margen = 12;
 
         int anchoRotulo = this.font.width(rotulo);
@@ -600,9 +661,22 @@ public class PantallaNivel extends Screen {
      * recibir el cursor, porque mira isHoveredOrFocused y no solo el raton. El
      * teclado suena, entonces, exactamente igual que el raton.
      *
+     * Una tecla propia, visible en la pantalla de ajustes y no en la hoja:
+     *
+     *   M - silencia o restaura todo el audio del aviso (volumen maestro).
+     *
      * Escape esta anulado en shouldCloseOnEsc: de la pantalla de titulo no se
      * sale con Escape, no hay adonde ir.
      */
+    @Override
+    public boolean keyPressed(int codigo, int escaneo, int modificadores) {
+        if (codigo == GLFW.GLFW_KEY_M) {
+            MezclaAudio.alternarSilencio();
+            return true;
+        }
+        return super.keyPressed(codigo, escaneo, modificadores);
+    }
+
     @Override
     public boolean isPauseScreen() {
         return false;

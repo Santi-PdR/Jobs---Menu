@@ -1,6 +1,6 @@
 # Compatibilidad con otros mods
 
-> Anotado a partir de la lista de mods de la instancia `jobs-2` (Forge 47.x / 1.20.1).
+> Anotado a partir de la lista de mods de la instancia `test-1` (Forge 47.x / 1.20.1).
 > Es un analisis por conocimiento de los mods, **no** una prueba en vivo: el sandbox donde
 > se genera este mod no tiene JDK ni puede cargar los otros `.jar`. Lo definitivo se
 > confirma en el PC del owner.
@@ -11,15 +11,27 @@ De los ~110 mods de la instancia, casi ninguno toca los menus: son de juego, de
 optimizacion, de render del mundo o cosmeticos in-game. Jobs vive en las pantallas
 (titulo, pausa, opciones), asi que el solapamiento es minimo. Hay pocos puntos a vigilar.
 
+## Pantalla de Opciones: regla de oro
+
+El unico menu de vanilla que Jobs toca es `OptionsScreen`, y lo hace con el
+**chequeo EXACTO de clase** (`getClass() == OptionsScreen.class`) en
+`AjustesAviso`. Solo agrega un boton discreto arriba a la derecha y no
+reemplaza la pantalla. Nunca se usa `instanceof OptionsScreen` (eso aceptaria
+pantallas de otros mods que extienden la de vanilla y les ensuciaria su
+esquina) — y `tools/verificar.py` falla si aparece. Los demas menus (titulo y
+pausa) solo se sustituyen con la clase exacta de vanilla, y siempre hay
+bandera de config para devolverlos. Ninguna otra pantalla del juego se toca.
+
 ## Puntos que importan
 
 ### AmbientSounds (audio) — atencion media
 
 `AmbientSounds` es el unico mod de ambiente sonoro fuerte del pack. Segun su config puede
 sonar tambien en el menu principal; si lo hace, se **solapa** con REQUIEM y con las camas
-de ambiente de Jobs (que usan `SoundSource.MUSIC` y `AMBIENT`). No es un fallo ni un
-crash: son dos capas de sonido a la vez. Si molesta, apagar el ambiente de menu en uno de
-los dos. Todo el audio de Jobs se puede bajar o apagar desde **Condiciones de estancia**.
+de ambiente de Jobs (que viajan por `SoundSource.MASTER`; ver `docs/musica.md`). No es un
+fallo ni un crash: son dos capas de sonido a la vez. Si molesta, apagar el ambiente de
+menu en uno de los dos. Todo el audio de Jobs se puede bajar o apagar desde el boton
+**Ajustes del aviso** en Opciones, y con la tecla **M** en el aviso.
 
 ### FastQuit (pausa) — resuelto por diseno
 
@@ -45,9 +57,9 @@ Ningun mod de la lista captura Ctrl+S en pantallas. `Controlling`, `MouseTweaks`
 
 - **`notenoughcrashes` esta duplicado**: `4.4.7` y `4.4.9` a la vez. Dos versiones del
   mismo mod pueden impedir el arranque. Conviene dejar solo la `4.4.9`.
-- **`jobsmenu-0.6.5.jar` esta viejo**: la instancia trae la 0.6.5; la version al dia es la
-  0.8.0. El bloque de despliegue del README borra los `jobsmenu-*.jar` viejos antes de
-  copiar, asi que al desplegar se corrige solo.
+- **`jobsmenu-0.6.5.jar` esta viejo**: la instancia trae la 0.6.5; la version al dia
+  sale de `mod_version` en `gradle.properties`. El despliegue (ver chat / manual de
+  despliegue) borra los `jobsmenu-*.jar` viejos antes de copiar, asi que se corrige solo.
 - `cullleaves` **y** `CullLessLeaves` hacen casi lo mismo (culling de hojas). Redundante,
   no rompe nada.
 

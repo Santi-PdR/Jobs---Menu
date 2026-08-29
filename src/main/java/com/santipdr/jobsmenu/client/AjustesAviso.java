@@ -27,8 +27,10 @@ import net.minecraftforge.fml.common.Mod;
  * La pantalla de opciones ordena sus botones con una grilla centrada que ya
  * esta armada cuando llega este evento. Meter un boton en esa grilla a
  * posteriori no se puede sin rehacerla, asi que el boton del mod se coloca
- * suelto, arriba a la izquierda, en una esquina que la grilla no usa. Es
+ * suelto, ARRIBA A LA DERECHA, en una esquina que la grilla no usa. Es
  * discreto y no tapa ninguno de los botones de vanilla en ninguna resolucion.
+ * (Antes el comentario decia "izquierda" y el codigo siempre lo puso a la
+ * derecha: un comentario que miente cuesta mas que la esquina que corrige.)
  *
  * Solo actua sobre OptionsScreen y solo si el menu propio esta activo: si el
  * jugador apago el mod, no ensucia las opciones con un boton de algo que decidio
@@ -49,15 +51,19 @@ public final class AjustesAviso {
             return;
         }
 
-        int ancho = Math.max(80, Math.min(120, pantalla.width - 12));
+        // El boton mide lo que necesita el rotulo mas un margen, con un piso y
+        // un techo: si el idioma alarga el texto no se desborda de la pantalla,
+        // y en textos cortos no queda un boton gigante vacio.
+        Minecraft cliente = Minecraft.getInstance();
+        Component rotulo = Component.translatable("jobsmenu.ajustes.boton");
+        int anchoTexto = cliente.font.width(rotulo);
+        int ancho = Math.max(90, Math.min(140, anchoTexto + 16));
+        ancho = Math.min(ancho, pantalla.width - 12);
         int x = Math.max(6, pantalla.width - ancho - 6);
 
         Button boton = Button.builder(
-                Component.translatable("jobsmenu.ajustes.boton"),
-                (b) -> {
-                    Minecraft cliente = Minecraft.getInstance();
-                    cliente.setScreen(new PantallaAjustesAviso(pantalla, cliente.options));
-                })
+                rotulo,
+                (b) -> cliente.setScreen(new PantallaAjustesAviso(pantalla, cliente.options)))
                 .bounds(x, 6, ancho, 20)
                 .build();
         evento.addListener(boton);

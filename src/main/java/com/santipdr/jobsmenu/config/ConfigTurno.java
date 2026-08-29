@@ -19,12 +19,15 @@ public final class ConfigTurno {
     public final ForgeConfigSpec.BooleanValue destellosReducidos;
     public final ForgeConfigSpec.BooleanValue interfazMinima;
     public final ForgeConfigSpec.BooleanValue mostrarCuentaRegresiva;
+    public final ForgeConfigSpec.BooleanValue mostrarFecha;
     public final ForgeConfigSpec.BooleanValue avisosRotativos;
     public final ForgeConfigSpec.BooleanValue rotarNiveles;
+    public final ForgeConfigSpec.BooleanValue rotacionCalma;
     public final ForgeConfigSpec.IntValue nivelFijo;
     public final ForgeConfigSpec.BooleanValue sonidoBotones;
     public final ForgeConfigSpec.BooleanValue sonidoAmbiente;
     public final ForgeConfigSpec.IntValue volumenAmbiente;
+    public final ForgeConfigSpec.IntValue volumenAviso;
     public final ForgeConfigSpec.BooleanValue musicaMenu;
     public final ForgeConfigSpec.IntValue volumenMusica;
     public final ForgeConfigSpec.BooleanValue creditoMusica;
@@ -66,6 +69,10 @@ public final class ConfigTurno {
                 .comment("Mostrar el tiempo estimado hasta la proxima ronda.")
                 .define("mostrar_cuenta_regresiva", true);
 
+        this.mostrarFecha = builder
+                .comment("Estampar la fecha del turno en la hoja del aviso.")
+                .define("mostrar_fecha", true);
+
         this.avisosRotativos = builder
                 .comment("Mostrar los avisos de la administracion al pie de la hoja.")
                 .define("avisos_rotativos", true);
@@ -73,6 +80,10 @@ public final class ConfigTurno {
         this.rotarNiveles = builder
                 .comment("Ir cambiando de nivel solo, con el apagon entre uno y otro.")
                 .define("rotar_niveles", true);
+
+        this.rotacionCalma = builder
+                .comment("Cada nivel se queda el doble de tiempo antes del apagon.")
+                .define("rotacion_calma", false);
 
         this.nivelFijo = builder
                 .comment("Nivel a mostrar cuando la rotacion esta apagada. 0 es el papel mural.")
@@ -89,6 +100,10 @@ public final class ConfigTurno {
         this.volumenAmbiente = builder
                 .comment("Volumen del ambiente del nivel, de 0 a 100.")
                 .defineInRange("volumen_ambiente", 55, 0, 100);
+
+        this.volumenAviso = builder
+                .comment("Volumen maestro del aviso: musica, ambiente y gestos. La tecla M en el aviso alterna silencio.")
+                .defineInRange("volumen_aviso", 100, 0, 100);
 
         this.musicaMenu = builder
                 .comment("Dejar sonando el tema del menu por debajo de todo lo demas.")
@@ -202,12 +217,28 @@ public final class ConfigTurno {
     // destildada aunque el jugador la hubiese marcado.
     // ----------------------------------------------------------------------
 
+    // ----------------------------------------------------------------------
+    // Guardado diferido
+    //
+    // Un deslizador de Opciones llama al setter en CADA movimiento del raton:
+    // escribir el .toml por cada uno era decenas de escrituras por segundo.
+    // Ahora set() aplica el valor al instante (el volumen se oye en vivo) y el
+    // guardado se limita a uno cada GUARDAR_MS, con volcado garantizado al
+    // cerrar la pantalla de ajustes o al cambiar de pantalla.
+    // ----------------------------------------------------------------------
+
+    private static final long GUARDAR_MS = 250L;
+
+    private static long ultimoGuardadoMs;
+    private static boolean guardadoPendiente;
+    private static ForgeConfigSpec.ConfigValue<?> valorPendiente;
+
     private static void fijar(ForgeConfigSpec.BooleanValue destino, boolean valor) {
         if (!SPEC.isLoaded()) {
             return;
         }
         destino.set(valor);
-        destino.save();
+        marcarGuardado(destino);
     }
 
     private static void fijar(ForgeConfigSpec.IntValue destino, int valor) {
@@ -215,12 +246,60 @@ public final class ConfigTurno {
             return;
         }
         destino.set(valor);
-        destino.save();
+        marcarGuardado(destino);
+    }
+
+    private static void marcarGuardado(ForgeConfigSpec.ConfigValue<?> destino) {
+        valorPendiente = destino;
+        guardadoPendiente = true;
+        long ahora = System.currentTimeMillis();
+        if (ahora - ultimoGuardadoMs >= GUARDAR_MS) {
+            volcarGuardado();
+        }
+    }
+
+    /** Fuerza el volcado de un guardado diferido (cierre de pantalla o cambio). */
+    public static void guardarPendiente() {
+        volcarGuardado();
+    }
+
+    private static void volcarGuardado() {
+        if (!guardadoPendiente || !SPEC.isLoaded() || valorPendiente == null) {
+            return;
+        }
+        guardadoPendiente = false;
+        ultimoGuardadoMs = System.currentTimeMillis();
+        ForgeConfigSpec.ConfigValue<?> valor = valorPendiente;
+        valorPendiente = null;
+        valor.save();
     }
 
     /** El valor guardado de rotar niveles, sin combinar con escena viva. */
     public static boolean rotarNivelesBruto() {
         return leer(INSTANCE.rotarNiveles, true);
+    }
+
+    public static boolean rotacionCalma() {
+        return leer(INSTANCE.rotacionCalma, false);
+    }
+
+    public static boolean mostrarFecha() {
+        return !interfazMinima() && leer(INSTANCE.mostrarFecha, true);
+    }
+
+    /** El valor guardado de la fecha, sin combinar con interfaz minima. */
+    public static boolean mostrarFechaBruto() {
+        return leer(INSTANCE.mostrarFecha, true);
+    }
+
+    /** Volumen maestro del aviso en la escala 0 a 100 que ve el jugador. */
+    public static int volumenAvisoPorcentaje() {
+        return SPEC.isLoaded() ? INSTANCE.volumenAviso.get() : 100;
+    }
+
+    /** Volumen maestro del aviso en la escala 0.0 - 1.0 del motor. */
+    public static float volumenAviso() {
+        return volumenAvisoPorcentaje() / 100.0F;
     }
 
     /** El valor guardado de la cuenta, sin combinar con interfaz minima. */
@@ -259,6 +338,10 @@ public final class ConfigTurno {
         fijar(INSTANCE.rotarNiveles, valor);
     }
 
+    public static void fijarRotacionCalma(boolean valor) {
+        fijar(INSTANCE.rotacionCalma, valor);
+    }
+
     public static void fijarNivelFijo(int nivel) {
         fijar(INSTANCE.nivelFijo, Math.max(0, Math.min(9, nivel)));
     }
@@ -279,8 +362,16 @@ public final class ConfigTurno {
         fijar(INSTANCE.mostrarCuentaRegresiva, valor);
     }
 
+    public static void fijarMostrarFecha(boolean valor) {
+        fijar(INSTANCE.mostrarFecha, valor);
+    }
+
     public static void fijarAvisosRotativos(boolean valor) {
         fijar(INSTANCE.avisosRotativos, valor);
+    }
+
+    public static void fijarVolumenAviso(int porcentaje) {
+        fijar(INSTANCE.volumenAviso, Math.max(0, Math.min(100, porcentaje)));
     }
 
     public static void fijarSonidoBotones(boolean valor) {

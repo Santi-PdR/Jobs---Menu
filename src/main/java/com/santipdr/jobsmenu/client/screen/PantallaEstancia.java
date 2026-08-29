@@ -1,5 +1,6 @@
 package com.santipdr.jobsmenu.client.screen;
 
+import com.santipdr.jobsmenu.client.sound.MezclaAudio;
 import com.santipdr.jobsmenu.client.ui.HojaPapel;
 import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.santipdr.jobsmenu.client.ui.RenglonTablon;
@@ -14,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 
 import com.mojang.realmsclient.RealmsMainScreen;
+import org.lwjgl.glfw.GLFW;
 
 /**
  * Estancia en suspenso: la pausa, con la piel del aviso.
@@ -155,6 +157,23 @@ public class PantallaEstancia extends Screen {
         } else {
             this.minecraft.setScreen(new JoinMultiplayerScreen(titulo));
         }
+    }
+
+    // ----------------------------------------------------------------------
+    // Teclado
+    // ----------------------------------------------------------------------
+
+    /**
+     * La misma tecla M que en el aviso: silencia o restaura todo el audio del
+     * mod. La pausa suele ser el momento en que se baja el volumen.
+     */
+    @Override
+    public boolean keyPressed(int codigo, int escaneo, int modificadores) {
+        if (codigo == GLFW.GLFW_KEY_M) {
+            MezclaAudio.alternarSilencio();
+            return true;
+        }
+        return super.keyPressed(codigo, escaneo, modificadores);
     }
 
     // ----------------------------------------------------------------------

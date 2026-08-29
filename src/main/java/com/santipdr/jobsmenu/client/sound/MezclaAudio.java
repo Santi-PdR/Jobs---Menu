@@ -80,6 +80,28 @@ public final class MezclaAudio {
     public static final float FIGURA = 0.40F;
 
     /**
+     * Silencio de un toque: el volumen guardado antes de silenciar.
+     *
+     * Vive aca, en la mesa de mezcla, porque lo que se silencia es la mezcla
+     * entera (musica + ambiente + gestos) y no un grupo en particular.
+     */
+    private static int silencioPrevio = 100;
+
+    /**
+     * Alterna el volumen maestro del aviso entre cero y el ultimo valor
+     * recordado. Se engancha a la tecla M del aviso y de la pausa.
+     */
+    public static void alternarSilencio() {
+        int actual = ConfigTurno.volumenAvisoPorcentaje();
+        if (actual > 0) {
+            silencioPrevio = actual;
+            ConfigTurno.fijarVolumenAviso(0);
+        } else {
+            ConfigTurno.fijarVolumenAviso(silencioPrevio);
+        }
+    }
+
+    /**
      * Cuanto baja el resto mientras la figura esta presente.
      *
      * No se corta nada: se afloja. Un corte se nota como un corte y delata el
@@ -108,12 +130,14 @@ public final class MezclaAudio {
         }
         float tono = 0.98F + (float) Math.random() * 0.04F;
         Minecraft.getInstance().getSoundManager()
-                .play(SimpleSoundInstance.forUI(evento.get(), tono, volumen * INTERFAZ));
+                .play(SimpleSoundInstance.forUI(evento.get(), tono,
+                        volumen * INTERFAZ * ConfigTurno.volumenAviso()));
     }
 
     /** Un sonido de ambiente suelto, sin posicion, con tono y volumen dados. */
     public static void ambiental(RegistryObject<SoundEvent> evento, float volumen, float tono) {
         Minecraft.getInstance().getSoundManager()
-                .play(SimpleSoundInstance.forUI(evento.get(), tono, volumen));
+                .play(SimpleSoundInstance.forUI(evento.get(), tono,
+                        volumen * ConfigTurno.volumenAviso()));
     }
 }

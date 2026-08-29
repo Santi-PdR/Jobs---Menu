@@ -813,6 +813,18 @@ def profundidad_atmosfera(lz, ancho, alto, nivel, luz) -> None:
         alfa = 0.010 * (7 - i) * luz
         lz.fill(centro_x - rx, centro_y - ry, centro_x + rx, centro_y + ry,
                 con_alfa(nivel.niebla, alfa))
+    # Halo de color lejano (antes en prof_arte): identidad cromatica del nivel
+    # sin sumar otra capa de oscuridad (espejo de TratamientoEscena 1.x).
+    halo_w = max(20, ancho // 5)
+    halo_h = max(12, alto // 7)
+    for i in range(4, -1, -1):
+        a = (0.010 + i * 0.006) * luz
+        x0 = centro_x - halo_w - i * 9
+        x1 = centro_x + halo_w + i * 9
+        y0 = centro_y - halo_h - i * 5
+        y1 = centro_y + halo_h + i * 5
+        lz.fill(max(0, x0), max(0, y0), min(ancho, x1), min(alto, y1),
+                con_alfa(nivel.luz, a))
 
 
 def rebote_suelo(lz, ancho, alto, nivel, luz, tiempo) -> None:
@@ -862,7 +874,9 @@ def grano(lz, ancho, alto, nivel, luz, tiempo) -> None:
 # Direccion de arte: espejo de DireccionArte.java
 # --------------------------------------------------------------------------
 def direccion_arte(lz, ancho, alto, nivel, luz, tiempo) -> None:
-    prof_arte(lz, ancho, alto, nivel, luz)
+    # prof_arte se retiro en la evolucion 2: la niebla y la vineta ya viven en
+    # tratamiento_escena / vineta, y el halo de color se movio a
+    # profundidad_atmosfera. Una sola pasada atmosferica.
     n = numero_nivel(nivel)
     if n == 0:
         administracion(lz, ancho, alto, nivel, luz, tiempo)
@@ -884,28 +898,6 @@ def direccion_arte(lz, ancho, alto, nivel, luz, tiempo) -> None:
         cisterna_arte(lz, ancho, alto, nivel, luz, tiempo)
     elif n == 9:
         trono_arte(lz, ancho, alto, nivel, luz, tiempo)
-
-
-def prof_arte(lz, w, h, nivel, luz) -> None:
-    fx = int(w * nivel.fuga_x)
-    fy = int(h * nivel.fuga_y)
-    for i in range(7):
-        margen_x = max(8, w // 16 + i * w // 34)
-        margen_y = max(6, h // 18 + i * h // 38)
-        a = (0.020 + i * 0.006) * (1.0 - 0.35 * luz)
-        c = con_alfa(VANO, a)
-        lz.fill(0, 0, max(0, fx - margen_x), h, c)
-        lz.fill(min(w, fx + margen_x), 0, w, h, c)
-        lz.fill(0, 0, w, max(0, fy - margen_y), c)
-    halo_w = max(20, w // 5)
-    halo_h = max(12, h // 7)
-    for i in range(4, -1, -1):
-        a = (0.012 + i * 0.008) * luz
-        x0 = fx - halo_w - i * 9
-        x1 = fx + halo_w + i * 9
-        y0 = fy - halo_h - i * 5
-        y1 = fy + halo_h + i * 5
-        lz.fill(max(0, x0), max(0, y0), min(w, x1), min(h, y1), con_alfa(nivel.luz, a))
 
 
 def administracion(lz, w, h, nivel, luz, t) -> None:
@@ -938,14 +930,22 @@ def servicio_arte(lz, w, h, nivel, luz, t) -> None:
 
 
 def natatorio_arte(lz, w, h, nivel, luz, t) -> None:
-    causticas(lz, w, h, nivel, luz, t, 0.64, 8)
+    # Cuatro lineas apenas (espejo de DireccionArte: la planta ya dibuja su
+    # propia red de luz; tres aguas superpuestas eran ruido).
+    causticas(lz, w, h, nivel, luz, t, 0.64, 4)
+    # Reflejo vertical de las luminarias: una columna por luz, deriva unica
+    # (espejo de DireccionArte 1.x: antes cada tramo tenia fase propia y la
+    # fila se leia como un relampago).
     for i in range(4):
-        x = int(w * (0.28 + i * 0.15))
-        for s in range(5):
+        x_base = w * (0.28 + i * 0.15)
+        deriva = math.sin(t * 0.8 + i * 1.7) * 1.5
+        ancho_col = max(2, w // 90)
+        for s in range(6):
             yy = int(h * 0.60) + s * max(3, h // 45)
-            drift = int(math.sin(t * 1.3 + i + s) * 4.0)
-            lz.fill(x + drift, yy, x + drift + max(2, w // 90), yy + 1,
-                    con_alfa(nivel.luz, 0.055 * luz * (1.0 - s * 0.12)))
+            dx = int(deriva * (0.35 + s * 0.20))
+            x = int(x_base) + dx
+            alfa = 0.050 * luz * (1.0 - s * 0.14)
+            lz.fill(x, yy, x + ancho_col, yy + 1, con_alfa(nivel.luz, alfa))
 
 
 def sala_piedra(lz, w, h, nivel, luz, t) -> None:
@@ -1151,10 +1151,13 @@ def humedad_viva(lz, ancho, alto, nivel, luz, progreso, pulso_e, sem) -> None:
     centro = int(ancho * (0.20 + 0.60 * pseudo(sem + 17)))
     radio = max(18, int(ancho * (0.03 + progreso * 0.08)))
     alfa = 0.08 * hum * luz * pulso_e
-    lz.fill(max(0, centro - radio), base_y, min(ancho, centro + radio), base_y + 1,
-            con_alfa(nivel.luz, alfa))
-    lz.fill(max(0, centro - radio // 2), base_y + 3, min(ancho, centro + radio // 2),
-            base_y + 4, con_alfa(nivel.luz, alfa * 0.50))
+    # Sin rizo en el natatorio (nivel3) por el mismo motivo que el Java: la
+    # red de luz de la planta y el arte ya cubren el agua.
+    if numero_nivel(nivel) != 3:
+        lz.fill(max(0, centro - radio), base_y, min(ancho, centro + radio), base_y + 1,
+                con_alfa(nivel.luz, alfa))
+        lz.fill(max(0, centro - radio // 2), base_y + 3, min(ancho, centro + radio // 2),
+                base_y + 4, con_alfa(nivel.luz, alfa * 0.50))
     velo_y = max(0, base_y - 18)
     lz.fill(0, velo_y, ancho, velo_y + 2, con_alfa(nivel.luz, 0.018 * hum * pulso_e))
 

@@ -24,7 +24,13 @@ public final class EscenaNivel {
         boolean destellos = viva && !ConfigTurno.destellosReducidos();
         boolean movimiento = viva && !ConfigTurno.movimientoReducido();
 
-        float tiempo = viva ? (System.currentTimeMillis() % 600_000L) / 1000.0F : 3.0F;
+        // Con el movimiento reducido el reloj se congela a proposito: las
+        // plantas, los materiales, el tratamiento y la direccion de arte
+        // reciben un instante fijo, asi el fuego, el agua, las telas y los
+        // haces se quedan quietos de verdad. La luz sigue viva porque es otra
+        // opcion (destellos_reducidos). Antes solo se apagaban el polvo, la
+        // presencia y los eventos, y el resto del recinto seguia animandose.
+        float tiempo = movimiento ? (System.currentTimeMillis() % 600_000L) / 1000.0F : 3.0F;
         float penumbra = RelojAparicion.penumbra();
 
         float luz = brilloFluorescente(tiempo, destellos)

@@ -139,9 +139,11 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
         this.edad = 0;
 
         // Cada nivel tiene su propia red electrica y su propio tamano: un tono
-        // ligeramente distinto por nivel hace que no se perciba que las cuatro
-        // capas salen del mismo generador.
-        this.pitch = 0.96F + 0.03F * nivel;
+        // LIGERAMENTE distinto por nivel. Antes el desvio llegaba a 1.23 en el
+        // nivel 9 (+23 %), que se oia como cinta acelerada y no como otro
+        // lugar; con este rango (0.975-1.011) el matiz existe sin cambiarle
+        // el material a nada.
+        this.pitch = 0.975F + 0.004F * nivel;
 
         // Las camas del mismo nivel no arrancan con la misma edad. Si lo
         // hicieran, sus respiraciones subirian y bajarian juntas y el conjunto
@@ -205,7 +207,9 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
 
         float objetivo = 0.0F;
         if (permitido) {
-            objetivo = ConfigTurno.volumenAmbiente() * MezclaAudio.AMBIENTE * this.papel.peso;
+            // El volumen maestro del aviso (tecla M) gobierna la cama entera.
+            objetivo = ConfigTurno.volumenAmbiente() * MezclaAudio.AMBIENTE
+                    * this.papel.peso * ConfigTurno.volumenAviso();
 
             // La instalacion depende de la luz, y cada papel a su manera: la
             // base se va casi del todo con el apagon, el caracter aguanta.

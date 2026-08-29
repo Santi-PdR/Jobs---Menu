@@ -45,7 +45,7 @@ public final class EventosAmbientales {
         } else if (numero == 5) {
             polvoEnHaz(grafico, ancho, alto, nivel, luz, progreso, pulso, semilla);
         } else if (numero == 7 || numero == 9) {
-            siluetaLejana(grafico, ancho, alto, pulso, semilla);
+            siluetaLejana(grafico, ancho, alto, pulso, semilla, progreso);
         } else {
             polvoEnHaz(grafico, ancho, alto, nivel, luz, progreso, pulso, semilla);
         }
@@ -77,12 +77,18 @@ public final class EventosAmbientales {
         int radio = Math.max(18, (int) (ancho * (0.03F + progreso * 0.08F)));
         float alfa = 0.08F * humedad * luz * pulso;
 
-        g.fill(Math.max(0, centro - radio), baseY,
-                Math.min(ancho, centro + radio), baseY + 1,
-                Paleta.conAlfa(nivel.luz, alfa));
-        g.fill(Math.max(0, centro - radio / 2), baseY + 3,
-                Math.min(ancho, centro + radio / 2), baseY + 4,
-                Paleta.conAlfa(nivel.luz, alfa * 0.50F));
+        // El rizo horizontal (las dos lineas de onda) no se dibuja en el
+        // natatorio: ese nivel ya tiene la red de luz de la planta y el arte,
+        // y tres aguas superpuestas se leian como ruido. El velo se queda.
+        boolean rizo = nivel.numero() != 3;
+        if (rizo) {
+            g.fill(Math.max(0, centro - radio), baseY,
+                    Math.min(ancho, centro + radio), baseY + 1,
+                    Paleta.conAlfa(nivel.luz, alfa));
+            g.fill(Math.max(0, centro - radio / 2), baseY + 3,
+                    Math.min(ancho, centro + radio / 2), baseY + 4,
+                    Paleta.conAlfa(nivel.luz, alfa * 0.50F));
+        }
 
         int veloY = Math.max(0, baseY - 18);
         g.fill(0, veloY, ancho, veloY + 2,
@@ -105,14 +111,20 @@ public final class EventosAmbientales {
         }
     }
 
-    /** Figura estrecha que cruza lejos, sin rasgos ni jumpscare. */
+    /**
+     * Figura estrecha que cruza lejos, sin rasgos ni jumpscare.
+     *
+     * El desplazamiento sale del MISMO progreso que abre la ventana y sostiene
+     * el pulso: antes la silueta media su propia fraccion de la ventana con su
+     * propio reloj, y en el pico del pulso podia saltar de posicion porque las
+     * dos cuentas nunca iban exactamente iguales.
+     */
     private static void siluetaLejana(GuiGraphics g, int ancho, int alto,
-                                      float pulso, int semilla) {
+                                      float pulso, int semilla, float progreso) {
         boolean derecha = (semilla & 4) == 0;
-        float avance = (float) ((System.currentTimeMillis() % VENTANA_MS) / (double) VENTANA_MS);
         int recorrido = Math.max(24, ancho / 9);
         int baseX = (int) (ancho * (0.43F + 0.12F * pseudo(semilla + 41)));
-        int desplazamiento = (int) ((avance - 0.5F) * recorrido);
+        int desplazamiento = (int) ((progreso - 0.5F) * recorrido);
         int x = derecha ? baseX + desplazamiento : baseX - desplazamiento;
         int y = (int) (alto * (0.39F + 0.10F * pseudo(semilla + 47)));
         int h = Math.max(12, alto / 12);

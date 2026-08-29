@@ -85,12 +85,20 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
                         ConfigTurno.mostrarCuentaRegresivaBruto(), ConfigTurno::fijarMostrarCuentaRegresiva));
         this.lista.addBig(selectorNivel(ConfigTurno.nivelFijo()));
         this.lista.addSmall(
+                interruptor("jobsmenu.ajustes.rotacioncalma",
+                        ConfigTurno.rotacionCalma(), ConfigTurno::fijarRotacionCalma),
                 interruptor("jobsmenu.ajustes.avisos",
-                        ConfigTurno.avisosRotativosBruto(), ConfigTurno::fijarAvisosRotativos),
+                        ConfigTurno.avisosRotativosBruto(), ConfigTurno::fijarAvisosRotativos));
+        this.lista.addSmall(
+                interruptor("jobsmenu.ajustes.fecha",
+                        ConfigTurno.mostrarFechaBruto(), ConfigTurno::fijarMostrarFecha),
                 interruptor("jobsmenu.ajustes.interfaz",
                         ConfigTurno.interfazMinima(), ConfigTurno::fijarInterfazMinima));
 
-        // Sonido del recinto y del menu.
+        // Sonido del recinto y del menu. El volumen maestro va arriba, porque
+        // manda sobre todo lo demas: la musica, el ambiente y los gestos.
+        this.lista.addBig(deslizador("jobsmenu.ajustes.volaviso",
+                ConfigTurno.volumenAvisoPorcentaje(), ConfigTurno::fijarVolumenAviso));
         this.lista.addBig(deslizador("jobsmenu.ajustes.volmusica",
                 ConfigTurno.volumenMusicaPorcentaje(), ConfigTurno::fijarVolumenMusica));
         this.lista.addBig(deslizador("jobsmenu.ajustes.volambiente",
@@ -130,5 +138,13 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
         // basicListRender es el render estandar de las subpantallas de opciones:
         // fondo, la lista con su barra, el titulo centrado arriba y los widgets.
         this.basicListRender(grafico, this.lista, ratonX, ratonY, parcial);
+    }
+
+    @Override
+    public void removed() {
+        // Al salir de la subpantalla se vuelca cualquier guardado diferido de
+        // los deslizadores (ver ConfigTurno.marcarGuardado).
+        ConfigTurno.guardarPendiente();
+        super.removed();
     }
 }

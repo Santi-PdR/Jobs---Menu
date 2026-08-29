@@ -57,6 +57,10 @@ public final class EscuchaCliente {
         Screen anterior = evento.getCurrentScreen();
         Screen siguiente = evento.getNewScreen();
 
+        // Un cambio de pantalla es la frontera natural de la config: se vuelca
+        // cualquier guardado diferido de los deslizadores antes de pasar.
+        ConfigTurno.guardarPendiente();
+
         if (ConfigTurno.menuPropio()
                 && siguiente != null
                 && siguiente.getClass() == TitleScreen.class
@@ -80,6 +84,12 @@ public final class EscuchaCliente {
         }
 
         gesto(anterior, siguiente);
+    }
+
+    /** Cierre de pantalla: ultimo vuelco seguro del guardado diferido. */
+    @SubscribeEvent
+    public static void alCerrarPantalla(ScreenEvent.Closing evento) {
+        ConfigTurno.guardarPendiente();
     }
 
     /** Coordina musica y salida de mundo aun cuando no hay una Screen propia. */

@@ -20,7 +20,11 @@ public final class DireccionArte {
 
     public static void dibujar(GuiGraphics g, int ancho, int alto,
                                Nivel nivel, float luz, float tiempo) {
-        profundidad(g, ancho, alto, nivel, luz);
+        // La niebla de fondo y la vineta de bordes viven en TratamientoEscena
+        // y en EscenaNivel: aca antes se repintaba una tercera capa alrededor
+        // del punto de fuga (sombra + halo) y el centro del cuadro quedaba
+        // doblemente ahogado. El halo de color de identidad por nivel se
+        // conservo en TratamientoEscena.profundidad, unica pasada atmosferica.
 
         switch (nivel.clave) {
             case "nivel0" -> administracion(g, ancho, alto, nivel, luz, tiempo);
@@ -34,36 +38,6 @@ public final class DireccionArte {
             case "nivel8" -> cisterna(g, ancho, alto, nivel, luz, tiempo);
             case "nivel9" -> trono(g, ancho, alto, nivel, luz, tiempo);
             default -> { }
-        }
-    }
-
-    private static void profundidad(GuiGraphics g, int w, int h, Nivel n, float luz) {
-        int fx = (int) (w * n.fugaX);
-        int fy = (int) (h * n.fugaY);
-
-        // Marco de sombra alrededor del punto de fuga: separa primer plano,
-        // medio y fondo sin lavar los colores de la planta.
-        for (int i = 0; i < 7; i++) {
-            int margenX = Math.max(8, w / 16 + i * w / 34);
-            int margenY = Math.max(6, h / 18 + i * h / 38);
-            float a = (0.020F + i * 0.006F) * (1.0F - 0.35F * luz);
-            int c = Paleta.conAlfa(Paleta.VANO, a);
-            g.fill(0, 0, Math.max(0, fx - margenX), h, c);
-            g.fill(Math.min(w, fx + margenX), 0, w, h, c);
-            g.fill(0, 0, w, Math.max(0, fy - margenY), c);
-        }
-
-        // Halo de color lejano. Mantiene la identidad cromatica de cada nivel.
-        int haloW = Math.max(20, w / 5);
-        int haloH = Math.max(12, h / 7);
-        for (int i = 4; i >= 0; i--) {
-            float a = (0.012F + i * 0.008F) * luz;
-            int x0 = fx - haloW - i * 9;
-            int x1 = fx + haloW + i * 9;
-            int y0 = fy - haloH - i * 5;
-            int y1 = fy + haloH + i * 5;
-            g.fill(Math.max(0, x0), Math.max(0, y0), Math.min(w, x1), Math.min(h, y1),
-                    Paleta.conAlfa(n.luz, a));
         }
     }
 
@@ -105,15 +79,24 @@ public final class DireccionArte {
     }
 
     private static void natatorio(GuiGraphics g, int w, int h, Nivel n, float luz, float t) {
-        causticas(g, w, h, n, luz, t, 0.64F, 8);
-        // Reflejo vertical de luminarias sobre agua, roto en segmentos.
+        // Cuatro lineas apenas: la planta ya dibuja su propia red de luz, y el
+        // recinto entero no necesita tres tratamientos de agua superpuestos.
+        causticas(g, w, h, n, luz, t, 0.64F, 4);
+        // Reflejo vertical de las luminarias sobre el agua, una columna por
+        // luz. Antes cada tramo se desplazaba con su propia fase
+        // (sin(t*1.3+i+s)*4) y la fila se leia como un relampago blanco; la
+        // deriva ahora es una sola por columna y crece apenas hacia abajo,
+        // asi el reflejo tiembla sin romperse.
         for (int i = 0; i < 4; i++) {
-            int x = (int) (w * (0.28F + i * 0.15F));
-            for (int s = 0; s < 5; s++) {
+            float xBase = w * (0.28F + i * 0.15F);
+            float deriva = (float) Math.sin(t * 0.8F + i * 1.7F) * 1.5F;
+            int anchoCol = Math.max(2, w / 90);
+            for (int s = 0; s < 6; s++) {
                 int yy = (int) (h * 0.60F) + s * Math.max(3, h / 45);
-                int drift = (int) (Math.sin(t * 1.3F + i + s) * 4.0F);
-                g.fill(x + drift, yy, x + drift + Math.max(2, w / 90), yy + 1,
-                        Paleta.conAlfa(n.luz, 0.055F * luz * (1.0F - s * 0.12F)));
+                int dx = (int) (deriva * (0.35F + s * 0.20F));
+                int x = (int) xBase + dx;
+                float alfa = 0.050F * luz * (1.0F - s * 0.14F);
+                g.fill(x, yy, x + anchoCol, yy + 1, Paleta.conAlfa(n.luz, alfa));
             }
         }
     }

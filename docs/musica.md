@@ -41,6 +41,29 @@ apagón (cede un 22 % para que el corte eléctrico tenga el frente), y se calla 
 gestor de música de vanilla mientras el aviso está abierto para no pelear por el
 canal `MUSIC`.
 
+## Canal y deslizadores: qué gobierna a REQUIEM
+
+- REQUIEM se reproduce por `SoundSource.MASTER` (constructor de `GestorMusica`),
+  **no** por `MUSIC`. El deslizador **Música** de vanilla **no** lo gobierna.
+- Lo gobiernan, en orden: el deslizador **Maestro** del juego (canal master),
+  el **volumen de la música** propio del mod y el **volumen maestro del aviso**
+  (que la tecla **M** alterna entre 0 y el último valor recordado).
+- Los gestos de interfaz y los eventos van también por `MASTER` vía
+  `SimpleSoundInstance.forUI`. Las camas ambientales se declaran como
+  `ambient` en `sounds.json` (para que el juego sepa qué clase de sonido son),
+  pero se reproducen con fuente `MASTER`, así el deslizador **Ambiente** de
+  vanilla tampoco las duplica ni las baja.
+- Por qué se eligió así y no el canal `MUSIC`/`AMBIENT` de vanilla: un solo
+  canal de control para todo el audio del mod, sin el doble mando (deslizador
+  de vanilla + deslizador propio) que produciría comportamiento inesperado al
+  subir uno y no el otro. Es la decisión documentada en
+  `docs/PROPUESTA_EVOLUCION_2.md` (I-26, decisión IMPLEMENTAR; la variante de
+  canal fue evaluada y rechazada por ese motivo).
+- Mientras el aviso está abierto, `GestorMusica.atender()` llama una vez por
+  tick a `MusicManager.stopPlaying()` de vanilla para que la música del juego
+  no pelee por su gestor: el canal queda libre para el tema del mod. Al salir
+  del menú, el fundido lo resuelve `tick()` y el gestor de vanilla retoma.
+
 ## Cómo cambiar la pista (reemplazando el recurso)
 
 Esta es la vía para que la música **viaje con el mod**: quien instale el `.jar`

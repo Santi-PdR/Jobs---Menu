@@ -244,34 +244,46 @@ public final class Presencia {
         float alfa = ALFA_MAXIMO * visible;
         int tinte = tinte(nivel);
 
-        // En el modo doble hay dos siluetas; en los demas, una.
-        float[][] posiciones = modo == MODO_DOBLE
-                ? new float[][] {{lado, 1.0F, 1.0F}, {-lado * 0.86F, 0.62F, 0.88F}}
-                : new float[][] {{lado, 1.0F, 1.0F}};
+        // En el modo doble hay dos siluetas; en los demas, una. Sin arreglos
+        // por frame: el caso doble son dos llamadas explicitas.
+        dibujarAparicion(grafico, nivel, m, lado, 1.0F, 1.0F,
+                base, altura, w, alfa, tinte, modo, t);
+        if (modo == MODO_DOBLE) {
+            dibujarAparicion(grafico, nivel, m, -lado * 0.86F, 0.62F, 0.88F,
+                    base, altura, w, alfa, tinte, modo, t);
+        }
+    }
 
-        for (float[] pos : posiciones) {
-            float x = m.enX(1.0F, pos[0]);
-            float peso = pos[1];
-            float escala = pos[2];
+    /**
+     * Una de las apariciones: cuerpo (salvo sumergida) y su reflejo si el
+     * suelo del recinto lo devuelve. El vaiven usa la fraccion de posicion
+     * como fase, igual que antes, para que las dos siluetas del modo doble no
+     * respiren al unisono.
+     */
+    private static void dibujarAparicion(GuiGraphics grafico, Nivel nivel,
+                                         Marco m, float frac, float peso,
+                                         float escala, float base, float altura,
+                                         float w, float alfa, int tinte,
+                                         int modo, float t) {
+        float x = m.enX(1.0F, frac);
 
-            // Respiracion: un pixel largo, muy lento. Basta para que no se lea
-            // como un elemento pintado sobre la pared.
-            float vaiven = (float) Math.sin(t * 0.55F + pos[0]) * (w * 0.012F);
+        // Respiracion: un pixel largo, muy lento. Basta para que no se lea
+        // como un elemento pintado sobre la pared.
+        float vaiven = (float) Math.sin(t * 0.55F + frac) * (w * 0.012F);
 
-            // En sumergida no hay cuerpo: solo lo que devuelve el agua.
-            if (modo != MODO_SUMERGIDA) {
-                dibujarCuerpo(grafico, x + vaiven, base, altura * escala, w,
-                        alfa * peso, tinte);
-            }
+        // En sumergida no hay cuerpo: solo lo que devuelve el agua.
+        if (modo != MODO_SUMERGIDA) {
+            dibujarCuerpo(grafico, x + vaiven, base, altura * escala, w,
+                    alfa * peso, tinte);
+        }
 
-            // El reflejo. En las piscinas es la mitad del efecto: se ve antes
-            // el borron en el suelo que la figura misma. Cuando es lo unico que
-            // hay, se lo sube: tiene que sostener la escena solo.
-            if (nivel.reflejo > 0.20F) {
-                float fuerza = modo == MODO_SUMERGIDA ? 1.35F : 0.85F;
-                dibujarReflejo(grafico, x + vaiven, base, altura * escala, w,
-                        alfa * peso * nivel.reflejo * fuerza, tinte);
-            }
+        // El reflejo. En las piscinas es la mitad del efecto: se ve antes
+        // el borron en el suelo que la figura misma. Cuando es lo unico que
+        // hay, se lo sube: tiene que sostener la escena solo.
+        if (nivel.reflejo > 0.20F) {
+            float fuerza = modo == MODO_SUMERGIDA ? 1.35F : 0.85F;
+            dibujarReflejo(grafico, x + vaiven, base, altura * escala, w,
+                    alfa * peso * nivel.reflejo * fuerza, tinte);
         }
     }
 

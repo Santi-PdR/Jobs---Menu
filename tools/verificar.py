@@ -25,9 +25,12 @@ AVISOS: list[str] = []
 # Subtitulos declarados por sounds.json, que tambien deben estar traducidos.
 SUBTITULOS: set[str] = set()
 
-# Cuantas piezas de audio tiene la identidad sonora completa: 8 de interfaz,
-# 4 ambientes de sala, 13 eventos, 3 de transicion electrica, 1 de la figura
-# y 1 de musica. Si el numero baja, algo se perdio por el camino.
+# Cuantas piezas de audio tiene la identidad sonora completa:
+#   8 de interfaz (ui/) + 30 camas (4 niveles x ambiente/caracter/actividad)
+#   + 31 eventos de recinto (eventos/) + 3 de transicion electrica (nivel/)
+#   + 1 de la figura + 1 de musica = 74.
+# La cuenta se mantiene derivada: si sounds.json cambia de verdad, este
+# numero se actualiza a mano (y el fallo de abajo lo recuerda).
 PIEZAS_ESPERADAS = 74
 
 
@@ -578,6 +581,23 @@ def verificar_audio() -> None:
 # --------------------------------------------------------------------------
 # 9. Niveles de la escena
 # --------------------------------------------------------------------------
+def verificar_alcance_opciones() -> None:
+    """La pantalla de Opciones se toca con el chequeo EXACTO de la clase.
+
+    AjustesAviso agrega su boton solo a `OptionsScreen` (y a las clases
+    anonimas que cuelgan directamente de ella). Un `instanceof OptionsScreen`
+    aceptaria pantallas de otros mods que extienden la de vanilla y les
+    ensuciaria su esquina: por eso este chequeo no debe existir nunca.
+    """
+    for ruta in archivos_java():
+        texto = leer(ruta)
+        if re.search(r"instanceof\s+OptionsScreen", texto):
+            fallo(
+                f"{ruta.relative_to(RAIZ)} usa 'instanceof OptionsScreen'. "
+                f"La pantalla de opciones se toca solo con la clase exacta."
+            )
+
+
 def verificar_niveles(es: dict[str, str]) -> None:
     """Cada nivel del catalogo necesita su nombre y su nota en los dos idiomas."""
     ruta = RAIZ / "src/main/java/com/santipdr/jobsmenu/client/scene/Nivel.java"
@@ -785,6 +805,7 @@ def main() -> int:
     verificar_mezcla()
     verificar_simbolos()
     verificar_niveles(es)
+    verificar_alcance_opciones()
     verificar_recursos()
 
     # Los subtitulos que declara sounds.json tambien son cadenas traducibles.

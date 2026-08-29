@@ -27,7 +27,14 @@ public final class TratamientoEscena {
         }
     }
 
-    /** Niebla leve en el tercio lejano: separa fondo, medio y primer plano. */
+    /**
+     * Niebla leve en el tercio lejano: separa fondo, medio y primer plano.
+     *
+     * Es la UNICA pasada atmosferica de profundidad del renderer. Antes
+     * DireccionArte repintaba una sombra y un halo alrededor del mismo punto
+     * de fuga, y el centro del cuadro quedaba doblemente ahogado; el halo de
+     * color de identidad de cada nivel se traslado aca.
+     */
     private static void profundidad(GuiGraphics g, int ancho, int alto, Nivel nivel, float luz) {
         int centroX = (int) (ancho * nivel.fugaX);
         int centroY = (int) (alto * nivel.fugaY);
@@ -41,6 +48,20 @@ public final class TratamientoEscena {
             float alfa = 0.010F * (7 - i) * luz;
             int color = Paleta.conAlfa(nivel.niebla, alfa);
             g.fill(centroX - rx, centroY - ry, centroX + rx, centroY + ry, color);
+        }
+
+        // Halo de color lejano (antes en DireccionArte): mantiene la identidad
+        // cromatica de cada nivel sin sumar otra capa de oscuridad.
+        int haloW = Math.max(20, ancho / 5);
+        int haloH = Math.max(12, alto / 7);
+        for (int i = 4; i >= 0; i--) {
+            float a = (0.010F + i * 0.006F) * luz;
+            int x0 = centroX - haloW - i * 9;
+            int x1 = centroX + haloW + i * 9;
+            int y0 = centroY - haloH - i * 5;
+            int y1 = centroY + haloH + i * 5;
+            g.fill(Math.max(0, x0), Math.max(0, y0), Math.min(ancho, x1), Math.min(alto, y1),
+                    Paleta.conAlfa(nivel.luz, a));
         }
     }
 

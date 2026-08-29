@@ -21,6 +21,9 @@ public final class RotacionNiveles {
     /** Cuanto se queda quieto cada nivel antes de empezar a irse. */
     private static final long ESTANCIA_MS = 24_000L;
 
+    /** Con la rotacion en calma, cada nivel se queda el doble de tiempo. */
+    private static final long ESTANCIA_CALMA_MS = 48_000L;
+
     /** Cuanto dura el apagon completo, de la primera falla a la luz firme. */
     private static final long TRANSICION_MS = 2_600L;
 
@@ -31,7 +34,14 @@ public final class RotacionNiveles {
     private static final long AVISO_MS = 1_400L;
 
     /** Un ciclo entero: un nivel quieto mas su salida. */
-    private static final long CICLO_MS = ESTANCIA_MS + TRANSICION_MS;
+    private static long cicloMs() {
+        return estanciaMs() + TRANSICION_MS;
+    }
+
+    /** La estancia del nivel segun la cadencia elegida. */
+    private static long estanciaMs() {
+        return ConfigTurno.rotacionCalma() ? ESTANCIA_CALMA_MS : ESTANCIA_MS;
+    }
 
     private static final float[][] AVISO_CHISPAZOS = {
             {0.28F, 0.34F, 0.72F},
@@ -48,12 +58,13 @@ public final class RotacionNiveles {
         if (!ConfigTurno.rotarNiveles()) {
             return ConfigTurno.nivelFijo();
         }
-        long total = CICLO_MS * Nivel.cantidad();
+        long ciclo = cicloMs();
+        long total = ciclo * Nivel.cantidad();
         long t = Math.floorMod(System.currentTimeMillis(), total);
-        int indice = (int) (t / CICLO_MS);
+        int indice = (int) (t / ciclo);
 
-        long dentro = t % CICLO_MS;
-        if (dentro >= ESTANCIA_MS + (long) (TRANSICION_MS * REPARTO_APAGADO)) {
+        long dentro = t % ciclo;
+        if (dentro >= estanciaMs() + (long) (TRANSICION_MS * REPARTO_APAGADO)) {
             indice++;
         }
         return indice % Nivel.cantidad();
@@ -68,35 +79,38 @@ public final class RotacionNiveles {
             return 1.0F;
         }
         long dentro = posicionEnCiclo();
-        if (dentro < ESTANCIA_MS) {
-            return preaviso(dentro);
-        }
+        float luz;
+        if (dentro < estanciaMs()) {
+            luz = preaviso(dentro);
+        } else {
+            long transcurrido = dentro - estanciaMs();
+            long apagado = (long) (TRANSICION_MS * REPARTO_APAGADO);
 
-        long transcurrido = dentro - ESTANCIA_MS;
-        long apagado = (long) (TRANSICION_MS * REPARTO_APAGADO);
-
-        if (transcurrido < apagado) {
-            float t = (float) transcurrido / (float) apagado;
-            float caida = 1.0F - t * t;
-            if (!ConfigTurno.destellosReducidos()) {
-                for (float[] c : CORTE_CHISPAZOS) {
-                    if (t > c[0] && t < c[1]) {
-                        caida *= c[2];
+            if (transcurrido < apagado) {
+                float t = (float) transcurrido / (float) apagado;
+                float caida = 1.0F - t * t;
+                if (!ConfigTurno.destellosReducidos()) {
+                    for (float[] c : CORTE_CHISPAZOS) {
+                        if (t > c[0] && t < c[1]) {
+                            caida *= c[2];
+                        }
                     }
                 }
+                luz = Math.max(0.0F, caida);
+            } else {
+                float t = (float) (transcurrido - apagado) / (float) (TRANSICION_MS - apagado);
+                luz = arranqueTubo(t);
             }
-            return Math.max(0.0F, caida);
         }
 
-        float t = (float) (transcurrido - apagado) / (float) (TRANSICION_MS - apagado);
-        return arranqueTubo(t);
+        return luz;
     }
 
     private static float preaviso(long dentro) {
         if (ConfigTurno.destellosReducidos()) {
             return 1.0F;
         }
-        long falta = ESTANCIA_MS - dentro;
+        long falta = estanciaMs() - dentro;
         if (falta > AVISO_MS) {
             return 1.0F;
         }
@@ -109,14 +123,16 @@ public final class RotacionNiveles {
         return 1.0F - 0.06F * t;
     }
 
+
+
     public static int chispazoActual() {
         if (!ConfigTurno.rotarNiveles() || ConfigTurno.destellosReducidos()) {
             return -1;
         }
         long dentro = posicionEnCiclo();
 
-        if (dentro < ESTANCIA_MS) {
-            long falta = ESTANCIA_MS - dentro;
+        if (dentro < estanciaMs()) {
+            long falta = estanciaMs() - dentro;
             if (falta > AVISO_MS) {
                 return -1;
             }
@@ -130,7 +146,7 @@ public final class RotacionNiveles {
             return -1;
         }
 
-        long transcurrido = dentro - ESTANCIA_MS;
+        long transcurrido = dentro - estanciaMs();
         long apagado = (long) (TRANSICION_MS * REPARTO_APAGADO);
         if (transcurrido >= apagado) {
             return -1;
@@ -188,7 +204,7 @@ public final class RotacionNiveles {
         if (!ConfigTurno.rotarNiveles()) {
             return false;
         }
-        return posicionEnCiclo() >= ESTANCIA_MS;
+        return posicionEnCiclo() >= estanciaMs();
     }
 
     public static boolean porTransicionar() {
@@ -196,14 +212,14 @@ public final class RotacionNiveles {
             return false;
         }
         long dentro = posicionEnCiclo();
-        return dentro >= ESTANCIA_MS - AVISO_MS && dentro < ESTANCIA_MS;
+        return dentro >= estanciaMs() - AVISO_MS && dentro < estanciaMs();
     }
 
     public static float avanceTransicion() {
         if (!enTransicion()) {
             return 0.0F;
         }
-        return (posicionEnCiclo() - ESTANCIA_MS) / (float) TRANSICION_MS;
+        return (posicionEnCiclo() - estanciaMs()) / (float) TRANSICION_MS;
     }
 
     public static float repartoApagado() {
@@ -211,7 +227,8 @@ public final class RotacionNiveles {
     }
 
     private static long posicionEnCiclo() {
-        long total = CICLO_MS * Nivel.cantidad();
-        return Math.floorMod(System.currentTimeMillis(), total) % CICLO_MS;
+        long ciclo = cicloMs();
+        long total = ciclo * Nivel.cantidad();
+        return Math.floorMod(System.currentTimeMillis(), total) % ciclo;
     }
 }
