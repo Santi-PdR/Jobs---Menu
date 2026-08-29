@@ -8,14 +8,10 @@ import net.minecraft.client.gui.GuiGraphics;
 /**
  * Un tipo de recinto.
  *
- * Hasta la version anterior habia una sola geometria -un corredor- y los
- * cuatro niveles eran esa misma geometria repintada. Se notaba: cambiar de
- * nivel cambiaba el color y nada mas. Un nivel no es una paleta, es un lugar
- * distinto, y un deposito no se parece en nada a un natatorio aunque los dos
- * esten en el mismo edificio.
- *
- * Cada implementacion dibuja su recinto entero, del fondo hacia la camara,
- * partiendo del encuadre comun ({@link Marco}) y de los colores del nivel.
+ * Cada implementacion dibuja un recinto entero, del fondo hacia la camara,
+ * partiendo del lienzo, el encuadre ({@link Marco}) y los colores del nivel.
+ * No existe una geometria de pasillo compartida: cada clase es responsable de
+ * su composicion, arquitectura, materiales y silueta.
  * Lo que hay antes -la luz, el reloj, la transicion- y lo que hay despues -la
  * presencia, el polvo, la vineta- no es asunto suyo: de eso se ocupa
  * {@code EscenaNivel}.

@@ -8,8 +8,8 @@ import net.minecraft.client.gui.GuiGraphics;
 /**
  * Matematica y barridos compartidos por los diez recintos.
  *
- * Solo contiene infraestructura transversal. La arquitectura, los objetos y
- * el material especifico viven en cada Planta o en Arquitectura.
+ * Solo contiene infraestructura transversal. La arquitectura y los objetos
+ * viven en cada Planta; las superficies procedurales, en {@link Lienzo}.
  */
 public final class Trazo {
     private Trazo() { }

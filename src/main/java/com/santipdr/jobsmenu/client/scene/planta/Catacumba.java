@@ -5,51 +5,79 @@ import com.santipdr.jobsmenu.client.scene.Nivel;
 import com.santipdr.jobsmenu.client.ui.Paleta;
 import net.minecraft.client.gui.GuiGraphics;
 
-/** Catacumba baja e irregular, con nichos y una bifurcacion que no devuelve luz. */
+/** Excavacion funeraria que desciende en zigzag entre nichos irregulares. */
 public final class Catacumba implements Planta {
-    @Override public float pisoPresencia() { return .93F; }
-    @Override public void dibujar(GuiGraphics g, Marco m, Nivel n, float luz, float tiempo) {
-        g.fill(0, 0, m.ancho(), m.alto(), Arquitectura.material(n, n.paredBaja, luz, .30F, .62F));
-        int cx = Math.round(m.centro(1)), base = Math.round(m.sueloEn(1));
-        int r = Math.max(15, Math.round(m.anchoEn(1) * .28F));
-        Arquitectura.arco(g, cx, Math.round(m.techoEn(1)), base, r, Math.max(4, r / 5),
-                Arquitectura.material(n, n.paredAlta, luz, 1, .22F), n.fondo);
-        // Ramal lateral visible: rompe el eje y hace que el subsuelo continue.
-        int bx = Math.round(m.ancho() * .15F), by = Math.round(m.alto() * .56F);
-        Arquitectura.arco(g, bx, by - 32, by + 34, 31, 7,
-                Arquitectura.material(n, n.paredAlta, luz, .45F, .32F), n.fondo);
+    @Override public float pisoPresencia() { return .88F; }
 
-        // Nichos no uniformes, algunos vacios y otros con restos apenas legibles.
-        for (int s = -1; s <= 1; s += 2) {
-            for (int j = 2; j < 17; j += 3) {
-                float d = Trazo.profundidad(j, 19);
-                int x = Math.round(m.lado(s, d, .86F)), y = Math.round(m.fy() - m.h() * d * .20F);
-                int w = Math.max(5, Math.round(d * 4.2F)), h = Math.max(8, Math.round(d * 7F));
-                int oscuro = Paleta.conAlfa(n.fondo, .84F);
-                g.fill(x - w, y - h, x + w, y + h, oscuro);
-                g.fill(x - w - 2, y - h - 2, x + w + 2, y - h, Paleta.conAlfa(n.junta, .60F));
-                if ((j + s) % 4 != 0) {
-                    Arquitectura.linea(g, x - w + 2, y + h - 4, x + w - 2, y + h - 4, 2,
-                            Paleta.conAlfa(0xFFC0B79D, .28F * luz));
+    @Override public void dibujar(GuiGraphics g, Marco m, Nivel n, float luz, float tiempo) {
+        int w = m.ancho(), h = m.alto();
+        int piedra = Lienzo.tono(n, n.paredBaja, luz, .44F);
+        Lienzo.fondo(g, w, h, n.fondo, piedra, 2200);
+        Lienzo.piedra(g, 0, 0, w, h, piedra, n.junta, 2210);
+
+        // Tres rellanos que descienden hacia el fondo derecho. Cada abertura
+        // cambia de eje; la profundidad se lee como excavacion, no como tunel.
+        int[][] rellanos = {
+                {Math.round(w * .06F), Math.round(h * .37F), Math.round(w * .48F), Math.round(h * .70F)},
+                {Math.round(w * .34F), Math.round(h * .46F), Math.round(w * .78F), Math.round(h * .75F)},
+                {Math.round(w * .63F), Math.round(h * .53F), Math.round(w * .95F), Math.round(h * .79F)}
+        };
+        for (int i = 0; i < rellanos.length; i++) {
+            int[] r = rellanos[i];
+            int radio = Math.max(14, (r[2] - r[0]) / 4);
+            int cx = (r[0] + r[2]) / 2;
+            Lienzo.arco(g, cx, r[1] - radio, r[3], radio, Math.max(5, radio / 4),
+                    Lienzo.tono(n, n.paredAlta, luz, .34F + i * .19F), n.fondo);
+            if (i < rellanos.length - 1) {
+                int nx = (rellanos[i + 1][0] + rellanos[i + 1][2]) / 2;
+                int ny = rellanos[i + 1][3];
+                for (int paso = 0; paso < 6; paso++) {
+                    float t = paso / 5F;
+                    int x = Math.round(cx + (nx - cx) * t);
+                    int y = Math.round(r[3] + (ny - r[3]) * t + paso * h * .018F);
+                    int ancho = Math.max(16, Math.round((r[2] - r[0]) * (.38F - t * .13F)));
+                    Lienzo.caja(g, x - ancho, y, x + ancho, y + Math.max(3, h / 42),
+                            Lienzo.tono(n, n.sueloLejos, luz, .27F + i * .18F));
                 }
             }
         }
-        // Piso de piedra irregular y derrumbe cercano.
-        for (int j = 1; j < 18; j += 2) {
-            float d = Trazo.profundidad(j, 19);
-            Arquitectura.linea(g, m.izq(d), m.sueloEn(d), m.der(d), m.sueloEn(d), 1,
-                    Arquitectura.material(n, n.sueloJunta, luz, 1 / d, .38F));
+
+        // Nichos escalonados a ambos lados; tapas, huecos y tamanos varian.
+        for (int lado = 0; lado < 2; lado++) {
+            int inicio = lado == 0 ? 0 : Math.round(w * .73F);
+            int fin = lado == 0 ? Math.round(w * .31F) : w;
+            for (int fila = 0; fila < 4; fila++) {
+                int y0 = Math.round(h * (.12F + fila * .135F));
+                int y1 = y0 + Math.max(14, h / 11);
+                for (int col = 0; col < 3; col++) {
+                    int x0 = inicio + 4 + col * Math.max(15, (fin - inicio - 8) / 3);
+                    int x1 = Math.min(fin - 3, x0 + Math.max(12, (fin - inicio - 15) / 3));
+                    boolean cerrado = Math.floorMod(fila * 5 + col * 3 + lado, 4) == 0;
+                    Lienzo.caja(g, x0, y0, x1, y1,
+                            cerrado ? Paleta.iluminar(n.paredAlta, luz * .34F) : n.fondo);
+                    Lienzo.caja(g, x0 - 2, y0 - 2, x1 + 2, y0,
+                            Paleta.conAlfa(n.junta, .72F));
+                    if (!cerrado && (fila + col) % 2 == 0)
+                        Lienzo.linea(g, x0 + 3, y1 - 4, x1 - 3, y1 - 4, 2,
+                                Paleta.conAlfa(0xFFC0B79D, .22F * luz));
+                }
+            }
         }
-        for (int i = 0; i < 18; i++) {
-            int x = Math.round(m.ancho() * (.55F + Trazo.pseudo(1900 + i) * .42F));
-            int y = Math.round(m.alto() * (.78F + Trazo.pseudo(1910 + i) * .22F));
-            int t = 3 + i % 8;
-            g.fill(x, y - t, x + t + 3, y, Arquitectura.material(n, n.paredAlta, luz, .10F, .20F));
-        }
-        // Un unico farol; el resto queda deliberadamente oscuro.
-        int lx = Math.round(m.ancho() * .61F), ly = Math.round(m.alto() * .34F);
-        Arquitectura.linea(g, lx, 0, lx, ly, 1, n.junta);
-        Arquitectura.halo(g, lx, ly, m.alto() / 10, n.luz, .16F * luz);
-        g.fill(lx - 3, ly, lx + 3, ly + 8, Paleta.conAlfa(n.luz, .62F * luz));
+
+        // Unico farol en el primer rellano; el descenso final queda negro.
+        int lx = Math.round(w * .38F), ly = Math.round(h * .42F);
+        Lienzo.linea(g, lx, 0, lx, ly, 1, Paleta.conAlfa(n.junta, .74F));
+        Lienzo.halo(g, lx, ly, Math.max(18, h / 8), n.luz, .13F * luz);
+        Lienzo.caja(g, lx - 3, ly, lx + 4, ly + Math.max(7, h / 27),
+                Paleta.conAlfa(n.luz, .62F * luz));
+        Lienzo.motas(g, w, h, tiempo * .14F, n.luz, .11F * luz, 2350, 9);
+    }
+
+    @Override public void primerPlano(GuiGraphics g, Marco m, Nivel n, float luz, float tiempo) {
+        int w = m.ancho(), h = m.alto();
+        // Arco inmediato cortado por camara; obliga a mirar desde dentro.
+        int material = Paleta.iluminar(n.paredBaja, luz * .22F);
+        Lienzo.linea(g, -w * .04F, 0, w * .10F, h, Math.max(20, w / 18), material);
+        Lienzo.linea(g, w * 1.02F, h * .11F, w * .91F, h, Math.max(16, w / 22), material);
     }
 }
