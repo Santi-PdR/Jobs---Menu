@@ -380,6 +380,16 @@ public final class GestorAmbiente {
                 return SonidosNivel.AMBIENTE_NIVEL8;
             case 9:
                 return SonidosNivel.AMBIENTE_NIVEL9;
+            case 10:
+                return SonidosNivel.AMBIENTE_NIVEL7;
+            case 11:
+                return SonidosNivel.AMBIENTE_NIVEL6;
+            case 12:
+                return SonidosNivel.AMBIENTE_NIVEL8;
+            case 13:
+                return SonidosNivel.AMBIENTE_NIVEL4;
+            case 14:
+                return SonidosNivel.AMBIENTE_NIVEL8;
             default:
                 return SonidosNivel.AMBIENTE_NIVEL0;
         }
@@ -405,6 +415,16 @@ public final class GestorAmbiente {
                 return SonidosNivel.CARACTER_NIVEL8;
             case 9:
                 return SonidosNivel.CARACTER_NIVEL9;
+            case 10:
+                return SonidosNivel.CARACTER_NIVEL9;
+            case 11:
+                return SonidosNivel.CARACTER_NIVEL6;
+            case 12:
+                return SonidosNivel.CARACTER_NIVEL2;
+            case 13:
+                return SonidosNivel.CARACTER_NIVEL4;
+            case 14:
+                return SonidosNivel.CARACTER_NIVEL6;
             default:
                 return SonidosNivel.CARACTER_NIVEL0;
         }
@@ -429,6 +449,16 @@ public final class GestorAmbiente {
             case 8:
                 return SonidosNivel.ACTIVIDAD_NIVEL8;
             case 9:
+                return SonidosNivel.ACTIVIDAD_NIVEL9;
+            case 10:
+                return SonidosNivel.ACTIVIDAD_NIVEL4;
+            case 11:
+                return SonidosNivel.ACTIVIDAD_NIVEL6;
+            case 12:
+                return SonidosNivel.ACTIVIDAD_NIVEL1;
+            case 13:
+                return SonidosNivel.ACTIVIDAD_NIVEL9;
+            case 14:
                 return SonidosNivel.ACTIVIDAD_NIVEL9;
             default:
                 return SonidosNivel.ACTIVIDAD_NIVEL0;
@@ -582,7 +612,7 @@ public final class GestorAmbiente {
             return;
         }
 
-        Repertorio repertorio = REPERTORIOS[Math.floorMod(nivel, REPERTORIOS.length)];
+        Repertorio repertorio = repertorioDe(nivel);
         Evento elegido = sortear(repertorio.eventos());
         if (elegido != null) {
             float volumen = mezclar(elegido.volMin(), elegido.volMax())
@@ -660,8 +690,21 @@ public final class GestorAmbiente {
      * no escucha: espera. Un silencio largo rompe esa cuenta y devuelve al
      * siguiente suceso todo el peso que tenia el primero.
      */
+
+    /** Repertorio intencional para los cinco fondos suministrados. */
+    private static Repertorio repertorioDe(int nivel) {
+        return switch (nivel) {
+            case 10 -> REPERTORIOS[4];  // cadenas, fuego y piedra
+            case 11 -> REPERTORIOS[6];  // vidrio, agua y follaje
+            case 12 -> REPERTORIOS[1];  // estructura, metal y distancia
+            case 13 -> REPERTORIOS[4];  // sala de piedra y cadenas
+            case 14 -> REPERTORIOS[9];  // ruina, estandartes y puerta lejana
+            default -> REPERTORIOS[Math.floorMod(nivel, REPERTORIOS.length)];
+        };
+    }
+
     private static void reprogramarEvento(int nivel) {
-        Repertorio repertorio = REPERTORIOS[Math.floorMod(nivel, REPERTORIOS.length)];
+        Repertorio repertorio = repertorioDe(nivel);
 
         // Raiz, no cuadrado: ahora si la tirada tiende al final de la ventana
         // y las pausas largas son mas frecuentes que las cortas.
