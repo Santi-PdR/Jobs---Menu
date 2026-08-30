@@ -21,7 +21,9 @@ jobs:
           fetch-depth: 0
 
       - name: Apply migration
-        run: python3 tools/migrar_niveles_18.py
+        run: |
+          python3 tools/ajustar_dimensiones_18.py
+          python3 tools/migrar_niveles_18.py
 
       - name: Commit materialized sources and PNGs
         shell: bash
