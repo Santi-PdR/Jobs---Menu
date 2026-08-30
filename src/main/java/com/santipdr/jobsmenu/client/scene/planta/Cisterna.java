@@ -58,7 +58,8 @@ public final class Cisterna implements Planta {
         Trazo.manchas(grafico, m, nivel, luz, TRAMOS);
         tuberiaEntrada(grafico, m, nivel, luz, tiempo);
 
-        // Columnas y su reflejo. Se dibujan de fondo a cerca.
+        // Columnas y su reflejo. Se dibujan de fondo a cerca, y la galeria de
+        // mantenimiento queda entre las dos hileras, en su propio plano.
         columnas(grafico, m, nivel, luz, tiempo);
         marcasNivelColumna(grafico, m, nivel, luz);
 
@@ -165,6 +166,12 @@ public final class Cisterna implements Planta {
             if (dx > 7.0F) {
                 continue;
             }
+            // La galeria de mantenimiento vive entre las dos hileras: se dibuja
+            // despues de las columnas lejanas y antes de las cercanas, para que
+            // cada plano oculte al de atras y la estructura se lea sobre el agua.
+            if (j == 10) {
+                galeriaMantenimiento(grafico, m, nivel, luz, tiempo);
+            }
             float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
             float at = Trazo.atenuar(luz, lej);
             float ancho = Math.max(2.0F, m.w() * dx * 0.05F);
@@ -213,6 +220,68 @@ public final class Cisterna implements Planta {
                                     at * 0.6F), desvanece * luz));
                 }
             }
+        }
+    }
+
+    /**
+     * La galeria de mantenimiento: un pasillo metalico sobre el agua, entre las
+     * dos hileras de columnas. Tablon, barandilla de un lado, anclajes contra
+     * las paredes y su reflejo partido abajo. Es la estructura de servicio que
+     * da escala al vaso: el agua no esta sola, alguien la cuidaba desde arriba.
+     */
+    private static void galeriaMantenimiento(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
+        float dx = 1.6F;
+        float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
+        float at = Trazo.atenuar(luz, lej);
+        int xIzq = Math.round(m.lado(-1.0F, dx));
+        int xDer = Math.round(m.lado(1.0F, dx));
+        if (xDer <= xIzq + 6) {
+            return;
+        }
+        // La superficie del agua es una linea horizontal: la galeria cuelga
+        // siempre por encima de ella, sin importar el encuadre.
+        int desde = Math.round(m.sueloEn(ORILLA));
+        int yDeck = desde - Math.max(3, (int) (m.h() * 0.16F));
+        int yRiel = yDeck - Math.max(3, (int) (m.h() * 0.055F));
+        int grosor = Math.max(2, (int) (m.h() * 0.012F));
+        int metal = Paleta.iluminar(Trazo.velar(
+                Paleta.mezclar(nivel.junta, 0xFF000000, 0.30F), nivel.niebla, lej, 0.5F), at * 0.9F);
+        int borde = Paleta.iluminar(nivel.paredAlta, at * 0.7F);
+
+        // El tablon con su canto superior recogiendo la luz de los focos.
+        grafico.fill(xIzq, yDeck, xDer, yDeck + grosor, metal);
+        grafico.fill(xIzq, yDeck, xDer, yDeck + 1,
+                Paleta.conAlfa(Paleta.iluminar(nivel.luz, at), 0.12F));
+        // La sombra del tablon: el metal oscurece apenas por debajo, como si
+        // el aire humedo comiera el filo.
+        grafico.fill(xIzq, yDeck + grosor, xDer, yDeck + grosor + 1,
+                Paleta.conAlfa(Paleta.VANO, 0.35F * at));
+        // Barandilla de un solo lado: pasamanos y montantes.
+        grafico.fill(xIzq, yRiel, xDer, yRiel + 1, borde);
+        int paso = Math.max(20, (xDer - xIzq) / 5);
+        for (int x = xIzq + paso / 2; x < xDer; x += paso) {
+            grafico.fill(x, yRiel, x + 1, yDeck, borde);
+        }
+        // Anclajes: en cada extremo un soporte baja del tablon hacia el agua,
+        // y una cartela diagonal lo ata a la pared. No es un tablon pegado.
+        for (int lado = 0; lado < 2; lado++) {
+            int ax = lado == 0 ? xIzq : xDer - 1;
+            int signo = lado == 0 ? 1 : -1;
+            grafico.fill(ax, yDeck, ax + 1, desde + Math.max(4, (int) (m.h() * 0.09F)), metal);
+            grafico.fill(ax, yDeck, ax + signo * Math.max(3, (int) (m.h() * 0.02F)), yDeck + 1,
+                    Paleta.conAlfa(borde, 0.8F));
+        }
+        // El reflejo del tablon en el agua: lineas cortas y partidas, mas tenues
+        // cuanto mas abajo. El agua de la cisterna refleja, pero deshecho.
+        int pasosReflejo = 4;
+        for (int k = 0; k < pasosReflejo; k++) {
+            float t = k / (float) pasosReflejo;
+            int ry = desde + Math.max(2, (int) (m.h() * (0.05F + t * 0.10F)));
+            float onda = (float) Math.sin(tiempo * 0.6F + k * 2.1F) * m.w() * 0.02F;
+            int rx0 = Math.round(xIzq + onda * 0.4F);
+            int rx1 = Math.round(xDer + onda);
+            grafico.fill(rx0, ry, rx1, ry + 1,
+                    Paleta.conAlfa(Paleta.iluminar(metal, 0.8F), (1.0F - t) * 0.20F * luz));
         }
     }
 

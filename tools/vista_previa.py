@@ -4017,11 +4017,51 @@ def cis_agua(lz, m, nivel, luz, tiempo) -> None:
         lz.fill(0, desde, m.ancho, desde + 1, con_alfa(iluminar(nivel.luz, luz * 0.5), 0.35))
 
 
+def cis_galeria(lz, m, nivel, luz, tiempo) -> None:
+    # Galeria de mantenimiento sobre el agua, entre las dos hileras de
+    # columnas: tablon, barandilla de un lado, anclajes y reflejo partido.
+    dx = 1.6
+    lej = limitar(1.0 / dx, 0.0, 1.0)
+    at = atenuar(luz, lej)
+    x_izq = round(m.lado(-1.0, dx))
+    x_der = round(m.lado(1.0, dx))
+    if x_der <= x_izq + 6:
+        return
+    desde = round(m.suelo_en(CIS_ORILLA))
+    y_deck = desde - max(3, int(m.h * 0.16))
+    y_riel = y_deck - max(3, int(m.h * 0.055))
+    grosor = max(2, int(m.h * 0.012))
+    metal = iluminar(velar(mezclar(nivel.junta, 0x000000, 0.30), nivel.niebla, lej, 0.5), at * 0.9)
+    borde = iluminar(nivel.pared_alta, at * 0.7)
+    lz.fill(x_izq, y_deck, x_der, y_deck + grosor, metal)
+    lz.fill(x_izq, y_deck, x_der, y_deck + 1, con_alfa(iluminar(nivel.luz, at), 0.12))
+    lz.fill(x_izq, y_deck + grosor, x_der, y_deck + grosor + 1, con_alfa(VANO, 0.35 * at))
+    lz.fill(x_izq, y_riel, x_der, y_riel + 1, borde)
+    paso = max(20, (x_der - x_izq) // 5)
+    for x in range(x_izq + paso // 2, x_der, paso):
+        lz.fill(x, y_riel, x + 1, y_deck, borde)
+    for lado in (0, 1):
+        ax = x_izq if lado == 0 else x_der - 1
+        signo = 1 if lado == 0 else -1
+        lz.fill(ax, y_deck, ax + 1, desde + max(4, int(m.h * 0.09)), metal)
+        lz.fill(ax, y_deck, ax + signo * max(3, int(m.h * 0.02)), y_deck + 1,
+                con_alfa(borde, 0.8))
+    for k in range(4):
+        t = k / 4.0
+        ry = desde + max(2, int(m.h * (0.05 + t * 0.10)))
+        onda = math.sin(tiempo * 0.6 + k * 2.1) * m.w * 0.02
+        rx0 = round(x_izq + onda * 0.4)
+        rx1 = round(x_der + onda)
+        lz.fill(rx0, ry, rx1, ry + 1, con_alfa(iluminar(metal, 0.8), (1.0 - t) * 0.20 * luz))
+
+
 def cis_columnas(lz, m, nivel, luz, tiempo) -> None:
     for j in range(2, CIS_TRAMOS + 1, 2):
         dx = profundidad(j, CIS_TRAMOS)
         if dx > 7.0:
             continue
+        if j == 10:
+            cis_galeria(lz, m, nivel, luz, tiempo)
         lej = limitar(1.0 / dx, 0.0, 1.0)
         at = atenuar(luz, lej)
         ancho = max(2.0, m.w * dx * 0.05)
