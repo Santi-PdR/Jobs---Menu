@@ -46,7 +46,9 @@ public final class PlantaImagen implements Planta {
         u = limitar(u, 0.0F, Math.max(0.0F, anchoTextura - visibleW));
         v = limitar(v, 0.0F, Math.max(0.0F, altoTextura - visibleH));
 
-        g.blit(textura, 0, 0, w, h, u, v, visibleW, visibleH, anchoTextura, altoTextura);
+        int regionW = Math.max(1, Math.min(anchoTextura, Math.round(visibleW)));
+        int regionH = Math.max(1, Math.min(altoTextura, Math.round(visibleH)));
+        g.blit(textura, 0, 0, w, h, u, v, regionW, regionH, anchoTextura, altoTextura);
 
         ambiente(g, w, h, nivel, luz, tiempo);
 
