@@ -27,8 +27,16 @@ public final class Trono implements Planta {
     /** A que fraccion del semiancho corren las dos hileras de columnas. */
     private static final float HILERA = 0.72F;
 
-    /** A que dy arranca la tarima del trono. Mas cerca = mas presente. */
-    private static final float TARIMA = 1.42F;
+    /**
+     * A que dy arranca la tarima del trono.
+     *
+     * Antes era 1.42, muy detras de la abertura: el trono quedaba chico entre
+     * columnas, estandartes y haces, una figura mas entre formas. En 1.18 el
+     * estrado avanza hacia el plano de la abertura y el conjunto (tarima,
+     * respaldo, hueco de la corona) ocupa casi el doble de campo: el foco deja
+     * de ser el mas pequeno de la escena y pasa a ser el mas grande.
+     */
+    private static final float TARIMA = 1.18F;
 
     /** Remate del respaldo; constante para no crear una matriz en cada frame. */
     private static final float[][] PICOS_CORONA = {
@@ -116,6 +124,25 @@ public final class Trono implements Planta {
             int yk = (int) (hombro + (yArco - hombro) * f);
             grafico.fill((int) (cx - w) - 1, yk, (int) (cx - w) + 1, yk + 3, borde);
             grafico.fill((int) (cx + w) - 1, yk, (int) (cx + w) + 1, yk + 3, borde);
+        }
+
+        // Dovelas concentricas: tres arcos de piedra que envuelven el vano,
+        // como las de una boveda construida y no un hueco recortado. Cada
+        // banda es mas ancha y baja un poco mas que la anterior; el oro solo
+        // toca la mas interna, que es la que enmarca el trono.
+        int dovelas = 3;
+        int piedraArco = Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, 1.0F, 0.30F),
+                luz * 0.62F);
+        for (int d = 1; d <= dovelas; d++) {
+            float escala = 1.0F + d * 0.11F;
+            for (int k = 0; k < pasos; k++) {
+                float f = k / (float) (pasos - 1);
+                float w = ancho * escala * (1.0F - (1.0F - f) * (1.0F - f));
+                int yk = (int) (hombro + (yArco - hombro) * f
+                        + (hombro - yArco) * d * 0.030F * f);
+                grafico.fill((int) (cx - w) - d, yk, (int) (cx - w) - d + 2, yk + 3, piedraArco);
+                grafico.fill((int) (cx + w) + d - 2, yk, (int) (cx + w) + d, yk + 3, piedraArco);
+            }
         }
     }
 
@@ -268,17 +295,19 @@ public final class Trono implements Planta {
         float suelo = m.sueloEn(dx);
         float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
         float at = Trazo.atenuar(luz, lej);
-        float anchoBase = m.anchoEn(dx) * 0.32F;
-        float altoEsc = m.h() * dx * 0.055F;
+        // El estrado crece con el trono: mas ancho y mas alto que antes, para
+        // que la silueta domine el abside sin llegar a taparlo.
+        float anchoBase = m.anchoEn(dx) * 0.40F;
+        float altoEsc = m.h() * dx * 0.048F;
         int oro = Paleta.iluminar(Trazo.velar(nivel.luz, nivel.niebla, lej, 0.18F), Math.min(1.0F, at * 1.15F));
         int oroVivo = Paleta.iluminar(nivel.luz, Math.min(1.0F, at + 0.25F));
         int sombra = Paleta.iluminar(Trazo.velar(nivel.paredBaja, nivel.niebla, lej, 0.45F), at * 0.48F);
 
-        // La tarima: cinco escalones anchos que suben al trono, cada uno con su
+        // La tarima: seis escalones anchos que suben al trono, cada uno con su
         // canto iluminado. Se lee como un estrado, no como un cajon.
-        int escalones = 5;
+        int escalones = 6;
         for (int e = 0; e < escalones; e++) {
-            float w = anchoBase * (1.0F - e * 0.11F);
+            float w = anchoBase * (1.0F - e * 0.10F);
             float yTop = suelo - altoEsc * (e + 1);
             int col = Paleta.iluminar(Trazo.velar(nivel.paredAlta, nivel.niebla, lej, 0.4F),
                     at * (0.62F + e * 0.07F));
@@ -289,8 +318,8 @@ public final class Trono implements Planta {
         cantosGastados(grafico, cx, suelo, anchoBase, altoEsc, escalones, nivel, at);
 
         float base = suelo - altoEsc * escalones;
-        float atW = anchoBase * 0.52F;
-        float respaldo = m.h() * dx * 0.62F;
+        float atW = anchoBase * 0.60F;
+        float respaldo = m.h() * dx * 0.74F;
         float asientoH = m.h() * dx * 0.16F;
         float brazoH = m.h() * dx * 0.20F;
         int mont = Math.max(2, (int) (atW * 0.10F));
@@ -322,10 +351,17 @@ public final class Trono implements Planta {
                     (int) px + mont / 2 + 1, picoY + 1, oro);
         }
         // El hueco de la corona ausente, en el pico central.
+        //
+        // Es el detalle narrativo de la escena: un vacio oscuro y ancho donde
+        // la corona deberia estar. Mas grande y mas negro que antes, porque es
+        // lo que se lee como "esto estuvo ocupado y ya no". Se dibuja como un
+        // arco de dos pasos para que no parezca un rectangulo de tinta.
         int hx = (int) cx;
-        int hy = (int) (picoY - m.h() * dx * 0.10F);
-        int hw = Math.max(2, (int) (atW * 0.12F));
-        grafico.fill(hx - hw, hy, hx + hw, hy + hw * 2, Paleta.conAlfa(0xFF000000, 0.55F));
+        int hy = (int) (picoY - m.h() * dx * 0.11F);
+        int hw = Math.max(3, (int) (atW * 0.17F));
+        int vacio = Paleta.conAlfa(0xFF000000, 0.72F);
+        grafico.fill(hx - hw, hy, hx + hw, hy + hw * 2, vacio);
+        grafico.fill(hx - hw + 1, hy - 1, hx + hw - 1, hy + 1, vacio);
         // Asiento.
         grafico.fill((int) (cx - atW * 0.5F), (int) (base - asientoH - brazoH),
                 (int) (cx + atW * 0.5F), (int) (base - brazoH), sombra);
@@ -456,6 +492,11 @@ public final class Trono implements Planta {
             float yTop = m.techoEn(dx * 0.72F);
             float alto = m.h() * dx * 0.48F;
             float onda = (float) Math.sin(tiempo * 0.5F + j) * ancho * 0.16F;
+            // Uno de cada tres cuelga torcido: el asta se descolgo de un lado y
+            // la tela se va desplazando hacia abajo. Rompe la fila de panios
+            // alineados y dice que la sala lleva anos sin mantenimiento.
+            boolean torcido = Trazo.pseudo(615 + j) < 0.30F;
+            float sesgo = torcido ? ancho * 0.55F : 0.0F;
             // La cuerda del techo al asta: el estandarte no cuelga de la nada.
             float yTecho = m.techoEn(dx * 0.95F);
             grafico.fill((int) x, (int) yTecho, (int) x + 1, (int) yTop,
@@ -467,11 +508,12 @@ public final class Trono implements Planta {
             // y el emblema, que es lo que dice "estandarte" en una sola mirada.
             int tela = Paleta.iluminar(Trazo.velar(Paleta.mezclar(nivel.paredBaja, nivel.junta, 0.35F),
                     nivel.niebla, lej, 0.4F), at * 0.85F);
-            // La tela, rota al final (los ultimos jirones se afinan).
+            // La tela, rota al final (los ultimos jirones se afinan). Si el
+            // estandarte cuelga torcido, el desplazamiento crece hacia abajo.
             for (int k = 0; k < 8; k++) {
                 float f = k / 8.0F;
                 float w = ancho * (1.0F - f * 0.5F);
-                float ox = onda * f;
+                float ox = onda * f + sesgo * f;
                 grafico.fill((int) (x - w * 0.5F + ox), (int) (yTop + alto * f), (int) (x + w * 0.5F + ox), (int) (yTop + alto * (f + 0.14F)),
                         Paleta.conAlfa(tela, 0.85F * (1.0F - f * 0.3F)));
             }

@@ -3895,7 +3895,7 @@ def pp_cisterna(lz, m, nivel, luz, tiempo) -> None:
 # --------------------------------------------------------------------------
 TRO_TRAMOS = 15
 TRO_HILERA = 0.72
-TRO_TARIMA = 1.42
+TRO_TARIMA = 1.18
 
 
 def trono(lz, m, nivel, luz, tiempo) -> None:
@@ -3950,6 +3950,18 @@ def tro_abside(lz, m, nivel, luz) -> None:
         yk = int(hombro + (y_arco - hombro) * f)
         lz.fill(int(cx - w) - 1, yk, int(cx - w) + 1, yk + 3, borde)
         lz.fill(int(cx + w) - 1, yk, int(cx + w) + 1, yk + 3, borde)
+    # Dovelas concentricas: tres arcos de piedra que envuelven el vano, como
+    # los de una boveda construida. Cada banda es mas ancha y baja un poco
+    # mas; el oro solo toca la mas interna.
+    piedra_arco = iluminar(velar(nivel.junta, nivel.niebla, 1.0, 0.30), luz * 0.62)
+    for d in range(1, 4):
+        escala = 1.0 + d * 0.11
+        for k in range(pasos):
+            f = k / (pasos - 1)
+            w = ancho * escala * (1.0 - (1.0 - f) * (1.0 - f))
+            yk = int(hombro + (y_arco - hombro) * f + (hombro - y_arco) * d * 0.030 * f)
+            lz.fill(int(cx - w) - d, yk, int(cx - w) - d + 2, yk + 3, piedra_arco)
+            lz.fill(int(cx + w) + d - 2, yk, int(cx + w) + d, yk + 3, piedra_arco)
 
 
 def tro_dintel_roto(lz, m, nivel, luz) -> None:
@@ -4061,18 +4073,19 @@ def tro_trono(lz, m, nivel, luz, tiempo) -> None:
     suelo = m.suelo_en(dx)
     lej = limitar(1.0 / dx, 0.0, 1.0)
     at = atenuar(luz, lej)
-    ancho_base = m.ancho_en(dx) * 0.32
-    alto_esc = m.h * dx * 0.055
+    # El estrado crece con el trono: mas ancho y mas alto que antes, para que
+    # la silueta domine el abside sin llegar a taparlo.
+    ancho_base = m.ancho_en(dx) * 0.40
+    alto_esc = m.h * dx * 0.048
     oro = iluminar(velar(nivel.luz, nivel.niebla, lej, 0.18), min(1.0, at * 1.15))
     oro_vivo = iluminar(nivel.luz, min(1.0, at + 0.25))
     sombra = iluminar(velar(nivel.pared_baja, nivel.niebla, lej, 0.45), at * 0.48)
 
-    # La tarima: cinco escalones anchos que suben al trono, cada uno con su
-    # canto iluminado. Mas escalones y mas anchos: se lee como un estrado, no
-    # como un cajon.
-    escalones = 5
+    # La tarima: seis escalones anchos que suben al trono, cada uno con su
+    # canto iluminado. Se lee como un estrado, no como un cajon.
+    escalones = 6
     for e in range(escalones):
-        w = ancho_base * (1.0 - e * 0.11)
+        w = ancho_base * (1.0 - e * 0.10)
         y_top = suelo - alto_esc * (e + 1)
         col = iluminar(velar(nivel.pared_alta, nivel.niebla, lej, 0.4), at * (0.62 + e * 0.07))
         lz.fill(int(cx - w), int(y_top), int(cx + w), int(suelo - alto_esc * e), col)
@@ -4081,9 +4094,9 @@ def tro_trono(lz, m, nivel, luz, tiempo) -> None:
     tro_cantos_gastados(lz, cx, suelo, ancho_base, alto_esc, escalones, nivel, at)
 
     base = suelo - alto_esc * escalones
-    # Proporciones del trono: alto y presente. Ancho ~0.5 de la base del estrado.
-    at_w = ancho_base * 0.52
-    respaldo = m.h * dx * 0.62
+    # Proporciones del trono: alto y presente, dominando el abside.
+    at_w = ancho_base * 0.60
+    respaldo = m.h * dx * 0.74
     asiento_h = m.h * dx * 0.16
     brazo_h = m.h * dx * 0.20
 
@@ -4108,11 +4121,15 @@ def tro_trono(lz, m, nivel, luz, tiempo) -> None:
         px = cx + at_w * fx
         h_pico = m.h * dx * ph
         lz.fill(int(px) - mont // 2, int(pico_y - h_pico), int(px) + mont // 2 + 1, pico_y + 1, oro)
-    # El hueco de la corona: un arco oscuro recortado en el pico central.
+    # El hueco de la corona: un vacio oscuro y ancho donde la corona deberia
+    # estar. Es el detalle narrativo de la escena: algo estuvo ocupado aqui y
+    # ya no. Dos pasos de arco para que no parezca un rectangulo de tinta.
     hx = int(cx)
-    hy = int(pico_y - m.h * dx * 0.10)
-    hw = max(2, int(at_w * 0.12))
-    lz.fill(hx - hw, hy, hx + hw, hy + hw * 2, con_alfa(0x000000, 0.55))
+    hy = int(pico_y - m.h * dx * 0.11)
+    hw = max(3, int(at_w * 0.17))
+    vacio = con_alfa(0x000000, 0.72)
+    lz.fill(hx - hw, hy, hx + hw, hy + hw * 2, vacio)
+    lz.fill(hx - hw + 1, hy - 1, hx + hw - 1, hy + 1, vacio)
     # Asiento.
     lz.fill(int(cx - at_w * 0.5), int(base - asiento_h - brazo_h), int(cx + at_w * 0.5),
             int(base - brazo_h), sombra)
@@ -4210,6 +4227,10 @@ def tro_estandartes(lz, m, nivel, luz, tiempo) -> None:
         y_top = m.techo_en(dx * 0.72)
         alto = m.h * dx * 0.48
         onda = math.sin(tiempo * 0.5 + j) * ancho * 0.16
+        # Uno de cada tres cuelga torcido: el asta se descolgo y la tela se va
+        # desplazando hacia abajo. Rompe la fila de panios alineados.
+        torcido = pseudo(615 + j) < 0.30
+        sesgo = ancho * 0.55 if torcido else 0.0
         # La cuerda del techo al asta: el estandarte no cuelga de la nada.
         y_techo = m.techo_en(dx * 0.95)
         lz.fill(int(x), int(y_techo), int(x) + 1, int(y_top),
@@ -4222,7 +4243,7 @@ def tro_estandartes(lz, m, nivel, luz, tiempo) -> None:
         for k in range(8):
             f = k / 8.0
             w = ancho * (1.0 - f * 0.5)
-            ox = onda * f
+            ox = onda * f + sesgo * f
             lz.fill(int(x - w * 0.5 + ox), int(y_top + alto * f), int(x + w * 0.5 + ox), int(y_top + alto * (f + 0.14)),
                     con_alfa(tela, 0.85 * (1.0 - f * 0.3)))
         # Galon superior dorado.
