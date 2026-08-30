@@ -1,0 +1,67 @@
+name: Build Jobs Menu
+
+on:
+  push:
+    branches:
+      - main
+      - arena/20260830-backgrounds-deploy
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Python verification
+        run: python3 tools/verificar.py
+
+      - name: Prepare Gradle wrapper
+        run: chmod +x gradlew
+
+      - name: Build Forge mod
+        run: ./gradlew build --stacktrace --no-daemon
+
+      - name: Prepare rolling JAR
+        shell: bash
+        run: |
+          JAR="$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*sources*' ! -name '*javadoc*' | head -n 1)"
+          if [ -z "$JAR" ]; then
+            echo 'No se encontro el JAR principal en build/libs' >&2
+            exit 1
+          fi
+          cp "$JAR" jobsmenu-latest.jar
+          sha256sum jobsmenu-latest.jar
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: jobsmenu-jar
+          path: jobsmenu-latest.jar
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish rolling development release
+        if: github.ref == 'refs/heads/main'
+        uses: ncipollo/release-action@v1
+        with:
+          tag: dev-latest
+          name: Jobs Menu - Latest Dev Build
+          body: Build de desarrollo generado automaticamente desde el ultimo commit que paso verificacion y compilacion con Java 17.
+          prerelease: true
+          allowUpdates: true
+          replacesArtifacts: true
+          artifactErrorsFailBuild: true
+          artifacts: jobsmenu-latest.jar
