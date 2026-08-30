@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - arena/20260830-backgrounds-deploy
+      - 'arena/**'
   workflow_dispatch:
 
 permissions:
@@ -14,26 +14,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Java 17
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-
+      - name: Verify image backgrounds
+        run: python3 tools/verificar_fondos.py
       - name: Python verification
         run: python3 tools/verificar.py
-
       - name: Prepare Gradle wrapper
         run: chmod +x gradlew
-
       - name: Build Forge mod
         run: ./gradlew build --stacktrace --no-daemon
-
       - name: Prepare rolling JAR
         shell: bash
         run: |
@@ -44,7 +40,6 @@ jobs:
           fi
           cp "$JAR" jobsmenu-latest.jar
           sha256sum jobsmenu-latest.jar
-
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
@@ -52,7 +47,6 @@ jobs:
           path: jobsmenu-latest.jar
           if-no-files-found: error
           retention-days: 30
-
       - name: Publish rolling development release
         if: github.ref == 'refs/heads/main'
         uses: ncipollo/release-action@v1

@@ -390,6 +390,12 @@ public final class GestorAmbiente {
                 return SonidosNivel.AMBIENTE_NIVEL4;
             case 14:
                 return SonidosNivel.AMBIENTE_NIVEL8;
+            case 15:
+                return SonidosNivel.AMBIENTE_NIVEL7;
+            case 16:
+                return SonidosNivel.AMBIENTE_NIVEL1;
+            case 17:
+                return SonidosNivel.AMBIENTE_NIVEL8;
             default:
                 return SonidosNivel.AMBIENTE_NIVEL0;
         }
@@ -425,6 +431,12 @@ public final class GestorAmbiente {
                 return SonidosNivel.CARACTER_NIVEL4;
             case 14:
                 return SonidosNivel.CARACTER_NIVEL6;
+            case 15:
+                return SonidosNivel.CARACTER_NIVEL0;
+            case 16:
+                return SonidosNivel.CARACTER_NIVEL5;
+            case 17:
+                return SonidosNivel.CARACTER_NIVEL7;
             default:
                 return SonidosNivel.CARACTER_NIVEL0;
         }
@@ -460,6 +472,12 @@ public final class GestorAmbiente {
                 return SonidosNivel.ACTIVIDAD_NIVEL9;
             case 14:
                 return SonidosNivel.ACTIVIDAD_NIVEL9;
+            case 15:
+                return SonidosNivel.ACTIVIDAD_NIVEL1;
+            case 16:
+                return SonidosNivel.ACTIVIDAD_NIVEL7;
+            case 17:
+                return SonidosNivel.ACTIVIDAD_NIVEL1;
             default:
                 return SonidosNivel.ACTIVIDAD_NIVEL0;
         }
@@ -699,6 +717,9 @@ public final class GestorAmbiente {
             case 12 -> REPERTORIOS[1];  // estructura, metal y distancia
             case 13 -> REPERTORIOS[4];  // sala de piedra y cadenas
             case 14 -> REPERTORIOS[9];  // ruina, estandartes y puerta lejana
+            case 15 -> REPERTORIOS[1];  // interferencia: estructura distante, poco literal
+            case 16 -> REPERTORIOS[7];  // prisma: piedra, aire y silencios largos
+            case 17 -> REPERTORIOS[8];  // galeria azul: eco profundo y actividad remota
             default -> REPERTORIOS[Math.floorMod(nivel, REPERTORIOS.length)];
         };
     }
@@ -711,12 +732,27 @@ public final class GestorAmbiente {
         float sesgo = (float) Math.sqrt(AZAR.nextFloat());
         long ventana = repertorio.esperaMax() - repertorio.esperaMin();
         long espera = repertorio.esperaMin() + (long) (sesgo * ventana);
+        espera = (long) (espera * factorEsperaNivel(nivel));
 
         if (AZAR.nextInt(5) == 0) {
             // El respiro. Entre dos y cuatro ventanas sin nada.
             espera += ventana * (2 + AZAR.nextInt(3));
         }
         proximoEvento = System.currentTimeMillis() + espera;
+    }
+
+    private static float factorEsperaNivel(int nivel) {
+        return switch (nivel) {
+            case 10 -> 0.90F;
+            case 11 -> 1.12F;
+            case 12 -> 0.95F;
+            case 13 -> 1.18F;
+            case 14 -> 1.05F;
+            case 15 -> 1.35F;
+            case 16 -> 1.75F;
+            case 17 -> 1.40F;
+            default -> 1.0F;
+        };
     }
 
     private static float mezclar(float minimo, float maximo) {

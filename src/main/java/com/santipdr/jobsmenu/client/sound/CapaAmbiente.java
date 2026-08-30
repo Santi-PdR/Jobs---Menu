@@ -142,7 +142,7 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
         // nivel 9 (+23 %), que se oia como cinta acelerada y no como otro
         // lugar; con este rango (0.975-1.011) el matiz existe sin cambiarle
         // el material a nada.
-        this.pitch = 0.975F + 0.004F * nivel;
+        this.pitch = 0.975F + 0.004F * Math.min(nivel, 9);
 
         // Las camas del mismo nivel no arrancan con la misma edad. Si lo
         // hicieran, sus respiraciones subirian y bajarian juntas y el conjunto
@@ -180,6 +180,23 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
      * para poder subir sin escalon, sin esto no llegaba a sonar jamas, por muy
      * bien registrada que estuviera en sounds.json.
      */
+    private static float matizNivel(int nivel, Papel papel) {
+        if (nivel < 10) {
+            return 1.0F;
+        }
+        return switch (nivel) {
+            case 10 -> papel == Papel.ACTIVIDAD ? 1.12F : (papel == Papel.BASE ? 0.88F : 0.82F);
+            case 11 -> papel == Papel.ACTIVIDAD ? 0.82F : (papel == Papel.BASE ? 0.78F : 0.86F);
+            case 12 -> papel == Papel.ACTIVIDAD ? 1.05F : (papel == Papel.BASE ? 0.86F : 0.95F);
+            case 13 -> papel == Papel.ACTIVIDAD ? 0.92F : (papel == Papel.BASE ? 0.82F : 0.72F);
+            case 14 -> papel == Papel.ACTIVIDAD ? 0.90F : (papel == Papel.BASE ? 0.88F : 0.90F);
+            case 15 -> papel == Papel.ACTIVIDAD ? 1.18F : (papel == Papel.BASE ? 0.68F : 0.58F);
+            case 16 -> papel == Papel.ACTIVIDAD ? 0.70F : (papel == Papel.BASE ? 0.58F : 0.52F);
+            case 17 -> papel == Papel.ACTIVIDAD ? 0.95F : (papel == Papel.BASE ? 0.72F : 0.64F);
+            default -> 1.0F;
+        };
+    }
+
     @Override
     public boolean canStartSilent() {
         return true;
@@ -213,6 +230,7 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
             // El volumen maestro del aviso (tecla M) gobierna la cama entera.
             objetivo = ConfigTurno.volumenAmbiente() * MezclaAudio.AMBIENTE
                     * this.papel.peso * ConfigTurno.volumenAviso();
+            objetivo *= matizNivel(this.nivel, this.papel);
 
             // La instalacion depende de la luz, y cada papel a su manera: la
             // base se va casi del todo con el apagon, el caracter aguanta.

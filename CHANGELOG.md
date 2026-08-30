@@ -1,3 +1,11 @@
+## Unreleased · niveles 15-17
+
+- Reparados los fondos de imagen 10-13 corrigiendo su geometría de textura.
+- Añadidos Nivel 15 (Interferencia de Executor), Nivel 16 (Archivo del prisma) y Nivel 17 (Galería de sombra).
+- El selector fijo admite 0-17 y la rotación usa 18 niveles.
+- Nueva mezcla ambiental por escena: densidad, camas y frecuencia de sucesos ajustadas para 10-17.
+- El CI materializa y valida los PNG antes de compilar.
+
 # Registro de cambios
 
 ## Evolución 6 — Build y despliegue real superados — 2026-08-29
