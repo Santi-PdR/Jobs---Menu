@@ -12,4 +12,14 @@ Los fondos usan `PlantaImagen`: mantienen proporcion con recorte cover, reciben 
 
 `nivel_fijo` admite 0-14 y la rotacion automatica recorre los quince niveles.
 
-La musica permanece global durante los cambios de nivel; cada escena cambia su identidad mediante las capas de ambiente, caracter, actividad y eventos.
+## Audio
+
+La musica permanece global durante los cambios de nivel y no se reinicia al pasar de una escena a otra. Los niveles 10-14 tienen una mezcla ambiental intencional construida con material sonoro ya validado del mod, por lo que se mantiene el mismo espacio acustico y el contrato mono/44100 Hz sin duplicar archivos innecesariamente.
+
+- Nivel 10: base de catacumbas, cuerpo de ruinas, actividad de sala y eventos de cadenas/piedra.
+- Nivel 11: base y caracter de invernadero, con vidrio, agua, follaje y actividad vegetal.
+- Nivel 12: resonancia de cisterna, circulacion de servicio y sucesos de estructura/metal.
+- Nivel 13: base y caracter de la sala de piedra, con actividad de ruinas y cadenas.
+- Nivel 14: base resonante de cisterna, caracter vegetal/aire y sucesos de ruina, estandartes y puerta lejana.
+
+Los eventos no usan el modulo numerico de los diez niveles viejos: `GestorAmbiente` resuelve explicitamente un repertorio para cada nivel nuevo, evitando que Nivel 10 herede accidentalmente el ambiente de Nivel 0.
