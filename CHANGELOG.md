@@ -1,5 +1,44 @@
 # Registro de cambios
 
+## Evolución 6 — Etapa 2: dirección artística de los diez fondos — 2026-08-29
+
+- Un commit por escenario, cada uno con su espejo en `tools/vista_previa.py` y
+  su fila marcada en `docs/AUDITORIA_FONDOS_50X10.md`:
+  - Trono rediseñado (`08ed9bf`): tarima 1.18, estrado de seis escalones,
+    ábside con tres dovelas concéntricas, hueco de corona ausente y
+    estandartes torcidos.
+  - Administración: abertura de mantenimiento lateral (AD-15).
+  - Depósito: lona de carga caída (DE-17).
+  - Servicio: bandeja de cables con colgadores y bucle suelto (SE-11).
+  - Natatorio: sarro bajo el rebosadero (NA-22).
+  - Sala de piedra: dovelas visibles en el arco más cercano (SA-11).
+  - Biblioteca: arco de acceso entre estantes (BI-12).
+  - Invernadero: pasarela oxidada sobre los cultivos (IN-14).
+  - Catacumbas: pasadizo estrecho detrás del arco del fondo (CA-13).
+  - Cisterna: galería de mantenimiento sobre el agua (CI-11).
+- `tools/vista_previa.py` acepta `--nivel N` (forma con espacio) además de
+  `--nivel=N`.
+- Verificador estático en verde (1 aviso: `gradle-wrapper.jar`). Build con
+  Java 17, JAR y prueba en Minecraft siguen pendientes (entorno sin JDK 17 ni
+  wrapper, red bloqueada a gradle.org/maven.minecraftforge.net).
+
+## Evolución 6 — Etapa 1: configuración, continuidad del ambiente y bajo consumo — 2026-08-29
+
+- `ConfigTurno` ampliado: `duracion_estancia` (15–90 s), `bajo_consumo` y
+  `perfil_accesible` (enciende juntas movimiento reducido, destellos reducidos,
+  alto contraste y texto grande; los ajustes manuales lo desactivan). Accesos
+  blindados contra config sin cargar.
+- Continuidad del ambiente por visita (`SesionMenu` + `mantenerCamas()` en el
+  tick del cliente): las camas ambientales sobreviven a Opciones/Mods abiertos
+  y a la rotación; solo entrar a mundo o salir del menú las detiene.
+- Salto manual de nivel (tecla F) con antirrepetición y sonido de alternar.
+- Bajo consumo enganchado al render: sin polvo, grano, presencia, motas ni
+  respiración de cámara; el recinto y su audio intactos.
+- Vigilancia de instancia fantasma de `GestorMusica` blindada contra pausa y
+  falta de foco; diagnóstico oculto Ctrl+D (no documentado en la UI).
+- `PantallaAjustesAviso` sin `addTitle` (no existe en 1.20.1).
+- Textos ES/EN sincronizados.
+
 ## Segunda auditoría — 2026-08-29
 
 - Se ejecutó la segunda auditoría estática sobre `8e5c0ef`.

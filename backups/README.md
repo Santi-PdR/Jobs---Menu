@@ -9,7 +9,7 @@ GitHub. Un tag es verificable (`git checkout <tag>`), no ocupa espacio en el
 |---|---|---|
 | `backup-A-inicial-0.10.0` | Antes de tocar nada | Estado inicial 0.10.0 (commit `811586e`) |
 | `backup-B-tecnica-ui-sonido-config` | Al terminar la etapa técnica/UI/sonido/configuración | Mejoras de lifecycle, robustez, UI/UX, audio y configuración, antes de la etapa artística |
-| `backup-C-final` | Estado final tras backgrounds, segunda auditoría y build | Versión 0.11.0 completa |
+| `backup-C-final` | Estado final tras backgrounds, segunda auditoría y documentación | Evolución 6 completa sobre 0.10.0; build con Java 17 y prueba en Minecraft pendientes (ver `KNOWN_ISSUES.md`) |
 
 Reglas de la evolución respetadas:
 

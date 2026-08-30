@@ -3,6 +3,28 @@
 Este archivo separa lo que fue verificado estáticamente de lo que todavía necesita
 una ejecución real de Minecraft Forge 1.20.1.
 
+## Evolución 6 (rama `arena/01a04ff1-jobs-menu`) — pendientes 2026-08-29
+
+- **Build no ejecutable en este entorno.** No hay JDK 17 instalado, falta
+  `gradle-wrapper.jar` (ignorado por `.gitignore`) y la red hacia
+  `services.gradle.org` / `maven.minecraftforge.net` está bloqueada (errores de
+  conexión SSL). El `clean build` con Java 17, el JAR `jobsmenu-0.10.0.jar` y
+  el despliegue en una instancia deben hacerse localmente siguiendo el
+  procedimiento del README. No se presenta ningún JAR de esta rama como
+  validado.
+- **Validación dentro de Minecraft pendiente para las 10 mejoras artísticas.**
+  Las filas AD-15, DE-17, SE-11, NA-22, SA-11, BI-12, IN-14, CA-13, CI-11 y
+  TR-09/10/11/16/17 están implementadas y verificadas por el espejo Python,
+  pero la comprobación visual en el juego real (todas las resoluciones, GUI
+  scale, durante transición y con la hoja encima) sigue pendiente.
+- **Salto manual y continuidad en runtime.** El salto de nivel con F y las
+  camas vivas en pantallas hijas están verificados estáticamente y por el
+  diseño del ciclo de vida; necesitan la prueba real (rotar con Opciones
+  abiertas, entrar/salir de mundo y servidor).
+- **Perfil accesible y bajo consumo.** Su comportamiento de opciones está
+  verificado estáticamente; la legibilidad del recinto con ambas opciones
+  activadas necesita revisión en Minecraft.
+
 ## Incidente de despliegue registrado — 2026-08-29
 
 La terminal Windows usada para la prueba estaba en la rama

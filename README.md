@@ -54,10 +54,22 @@ accesibilidad y la legibilidad de sus diez recintos.
   estrado conduzcan la mirada hacia un asiento vacío realmente legible.
 - **Entrega verificable.** La auditoría estática, el procedimiento reproducible de
   compilación y el informe de compatibilidad están sincronizados con Forge 47.x,
-  Java 17 y el nombre real del JAR. La auditoría de decisiones está en
-  [`docs/PROPUESTA_EVOLUCION_2.md`](docs/PROPUESTA_EVOLUCION_2.md), el informe histórico
-  [`docs/INFORME_FINAL_EVOLUCION_3.md`](docs/INFORME_FINAL_EVOLUCION_3.md) y la versión vigente
+  Java 17 y el nombre real del JAR. La evolución vigente está en
+  [`docs/EVOLUCION_6.md`](docs/EVOLUCION_6.md) con su catálogo
+  [`docs/CATALOGO_MEJORAS_Y_FUNCIONES.md`](docs/CATALOGO_MEJORAS_Y_FUNCIONES.md)
+  y su informe final [`docs/INFORME_FINAL_EVOLUCION_6.md`](docs/INFORME_FINAL_EVOLUCION_6.md).
+  El historial de decisiones está en
+  [`docs/PROPUESTA_EVOLUCION_2.md`](docs/PROPUESTA_EVOLUCION_2.md) y
   [`docs/EVOLUCION_4.md`](docs/EVOLUCION_4.md).
+
+## Evolución reciente
+
+La etapa 1 añadió duración de estancia configurable, salto manual de nivel,
+perfil accesible, modo de bajo consumo y continuidad del ambiente al navegar
+pantallas hijas. La etapa 2 dio a cada uno de los diez fondos una mejora
+artística propia (una fila implementada por escenario en la matriz de
+auditoría de fondos) y rediseñó el Trono desde cero. Build con Java 17 y
+prueba en Minecraft pendientes: ver [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md).
 
 ## Historial resumido
 

@@ -4939,8 +4939,21 @@ def render(ancho: int, alto: int, nivel: Nivel, con_hoja: bool = True, **kw) -> 
 
 
 def main() -> int:
-    args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    banderas = [a for a in sys.argv[1:] if a.startswith("--")]
+    # Acepta tanto `--nivel=3` como `--nivel 3`: la forma con espacio no debe
+    # confundirse con los posicionales (ancho, alto, salida).
+    argv = list(sys.argv[1:])
+    argv_norm = []
+    i = 0
+    while i < len(argv):
+        if argv[i].startswith("--nivel") and "=" not in argv[i] \
+                and i + 1 < len(argv) and not argv[i + 1].startswith("--"):
+            argv_norm.append(argv[i] + "=" + argv[i + 1])
+            i += 2
+        else:
+            argv_norm.append(argv[i])
+            i += 1
+    args = [a for a in argv_norm if not a.startswith("--")]
+    banderas = [a for a in argv_norm if a.startswith("--")]
 
     desnudo = "--desnudo" in banderas   # sin la hoja del aviso encima
 
