@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
-"""Materializa y valida los fondos de imagen 10-17.
+"""Materializa y valida los fondos de imagen 10-17 durante la migracion.
 
-El bundle base64 existe solo para transportar binarios de forma fiable durante
-esta migracion. Antes de compilar se extraen los ocho PNG y se valida su firma,
-dimensiones y tamano para impedir publicar assets truncados.
+Los PNG se transportan temporalmente como fragmentos base64 pequenos para que
+ningun limite del conector pueda truncarlos. Cada nivel se reconstruye antes
+de compilar y se comprueba como PNG 256x144 valido.
 """
 from __future__ import annotations
 
 import base64
-import io
+import binascii
 import struct
 import sys
-import zipfile
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
 DESTINO = RAIZ / "src/main/resources/assets/jobsmenu/textures/backgrounds"
-BUNDLE = RAIZ / "tools/background_payload/backgrounds.zip.b64"
+PAYLOAD = RAIZ / "tools/background_payload"
 ESPERADOS = range(10, 18)
 ANCHO = 256
 ALTO = 144
@@ -29,37 +28,40 @@ def dimensiones_png(datos: bytes) -> tuple[int, int]:
     return struct.unpack(">II", datos[16:24])
 
 
-def materializar_bundle() -> None:
-    if not BUNDLE.is_file():
-        return
-    crudo = base64.b64decode("".join(BUNDLE.read_text(encoding="ascii").split()), validate=True)
+def leer_payload(indice: int) -> str:
+    partes = sorted(PAYLOAD.glob(f"nivel{indice}.part*"))
+    if not partes:
+        raise FileNotFoundError(f"faltan fragmentos del nivel {indice}")
+    return "".join("".join(p.read_text(encoding="ascii").split()) for p in partes)
+
+
+def materializar(indice: int) -> None:
+    try:
+        datos = base64.b64decode(leer_payload(indice), validate=True)
+    except (ValueError, binascii.Error) as exc:
+        raise ValueError(f"payload invalido nivel {indice}: {exc}") from exc
     DESTINO.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(io.BytesIO(crudo)) as zf:
-        nombres = {Path(n).name: n for n in zf.namelist() if not n.endswith("/")}
-        for indice in ESPERADOS:
-            esperado = f"n{indice}_256_16.png"
-            if esperado not in nombres:
-                raise FileNotFoundError(f"bundle: falta {esperado}")
-            datos = zf.read(nombres[esperado])
-            (DESTINO / f"nivel{indice}.png").write_bytes(datos)
+    (DESTINO / f"nivel{indice}.png").write_bytes(datos)
 
 
 def validar(indice: int) -> None:
     ruta = DESTINO / f"nivel{indice}.png"
-    if not ruta.is_file():
-        raise FileNotFoundError(f"falta {ruta.relative_to(RAIZ)}")
     datos = ruta.read_bytes()
     if len(datos) < MIN_BYTES:
         raise ValueError(f"nivel {indice}: PNG sospechosamente pequeno ({len(datos)} bytes)")
     ancho, alto = dimensiones_png(datos)
     if (ancho, alto) != (ANCHO, ALTO):
         raise ValueError(f"nivel {indice}: {ancho}x{alto}; se espera {ANCHO}x{ALTO}")
+    # IEND completo: evita aceptar un archivo que solo conserve cabecera/IHDR.
+    if not datos.endswith(b"IEND\xaeB`\x82"):
+        raise ValueError(f"nivel {indice}: PNG truncado (falta IEND)")
     print(f"  nivel {indice}: OK {ancho}x{alto}, {len(datos)} bytes")
 
 
 def main() -> int:
     try:
-        materializar_bundle()
+        for indice in ESPERADOS:
+            materializar(indice)
         print("Fondos de imagen:")
         for indice in ESPERADOS:
             validar(indice)
