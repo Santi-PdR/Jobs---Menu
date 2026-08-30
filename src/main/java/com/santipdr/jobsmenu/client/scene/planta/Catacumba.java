@@ -42,6 +42,7 @@ public final class Catacumba implements Planta {
         Trazo.fondo(grafico, m, nivel, luz,
                 Paleta.mezclar(nivel.fondo, nivel.paredBaja, 0.15F), 1.10F);
         arcoFondo(grafico, m, nivel, luz);
+        pasadizoFondo(grafico, m, nivel, luz);
 
         // Boveda de canon baja.
         Trazo.plano(grafico, m, true, Paleta.mezclar(nivel.techo, nivel.paredBaja, 0.30F),
@@ -83,6 +84,47 @@ public final class Catacumba implements Planta {
             grafico.fill(ax - b / 2, ay - b / 2, ax + b / 2 + 1, ay + b / 2 + 1,
                     Paleta.iluminar(nivel.junta, luz * 0.55F));
         }
+    }
+
+    /**
+     * El pasadizo estrecho detras del arco del fondo: el tunel no termina en
+     * una pared negra, se estrangula y sigue hacia lo profundo. Un segundo
+     * umbral, mas alto que el primero, con sus jambas y su arco de piedra a
+     * media luz: el ojo tiene donde seguir bajando.
+     */
+    private static void pasadizoFondo(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float suelo = m.sueloEn(1.0F);
+        int x0 = Math.round(m.izq(0.55F));
+        int x1 = Math.round(m.der(0.55F));
+        int cx = (x0 + x1) / 2;
+        int radio = (x1 - x0) / 2;
+        int ySuelo = Math.round(suelo);
+        int ancho = Math.max(6, radio / 3);
+        int alto = Math.max(8, radio / 2);
+        int px0 = cx - ancho / 2;
+        int px1 = cx + ancho / 2;
+        int py1 = ySuelo - Math.max(2, radio / 9);
+        int py0 = py1 - alto;
+        if (px1 <= px0 || py1 <= py0) {
+            return;
+        }
+        // El interior del pasadizo: negro que se traga la poca luz del farol.
+        int fondo = Paleta.conAlfa(Paleta.mezclar(Paleta.VANO, nivel.niebla, 0.06F), 0.98F);
+        grafico.fill(px0, py0, px1, py1, fondo);
+        // Las jambas y el arco: piedra casi apagada, apenas perfilada.
+        int piedra = Paleta.conAlfa(Paleta.iluminar(nivel.junta, luz * 0.26F), 0.80F);
+        grafico.fill(px0 - 2, py0, px0, py1, piedra);
+        grafico.fill(px1, py0, px1 + 2, py1, piedra);
+        for (int i = 0; i <= 6; i++) {
+            double ang = Math.PI * i / 6.0;
+            int ax = px0 + (int) (Math.cos(ang) * (ancho / 2));
+            int ay = py0 - (int) (Math.sin(ang) * (ancho / 2) * 0.62);
+            grafico.fill(ax - 1, ay - 1, ax + 2, ay + 2, piedra);
+        }
+        // El segundo umbral: un filo de suelo del otro lado, mas tenue que el
+        // del arco grande. Dice que el pasadizo tiene piso y continua.
+        grafico.fill(px0, py1 - 1, px1, py1,
+                Paleta.conAlfa(Paleta.iluminar(nivel.sueloLejos, luz * 0.18F), 0.50F));
     }
 
     /** Los arcos de la boveda: nervaduras de ladrillo, una por tramo. */

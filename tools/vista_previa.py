@@ -3669,6 +3669,7 @@ CAT_PASO_NICHO = 3
 def catacumba(lz, m, nivel, luz, tiempo) -> None:
     t_fondo(lz, m, nivel, luz, mezclar(nivel.fondo, nivel.pared_baja, 0.15), 1.10)
     cat_arco(lz, m, nivel, luz)
+    cat_pasadizo(lz, m, nivel, luz)
     t_plano(lz, m, True, mezclar(nivel.techo, nivel.pared_baja, 0.30),
             mezclar(nivel.techo, nivel.niebla, 0.50), nivel.niebla, luz, 0.55)
     t_transversales(lz, m, True, nivel.techo_junta, nivel.niebla, luz, CAT_TRAMOS, 0.30)
@@ -3701,6 +3702,36 @@ def cat_arco(lz, m, nivel, luz) -> None:
         b = max(1, radio // 7)
         lz.fill(ax - b // 2, ay - b // 2, ax + b // 2 + 1, ay + b // 2 + 1,
                 iluminar(nivel.junta, luz * 0.55))
+
+
+def cat_pasadizo(lz, m, nivel, luz) -> None:
+    # Pasadizo estrecho detras del arco del fondo: el tunel no termina en una
+    # pared negra, se estrangula y sigue. Segundo umbral, mas alto, con jambas
+    # y arco de piedra a media luz.
+    suelo = m.suelo_en(1.0)
+    x0, x1 = round(m.izq(0.55)), round(m.der(0.55))
+    cx = (x0 + x1) // 2
+    radio = (x1 - x0) // 2
+    y_suelo = round(suelo)
+    ancho = max(6, radio // 3)
+    alto = max(8, radio // 2)
+    px0, px1 = cx - ancho // 2, cx + ancho // 2
+    py1 = y_suelo - max(2, radio // 9)
+    py0 = py1 - alto
+    if px1 <= px0 or py1 <= py0:
+        return
+    fondo = con_alfa(mezclar(VANO, nivel.niebla, 0.06), 0.98)
+    lz.fill(px0, py0, px1, py1, fondo)
+    piedra = con_alfa(iluminar(nivel.junta, luz * 0.26), 0.80)
+    lz.fill(px0 - 2, py0, px0, py1, piedra)
+    lz.fill(px1, py0, px1 + 2, py1, piedra)
+    for i in range(7):
+        ang = math.pi * i / 6.0
+        ax = px0 + int(math.cos(ang) * (ancho / 2))
+        ay = py0 - int(math.sin(ang) * (ancho / 2) * 0.62)
+        lz.fill(ax - 1, ay - 1, ax + 2, ay + 2, piedra)
+    lz.fill(px0, py1 - 1, px1, py1,
+            con_alfa(iluminar(nivel.suelo_lejos, luz * 0.18), 0.50))
 
 
 def cat_arcos(lz, m, nivel, luz) -> None:
