@@ -1,5 +1,22 @@
 # Registro de cambios
 
+## Evolución 6 — Bloque PowerShell de despliegue reforzado — 2026-08-29
+
+- El bloque de compilar/desplegar del README se reescribió con **despliegue por
+  fases**: el JAR nuevo entra a `mods` como `.pendiente` (el launcher ignora lo
+  que no termina en `.jar`), se compara su SHA256 con el compilado, recién
+  entonces se respaldan y borran los JARs anteriores, y el `.pendiente` pasa a
+  su nombre final. Nunca hay una ventana con cero JARs ni dos JARs activos.
+- Valida **JDK 17 completo**: `java` + `javac`, y si `JAVA_HOME` está definido
+  comprueba que su `java` también sea 17 (gradlew.bat prioriza JAVA_HOME).
+- Comprueba `gradle\wrapper\gradle-wrapper.jar` antes de compilar y avisa que
+  está ignorado por `.gitignore`; comprueba que `git` exista y lee la rama con
+  `--show-current` y respaldo a `rev-parse`.
+- El bloque usa solo ASCII (independiente de la página de códigos de la
+  consola). Revisado estáticamente (balance, ASCII, estructura); **sin
+  ejecutar**: este entorno no tiene PowerShell ni JDK. La primera ejecución
+  real es en el PC del owner.
+
 ## Evolución 6 — Documentación completa — 2026-08-29
 
 - `docs/PLAN_EVOLUCION_6.md`: las 31 propuestas evaluadas (13 mejoras de

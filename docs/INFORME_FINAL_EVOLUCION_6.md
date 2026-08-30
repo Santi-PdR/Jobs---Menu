@@ -163,4 +163,8 @@ Minecraft** (pendiente). Ninguna afirmación de runtime se da por verificada.
     0/100, F3+T, Alt+Tab, resource packs, sesión de 52 min para La Suspensión,
     modpack real (Embeddium, Oculus, ImmediatelyFast, Sophisticated,
     Cloth Config, Controlling, etc.), y revisión visual de las 10 mejoras
-    artísticas (filas marcadas en `AUDITORIA_FONDOS_50X10.md`).
+    artísticas (filas marcadas en `AUDITORIA_FONDOS_50X10.md`). Además, la
+    **primera ejecución del bloque PowerShell del README** en Windows es la
+    prueba real del pipeline de despliegue por fases (rama, JDK 17, Python,
+    wrapper, build, hash y copia a `mods`); en este entorno no hay PowerShell
+    para ejecutarla.

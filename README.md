@@ -89,8 +89,10 @@ Requiere JDK 17 instalado.
 
 El `.jar` queda en `build\libs\jobsmenu-0.10.0.jar` y se copia a la carpeta `mods` de la instancia.
 
-> El repositorio incluye `gradle\wrapper\gradle-wrapper.jar`; `gradlew.bat` descarga
-> únicamente la distribución Gradle si todavía no está en la caché local.
+> `gradle\wrapper\gradle-wrapper.jar` está **ignorado por `.gitignore`**: un clon
+> limpio no lo trae. `gradlew.bat` no puede arrancar sin él; si falta, restaurá el
+> archivo del wrapper (Gradle 8.1.1) antes de compilar. Con el wrapper en su
+> lugar, `gradlew.bat` descarga la distribución Gradle solo si no está en la caché.
 
 > **Si el build falla por memoria** (`os::commit_memory ... failed (errno=1455)` o *the daemon has
 > disappeared*), no es el mod: es que a Windows le falta memoria comprometible. El `gradle.properties` ya va
@@ -121,6 +123,13 @@ Instancia:  C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1
 JAR:        build\libs\jobsmenu-0.10.0.jar
 ```
 
+El despliegue es por fases y verificado por hash: el JAR nuevo entra primero a
+`mods` con nombre `.pendiente` (el launcher ignora lo que no termina en `.jar`),
+se compara su SHA256 con el compilado, recien entonces se respaldan y borran los
+JARs anteriores, y el `.pendiente` pasa a su nombre final. Nunca hay una ventana
+con cero JARs ni dos JARs activos a la vez. El bloque usa solo ASCII para no
+depender de la pagina de codigos de la consola.
+
 ```powershell
 $ErrorActionPreference = "Stop"
 
@@ -139,10 +148,21 @@ if (-not (Test-Path $instancia -PathType Container)) {
 if (-not (Test-Path (Join-Path $repo "gradlew.bat") -PathType Leaf)) {
     throw "No encuentro gradlew.bat en $repo"
 }
+if (-not (Test-Path (Join-Path $repo "gradle\wrapper\gradle-wrapper.jar") -PathType Leaf)) {
+    throw "Falta gradle\wrapper\gradle-wrapper.jar. El wrapper no puede arrancar; " +
+          "restaura ese archivo (esta ignorado por .gitignore) antes de compilar."
+}
+if (-not (Get-Command git.exe -ErrorAction SilentlyContinue)) {
+    throw "git no esta en el PATH. No puedo verificar la rama."
+}
 
 Set-Location $repo
 
-$actual = (git branch --show-current).Trim()
+# Rama: --show-current (git >= 2.22) con respaldo para versiones viejas.
+$actual = (git branch --show-current 2>$null | Out-String).Trim()
+if (-not $actual) {
+    $actual = (git rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
+}
 if ($actual -ne $branch) {
     throw "La rama actual es '$actual'. No compilo ni despliego. Usa la rama publicada '$branch'."
 }
@@ -152,7 +172,7 @@ if ($dirty.Count -gt 0) {
     throw "El repositorio tiene cambios locales. Guardalos o confirmalos antes de compilar."
 }
 
-# --- 1. Versión del proyecto ----------------------------------------------
+# --- 1. Version del proyecto ----------------------------------------------
 $versionLine = Get-Content .\gradle.properties |
     Where-Object { $_ -match '^mod_version=(.+)$' } |
     Select-Object -First 1
@@ -161,43 +181,55 @@ if (-not $versionLine) {
 }
 $version = ($versionLine -replace '^mod_version=', '').Trim()
 if ($version -ne $versionEsperada) {
-    throw "La versión encontrada es $version; este despliegue espera $versionEsperada."
+    throw "La version encontrada es $version; este despliegue espera $versionEsperada."
 }
 
-# --- 2. Java 17; java.exe escribe su versión por stderr en Windows --------
+# --- 2. JDK 17 completo: java y javac. gradlew.bat usa JAVA_HOME si existe --
 $java = Get-Command java.exe -ErrorAction SilentlyContinue
 if (-not $java) {
-    throw "Java no está en el PATH. Instala o activa un JDK 17."
+    throw "java no esta en el PATH. Instala o activa un JDK 17."
 }
-$javaText = (& cmd.exe /d /c "java -version 2^>^&1" | Out-String).Trim()
+$javac = Get-Command javac.exe -ErrorAction SilentlyContinue
+if (-not $javac) {
+    throw "javac no esta en el PATH. Hace falta un JDK 17, no solo un JRE."
+}
+$javaText = (& $java.Source -version 2>&1 | Out-String).Trim()
 if ($javaText -notmatch 'version "17\.') {
-    throw "Se encontró Java distinto de 17:`n$javaText"
+    throw "Se encontro Java distinto de 17:`n$javaText"
 }
 Write-Host $javaText -ForegroundColor Green
 
-# --- 3. Python real, evitando los alias de Microsoft Store ----------------
+if ($env:JAVA_HOME) {
+    $jhJava = Join-Path $env:JAVA_HOME "bin\java.exe"
+    if (Test-Path $jhJava -PathType Leaf) {
+        $jhText = (& $jhJava -version 2>&1 | Out-String).Trim()
+        if ($jhText -notmatch 'version "17\.') {
+            throw "JAVA_HOME apunta a $env:JAVA_HOME, pero su java no es 17:`n$jhText"
+        }
+    }
+}
+
+# --- 3. Python real, evitando los alias de Microsoft Store -----------------
 $py = Get-Command py.exe -ErrorAction SilentlyContinue
 $python = Get-Command python.exe -ErrorAction SilentlyContinue
-$pythonOk = $false
+$verSalida = $null
 
 if ($py -and $py.Source -notlike '*\WindowsApps\*') {
-    & $py.Source -3 tools\verificar.py
-    $pythonOk = ($LASTEXITCODE -eq 0)
+    $verSalida = & $py.Source -3 tools\verificar.py 2>&1
 } elseif ($python -and $python.Source -notlike '*\WindowsApps\*') {
-    & $python.Source tools\verificar.py
-    $pythonOk = ($LASTEXITCODE -eq 0)
+    $verSalida = & $python.Source tools\verificar.py 2>&1
 } else {
-    throw "Python no está instalado. Instala Python 3 y vuelve a ejecutar el bloque."
+    throw "Python no esta instalado. Instala Python 3 y vuelve a ejecutar el bloque."
 }
 
-if (-not $pythonOk) {
-    throw "tools\verificar.py falló. No se desplegará ningún JAR."
+if ($LASTEXITCODE -ne 0) {
+    throw "tools\verificar.py fallo (exit $LASTEXITCODE):`n$($verSalida | Out-String)"
 }
 
-# --- 4. Compilación limpia -------------------------------------------------
+# --- 4. Compilacion limpia -------------------------------------------------
 & .\gradlew.bat clean build --no-daemon
 if ($LASTEXITCODE -ne 0) {
-    throw "La compilación falló. No se desplegará ningún JAR."
+    throw "La compilacion fallo (exit $LASTEXITCODE). No se desplegara ningun JAR."
 }
 
 $jar = Join-Path $repo "build\libs\jobsmenu-$version.jar"
@@ -207,42 +239,63 @@ if (-not (Test-Path $jar -PathType Leaf)) {
     throw "No aparece el JAR esperado $jar. JARs encontrados: $lista"
 }
 if ((Get-Item $jar).Length -le 0) {
-    throw "El JAR esperado está vacío: $jar"
+    throw "El JAR esperado esta vacio: $jar"
 }
+$hashNuevo = (Get-FileHash -LiteralPath $jar -Algorithm SHA256).Hash
 
-# --- 5. Backup y despliegue; Minecraft debe estar cerrado -----------------
+# --- 5. Despliegue por fases; Minecraft debe estar cerrado -----------------
 $mods = Join-Path $instancia "mods"
 New-Item -ItemType Directory -Force -Path $mods | Out-Null
 $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $backupDir = Join-Path $instancia "jobsmenu-backups\$stamp"
 New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
 
+# 5.1 Config actual, por si hace falta volver atras.
 $config = Join-Path $instancia "config\jobsmenu-client.toml"
 if (Test-Path $config -PathType Leaf) {
     Copy-Item -LiteralPath $config -Destination (Join-Path $backupDir "jobsmenu-client.toml") -Force
 }
 
+# 5.2 El JAR nuevo entra primero con nombre .pendiente: el launcher ignora lo
+#     que no termina en .jar, asi que nunca hay cero JARs ni dos activos.
+$nombreJar = "jobsmenu-$version.jar"
+$pendiente = Join-Path $mods "$nombreJar.pendiente"
+Copy-Item -LiteralPath $jar -Destination $pendiente -Force
+$hashPendiente = (Get-FileHash -LiteralPath $pendiente -Algorithm SHA256).Hash
+if ($hashPendiente -ne $hashNuevo) {
+    Remove-Item -LiteralPath $pendiente -Force
+    throw "La copia a mods no coincide con el JAR compilado. Aborto sin tocar los JARs actuales."
+}
+
+# 5.3 JARs anteriores: primero al backup, despues se borran.
 $anteriores = @(Get-ChildItem -LiteralPath $mods -Filter "jobsmenu-*.jar" -File -ErrorAction SilentlyContinue)
 foreach ($viejo in $anteriores) {
-    # Usar FullName es importante: Copy-Item $viejo puede resolver solo el
-    # nombre contra el directorio actual en Windows PowerShell.
+    # FullName evita que Copy-Item resuelva solo el nombre contra el directorio
+    # actual en Windows PowerShell.
     Copy-Item -LiteralPath $viejo.FullName -Destination (Join-Path $backupDir $viejo.Name) -Force
 }
 foreach ($viejo in $anteriores) {
     Remove-Item -LiteralPath $viejo.FullName -Force
 }
-Copy-Item -LiteralPath $jar -Destination (Join-Path $mods (Split-Path $jar -Leaf)) -Force
 
-$hash = (Get-FileHash -LiteralPath $jar -Algorithm SHA256).Hash
-Write-Host "OK: desplegado jobsmenu-$version.jar en $mods" -ForegroundColor Green
-Write-Host "Backup: $backupDir"
-Write-Host "SHA256: $hash"
+# 5.4 El JAR nuevo pasa a su nombre final y se verifica de nuevo.
+$final = Join-Path $mods $nombreJar
+Move-Item -LiteralPath $pendiente -Destination $final -Force
+if ((Get-FileHash -LiteralPath $final -Algorithm SHA256).Hash -ne $hashNuevo) {
+    throw "La verificacion final del JAR desplegado fallo. Revisa $mods"
+}
+
+$commit = (git rev-parse --short HEAD | Out-String).Trim()
+Write-Host "OK: desplegado $nombreJar en $mods" -ForegroundColor Green
+Write-Host "Commit : $commit"
+Write-Host "Backup : $backupDir"
+Write-Host "SHA256 : $hashNuevo"
 ```
 
-El `-LiteralPath $viejo.FullName` evita el fallo que puede intentar copiar un
-JAR desde el directorio del repositorio en vez de desde `test-1\mods`. Si falla
-la versión, Java, Python, la auditoría, Gradle o el artefacto, el bloque termina
-y conserva los JARs existentes. No copies backups a `mods`.
+Si falla la rama, la version, Java, Python, la auditoria, Gradle o el artefacto,
+el bloque termina y conserva los JARs existentes. El hash del `.pendiente` y el
+del JAR final se comparan con el compilado; un archivo corrupto aborta antes de
+borrar nada. No copies backups a `mods`.
 
 ## Herramientas sin JDK
 

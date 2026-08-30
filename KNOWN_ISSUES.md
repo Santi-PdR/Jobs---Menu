@@ -21,6 +21,12 @@ una ejecución real de Minecraft Forge 1.20.1.
   camas vivas en pantallas hijas están verificados estáticamente y por el
   diseño del ciclo de vida; necesitan la prueba real (rotar con Opciones
   abiertas, entrar/salir de mundo y servidor).
+- **Bloque PowerShell del README.** Fue reforzado (despliegue por fases con
+  verificación SHA256, JDK 17 completo con `JAVA_HOME`, comprobación del
+  wrapper y de la rama) y revisado estáticamente, pero **no ejecutado**: este
+  entorno no tiene PowerShell. La primera ejecución real en Windows es también
+  la primera prueba del pipeline; el bloque se detiene con mensaje claro en
+  cada punto de fallo y no toca los JARs existentes hasta validar el nuevo.
 - **Perfil accesible y bajo consumo.** Su comportamiento de opciones está
   verificado estáticamente; la legibilidad del recinto con ambas opciones
   activadas necesita revisión en Minecraft.
@@ -99,3 +105,6 @@ no línea por línea. Revisar `test-1\mods` y la carpeta fechada
   entrada a un mundo.
 - Movimiento y destellos reducidos independientes, con escena legible aun con
   ambas opciones activadas.
+- Bloque PowerShell del README reforzado: despliegue por fases con hash,
+  JDK completo, wrapper y rama correcta; revisado estáticamente, pendiente de
+  su primera ejecución real.
