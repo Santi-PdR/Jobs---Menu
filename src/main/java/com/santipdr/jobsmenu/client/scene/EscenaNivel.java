@@ -36,7 +36,12 @@ public final class EscenaNivel {
         boolean destellos = viva && !ConfigTurno.destellosReducidos()
                 && !estado.enSuspension();
         boolean movimiento = viva && !ConfigTurno.movimientoReducido();
-        boolean respiracion = movimiento && ConfigTurno.respiracionCamara();
+        // Bajo consumo no congela el recinto (eso es movimiento_reducido):
+        // quita las capas de aire y la respiracion, que son las que mas
+        // rellenan por fotograma en pantallas pequenas o integradas.
+        boolean bajoConsumo = viva && ConfigTurno.bajoConsumo();
+        boolean respiracion = movimiento && ConfigTurno.respiracionCamara()
+                && !bajoConsumo;
         boolean atmosferaMovimiento = movimiento && !estado.enSuspension();
 
         // Con el movimiento reducido el reloj se congela a proposito: las
@@ -96,9 +101,15 @@ public final class EscenaNivel {
             if (!ConfigTurno.destellosReducidos()) {
                 EventosAmbientales.dibujar(grafico, ancho, alto, nivel, luz, estado.ahora());
             }
-            Presencia.dibujar(grafico, nivel, marco, luz, planta.pisoPresencia(), estado.ahora());
-            int cantidadMotas = ancho * alto < 300_000 ? 24 : MOTAS;
-            motas(grafico, ancho, alto, tiempo, luz, nivel, cantidadMotas);
+            if (!bajoConsumo) {
+                // La figura y el polvo son las dos capas de aire mas caras:
+                // en bajo consumo se saltan, y con ellas el rebote de la
+                // sombra de la figura sobre el suelo. El recinto queda igual,
+                // solo mas despejado y mas rapido.
+                Presencia.dibujar(grafico, nivel, marco, luz, planta.pisoPresencia(), estado.ahora());
+                int cantidadMotas = ancho * alto < 300_000 ? 24 : MOTAS;
+                motas(grafico, ancho, alto, tiempo, luz, nivel, cantidadMotas);
+            }
         }
         vineta(grafico, ancho, alto, penumbra);
     }

@@ -23,7 +23,10 @@ public final class TratamientoEscena {
         profundidad(g, ancho, alto, nivel, luz);
         reboteSuelo(g, ancho, alto, nivel, luz, tiempo);
         humedad(g, ancho, alto, nivel, luz, tiempo, movimiento);
-        if (movimiento && !ConfigTurno.destellosReducidos()) {
+        // El grano es un punteado por fotograma pensado para pantallas
+        // normales; en bajo consumo no aporta lo que cuesta.
+        if (movimiento && !ConfigTurno.destellosReducidos()
+                && !ConfigTurno.bajoConsumo()) {
             grano(g, ancho, alto, nivel, luz, tiempo);
         }
     }

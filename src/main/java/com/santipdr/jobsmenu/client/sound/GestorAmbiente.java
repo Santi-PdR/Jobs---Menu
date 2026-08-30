@@ -266,6 +266,30 @@ public final class GestorAmbiente {
     }
 
     /**
+     * Mantenimiento de camas cuando una pantalla hija ocupa el foco.
+     *
+     * La pantalla (PantallaNivel.tick) es quien llama a atender(), y en
+     * Opciones o Mods no corre: los sucesos se pausan a proposito. Pero la
+     * rotacion sigue su curso, y si el nivel cambia mientras el jugador esta
+     * en una hija, las camas del recinto nuevo no tendrian quien las levantara
+     * y el pasillo volveria en silencio. Este paso, liviano y llamable desde
+     * cualquier tick del cliente, solo se ocupa de las camas continuas: nada
+     * de eventos, presencia, transicion ni suspension (eso vuelve con la
+     * pantalla).
+     */
+    public static void mantenerCamas() {
+        if (!com.santipdr.jobsmenu.client.SesionMenu.activa()) {
+            return;
+        }
+        CAPAS.removeIf(CapaAmbiente::agotada);
+        if (!ConfigTurno.sonidoAmbiente()) {
+            detenerCapas();
+            return;
+        }
+        asegurarCamas(RotacionNiveles.capturar().indice());
+    }
+
+    /**
      * Atiende el audio con el mismo snapshot que acaba de usar el renderer.
      * Los ticks de las camas siguen siendo independientes, pero los disparos
      * puntuales ya no pueden caer en el frame equivocado al cruzar una frontera

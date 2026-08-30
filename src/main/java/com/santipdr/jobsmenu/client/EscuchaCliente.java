@@ -4,6 +4,7 @@ import com.santipdr.jobsmenu.JobsMenu;
 import com.santipdr.jobsmenu.client.screen.PantallaEstancia;
 import com.santipdr.jobsmenu.client.screen.PantallaNivel;
 import com.santipdr.jobsmenu.client.sound.MezclaAudio;
+import com.santipdr.jobsmenu.client.sound.GestorAmbiente;
 import com.santipdr.jobsmenu.client.sound.GestorMusica;
 import com.santipdr.jobsmenu.client.sound.MusicaPropia;
 import com.santipdr.jobsmenu.client.sound.SonidosNivel;
@@ -108,6 +109,10 @@ public final class EscuchaCliente {
             SesionMenu.cerrar();
         }
         GestorMusica.atender();
+        // Las camas del recinto siguen al reloj aunque el aviso no sea la
+        // pantalla activa (Opciones, Mods...): si el nivel rota ahi, el
+        // recinto nuevo no puede volver mudo. Ver GestorAmbiente.mantenerCamas.
+        GestorAmbiente.mantenerCamas();
     }
 
     /**
