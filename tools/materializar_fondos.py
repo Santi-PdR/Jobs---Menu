@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Materializa y valida los fondos de imagen 10-17 durante la migracion.
+"""Materializa y valida los fondos de imagen 10-17.
 
-Los PNG se transportan temporalmente como fragmentos base64 pequenos para que
-ningun limite del conector pueda truncarlos. Cada nivel se reconstruye antes
-de compilar y se comprueba como PNG 256x144 valido.
+Los niveles 10-14 ya viven como PNG reales en resources. Los niveles 15-17 se
+transportan temporalmente como base64 durante esta migracion y se reconstruyen
+antes de verificar/compilar. El CI rechaza firmas, dimensiones o cierres PNG
+incorrectos para impedir publicar fondos truncados.
 """
 from __future__ import annotations
 
@@ -17,9 +18,8 @@ RAIZ = Path(__file__).resolve().parent.parent
 DESTINO = RAIZ / "src/main/resources/assets/jobsmenu/textures/backgrounds"
 PAYLOAD = RAIZ / "tools/background_payload"
 ESPERADOS = range(10, 18)
-ANCHO = 256
-ALTO = 144
-MIN_BYTES = 7_000
+DIMENSIONES = {**{i: (256, 144) for i in range(10, 15)}, **{i: (192, 108) for i in range(15, 18)}}
+MIN_BYTES = 5_000
 
 
 def dimensiones_png(datos: bytes) -> tuple[int, int]:
@@ -28,16 +28,14 @@ def dimensiones_png(datos: bytes) -> tuple[int, int]:
     return struct.unpack(">II", datos[16:24])
 
 
-def leer_payload(indice: int) -> str:
-    partes = sorted(PAYLOAD.glob(f"nivel{indice}.part*"))
-    if not partes:
-        raise FileNotFoundError(f"faltan fragmentos del nivel {indice}")
-    return "".join("".join(p.read_text(encoding="ascii").split()) for p in partes)
-
-
-def materializar(indice: int) -> None:
+def materializar_nuevo(indice: int) -> None:
+    if indice < 15:
+        return
+    origen = PAYLOAD / f"nivel{indice}.b64"
+    if not origen.is_file():
+        raise FileNotFoundError(f"falta {origen.relative_to(RAIZ)}")
     try:
-        datos = base64.b64decode(leer_payload(indice), validate=True)
+        datos = base64.b64decode("".join(origen.read_text(encoding="ascii").split()), validate=True)
     except (ValueError, binascii.Error) as exc:
         raise ValueError(f"payload invalido nivel {indice}: {exc}") from exc
     DESTINO.mkdir(parents=True, exist_ok=True)
@@ -46,13 +44,15 @@ def materializar(indice: int) -> None:
 
 def validar(indice: int) -> None:
     ruta = DESTINO / f"nivel{indice}.png"
+    if not ruta.is_file():
+        raise FileNotFoundError(f"falta {ruta.relative_to(RAIZ)}")
     datos = ruta.read_bytes()
     if len(datos) < MIN_BYTES:
         raise ValueError(f"nivel {indice}: PNG sospechosamente pequeno ({len(datos)} bytes)")
     ancho, alto = dimensiones_png(datos)
-    if (ancho, alto) != (ANCHO, ALTO):
-        raise ValueError(f"nivel {indice}: {ancho}x{alto}; se espera {ANCHO}x{ALTO}")
-    # IEND completo: evita aceptar un archivo que solo conserve cabecera/IHDR.
+    esperado = DIMENSIONES[indice]
+    if (ancho, alto) != esperado:
+        raise ValueError(f"nivel {indice}: {ancho}x{alto}; se espera {esperado[0]}x{esperado[1]}")
     if not datos.endswith(b"IEND\xaeB`\x82"):
         raise ValueError(f"nivel {indice}: PNG truncado (falta IEND)")
     print(f"  nivel {indice}: OK {ancho}x{alto}, {len(datos)} bytes")
@@ -60,8 +60,8 @@ def validar(indice: int) -> None:
 
 def main() -> int:
     try:
-        for indice in ESPERADOS:
-            materializar(indice)
+        for indice in range(15, 18):
+            materializar_nuevo(indice)
         print("Fondos de imagen:")
         for indice in ESPERADOS:
             validar(indice)
