@@ -22,16 +22,16 @@ Esta matriz convierte el requisito de cincuenta mejoras por escenario en criteri
 
 | Escenario | Criterios auditados | Implementados en esta pasada | Validación Minecraft |
 |---|---:|---:|---|
-| Nivel 0 — Administración | 50 | 3 | Estático parcial; Minecraft pendiente |
-| Nivel 1 — Depósito | 50 | 4 | Estático parcial; Minecraft pendiente |
-| Nivel 2 — Servicio | 50 | 4 | Estático parcial; Minecraft pendiente |
-| Nivel 3 — Natatorio | 50 | 3 | Estático parcial; Minecraft pendiente |
-| Nivel 4 — Sala de piedra | 50 | 3 | Estático parcial; Minecraft pendiente |
-| Nivel 5 — Biblioteca | 50 | 3 | Estático parcial; Minecraft pendiente |
-| Nivel 6 — Invernadero | 50 | 3 | Estático parcial; Minecraft pendiente |
-| Nivel 7 — Catacumbas | 50 | 3 | Estático parcial; Minecraft pendiente |
-| Nivel 8 — Cisterna | 50 | 3 | Estático parcial; Minecraft pendiente |
-| Nivel 9 — Trono | 50 | 6 | Estático parcial; Minecraft pendiente |
+| Nivel 0 — Administración | 50 | 4 | Estático parcial; Minecraft pendiente |
+| Nivel 1 — Depósito | 50 | 5 | Estático parcial; Minecraft pendiente |
+| Nivel 2 — Servicio | 50 | 5 | Estático parcial; Minecraft pendiente |
+| Nivel 3 — Natatorio | 50 | 4 | Estático parcial; Minecraft pendiente |
+| Nivel 4 — Sala de piedra | 50 | 4 | Estático parcial; Minecraft pendiente |
+| Nivel 5 — Biblioteca | 50 | 4 | Estático parcial; Minecraft pendiente |
+| Nivel 6 — Invernadero | 50 | 4 | Estático parcial; Minecraft pendiente |
+| Nivel 7 — Catacumbas | 50 | 4 | Estático parcial; Minecraft pendiente |
+| Nivel 8 — Cisterna | 50 | 4 | Estático parcial; Minecraft pendiente |
+| Nivel 9 — Trono | 50 | 11 | Estático parcial; Minecraft pendiente |
 
 ## Nivel 0 — Administración
 
@@ -51,7 +51,7 @@ Las 50 filas siguientes son específicas de este recinto. `Target` identifica la
 - **AD-12 · Arquitectura** dibujar una junta vertical desplazada en el muro de fondo. **Target:** `MaterialesEscena.papelMural`. **Prueba:** no coincide con el eje.
 - **AD-13 · Arquitectura** incluir una moldura de servicio debajo del techo. **Target:** `DireccionArte`. **Prueba:** conecta paredes y techo.
 - **AD-14 · Arquitectura** quebrar una esquina con una columna parcial. **Target:** `PrimerPlano`. **Prueba:** la columna corta el borde sin tapar botones.
-- **AD-15 · Arquitectura** marcar una abertura de mantenimiento en un lateral. **Target:** `Sala`. **Prueba:** la abertura tiene marco y profundidad.
+- **AD-15 · Arquitectura** marcar una abertura de mantenimiento en un lateral. **Target:** `Sala`. **Estado:** Implementado como abertura de mantenimiento con marco, bisagras e interior que no termina en la pared; validación dentro de Minecraft pendiente. **Prueba:** la abertura tiene marco y profundidad.
 - **AD-16 · Silueta** hacer reconocibles las dos torres de luz como tótems administrativos. **Target:** `DireccionArte.torreLuz`. **Prueba:** se leen apagadas y encendidas.
 - **AD-17 · Silueta** separar la señalética de la silueta del vano. **Target:** `DireccionArte.runas`. **Prueba:** no se funden los contornos.
 - **AD-18 · Silueta** dar un borde irregular a la cinta del documento. **Target:** `HojaPapel/escena`. **Prueba:** la cinta no parece rectángulo perfecto.
@@ -108,7 +108,7 @@ Las 50 filas siguientes son específicas de este recinto. `Target` identifica la
 - **DE-14 · Arquitectura** introducir un pasillo de servicio detrás de la carga. **Target:** `Nave`. **Prueba:** hay segundo recorrido visual.
 - **DE-15 · Arquitectura** apoyar el pilar roto en una placa de base. **Target:** `PrimerPlano`. **Prueba:** no flota.
 - **DE-16 · Silueta** diferenciar grúa, estantería y carga contra el vano. **Target:** `DireccionArte`. **Prueba:** tres siluetas se reconocen a contraluz.
-- **DE-17 · Silueta** dejar una lona caída como forma irregular. **Target:** `PrimerPlano`. **Prueba:** no es un rectángulo de color.
+- **DE-17 · Silueta** dejar una lona caída como forma irregular. **Target:** `PrimerPlano`. **Estado:** Implementado como lona de carga caida con cuatro bandas plegadas, costuras y borde de luz; validación dentro de Minecraft pendiente. **Prueba:** no es un rectángulo de color.
 - **DE-18 · Silueta** quebrar el horizonte con una carga suspendida. **Target:** `gruaDeposito`. **Prueba:** el vacío del techo conserva respiración.
 - **DE-19 · Profundidad** variar longitud de cables según dx real. **Target:** `Marco`. **Prueba:** cada cable converge a la fuga.
 - **DE-20 · Profundidad** usar un pilar cercano para ocluir una estantería. **Target:** `Nave`. **Prueba:** la oclusión confirma escala.
@@ -157,7 +157,7 @@ Las 50 filas siguientes son específicas de este recinto. `Target` identifica la
 - **SE-08 · Composición** reservar el lado de lectura para pared más tranquila. **Target:** `EscenaNivel`. **Prueba:** UI limpia.
 - **SE-09 · Escala** hacer el manómetro suficientemente grande para leerse como máquina. **Target:** `panelServicio`. **Prueba:** no parece píxel decorativo.
 - **SE-10 · Escala** reducir indicadores lejanos según profundidad. **Target:** `Servicio`. **Prueba:** perspectiva consistente.
-- **SE-11 · Arquitectura** añadir bandeja de cables con soportes. **Target:** `Servicio`. **Prueba:** cables tienen anclaje.
+- **SE-11 · Arquitectura** añadir bandeja de cables con soportes. **Target:** `Servicio`. **Estado:** Implementado como bandeja de cables colgada del techo con tres soportes y bucle de cable suelto; validación dentro de Minecraft pendiente. **Prueba:** cables tienen anclaje.
 - **SE-12 · Arquitectura** mostrar un nicho de válvulas detrás del panel. **Target:** `Servicio`. **Prueba:** segundo plano real.
 - **SE-13 · Arquitectura** usar una compuerta de inspección abierta. **Target:** `Servicio`. **Prueba:** interior oscuro y bisagras. **Estado:** Implementado con hoja entreabierta, jambas, bisagras y manija; validación dentro de Minecraft pendiente.
 - **SE-14 · Arquitectura** diferenciar piso técnico de pared. **Target:** `MaterialesEscena`. **Prueba:** junta horizontal cambia de material.
@@ -223,7 +223,7 @@ Las 50 filas siguientes son específicas de este recinto. `Target` identifica la
 - **NA-19 · Profundidad** proyectar ondas hacia la fuga. **Target:** `Ondas`. **Prueba:** intervalos se comprimen al fondo.
 - **NA-20 · Profundidad** hacer que la escalera oculte parte del reflejo. **Target:** `PrimerPlano`. **Prueba:** oclusión real.
 - **NA-21 · Material** separar azulejo seco, borde pulido y agua. **Target:** `MaterialesEscena`. **Prueba:** tres valores.
-- **NA-22 · Material** añadir sarro bajo rebosaderos. **Target:** `Natatorio`. **Prueba:** desgaste vertical localizado.
+- **NA-22 · Material** añadir sarro bajo rebosaderos. **Target:** `Natatorio`. **Estado:** Implementado como lenguetas de sarro bajo el rebosadero, sembradas por la clave del nivel; validación dentro de Minecraft pendiente. **Prueba:** desgaste vertical localizado.
 - **NA-23 · Material** introducir metal oxidado en escalera. **Target:** `Natatorio`. **Prueba:** óxido en uniones.
 - **NA-24 · Material** reflejar azulejo solo en franja húmeda. **Target:** `TratamientoEscena`. **Prueba:** reflejo corto.
 - **NA-25 · Material** dibujar pequeñas juntas abiertas sin llenar toda la pared. **Target:** `azulejo`. **Prueba:** irregularidad controlada.
@@ -267,7 +267,7 @@ Las 50 filas siguientes son específicas de este recinto. `Target` identifica la
 - **SA-08 · Composición** insertar vacío entre arcos para que respire silencio. **Target:** `Cripta`. **Prueba:** masa y vacío alternan.
 - **SA-09 · Escala** candil cercano tiene soporte y copa, no solo llama. **Target:** `antorcha`. **Prueba:** escala física.
 - **SA-10 · Escala** sillares lejanos se vuelven bandas, no ladrillos iguales. **Target:** `MaterialesEscena`. **Prueba:** detalle decrece.
-- **SA-11 · Arquitectura** añadir dovelas visibles en un arco. **Target:** `Cripta`. **Prueba:** curva construida por piezas.
+- **SA-11 · Arquitectura** añadir dovelas visibles en un arco. **Target:** `Cripta`. **Estado:** Implementado como dovelas visibles en el arco mas cercano, con junta perpendicular y tono propio; validación dentro de Minecraft pendiente. **Prueba:** curva construida por piezas.
 - **SA-12 · Arquitectura** marcar una bóveda con costillas desplazadas. **Target:** `Cripta`. **Prueba:** techo tiene volumen.
 - **SA-13 · Arquitectura** quebrar un sillar del zócalo. **Target:** `piedra`. **Prueba:** grieta termina en borde.
 - **SA-14 · Arquitectura** añadir nicho ciego con profundidad. **Target:** `Cripta`. **Prueba:** interior no es rectángulo plano. **Estado:** Implementado como nicho lateral con marco, intrados y fondo oscuro; validación dentro de Minecraft pendiente.
@@ -323,7 +323,7 @@ Las 50 filas siguientes son específicas de este recinto. `Target` identifica la
 - **BI-09 · Escala** lomos cercanos tienen alturas distintas. **Target:** `PrimerPlano`. **Prueba:** no son dientes de sierra uniformes.
 - **BI-10 · Escala** escalera reduce peldaños hacia galería. **Target:** `escaleraBiblioteca`. **Prueba:** perspectiva visible.
 - **BI-11 · Arquitectura** añadir viga de galería con baranda. **Target:** `Biblioteca`. **Prueba:** segundo piso creíble.
-- **BI-12 · Arquitectura** mostrar un arco de acceso entre estantes. **Target:** `Biblioteca`. **Prueba:** límite espacial.
+- **BI-12 · Arquitectura** mostrar un arco de acceso entre estantes. **Target:** `Biblioteca`. **Estado:** Implementado como arco de acceso entre estantes con capucha de arco y pilares de marco; validación dentro de Minecraft pendiente. **Prueba:** límite espacial.
 - **BI-13 · Arquitectura** dejar techo con panel acústico desprendido. **Target:** `Biblioteca`. **Prueba:** abandono material.
 - **BI-14 · Arquitectura** incluir una mesa desplazada y una pata rota. **Target:** `PrimerPlano`. **Prueba:** objeto apoya en suelo.
 - **BI-15 · Arquitectura** conectar escalera con la baranda superior. **Target:** `escaleraBiblioteca`. **Prueba:** no flota.
@@ -380,7 +380,7 @@ Las 50 filas siguientes son específicas de este recinto. `Target` identifica la
 - **IN-11 · Arquitectura** añadir nervios de vidrio con uniones metálicas. **Target:** `techoInvernadero`. **Prueba:** módulos creíbles.
 - **IN-12 · Arquitectura** mostrar panel roto con borde serrado. **Target:** `Invernadero`. **Prueba:** ruptura integrada. **Estado:** Implementado con dos huecos y borde de vidrio irregular en la cristalera; validación dentro de Minecraft pendiente.
 - **IN-13 · Arquitectura** incluir canaleta de lluvia que entra en depósito. **Target:** `Invernadero`. **Prueba:** agua tiene ruta. **Estado:** Implementado con bajante lateral, codo y depósito de recogida; validación dentro de Minecraft pendiente.
-- **IN-14 · Arquitectura** añadir pasarela oxidada sobre cultivo. **Target:** `Invernadero`. **Prueba:** soportes visibles.
+- **IN-14 · Arquitectura** añadir pasarela oxidada sobre cultivo. **Target:** `Invernadero`. **Estado:** Implementado como pasarela oxidada sobre los bancos con soportes al suelo y barandilla; validación dentro de Minecraft pendiente. **Prueba:** soportes visibles.
 - **IN-15 · Arquitectura** dejar una puerta de vidrio entreabierta. **Target:** `Planta/Invernadero`. **Prueba:** umbral y bisagras. **Estado:** Implementado con hoja lateral desplazada, umbral, tirador y dos bisagras; validación dentro de Minecraft pendiente.
 - **IN-16 · Silueta** una planta trepa por la estructura, no por toda la pantalla. **Target:** `hojas`. **Prueba:** crecimiento direccional.
 - **IN-17 · Silueta** distinguir hojas anchas, tallos finos y helechos. **Target:** `hojas/PrimerPlano`. **Prueba:** tres perfiles.
@@ -434,7 +434,7 @@ Las 50 filas siguientes son específicas de este recinto. `Target` identifica la
 - **CA-10 · Escala** cadenas/antorchas no dominan el techo. **Target:** `DireccionArte`. **Prueba:** escala soterrada.
 - **CA-11 · Arquitectura** variar anchura de nichos por muro. **Target:** `Catacumba`. **Prueba:** construcción irregular.
 - **CA-12 · Arquitectura** añadir dinteles de piedra sobre nichos. **Target:** `Catacumba`. **Prueba:** peso estructural.
-- **CA-13 · Arquitectura** mostrar pasadizo estrecho detrás de arcos. **Target:** `Catacumba`. **Prueba:** segundo plano.
+- **CA-13 · Arquitectura** mostrar pasadizo estrecho detrás de arcos. **Target:** `Catacumba`. **Estado:** Implementado como pasadizo estrecho detras del arco del fondo con segundo umbral y dovelas; validación dentro de Minecraft pendiente. **Prueba:** segundo plano.
 - **CA-14 · Arquitectura** romper una columna en la base, no a mitad flotante. **Target:** `PrimerPlano`. **Prueba:** apoyo visible.
 - **CA-15 · Arquitectura** incluir drenaje o canal de humedad en suelo. **Target:** `Catacumba`. **Prueba:** agua tiene recorrido. **Estado:** Implementado como canal estrecho con reflejos discontinuos siguiendo el suelo; validación dentro de Minecraft pendiente.
 - **CA-16 · Silueta** nichos deben ser cavidades con alfeizar, no cuadros. **Target:** `Catacumba`. **Prueba:** profundidad negra interior.
@@ -487,7 +487,7 @@ Las 50 filas siguientes son específicas de este recinto. `Target` identifica la
 - **CI-08 · Composición** hacer que la pasarela corte el cuadro lateralmente. **Target:** `Cisterna`. **Prueba:** segundo plano.
 - **CI-09 · Escala** gotas cercanas tienen impacto ancho, lejanas son puntos. **Target:** `Ondas`. **Prueba:** escala por profundidad.
 - **CI-10 · Escala** columna pierde detalle bajo el agua. **Target:** `Cisterna`. **Prueba:** atenuación vertical.
-- **CI-11 · Arquitectura** añadir galería con baranda y puntos de anclaje. **Target:** `Cisterna`. **Prueba:** estructura sobre agua.
+- **CI-11 · Arquitectura** añadir galería con baranda y puntos de anclaje. **Target:** `Cisterna`. **Estado:** Implementado como galeria de mantenimiento sobre el agua con barandilla, anclajes y reflejo partido; validación dentro de Minecraft pendiente. **Prueba:** estructura sobre agua.
 - **CI-12 · Arquitectura** dibujar compuerta de inspección en muro. **Target:** `Cisterna`. **Prueba:** borde y bisagras. **Estado:** Implementado con placa de inspección, perímetro, manija y bisagras; validación dentro de Minecraft pendiente.
 - **CI-13 · Arquitectura** introducir tubería de entrada con goteo real. **Target:** `Cisterna`. **Prueba:** agua tiene origen. **Estado:** Implementado con tubería lateral, codos y gota descendente; validación dentro de Minecraft pendiente.
 - **CI-14 · Arquitectura** mostrar marcas de nivel en la columna. **Target:** `Cisterna`. **Prueba:** escala de altura. **Estado:** Implementado con tres marcas horizontales ancladas a una columna; validación dentro de Minecraft pendiente.
@@ -540,15 +540,15 @@ Las 50 filas siguientes son específicas de este recinto. `Target` identifica la
 - **TR-06 · Composición** dejar un vacío oscuro detrás del respaldo. **Target:** `abside`. **Prueba:** asiento se recorta.
 - **TR-07 · Composición** evitar que cadenas y estandartes creen un marco rectangular. **Target:** `DireccionArte.trono`. **Prueba:** asimetría.
 - **TR-08 · Composición** proteger la hoja de la banda central del haz. **Target:** `EscenaNivel`. **Prueba:** UI conserva legibilidad.
-- **TR-09 · Escala** trono debe ser grande pero menor que el ábside. **Target:** `Trono`. **Prueba:** arquitectura domina.
-- **TR-10 · Escala** escalones decrecen hacia arriba, con cantos legibles. **Target:** `Trono`. **Prueba:** tarima no es cajón.
-- **TR-11 · Arquitectura** rehacer el ábside con dovelas concéntricas. **Target:** `abside`. **Prueba:** curva construida.
+- **TR-09 · Escala** trono debe ser grande pero menor que el ábside. **Target:** `Trono`. **Estado:** Implementado: escala revisada: trono grande, con la arquitectura del abside dominando el conjunto; validación dentro de Minecraft pendiente. **Prueba:** arquitectura domina.
+- **TR-10 · Escala** escalones decrecen hacia arriba, con cantos legibles. **Target:** `Trono`. **Estado:** Implementado: estrado de seis escalones con proporciones decrecientes hacia arriba y cantos legibles; validación dentro de Minecraft pendiente. **Prueba:** tarima no es cajón.
+- **TR-11 · Arquitectura** rehacer el ábside con dovelas concéntricas. **Target:** `abside`. **Estado:** Implementado: abside rehecho con tres dovelas concentricas por lado y oro solo en el arco interno; validación dentro de Minecraft pendiente. **Prueba:** curva construida.
 - **TR-12 · Arquitectura** añadir boquetes de techo con bordes integrados. **Target:** `boquetes`. **Prueba:** no rectángulos flotantes.
 - **TR-13 · Arquitectura** conectar columnas con capiteles o ruinas visibles. **Target:** `columnas`. **Prueba:** soporte vertical.
 - **TR-14 · Arquitectura** hacer que alfombra termine en tarima, no en suelo infinito. **Target:** `alfombraRoja`. **Prueba:** perspectiva anclada.
 - **TR-15 · Arquitectura** añadir una losa rota en primer plano. **Target:** `PrimerPlano.trono`. **Prueba:** ruina entra desde borde. **Estado:** Implementado en Java y espejo de preview; validación dentro de Minecraft pendiente.
-- **TR-16 · Silueta** asiento vacío debe reconocerse por respaldo, brazos y corona ausente. **Target:** `Trono.trono`. **Prueba:** silueta inequívoca.
-- **TR-17 · Silueta** estandartes deben ser tela irregular y asta. **Target:** `estandartes`. **Prueba:** no son bandas.
+- **TR-16 · Silueta** asiento vacío debe reconocerse por respaldo, brazos y corona ausente. **Target:** `Trono.trono`. **Estado:** Implementado: silueta del asiento vacio: respaldo, brazos y hueco de corona ausente grande y oscuro; validación dentro de Minecraft pendiente. **Prueba:** silueta inequívoca.
+- **TR-17 · Silueta** estandartes deben ser tela irregular y asta. **Target:** `estandartes`. **Estado:** Implementado: estandartes como tela irregular: jirones con sesgo determinista y asta torcida; validación dentro de Minecraft pendiente. **Prueba:** no son bandas.
 - **TR-18 · Silueta** columna rota necesita remate dentado. **Target:** `columnas`. **Prueba:** ruina visible.
 - **TR-19 · Profundidad** ocultar base de una columna con losa cercana. **Target:** `PrimerPlano`. **Prueba:** oclusión real.
 - **TR-20 · Profundidad** hacer que haz cenital se ensanche hacia la tarima. **Target:** `hazMayor`. **Prueba:** perspectiva de luz.
