@@ -69,14 +69,14 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
                 (v) -> fijar.accept(v));
     }
 
-    /** Selector entero de nivel; el knob y el valor comparten exactamente el rango 0-9. */
+    /** Selector entero de nivel; el knob y el valor comparten exactamente el rango 0-17. */
     private static OptionInstance<Integer> selectorNivel(int valor) {
         String clave = "jobsmenu.ajustes.nivelfijo";
         return new OptionInstance<>(clave,
                 OptionInstance.cachedConstantTooltip(Component.translatable(clave + ".detalle")),
                 (caption, v) -> Component.translatable("jobsmenu.ajustes.nivelvalor", caption, v),
-                new OptionInstance.IntRange(0, 9),
-                Math.max(0, Math.min(9, valor)),
+                new OptionInstance.IntRange(0, 17),
+                Math.max(0, Math.min(17, valor)),
                 ConfigTurno::fijarNivelFijo);
     }
 

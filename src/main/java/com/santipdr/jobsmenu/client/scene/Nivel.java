@@ -173,7 +173,7 @@ public final class Nivel {
                     0.520F, 0.500F, 0.250F, 0.250F, 0.155F, 0.135F,
                     0.30F, 0.72F),
 
-            new Nivel("nivel12", new PlantaImagen("nivel12.png", 256, 144, 12),
+            new Nivel("nivel12", new PlantaImagen("nivel12.png", 192, 108, 12),
                     0xFF304A32, 0xFF142218, 0xFF09100C,
                     0xFF252A22, 0xFF101510, 0xFF070A08,
                     0xFF26362B, 0xFF101A13,
@@ -189,7 +189,7 @@ public final class Nivel {
                     0.500F, 0.500F, 0.240F, 0.240F, 0.175F, 0.145F,
                     0.22F, 0.42F),
 
-            new Nivel("nivel14", new PlantaImagen("nivel14.png", 256, 144, 14),
+            new Nivel("nivel14", new PlantaImagen("nivel14.png", 256, 127, 14),
                     0xFF315136, 0xFF14251A, 0xFF09110C,
                     0xFF263027, 0xFF111912, 0xFF070B08,
                     0xFF28412F, 0xFF111D16,
@@ -199,7 +199,7 @@ public final class Nivel {
 
             // Interferencia de Executor. El rojo sigue reservado al mismo eje
             // narrativo de contencion/peligro, sin convertirse en color global.
-            new Nivel("nivel15", new PlantaImagen("nivel15.png", 256, 144, 15),
+            new Nivel("nivel15", new PlantaImagen("nivel15.png", 192, 108, 15),
                     0xFF6B1C12, 0xFF270907, 0xFF150504,
                     0xFF26100D, 0xFF120706, 0xFF080303,
                     0xFF45120D, 0xFF1A0806,
@@ -208,7 +208,7 @@ public final class Nivel {
                     0.10F, 0.14F),
 
             // Archivo del prisma: frio, casi monocromo, con muy poca humedad.
-            new Nivel("nivel16", new PlantaImagen("nivel16.png", 256, 144, 16),
+            new Nivel("nivel16", new PlantaImagen("nivel16.png", 192, 108, 16),
                     0xFFBFC5C8, 0xFF3C4145, 0xFF171A1C,
                     0xFF303438, 0xFF17191B, 0xFF090A0B,
                     0xFF70767A, 0xFF2A2E31,
@@ -217,7 +217,7 @@ public final class Nivel {
                     0.18F, 0.08F),
 
             // Galeria de sombra: frio azulado y muy oscuro, sin agresion roja.
-            new Nivel("nivel17", new PlantaImagen("nivel17.png", 256, 144, 17),
+            new Nivel("nivel17", new PlantaImagen("nivel17.png", 192, 108, 17),
                     0xFF30446E, 0xFF11182D, 0xFF080B16,
                     0xFF172038, 0xFF0B1020, 0xFF050810,
                     0xFF263452, 0xFF11182A,

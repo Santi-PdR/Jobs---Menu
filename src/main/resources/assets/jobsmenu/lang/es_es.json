@@ -255,5 +255,17 @@
   "jobsmenu.nivel14.nombre": "NIVEL 14 · La puerta de jade",
   "jobsmenu.nivel14.nota0": "La puerta está operativa. Abrir no significa atravesar.",
   "jobsmenu.nivel14.nota1": "Las marcas verdes son de servicio. Nadie recuerda qué servicio.",
-  "jobsmenu.nivel14.nota2": "Si las balizas se apagan a la vez, no espere a que vuelvan."
+  "jobsmenu.nivel14.nota2": "Si las balizas se apagan a la vez, no espere a que vuelvan.",
+  "jobsmenu.nivel15.nombre": "NIVEL 15 · Interferencia de Executor",
+  "jobsmenu.nivel15.nota0": "El campo rojo no es decorativo. La administración recomienda reducir su silueta.",
+  "jobsmenu.nivel15.nota1": "Las líneas se mueven cuando nadie mira. Se mueven más rápido cuando alguien sí.",
+  "jobsmenu.nivel15.nota2": "Se registró interferencia de Executor. No se pudo establecer distancia.",
+  "jobsmenu.nivel16.nombre": "NIVEL 16 · El archivo del prisma",
+  "jobsmenu.nivel16.nota0": "El prisma no tiene número de inventario. Aun así figura en todas las listas.",
+  "jobsmenu.nivel16.nota1": "No use los reflejos para contar ocupantes. No se ponen de acuerdo.",
+  "jobsmenu.nivel16.nota2": "La geometría blanca no señaliza una salida. La administración lo comprobó dos veces.",
+  "jobsmenu.nivel17.nombre": "NIVEL 17 · La galería de sombra",
+  "jobsmenu.nivel17.nota0": "La figura estaba allí antes de que se encendiera la sala.",
+  "jobsmenu.nivel17.nota1": "No confunda una silueta inmóvil con una silueta vacía.",
+  "jobsmenu.nivel17.nota2": "La luz azul alcanza el fondo. Eso no significa que el fondo termine allí."
 }

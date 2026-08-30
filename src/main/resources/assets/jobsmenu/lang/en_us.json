@@ -255,5 +255,17 @@
   "jobsmenu.nivel14.nombre": "LEVEL 14 · The jade gate",
   "jobsmenu.nivel14.nota0": "The gate is operational. Opening does not mean crossing.",
   "jobsmenu.nivel14.nota1": "The green markings are for service. Nobody remembers which service.",
-  "jobsmenu.nivel14.nota2": "If every beacon goes dark at once, do not wait for them to return."
+  "jobsmenu.nivel14.nota2": "If every beacon goes dark at once, do not wait for them to return.",
+  "jobsmenu.nivel15.nombre": "LEVEL 15 · Executor interference",
+  "jobsmenu.nivel15.nota0": "The red field is not decorative. Administration recommends reducing your silhouette.",
+  "jobsmenu.nivel15.nota1": "The lines move when nobody watches. They move faster when somebody does.",
+  "jobsmenu.nivel15.nota2": "Executor interference was recorded. Distance could not be established.",
+  "jobsmenu.nivel16.nombre": "LEVEL 16 · The prism archive",
+  "jobsmenu.nivel16.nota0": "The prism has no inventory number. It still appears on every list.",
+  "jobsmenu.nivel16.nota1": "Do not use reflections to count occupants. They do not agree.",
+  "jobsmenu.nivel16.nota2": "The white geometry does not mark an exit. Administration checked twice.",
+  "jobsmenu.nivel17.nombre": "LEVEL 17 · The shadow gallery",
+  "jobsmenu.nivel17.nota0": "The figure was there before the room was lit.",
+  "jobsmenu.nivel17.nota1": "Do not confuse a still silhouette with an empty silhouette.",
+  "jobsmenu.nivel17.nota2": "The blue light reaches the far end. That does not mean the far end stops there."
 }
