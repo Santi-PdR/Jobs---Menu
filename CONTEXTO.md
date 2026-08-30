@@ -1,5 +1,19 @@
 # CONTEXTO — Jobs · Aviso a los ocupantes
 
+## Regla vigente de build y despliegue
+
+Esta regla reemplaza cualquier procedimiento historico que aparezca mas abajo en este documento.
+
+- El CI de GitHub es quien verifica y compila la entrega de desarrollo con Java 17.
+- El build pasa primero por `tools/verificar.py` y luego por Gradle/Forge.
+- El JAR estable para pruebas se publica como `jobsmenu-latest.jar` en la release rodante `dev-latest`.
+- El usuario no necesita compilar localmente para una prueba normal: solo ejecuta el PowerShell de `docs/DESPLIEGUE.md`.
+- El **unico destino local permitido** es `C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods`.
+- `jobs-2`, `Test2.0` y cualquier otra instancia no forman parte del flujo vigente.
+- Nunca se elimina el JAR instalado antes de descargar y validar el reemplazo.
+
+La escena vigente contiene quince niveles: diez plantas procedurales (0-9) y cinco fondos suministrados integrados como niveles 10-14. Ver `docs/NIVELES_10_14.md`.
+
 > Documento maestro del mod de menús del servidor **Jobs**.
 > Todo cambio de identidad, alcance o proceso se decide **aquí primero** y después se programa.
 
