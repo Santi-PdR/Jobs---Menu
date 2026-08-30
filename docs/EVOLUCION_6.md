@@ -100,6 +100,12 @@ implementadas, con sus conteos reales por escenario.
 - Reintento de build el 29/08: `services.gradle.org` y
   `maven.minecraftforge.net` siguen bloqueados (HTTP 000) y no hay JDK en el
   entorno; el `clean build` con Java 17 queda para el equipo local del owner.
+- Primer build real en el PC del owner (29/08, noche): las validaciones
+  pasaron pero `clean build` falló con 2 errores de compilación en
+  `GestorMusica.java` (`Window.isFocused()` inexistente en 1.20.1 y falta de
+  import de `JobsMenu`); corregidos con GLFW directo + import. El bloque
+  PowerShell pasó a ser un único `try/catch` con `git fetch` + chequeo de
+  actualización; el `BUILD SUCCESSFUL` sigue pendiente.
 - Backup C creado y subido.
 
 ## Lo que NO se hizo (y por qué)
@@ -107,7 +113,10 @@ implementadas, con sus conteos reales por escenario.
 - **Build y JAR:** sin JDK 17 y con la red bloqueada hacia gradle.org /
   maven.minecraftforge.net, el `clean build` no se puede ejecutar en este
   entorno. El wrapper 8.1.1 quedó versionado para que el build local funcione
-  directo. No se presenta ningún JAR como validado.
+  directo. El primer build local real (29/08) reveló y permitió corregir 2
+  errores de compilación en `GestorMusica.java`; el pipeline completo (build
+  `BUILD SUCCESSFUL` → JAR → `mods`) sigue pendiente. No se presenta ningún
+  JAR como validado.
 - **Prueba en Minecraft:** requiere la instancia con el modpack real; queda
   registrada como pendiente, no como verificada.
 - **Duplicar `DireccionArte` en `PantallaEstancia`:** no aplica, esa pantalla

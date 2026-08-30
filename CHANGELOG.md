@@ -1,5 +1,23 @@
 # Registro de cambios
 
+## Evolución 6 — Primer build real y errores de compilación corregidos — 2026-08-29
+
+- Primera ejecución real del bloque PowerShell en el PC del owner: las
+  validaciones pasaron (rama, wrapper, `JAVA_HOME` Temurin 17.0.20, Python,
+  auditoría), pero `clean build` falló con 2 errores en `GestorMusica.java`:
+  `Window.isFocused()` no existe en 1.20.1 (ahora se consulta
+  `GLFW.glfwGetWindowAttrib(…, GLFW_FOCUSED)`, el mismo patrón que usa
+  `AtajoOverworld`) y faltaba `import com.santipdr.jobsmenu.JobsMenu` para
+  `JobsMenu.LOG.warn(...)`.
+- El bloque del README ahora es **un único `try/catch`**: en la consola
+  interactiva los `throw` sueltos no detienen el pegado, y eso permitió que una
+  corrida con build roto siguiera y llegara a imprimir un falso `OK` con datos
+  de una corrida anterior. Con el `catch`, el primer fallo corta todo, imprime
+  `FALLO: ...` y no toca `mods`.
+- El bloque hace `git fetch origin` antes de compilar y frena si el checkout no
+  está al día con la rama publicada; reinicia `$hashNuevo` / `$hashPendiente`
+  para no arrastrar valores de corridas previas.
+
 ## Evolución 6 — Bloque PowerShell de despliegue reforzado — 2026-08-29
 
 - El bloque de compilar/desplegar del README se reescribió con **despliegue por

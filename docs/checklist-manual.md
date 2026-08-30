@@ -102,8 +102,8 @@ esta sección por ese resultado. La rama objetivo de la Evolución 6 es
 
 - [ ] El repositorio local es `C:\Users\santi\Desktop\Jobs---Menu` y la rama
   actual es `arena/01a04ff1-jobs-menu`.
-- [ ] Existe `gradle\wrapper\gradle-wrapper.jar` (ignorado por `.gitignore`);
-  sin él el bloque se detiene con su mensaje antes de compilar.
+- [ ] Existe `gradle\wrapper\gradle-wrapper.jar` (versionado en la rama desde
+  el 29/08); sin él el bloque se detiene con su mensaje antes de compilar.
 - [ ] Java 17 completo (`java` + `javac`), `JAVA_HOME` coherente si está
   definido, y `python tools\verificar.py` termina sin fallos.
 - [ ] `clean build --no-daemon` termina con `BUILD SUCCESSFUL`.
@@ -112,6 +112,8 @@ esta sección por ese resultado. La rama objetivo de la Evolución 6 es
   commit, carpeta de backup y SHA256; el hash del JAR en `mods` coincide con el
   del compilado. Durante el proceso no hay ventana con cero JARs ni dos JARs
   activos (el nuevo entra como `.pendiente` y pasa a su nombre final al final).
+- [ ] El bloque se pegó **completo de una sola vez** en una terminal nueva (es
+  un único `try/catch`: el primer fallo corta todo e imprime `FALLO: ...`).
 - [ ] La instancia se cerró y `mods` contiene el JAR 0.10.0, sin backups ni
   versiones viejas de `jobsmenu`.
 

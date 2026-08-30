@@ -103,9 +103,10 @@ El `.jar` queda en `build\libs\jobsmenu-0.10.0.jar` y se copia a la carpeta `mod
 
 ## Compilar y desplegar en la instancia `test-1`
 
-Abrí una terminal PowerShell nueva, ubicáte en el repositorio y pegá el bloque
-completo de abajo. **No se guarda como archivo `.ps1`**: el código se ejecuta una
-sola vez en esa terminal.
+Abrí una **terminal PowerShell nueva**, ubicáte en el repositorio y pegá el
+bloque completo de abajo **de una sola vez** (un solo Ctrl+V, sin partirlo).
+**No se guarda como archivo `.ps1`** y **no se pega línea por línea**: el código
+se ejecuta una sola vez en esa terminal.
 
 El bloque es deliberadamente conservador: no cambia de rama, no hace merge con
 `main`, no borra nada hasta encontrar y validar el JAR correcto, y no informa
@@ -113,6 +114,11 @@ El bloque es deliberadamente conservador: no cambia de rama, no hace merge con
 `arena/01a04ff1-jobs-menu`; una rama parecida como `arena/01a04e24-jobs-menu`
 o `arena/01a04e0d-jobs-menu` corresponde a otro snapshot y debe detener el
 proceso antes de compilar.
+
+Todo el bloque es **un único `try/catch`**: el primer paso que falle corta la
+ejecución en ese punto, imprime `FALLO: ...` y no toca nada de `mods`. Además,
+antes de compilar hace `git fetch origin` y frena si tu checkout no está al día
+con la rama publicada, para que un checkout viejo no se compile por error.
 
 Rutas usadas:
 
@@ -132,11 +138,17 @@ depender de la pagina de codigos de la consola.
 ```powershell
 $ErrorActionPreference = "Stop"
 
-# --- 0. Rutas y rama; no se cambia ni se actualiza main --------------------
+# BLOQUE UNICO: pegarlo entero de una sola vez en una terminal nueva. Es un
+# unico try/catch: el primer fallo corta todo y no se despliega nada.
+try {
+
+# --- 0. Rutas y rama; no se cambia ni se actualiza main -----
 $repo            = "C:\Users\santi\Desktop\Jobs---Menu"
 $instancia       = "C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1"
 $branch          = "arena/01a04ff1-jobs-menu"
 $versionEsperada = "0.10.0"
+$hashNuevo = $null
+$hashPendiente = $null
 
 if (-not (Test-Path (Join-Path $repo "gradle.properties") -PathType Leaf)) {
     throw "No encuentro el repositorio en $repo"
@@ -166,12 +178,24 @@ if ($actual -ne $branch) {
     throw "La rama actual es '$actual'. No compilo ni despliego. Usa la rama publicada '$branch'."
 }
 
+# Al dia con lo publicado: compilar un checkout viejo ya causo un error.
+git fetch origin 2>$null
+if ($LASTEXITCODE -ne 0) {
+    throw "git fetch fallo. Sin red no puedo verificar que la rama este al dia."
+}
+$local  = (git rev-parse HEAD | Out-String).Trim()
+$remota = (git rev-parse origin/$branch | Out-String).Trim()
+if ($remota -and $local -ne $remota) {
+    throw "Checkout desactualizado: local $local vs publicado $remota. " +
+          "Ejecuta 'git pull origin $branch' y pega el bloque de nuevo."
+}
+
 $dirty = @(git status --porcelain)
 if ($dirty.Count -gt 0) {
     throw "El repositorio tiene cambios locales. Guardalos o confirmalos antes de compilar."
 }
 
-# --- 1. Version del proyecto ----------------------------------------------
+# --- 1. Version del proyecto -----
 $versionLine = Get-Content .\gradle.properties |
     Where-Object { $_ -match '^mod_version=(.+)$' } |
     Select-Object -First 1
@@ -183,7 +207,7 @@ if ($version -ne $versionEsperada) {
     throw "La version encontrada es $version; este despliegue espera $versionEsperada."
 }
 
-# --- 2. JDK 17. gradlew.bat usa JAVA_HOME si existe; si no, el java del PATH --
+# --- 2. JDK 17: gradlew.bat usa JAVA_HOME; si no, el java del PATH ----
 if ($env:JAVA_HOME) {
     $jhJava = Join-Path $env:JAVA_HOME "bin\java.exe"
     if (-not (Test-Path $jhJava -PathType Leaf)) {
@@ -219,7 +243,7 @@ if ($env:JAVA_HOME) {
 }
 Write-Host $javaText -ForegroundColor Green
 
-# --- 3. Python real, evitando los alias de Microsoft Store -----------------
+# --- 3. Python real (sin los alias de Microsoft Store) -----
 $py = Get-Command py.exe -ErrorAction SilentlyContinue
 $python = Get-Command python.exe -ErrorAction SilentlyContinue
 $verSalida = $null
@@ -236,7 +260,7 @@ if ($LASTEXITCODE -ne 0) {
     throw "tools\verificar.py fallo (exit $LASTEXITCODE):`n$($verSalida | Out-String)"
 }
 
-# --- 4. Compilacion limpia -------------------------------------------------
+# --- 4. Compilacion limpia ----
 & .\gradlew.bat clean build --no-daemon
 if ($LASTEXITCODE -ne 0) {
     throw "La compilacion fallo (exit $LASTEXITCODE). No se desplegara ningun JAR."
@@ -253,7 +277,7 @@ if ((Get-Item $jar).Length -le 0) {
 }
 $hashNuevo = (Get-FileHash -LiteralPath $jar -Algorithm SHA256).Hash
 
-# --- 5. Despliegue por fases; Minecraft debe estar cerrado -----------------
+# --- 5. Despliegue por fases; Minecraft cerrado -----
 $mods = Join-Path $instancia "mods"
 New-Item -ItemType Directory -Force -Path $mods | Out-Null
 $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
@@ -266,8 +290,7 @@ if (Test-Path $config -PathType Leaf) {
     Copy-Item -LiteralPath $config -Destination (Join-Path $backupDir "jobsmenu-client.toml") -Force
 }
 
-# 5.2 El JAR nuevo entra primero con nombre .pendiente: el launcher ignora lo
-#     que no termina en .jar, asi que nunca hay cero JARs ni dos activos.
+# 5.2 El JAR nuevo entra como .pendiente: el launcher ignora lo que no acaba en .jar.
 $nombreJar = "jobsmenu-$version.jar"
 $pendiente = Join-Path $mods "$nombreJar.pendiente"
 Copy-Item -LiteralPath $jar -Destination $pendiente -Force
@@ -280,8 +303,7 @@ if ($hashPendiente -ne $hashNuevo) {
 # 5.3 JARs anteriores: primero al backup, despues se borran.
 $anteriores = @(Get-ChildItem -LiteralPath $mods -Filter "jobsmenu-*.jar" -File -ErrorAction SilentlyContinue)
 foreach ($viejo in $anteriores) {
-    # FullName evita que Copy-Item resuelva solo el nombre contra el directorio
-    # actual en Windows PowerShell.
+    # FullName evita resolver el nombre contra el directorio actual.
     Copy-Item -LiteralPath $viejo.FullName -Destination (Join-Path $backupDir $viejo.Name) -Force
 }
 foreach ($viejo in $anteriores) {
@@ -300,12 +322,20 @@ Write-Host "OK: desplegado $nombreJar en $mods" -ForegroundColor Green
 Write-Host "Commit : $commit"
 Write-Host "Backup : $backupDir"
 Write-Host "SHA256 : $hashNuevo"
+
+} catch {
+    Write-Host ""
+    Write-Host ("FALLO: " + $_.Exception.Message) -ForegroundColor Red
+    Write-Host "Nada se desplego. Corregi el motivo y pega el bloque entero de nuevo."
+}
 ```
 
-Si falla la rama, la version, Java, Python, la auditoria, Gradle o el artefacto,
-el bloque termina y conserva los JARs existentes. El hash del `.pendiente` y el
-del JAR final se comparan con el compilado; un archivo corrupto aborta antes de
-borrar nada. No copies backups a `mods`.
+Si falla la rama, la actualización, Java, Python, la auditoría, Gradle o el
+artefacto, el bloque imprime `FALLO: ...` y termina sin tocar los JARs
+existentes. El hash del `.pendiente` y el del JAR final se comparan con el
+compilado; un archivo corrupto aborta antes de borrar nada. No copies backups a
+`mods`. Si el mensaje pide `git pull`, actualizá la rama y pegá el bloque entero
+de nuevo.
 
 ## Herramientas sin JDK
 

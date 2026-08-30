@@ -1,5 +1,6 @@
 package com.santipdr.jobsmenu.client.sound;
 
+import com.santipdr.jobsmenu.JobsMenu;
 import com.santipdr.jobsmenu.client.scene.Presencia;
 import com.santipdr.jobsmenu.client.scene.RotacionNiveles;
 import com.santipdr.jobsmenu.client.SesionMenu;
@@ -12,6 +13,8 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
+
+import org.lwjgl.glfw.GLFW;
 
 /**
  * El tema del menu.
@@ -103,7 +106,7 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         // mando a reproducir. Un SoundManager que descarta el sonido lo hace en
         // silencio, y sin este aviso no hay forma de saber si el problema es el
         // archivo, la mezcla o que nunca se llamo aca.
-        com.santipdr.jobsmenu.JobsMenu.LOG.info(
+        JobsMenu.LOG.info(
                 "[jobsmenu] Musica del menu enviada a reproducir (musica/defecto.ogg).");
     }
 
@@ -135,7 +138,10 @@ public class GestorMusica extends AbstractTickableSoundInstance {
             // edad congelada entonces es normal, no un fantasma. Fuera de ese
             // estado se desarma el vigia: al volver, el primer tick compara
             // contra -1 y solo rearma, sin confundir la pausa con un fantasma.
-            boolean clienteTicando = !cliente.isPaused() && cliente.getWindow().isFocused();
+            // Window no expone isFocused() en 1.20.1; se consulta el atributo
+            // GLFW directamente, igual que AtajoOverworld con glfwGetKey.
+            boolean clienteTicando = !cliente.isPaused() && GLFW.glfwGetWindowAttrib(
+                    cliente.getWindow().getWindow(), GLFW.GLFW_FOCUSED) == GLFW.GLFW_TRUE;
             if (viva != null && !viva.isStopped()) {
                 if (clienteTicando) {
                     if (viva.ultimaEdadVista >= 0 && viva.edad == viva.ultimaEdadVista) {

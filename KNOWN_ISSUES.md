@@ -20,12 +20,16 @@ una ejecución real de Minecraft Forge 1.20.1.
   camas vivas en pantallas hijas están verificados estáticamente y por el
   diseño del ciclo de vida; necesitan la prueba real (rotar con Opciones
   abiertas, entrar/salir de mundo y servidor).
-- **Bloque PowerShell del README.** Fue reforzado (despliegue por fases con
-  verificación SHA256, JDK 17 completo con `JAVA_HOME`, comprobación del
-  wrapper y de la rama) y revisado estáticamente, pero **no ejecutado**: este
-  entorno no tiene PowerShell. La primera ejecución real en Windows es también
-  la primera prueba del pipeline; el bloque se detiene con mensaje claro en
-  cada punto de fallo y no toca los JARs existentes hasta validar el nuevo.
+- **Build local y despliegue en `test-1` (pendiente de completar).** El 29/08 el
+  owner ejecutó el bloque por primera vez en Windows: las validaciones (rama,
+  wrapper, `JAVA_HOME` Temurin 17.0.20, Python, auditoría) pasaron, pero el
+  `clean build` real falló con 2 errores de compilación en `GestorMusica.java`
+  (`Window.isFocused()` no existe en 1.20.1 y faltaba el `import` de
+  `JobsMenu`); ambos corregidos en esta revisión (atributo GLFW directo +
+  import). El bloque ahora es un único `try/catch`, hace `git fetch origin` y
+  frena si el checkout no está al día. El `BUILD SUCCESSFUL` con Java 17, el
+  JAR y la copia a `mods` siguen pendientes de una ejecución limpia del bloque
+  completo.
 - **Perfil accesible y bajo consumo.** Su comportamiento de opciones está
   verificado estáticamente; la legibilidad del recinto con ambas opciones
   activadas necesita revisión en Minecraft.
@@ -53,6 +57,38 @@ Para repetir la prueba válida: abrir una terminal nueva, activar JDK 17 y
 Python 3, situarse en `arena/01a04e24-jobs-menu` y pegar el bloque completo,
 no línea por línea. Revisar `test-1\mods` y la carpeta fechada
 `test-1\jobsmenu-backups` antes de iniciar Minecraft.
+
+## Incidente del primer build real — 2026-08-29 (noche)
+
+Con el bloque ya reforzado, el owner pegó el bloque completo en una terminal de
+Windows PowerShell. Las validaciones pasaron (rama correcta, wrapper presente,
+`JAVA_HOME` = Temurin 17.0.20, Python real, auditoría 0 fallos), pero el
+`clean build` falló con 2 errores de compilación en `GestorMusica.java`:
+
+- `cliente.getWindow().isFocused()`: `Window` no expone `isFocused()` en 1.20.1.
+- `JobsMenu.LOG.warn(...)`: faltaba `import com.santipdr.jobsmenu.JobsMenu`.
+
+Además, la consola interactiva ejecuta cada comando pegado como sentencia
+suelta: un `throw` muestra el error pero **no** detiene lo que sigue. Por eso,
+después del build roto, el bloque siguió: creó `jobsmenu-backups\20260829-232316`,
+movió el JAR viejo (`EF571ED3…`, commit `8e5c0ef`) a ese backup, lo quitó de
+`mods`, y al final imprimió `OK: desplegado …` con un SHA256 y un commit que
+quedaron de una corrida anterior en la misma terminal. **Nada de eso era real**:
+`mods` quedó sin ningún JAR de `jobsmenu` y el build no produjo JAR.
+
+Correcciones en esta revisión:
+
+- `GestorMusica.java`: import de `JobsMenu` y foco de ventana por
+  `GLFW.glfwGetWindowAttrib(…, GLFW_FOCUSED)` (mismo patrón que `AtajoOverworld`).
+- El bloque del README quedó envuelto en un único `try/catch`: el primer fallo
+  corta todo, imprime `FALLO: …` y no toca `mods`. Además hace `git fetch
+  origin` y frena si el checkout no está al día, y reinicia `$hashNuevo` /
+  `$hashPendiente` para no arrastrar valores de corridas previas.
+
+Estado actual en el PC del owner: `test-1\mods` no tiene JAR de `jobsmenu`; los
+backups `20260829-231529` y `20260829-232316` contienen el JAR viejo
+(`EF571ED3…`) y **no se borran**. El redeploy correcto debe producir un SHA256
+distinto de `EF571ED3…` y terminar con `OK: desplegado jobsmenu-0.10.0.jar`.
 
 ## Pendiente de probar en Minecraft
 
