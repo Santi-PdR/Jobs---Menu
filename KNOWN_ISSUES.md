@@ -5,8 +5,7 @@ una ejecución real de Minecraft Forge 1.20.1.
 
 ## Evolución 6 (rama `arena/01a04ff1-jobs-menu`) — pendientes 2026-08-29
 
-- **Build no ejecutable en este entorno.** No hay JDK 17 instalado, falta
-  `gradle-wrapper.jar` (ignorado por `.gitignore`) y la red hacia
+- **Build no ejecutable en este entorno.** No hay JDK 17 instalado y la red hacia
   `services.gradle.org` / `maven.minecraftforge.net` está bloqueada (errores de
   conexión SSL). El `clean build` con Java 17, el JAR `jobsmenu-0.10.0.jar` y
   el despliegue en una instancia deben hacerse localmente siguiendo el

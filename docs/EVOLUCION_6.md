@@ -12,8 +12,9 @@
 
 Esta evolución continúa sobre un snapshot estable y **no se presenta como
 terminada solo porque la auditoría estática pase**. La verificación estática
-está en verde (`python3 tools/verificar.py` → 1 aviso, 0 fallos; el único aviso
-es la ausencia de `gradle-wrapper.jar`). El `clean build` con Java 17 y la
+está en verde (`python3 tools/verificar.py` → 0 avisos, 0 fallos). El
+`gradle-wrapper.jar` (Gradle 8.1.1) quedó versionado en la rama. El `clean build`
+con Java 17 y la
 prueba dentro de Minecraft siguen pendientes: en este entorno no hay JDK 17 ni
 wrapper y la red hacia gradle.org / maven.minecraftforge.net está bloqueada
 (detalles y procedimiento en `KNOWN_ISSUES.md` y en el informe final).
@@ -103,9 +104,10 @@ implementadas, con sus conteos reales por escenario.
 
 ## Lo que NO se hizo (y por qué)
 
-- **Build y JAR:** sin JDK 17 ni `gradle-wrapper.jar` y con la red bloqueada
-  hacia gradle.org / maven.minecraftforge.net, el `clean build` no se puede
-  ejecutar en este entorno. No se presenta ningún JAR como validado.
+- **Build y JAR:** sin JDK 17 y con la red bloqueada hacia gradle.org /
+  maven.minecraftforge.net, el `clean build` no se puede ejecutar en este
+  entorno. El wrapper 8.1.1 quedó versionado para que el build local funcione
+  directo. No se presenta ningún JAR como validado.
 - **Prueba en Minecraft:** requiere la instancia con el modpack real; queda
   registrada como pendiente, no como verificada.
 - **Duplicar `DireccionArte` en `PantallaEstancia`:** no aplica, esa pantalla

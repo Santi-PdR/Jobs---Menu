@@ -69,7 +69,8 @@
   - Cisterna: galería de mantenimiento sobre el agua (CI-11).
 - `tools/vista_previa.py` acepta `--nivel N` (forma con espacio) además de
   `--nivel=N`.
-- Verificador estático en verde (1 aviso: `gradle-wrapper.jar`). Build con
+- Verificador estático en verde (0 avisos; `gradle-wrapper.jar` 8.1.1 quedó
+  versionado en la rama). Build con
   Java 17, JAR y prueba en Minecraft siguen pendientes (entorno sin JDK 17 ni
   wrapper, red bloqueada a gradle.org/maven.minecraftforge.net).
 
@@ -93,8 +94,8 @@
 ## Segunda auditoría — 2026-08-29
 
 - Se ejecutó la segunda auditoría estática sobre `8e5c0ef`.
-- La auditoría quedó con 0 fallos y 1 aviso: falta `gradle-wrapper.jar`; el
-  procedimiento manual usa Gradle 8.1.1 descargado directamente.
+- La auditoría quedó con 0 fallos y 1 aviso histórico: faltaba `gradle-wrapper.jar`;
+  el 29/08 el wrapper 8.1.1 quedó versionado y el aviso ya no existe.
 - Se registraron los ocho errores de `compileJava` detectados en Windows y su
   corrección en `8e5c0ef`.
 - Se deja explícito que el build posterior a esa corrección, el JAR 0.10.0 y la

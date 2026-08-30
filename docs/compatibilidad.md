@@ -60,12 +60,12 @@ directamente en una terminal nueva; no se genera ningún archivo de PowerShell.
 
 | Comprobación | Estado |
 |---|---|
-| `python3 tools/verificar.py` | Superada: **1 aviso** (`gradle-wrapper.jar`), 0 fallos |
+| `python3 tools/verificar.py` | Superada: **0 avisos, 0 fallos** |
 | JSON de idiomas | Superado (claves ES/EN idénticas) |
 | `py_compile` de herramientas | Superado |
 | `git diff --check` | Superado en la última validación registrada |
 | Segunda auditoría de la Evolución 6 | Superada: sin imports muertos, sin métodos huérfanos, ASCII y llaves en los 22 archivos tocados, espejo Java↔Python verificado método a método, sin arreglos temporales por frame en las plantas |
-| `clean build --no-daemon` | **Pendiente para esta rama con Java 17**; el entorno no tiene JDK 17, falta el wrapper y la red hacia `services.gradle.org` / `maven.minecraftforge.net` está bloqueada (HTTP 000), por lo que no se puede ejecutar aquí |
+| `clean build --no-daemon` | **Pendiente para esta rama con Java 17**; el entorno no tiene JDK 17 y la red hacia `services.gradle.org` / `maven.minecraftforge.net` está bloqueada (HTTP 000), por lo que no se puede ejecutar aquí |
 | Arranque Forge en `test-1` | Pendiente |
 | Audio, modpack, GPU y GUI scales | Pendientes de prueba manual |
 

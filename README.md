@@ -89,10 +89,9 @@ Requiere JDK 17 instalado.
 
 El `.jar` queda en `build\libs\jobsmenu-0.10.0.jar` y se copia a la carpeta `mods` de la instancia.
 
-> `gradle\wrapper\gradle-wrapper.jar` está **ignorado por `.gitignore`**: un clon
-> limpio no lo trae. `gradlew.bat` no puede arrancar sin él; si falta, restaurá el
-> archivo del wrapper (Gradle 8.1.1) antes de compilar. Con el wrapper en su
-> lugar, `gradlew.bat` descarga la distribución Gradle solo si no está en la caché.
+> El repositorio incluye `gradle\wrapper\gradle-wrapper.jar` (Gradle 8.1.1), así
+> que un clon normal trae el wrapper completo. `gradlew.bat` descarga la
+> distribución Gradle solo si no está en la caché local.
 
 > **Si el build falla por memoria** (`os::commit_memory ... failed (errno=1455)` o *the daemon has
 > disappeared*), no es el mod: es que a Windows le falta memoria comprometible. El `gradle.properties` ya va
@@ -150,7 +149,7 @@ if (-not (Test-Path (Join-Path $repo "gradlew.bat") -PathType Leaf)) {
 }
 if (-not (Test-Path (Join-Path $repo "gradle\wrapper\gradle-wrapper.jar") -PathType Leaf)) {
     throw "Falta gradle\wrapper\gradle-wrapper.jar. El wrapper no puede arrancar; " +
-          "restaura ese archivo (esta ignorado por .gitignore) antes de compilar."
+          "revisa el checkout: el archivo esta versionado en la rama."
 }
 if (-not (Get-Command git.exe -ErrorAction SilentlyContinue)) {
     throw "git no esta en el PATH. No puedo verificar la rama."

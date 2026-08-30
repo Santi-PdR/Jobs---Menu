@@ -151,9 +151,10 @@ Minecraft** (pendiente). Ninguna afirmación de runtime se da por verificada.
 37. **Commit final.** El último commit de la rama tras esta pasada de
     documentación (ver `git log` en la rama).
 38. **Resultado del build.** Pendiente y re-verificado el 29/08: este entorno
-    no tiene JDK 17 ni `gradle-wrapper.jar`, y `services.gradle.org` /
-    `maven.minecraftforge.net` responden HTTP 000 (bloqueados) mientras
-    GitHub responde 200. No se declara ningún build como exitoso.
+    no tiene JDK 17, y `services.gradle.org` / `maven.minecraftforge.net`
+    responden HTTP 000 (bloqueados) mientras GitHub responde 200. El
+    `gradle-wrapper.jar` (Gradle 8.1.1) quedó versionado en la rama para que
+    el build local funcione directo. No se declara ningún build como exitoso.
 39. **JAR generado.** Ninguno en esta sesión. El JAR `jobsmenu-0.10.0.jar` debe
     generarse localmente con JDK 17 según el procedimiento del README y
     probarse dentro de Minecraft antes de declarar la versión validada.

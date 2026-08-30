@@ -6,7 +6,6 @@ run/
 src/generated/
 
 # Wrapper binario (lo descarga el bloque de despliegue)
-gradle/wrapper/gradle-wrapper.jar
 
 # IDE
 .idea/
