@@ -6,7 +6,7 @@ from pathlib import Path
 RAIZ=Path(__file__).resolve().parent.parent
 DESTINO=RAIZ/'src/main/resources/assets/jobsmenu/textures/backgrounds'
 PAYLOAD=RAIZ/'tools/background_payload'
-DIMENSIONES={10:(256,144),11:(256,144),12:(256,144),13:(256,144),14:(256,127),15:(192,108),16:(192,108),17:(192,108)}
+DIMENSIONES={10:(256,144),11:(256,144),12:(192,108),13:(256,144),14:(256,127),15:(192,108),16:(192,108),17:(192,108)}
 MIN_BYTES=5000
 
 def dimensiones_png(datos:bytes)->tuple[int,int]:
@@ -14,8 +14,8 @@ def dimensiones_png(datos:bytes)->tuple[int,int]:
     return struct.unpack('>II',datos[16:24])
 
 def leer_b64(ruta:Path)->bytes:
-    try: return base64.b64decode(''.join(ruta.read_text(encoding='ascii').split()),validate=True)
-    except (ValueError,binascii.Error) as exc: raise ValueError(f'payload invalido {ruta.name}: {exc}') from exc
+    try:return base64.b64decode(''.join(ruta.read_text(encoding='ascii').split()),validate=True)
+    except (ValueError,binascii.Error) as exc:raise ValueError(f'payload invalido {ruta.name}: {exc}') from exc
 
 def materializar(indice:int)->None:
     if indice==14:return
@@ -32,7 +32,7 @@ def validar(indice:int)->None:
     if not ruta.is_file():raise FileNotFoundError(f'falta {ruta.relative_to(RAIZ)}')
     datos=ruta.read_bytes()
     if len(datos)<MIN_BYTES:raise ValueError(f'nivel {indice}: PNG sospechosamente pequeno ({len(datos)} bytes)')
-    ancho,alto=dimensiones_png(datos); esperado=DIMENSIONES[indice]
+    ancho,alto=dimensiones_png(datos);esperado=DIMENSIONES[indice]
     if (ancho,alto)!=esperado:raise ValueError(f'nivel {indice}: {ancho}x{alto}; se espera {esperado[0]}x{esperado[1]}')
     if not datos.endswith(b'IEND\xaeB`\x82'):raise ValueError(f'nivel {indice}: PNG truncado (falta IEND)')
     print(f'  nivel {indice}: OK {ancho}x{alto}, {len(datos)} bytes')
