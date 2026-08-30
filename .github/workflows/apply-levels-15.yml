@@ -6,6 +6,7 @@ on:
       - arena/20260830-backgrounds-deploy
     paths:
       - tools/aplicar_niveles_15.py
+      - tools/sincronizar_documentos.py
       - .github/workflows/apply-levels-15.yml
 
 permissions:
@@ -21,8 +22,11 @@ jobs:
           ref: arena/20260830-backgrounds-deploy
           fetch-depth: 0
 
-      - name: Apply migration
+      - name: Apply levels migration
         run: python3 tools/aplicar_niveles_15.py
+
+      - name: Synchronize current documentation
+        run: python3 tools/sincronizar_documentos.py
 
       - name: Commit migration
         shell: bash
