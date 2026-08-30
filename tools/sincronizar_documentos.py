@@ -59,10 +59,11 @@ def update_readme() -> bool:
     if start < 0:
         raise SystemExit("README.md: no se encontro la seccion '## Compilar'.")
 
-    match = re.search(r"\n## M[uú]sica", text[start:])
-    if not match:
-        raise SystemExit("README.md: no se encontro la seccion de Musica posterior a Compilar.")
-    end = start + match.start()
+    # El bloque historico contiene otro H2 ('Compilar y desplegar...'). El
+    # primer H2 realmente posterior al procedimiento completo es Herramientas.
+    end = text.find("\n## Herramientas sin JDK", start)
+    if end < 0:
+        raise SystemExit("README.md: no se encontro '## Herramientas sin JDK' despues de Compilar.")
     text = text[:start] + DEPLOY_SECTION.rstrip() + "\n" + text[end:]
 
     marker = "[`docs/NIVELES_10_14.md`](docs/NIVELES_10_14.md)"
