@@ -108,9 +108,10 @@ sola vez en esa terminal.
 
 El bloque es deliberadamente conservador: no cambia de rama, no hace merge con
 `main`, no borra nada hasta encontrar y validar el JAR correcto, y no informa
-éxito si un comando anterior falló. La rama correcta de esta sesión es
-`arena/01a04e24-jobs-menu`; una rama parecida como `arena/01a04e0d-jobs-menu`
-corresponde a otro snapshot y debe detener el proceso antes de compilar.
+éxito si un comando anterior falló. La rama correcta de esta evolución es
+`arena/01a04ff1-jobs-menu`; una rama parecida como `arena/01a04e24-jobs-menu`
+o `arena/01a04e0d-jobs-menu` corresponde a otro snapshot y debe detener el
+proceso antes de compilar.
 
 Rutas usadas:
 
@@ -126,7 +127,7 @@ $ErrorActionPreference = "Stop"
 # --- 0. Rutas y rama; no se cambia ni se actualiza main --------------------
 $repo            = "C:\Users\santi\Desktop\Jobs---Menu"
 $instancia       = "C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1"
-$branch          = "arena/01a04e24-jobs-menu"
+$branch          = "arena/01a04ff1-jobs-menu"
 $versionEsperada = "0.10.0"
 
 if (-not (Test-Path (Join-Path $repo "gradle.properties") -PathType Leaf)) {

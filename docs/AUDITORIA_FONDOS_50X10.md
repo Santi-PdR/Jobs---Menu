@@ -1,9 +1,11 @@
 # Auditoría de backgrounds — 50 criterios por escenario
 
 Fecha: 2026-08-29
-Rama: `arena/01a04e24-jobs-menu`
+Rama: `arena/01a04ff1-jobs-menu`
 Base: `0.10.0`
-Estado: matriz de aceptación para la Evolución 5
+Estado: matriz de aceptación; la Evolución 6 marcó las filas AD-15, DE-17,
+SE-11, NA-22, SA-11, BI-12, IN-14, CA-13, CI-11 y TR-09/10/11/16/17 como
+implementadas (ver `docs/EVOLUCION_6.md`)
 
 ## Lectura honesta
 

@@ -6,7 +6,7 @@
 | Campo | Valor |
 |---|---|
 | Repositorio | `Santi-PdR/Jobs---Menu` |
-| Rama de trabajo | `arena/01a04e24-jobs-menu` |
+| Rama de trabajo | `arena/01a04ff1-jobs-menu` |
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
 | Paquete Java | `com.santipdr.jobsmenu` |
@@ -522,6 +522,9 @@ el lifecycle de `SoundManager` quedan pendientes de prueba dentro de Minecraft.
 | `presencia_fondo` | `true` | Permite la presencia ambigua y sus reflejos. |
 | `respiracion_camara` | `true` | Activa el vaivén mínimo de la fuga, independiente de otros movimientos. |
 | `suspension_rara` | `true` | Permite La Suspensión, el apagón raro de 22 s. |
+| `duracion_estancia` | `24` | Segundos que permanece cada nivel antes del apagón, 15–90 (con calma, ×2). |
+| `bajo_consumo` | `false` | Modo de bajo consumo: sin polvo, grano, presencia, motas ni respiración de cámara; el recinto y su audio quedan intactos. |
+| `perfil_accesible` | `false` | Enciende juntas movimiento reducido, destellos reducidos, alto contraste y texto grande; tocar cualquiera de esas cuatro a mano lo desactiva. |
 | `volumen_ambiente` | `55` | Volumen del ambiente, 0–100. |
 | `volumen_aviso` | `100` | Volumen maestro del mod: música, ambiente y gestos, 0–100; M silencia y restaura. |
 | `musica_menu` | `true` | La música del menú. |
@@ -553,6 +556,23 @@ de imagen, sonido, controles, idioma, recursos—, y ahí el mod inserta un bot�
 subpantalla de opciones nativa (`OptionsSubScreen` + `OptionsList` + `OptionInstance`) con todos los
 interruptores y deslizadores de esta tabla. Cada control aplica el cambio al instante y el guardado se agrupa
 con un límite de 250 ms, con vuelco al salir de la pantalla: no hace falta editar el `.toml` a mano.
+`PantallaAjustesAviso` no usa `addTitle` (no existe en 1.20.1; `OptionsList` solo ofrece
+`addBig`/`addSmall`/`addAll`), para no romper con otras pantallas de opciones de mods.
+
+### 4.2 Estado de la Evolución 6
+
+La evolución 6 (rama `arena/01a04ff1-jobs-menu`, base `811586e`) añadió:
+`duracion_estancia`, `bajo_consumo` y `perfil_accesible` (ver tabla), la
+continuidad del ambiente por visita (`SesionMenu` + `mantenerCamas()` en el
+tick del cliente), el salto manual de nivel (F), la vigilancia de instancia
+fantasma de `GestorMusica` blindada contra pausa y falta de foco, y el
+diagnóstico oculto Ctrl+D (no documentado en la UI). La etapa artística dio
+una mejora por cada uno de los diez fondos (filas AD-15, DE-17, SE-11, NA-22,
+SA-11, BI-12, IN-14, CA-13, CI-11 y TR-09/10/11/16/17 de
+`docs/AUDITORIA_FONDOS_50X10.md`). Documentación: `docs/EVOLUCION_6.md`,
+`docs/CATALOGO_MEJORAS_Y_FUNCIONES.md`, `docs/INFORME_FINAL_EVOLUCION_6.md`.
+Build con Java 17, JAR y prueba en Minecraft siguen pendientes
+(`KNOWN_ISSUES.md`).
 
 ---
 
@@ -560,7 +580,7 @@ con un límite de 250 ms, con vuelco al salir de la pantalla: no hace falta edit
 
 Las filas siguientes son el registro histórico de decisiones y entregas. Para el
 comportamiento vigente de 0.10.0 mandan las secciones 3 y 4, `CHANGELOG.md` y
-`docs/EVOLUCION_4.md`; en particular, las notas antiguas sobre empaquetar REQUIEM
+`docs/EVOLUCION_6.md`; en particular, las notas antiguas sobre empaquetar REQUIEM
 no sustituyen el contrato actual de música original o pista local autorizada.
 
 | Fase | Contenido | Estado |
@@ -585,6 +605,7 @@ no sustituyen el contrato actual de música original o pista local autorizada.
 | **0.8.3** | Arreglo real de la musica: la pista era estereo y las camas que si sonaban eran mono; el motor las trata distinto. Se re-codifico REQUIEM a mono (mas volumen) y `stream:false`, igual que el ambiente. Nivel 9 rehecho: trono alto y coronado (brazos, cojin, hueco de la corona) sobre estrado de cinco escalones, abside de piedra al fondo y haz cenital con polvo. Nueva respiracion de camara: la fuga deriva unos pixeles en un vaiven lentisimo en todos los niveles (se apaga con movimiento reducido). El espejo Python queda sincronizado | **Entregado** |
 | **0.9.0** | Evolución profesional: revisión de los diez recintos y Trono con primer plano bajo; snapshot temporal por frame para nivel/luz/audio; congelado real de movimiento reducido; cachés de texto y layout responsivo; tres camas ambientales con silencio intencional; lifecycle de audio y apagado inmediato al desactivar ambiente; música por `MASTER`; configuración con guardado limitado; **La Suspensión**, apagón raro localizado de 22 s; auditoría estática, procedimiento de compilación Java 17, documentación y pruebas pendientes separadas | **Código y auditoría estática entregados; build e integración dentro de Minecraft pendientes** |
 | **0.10.0** | Evolución de percepción: 10 funciones nuevas de lectura, contraste, papel, cámara, eventos y estado; 50 mejoras auditadas en UI, escena, audio, lifecycle, rendimiento y documentación | **Código y auditoría estática entregados; build e integración dentro de Minecraft pendientes** |
+| **0.10.0-E6** | Evolución 6 (rama `arena/01a04ff1-jobs-menu`): configuración ampliada (`duracion_estancia`, `bajo_consumo`, `perfil_accesible`), continuidad del ambiente por visita, salto manual de nivel, bajo consumo en render, vigilancia de instancia fantasma, diagnóstico oculto; etapa artística con una mejora por fondo (10 filas de la matriz) y Trono rediseñado; Backup C `backup-C-final-evolucion6` | **Código y auditoría estática entregados; build e integración dentro de Minecraft pendientes** |
 | 1.0.0 | Pulido, accesibilidad completa, empaquetado para repartir | Pendiente |
 
 Fuera de alcance, explícitamente: entidades, ítems, mecánicas, comandos, economía real, cualquier cosa que

@@ -1,6 +1,5 @@
 package com.santipdr.jobsmenu.client.sound;
 
-import com.santipdr.jobsmenu.client.scene.Nivel;
 import com.santipdr.jobsmenu.client.scene.Presencia;
 import com.santipdr.jobsmenu.client.scene.RotacionNiveles;
 import com.santipdr.jobsmenu.config.ConfigTurno;
