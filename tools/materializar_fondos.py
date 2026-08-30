@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Materializa y valida los fondos de imagen 10-17.
+"""Materializa y valida los fondos de imagen 10-17 durante la migracion.
 
-Los niveles 10-14 ya viven como PNG reales en resources. Los niveles 15-17 se
-transportan temporalmente como base64 durante esta migracion y se reconstruyen
-antes de verificar/compilar. El CI rechaza firmas, dimensiones o cierres PNG
-incorrectos para impedir publicar fondos truncados.
+10-13 se reconstruyen desde copias base64 corregidas; 14 ya es un PNG valido
+en resources; 15-17 se reconstruyen desde los tres fondos nuevos. Cada archivo
+se valida por firma, dimensiones, tamano y chunk IEND antes de compilar.
 """
 from __future__ import annotations
 
@@ -17,8 +16,11 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 DESTINO = RAIZ / "src/main/resources/assets/jobsmenu/textures/backgrounds"
 PAYLOAD = RAIZ / "tools/background_payload"
-ESPERADOS = range(10, 18)
-DIMENSIONES = {**{i: (256, 144) for i in range(10, 15)}, **{i: (192, 108) for i in range(15, 18)}}
+DIMENSIONES = {
+    10: (256, 144), 11: (256, 144), 12: (256, 144), 13: (256, 144),
+    14: (256, 127),
+    15: (192, 108), 16: (192, 108), 17: (192, 108),
+}
 MIN_BYTES = 5_000
 
 
@@ -28,18 +30,22 @@ def dimensiones_png(datos: bytes) -> tuple[int, int]:
     return struct.unpack(">II", datos[16:24])
 
 
-def materializar_nuevo(indice: int) -> None:
-    if indice < 15:
+def leer_b64(ruta: Path) -> bytes:
+    try:
+        return base64.b64decode("".join(ruta.read_text(encoding="ascii").split()), validate=True)
+    except (ValueError, binascii.Error) as exc:
+        raise ValueError(f"payload invalido {ruta.name}: {exc}") from exc
+
+
+def materializar(indice: int) -> None:
+    if indice == 14:
         return
-    origen = PAYLOAD / f"nivel{indice}.b64"
+    nombre = f"nivel{indice}.fixed.b64" if indice <= 13 else f"nivel{indice}.b64"
+    origen = PAYLOAD / nombre
     if not origen.is_file():
         raise FileNotFoundError(f"falta {origen.relative_to(RAIZ)}")
-    try:
-        datos = base64.b64decode("".join(origen.read_text(encoding="ascii").split()), validate=True)
-    except (ValueError, binascii.Error) as exc:
-        raise ValueError(f"payload invalido nivel {indice}: {exc}") from exc
     DESTINO.mkdir(parents=True, exist_ok=True)
-    (DESTINO / f"nivel{indice}.png").write_bytes(datos)
+    (DESTINO / f"nivel{indice}.png").write_bytes(leer_b64(origen))
 
 
 def validar(indice: int) -> None:
@@ -60,10 +66,10 @@ def validar(indice: int) -> None:
 
 def main() -> int:
     try:
-        for indice in range(15, 18):
-            materializar_nuevo(indice)
+        for indice in range(10, 18):
+            materializar(indice)
         print("Fondos de imagen:")
-        for indice in ESPERADOS:
+        for indice in range(10, 18):
             validar(indice)
     except Exception as exc:
         print(f"ERROR fondos: {exc}", file=sys.stderr)
