@@ -46,6 +46,47 @@ def patch_lang(path: Path, additions: dict[str, str]) -> bool:
     return changed
 
 
+def patch_audio() -> bool:
+    path = ROOT / "src/main/java/com/santipdr/jobsmenu/client/sound/GestorAmbiente.java"
+    text = path.read_text(encoding="utf-8")
+    original = text
+
+    base_old = '''            case 9:\n                return SonidosNivel.AMBIENTE_NIVEL9;\n            default:\n                return SonidosNivel.AMBIENTE_NIVEL0;'''
+    base_new = '''            case 9:\n                return SonidosNivel.AMBIENTE_NIVEL9;\n            case 10:\n                return SonidosNivel.AMBIENTE_NIVEL7;\n            case 11:\n                return SonidosNivel.AMBIENTE_NIVEL6;\n            case 12:\n                return SonidosNivel.AMBIENTE_NIVEL8;\n            case 13:\n                return SonidosNivel.AMBIENTE_NIVEL4;\n            case 14:\n                return SonidosNivel.AMBIENTE_NIVEL8;\n            default:\n                return SonidosNivel.AMBIENTE_NIVEL0;'''
+
+    caracter_old = '''            case 9:\n                return SonidosNivel.CARACTER_NIVEL9;\n            default:\n                return SonidosNivel.CARACTER_NIVEL0;'''
+    caracter_new = '''            case 9:\n                return SonidosNivel.CARACTER_NIVEL9;\n            case 10:\n                return SonidosNivel.CARACTER_NIVEL9;\n            case 11:\n                return SonidosNivel.CARACTER_NIVEL6;\n            case 12:\n                return SonidosNivel.CARACTER_NIVEL2;\n            case 13:\n                return SonidosNivel.CARACTER_NIVEL4;\n            case 14:\n                return SonidosNivel.CARACTER_NIVEL6;\n            default:\n                return SonidosNivel.CARACTER_NIVEL0;'''
+
+    actividad_old = '''            case 9:\n                return SonidosNivel.ACTIVIDAD_NIVEL9;\n            default:\n                return SonidosNivel.ACTIVIDAD_NIVEL0;'''
+    actividad_new = '''            case 9:\n                return SonidosNivel.ACTIVIDAD_NIVEL9;\n            case 10:\n                return SonidosNivel.ACTIVIDAD_NIVEL4;\n            case 11:\n                return SonidosNivel.ACTIVIDAD_NIVEL6;\n            case 12:\n                return SonidosNivel.ACTIVIDAD_NIVEL1;\n            case 13:\n                return SonidosNivel.ACTIVIDAD_NIVEL9;\n            case 14:\n                return SonidosNivel.ACTIVIDAD_NIVEL9;\n            default:\n                return SonidosNivel.ACTIVIDAD_NIVEL0;'''
+
+    for old, new in ((base_old, base_new), (caracter_old, caracter_new), (actividad_old, actividad_new)):
+        if new not in text:
+            if old not in text:
+                raise SystemExit("Expected audio switch pattern not found")
+            text = text.replace(old, new, 1)
+
+    old_lookup = 'Repertorio repertorio = REPERTORIOS[Math.floorMod(nivel, REPERTORIOS.length)];'
+    new_lookup = 'Repertorio repertorio = repertorioDe(nivel);'
+    if new_lookup not in text:
+        count = text.count(old_lookup)
+        if count != 2:
+            raise SystemExit(f"Expected two repertoire lookups, found {count}")
+        text = text.replace(old_lookup, new_lookup)
+
+    helper = '''\n    /** Repertorio intencional para los cinco fondos suministrados. */\n    private static Repertorio repertorioDe(int nivel) {\n        return switch (nivel) {\n            case 10 -> REPERTORIOS[4];  // cadenas, fuego y piedra\n            case 11 -> REPERTORIOS[6];  // vidrio, agua y follaje\n            case 12 -> REPERTORIOS[1];  // estructura, metal y distancia\n            case 13 -> REPERTORIOS[4];  // sala de piedra y cadenas\n            case 14 -> REPERTORIOS[9];  // ruina, estandartes y puerta lejana\n            default -> REPERTORIOS[Math.floorMod(nivel, REPERTORIOS.length)];\n        };\n    }\n'''
+    marker = '    private static void reprogramarEvento(int nivel) {'
+    if 'private static Repertorio repertorioDe(int nivel)' not in text:
+        if marker not in text:
+            raise SystemExit("Could not place repertoire helper")
+        text = text.replace(marker, helper + '\n' + marker, 1)
+
+    if text == original:
+        return False
+    path.write_text(text, encoding="utf-8")
+    return True
+
+
 ES = {
     "jobsmenu.nivel10.nombre": "NIVEL 10 · Área de contención",
     "jobsmenu.nivel10.nota0": "Las cadenas están tensas. La administración no registra qué sujetan.",
@@ -104,6 +145,7 @@ def main() -> None:
     )
     changed |= patch_lang(ROOT / "src/main/resources/assets/jobsmenu/lang/es_es.json", ES)
     changed |= patch_lang(ROOT / "src/main/resources/assets/jobsmenu/lang/en_us.json", EN)
+    changed |= patch_audio()
     print("changed" if changed else "already up to date")
 
 
