@@ -157,19 +157,20 @@ Minecraft** (pendiente). Ninguna afirmación de runtime se da por verificada.
     el build local funcione directo. El primer `clean build` real (PC del
     owner, 29/08) falló con 2 errores de compilación en `GestorMusica.java`
     (`Window.isFocused()` no existe en 1.20.1; faltaba el import de
-    `JobsMenu`), corregidos en esta revisión (GLFW directo + import). No se
-    declara ningún build como exitoso.
-39. **JAR generado.** Ninguno en esta sesión. El JAR `jobsmenu-0.10.0.jar` debe
-    generarse localmente con JDK 17 según el procedimiento del README y
-    probarse dentro de Minecraft antes de declarar la versión validada.
+    `JobsMenu`), corregidos en esta revisión (GLFW directo + import). La
+    segunda ejecución del bloque completo (PC del owner, 29/08) terminó con
+    `BUILD SUCCESSFUL` y desplegó `jobsmenu-0.10.0.jar` (commit `f23bc66`,
+    SHA256 `305662E3…`). La validación dentro de Minecraft sigue pendiente.
+39. **JAR generado.** Generado y desplegado en el PC del owner el 29/08:
+    `jobsmenu-0.10.0.jar` (commit `f23bc66`, SHA256 `305662E3…`) en
+    `test-1\mods`. Falta probarlo dentro de Minecraft antes de declarar la
+    versión validada.
 40. **Pruebas pendientes dentro de Minecraft.** Checklist completa en
     `docs/checklist-manual.md` + `KNOWN_ISSUES.md`: resoluciones y GUI scale,
     hitboxes, ciclo mundo/servidor/Realms, F3+Esc, la pista con Master/Music en
     0/100, F3+T, Alt+Tab, resource packs, sesión de 52 min para La Suspensión,
     modpack real (Embeddium, Oculus, ImmediatelyFast, Sophisticated,
     Cloth Config, Controlling, etc.), y revisión visual de las 10 mejoras
-    artísticas (filas marcadas en `AUDITORIA_FONDOS_50X10.md`). Además, la
-    **primera ejecución del bloque PowerShell del README** en Windows es la
-    prueba real del pipeline de despliegue por fases (rama, JDK 17, Python,
-    wrapper, build, hash y copia a `mods`); en este entorno no hay PowerShell
-    para ejecutarla.
+    artísticas (filas marcadas en `AUDITORIA_FONDOS_50X10.md`). La prueba real
+    del pipeline ya se hizo el 29/08: el bloque completo del README terminó
+    con `BUILD SUCCESSFUL` y desplegó el JAR en `test-1\mods`.

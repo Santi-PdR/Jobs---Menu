@@ -1,5 +1,14 @@
 # Registro de cambios
 
+## Evolución 6 — Build y despliegue real superados — 2026-08-29
+
+- Segunda ejecución del bloque PowerShell completo en el PC del owner:
+  `BUILD SUCCESSFUL` con Java 17 (Temurin 17.0.20 vía `JAVA_HOME`) y despliegue
+  por fases verificado por SHA256. `OK: desplegado jobsmenu-0.10.0.jar`,
+  commit `f23bc66`, SHA256 `305662E3…` (el JAR viejo era `EF571ED3…`).
+- Queda la validación visual dentro de Minecraft (checklist manual en
+  `docs/checklist-manual.md`).
+
 ## Evolución 6 — Primer build real y errores de compilación corregidos — 2026-08-29
 
 - Primera ejecución real del bloque PowerShell en el PC del owner: las

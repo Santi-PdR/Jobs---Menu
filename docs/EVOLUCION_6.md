@@ -105,7 +105,8 @@ implementadas, con sus conteos reales por escenario.
   `GestorMusica.java` (`Window.isFocused()` inexistente en 1.20.1 y falta de
   import de `JobsMenu`); corregidos con GLFW directo + import. El bloque
   PowerShell pasó a ser un único `try/catch` con `git fetch` + chequeo de
-  actualización; el `BUILD SUCCESSFUL` sigue pendiente.
+  actualización. Segunda ejecución: `BUILD SUCCESSFUL` y despliegue OK
+  (commit `f23bc66`, SHA256 `305662E3…`); queda la prueba en Minecraft.
 - Backup C creado y subido.
 
 ## Lo que NO se hizo (y por qué)

@@ -20,16 +20,16 @@ una ejecución real de Minecraft Forge 1.20.1.
   camas vivas en pantallas hijas están verificados estáticamente y por el
   diseño del ciclo de vida; necesitan la prueba real (rotar con Opciones
   abiertas, entrar/salir de mundo y servidor).
-- **Build local y despliegue en `test-1` (pendiente de completar).** El 29/08 el
-  owner ejecutó el bloque por primera vez en Windows: las validaciones (rama,
-  wrapper, `JAVA_HOME` Temurin 17.0.20, Python, auditoría) pasaron, pero el
-  `clean build` real falló con 2 errores de compilación en `GestorMusica.java`
-  (`Window.isFocused()` no existe en 1.20.1 y faltaba el `import` de
-  `JobsMenu`); ambos corregidos en esta revisión (atributo GLFW directo +
-  import). El bloque ahora es un único `try/catch`, hace `git fetch origin` y
-  frena si el checkout no está al día. El `BUILD SUCCESSFUL` con Java 17, el
-  JAR y la copia a `mods` siguen pendientes de una ejecución limpia del bloque
-  completo.
+- **Build y despliegue en `test-1` (hechos el 29/08; falta la prueba en
+  Minecraft).** El primer intento real (29/08) falló por 2 errores de
+  compilación en `GestorMusica.java` (`Window.isFocused()` no existe en 1.20.1
+  y faltaba el import de `JobsMenu`), corregidos con GLFW directo + import. La
+  segunda ejecución del bloque completo (único `try/catch` + `git fetch` con
+  chequeo de actualización) terminó con `BUILD SUCCESSFUL`, `OK: desplegado
+  jobsmenu-0.10.0.jar`, commit `f23bc66` y SHA256
+  `305662E3CC07B45B9203B39C18796499F06C30E5257874C281A0F6AF4012BCEE` (distinto
+  del JAR viejo `EF571ED3…`). La **validación dentro de Minecraft** sigue
+  pendiente: hay que abrir la instancia `test-1` y recorrer el checklist.
 - **Perfil accesible y bajo consumo.** Su comportamiento de opciones está
   verificado estáticamente; la legibilidad del recinto con ambas opciones
   activadas necesita revisión en Minecraft.
@@ -85,10 +85,14 @@ Correcciones en esta revisión:
   origin` y frena si el checkout no está al día, y reinicia `$hashNuevo` /
   `$hashPendiente` para no arrastrar valores de corridas previas.
 
-Estado actual en el PC del owner: `test-1\mods` no tiene JAR de `jobsmenu`; los
-backups `20260829-231529` y `20260829-232316` contienen el JAR viejo
-(`EF571ED3…`) y **no se borran**. El redeploy correcto debe producir un SHA256
-distinto de `EF571ED3…` y terminar con `OK: desplegado jobsmenu-0.10.0.jar`.
+Resolución: la segunda ejecución del bloque completo (un único `try/catch`)
+terminó bien el 29/08: `BUILD SUCCESSFUL` (36 s), despliegue por fases OK y
+`OK: desplegado jobsmenu-0.10.0.jar` con commit `f23bc66` y SHA256
+`305662E3CC07B45B9203B39C18796499F06C30E5257874C281A0F6AF4012BCEE` — distinto
+de `EF571ED3…`, que era el JAR viejo. Estado actual: `test-1\mods` tiene el JAR
+real 0.10.0 (`305662E3…`). Los backups `20260829-231529` y `20260829-232316`
+contienen el JAR viejo (`EF571ED3…`) y **no se borran**; `20260829-233629`
+guardó la config de la corrida.
 
 ## Pendiente de probar en Minecraft
 
