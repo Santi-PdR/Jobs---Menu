@@ -58,7 +58,6 @@ def update_readme() -> bool:
         "auditoría de fondos) y rediseñó el Trono desde cero. El build automatizado con Java 17 está activo;\nla prueba final dentro de Minecraft sigue siendo manual: ver [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md).",
     )
 
-    # Si ya fue migrado, no vuelvas a buscar el bloque historico.
     if "## Compilacion y despliegue" not in text:
         start = text.find("## Compilar\n")
         if start < 0:
@@ -94,7 +93,7 @@ def update_context() -> bool:
 
     if heading in text:
         pattern = re.compile(r"## Regla vigente de build y despliegue\n.*?(?=\n## |\Z)", re.S)
-        text, count = pattern.subn(CONTEXT_SECTION.rstrip(), text, count=1)
+        text, count = pattern.subn(lambda _m: CONTEXT_SECTION.rstrip(), text, count=1)
         if count != 1:
             raise SystemExit("CONTEXTO.md: no se pudo actualizar la regla vigente.")
     else:
