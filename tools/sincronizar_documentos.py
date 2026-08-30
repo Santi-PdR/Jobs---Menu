@@ -43,6 +43,23 @@ Esta regla reemplaza cualquier procedimiento historico que aparezca mas abajo en
 - Nunca se elimina el JAR instalado antes de descargar y validar el reemplazo.
 
 La escena vigente contiene quince niveles: diez plantas procedurales (0-9) y cinco fondos suministrados integrados como niveles 10-14. Ver `docs/NIVELES_10_14.md`.
+
+> Documento maestro del mod de menús del servidor **Jobs**.
+> Todo cambio de identidad, alcance o proceso se decide **aquí primero** y después se programa.
+
+| Campo | Valor |
+|---|---|
+| Repositorio | `Santi-PdR/Jobs---Menu` |
+| Rama de entrega | `main` |
+| Mod id | `jobsmenu` |
+| Nombre visible | Jobs · Aviso a los ocupantes |
+| Paquete Java | `com.santipdr.jobsmenu` |
+| Versión actual | **0.10.0** |
+| Plataforma | Minecraft **1.20.1** · Forge **47.x** · Java **17** |
+| Alcance | Menús (Title / Pause / Options), escena viva, audio, lore. **Sin gameplay.** |
+| Lado | **Cliente**. El mod no toca el servidor ni exige instalarse en él. |
+
+---
 '''
 
 
@@ -101,8 +118,6 @@ def update_context() -> bool:
         if first_break < 0:
             raise SystemExit("CONTEXTO.md: formato inesperado.")
         text = text[:first_break + 1] + "\n" + CONTEXT_SECTION.rstrip() + "\n" + text[first_break + 1:]
-
-    text = re.sub(r"\| Rama de trabajo \| `[^`]+` \|", "| Rama de entrega | `main` |", text, count=1)
 
     if text != original:
         path.write_text(text, encoding="utf-8")
