@@ -55,6 +55,41 @@ public final class Sala implements Planta {
         Trazo.manchas(grafico, m, nivel, luz, TRAMOS);
         cuadros(grafico, m, nivel, luz);
         placaAdministracion(grafico, m, nivel, luz);
+        aberturaMantenimiento(grafico, m, nivel, luz);
+    }
+
+    /**
+     * Abertura de mantenimiento en el lateral derecho.
+     *
+     * La placa de administracion habita el lado izquierdo; este hueco baja al
+     * lado contrario, con su marco, sus dos bisagras y el interior oscuro que
+     * no termina en la pared. Dice que el sitio tiene instalaciones que cuidar,
+     * y equilibra la sala sin hacerla simetrica.
+     */
+    private static void aberturaMantenimiento(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 1.35F;
+        float x = m.lado(1.0F, dx * 0.74F);
+        float y0 = m.techoEn(dx * 0.55F) + m.h() * dx * 0.30F;
+        int ancho = Math.max(8, Math.round(m.w() * dx * 0.20F));
+        int alto = Math.max(12, Math.round(m.h() * dx * 0.26F));
+        int x0 = Math.round(x - ancho * 0.5F);
+        int y1 = Math.round(y0 + alto);
+        int marco = Paleta.conAlfa(Paleta.iluminar(nivel.junta, luz * 0.72F), 0.85F);
+        int interior = Paleta.iluminar(Trazo.velar(nivel.paredBaja, nivel.niebla, 0.80F, 0.55F),
+                luz * 0.35F);
+        int bisagra = Paleta.conAlfa(Paleta.iluminar(nivel.luz, luz * 0.6F), 0.7F);
+
+        grafico.fill(x0, (int) y0, x0 + ancho, y1, interior);
+        // Marco: cuatro cantos finos sobre el hueco, como el de la placa.
+        grafico.fill(x0, (int) y0, x0 + ancho, (int) y0 + 1, marco);
+        grafico.fill(x0, y1 - 1, x0 + ancho, y1, marco);
+        grafico.fill(x0, (int) y0, x0 + 1, y1, marco);
+        grafico.fill(x0 + ancho - 1, (int) y0, x0 + ancho, y1, marco);
+        // Dos bisagras al borde izquierdo: la tapa se abre de ese lado.
+        for (int i = 0; i < 2; i++) {
+            int by = (int) (y0 + alto * (0.30F + i * 0.34F));
+            grafico.fill(x0, by, x0 + 3, by + 3, bisagra);
+        }
     }
 
     /** Placa metalica lateral con remaches anclados a su propio perimetro. */

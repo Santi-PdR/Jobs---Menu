@@ -1341,6 +1341,31 @@ def sala(lz, m, nivel, luz, tiempo) -> None:
     t_manchas(lz, m, nivel, luz, SALA_TRAMOS)
     sala_cuadros(lz, m, nivel, luz)
     sala_placa(lz, m, nivel, luz)
+    sala_abertura(lz, m, nivel, luz)
+
+
+def sala_abertura(lz, m, nivel, luz) -> None:
+    # Abertura de mantenimiento en el lateral derecho: el contrapeso de la
+    # placa de administracion. Marco, dos bisagras e interior que no termina
+    # en la pared: el sitio tiene instalaciones que cuidar.
+    dx = 1.35
+    x = m.lado(1.0, dx * 0.74)
+    y0 = m.techo_en(dx * 0.55) + m.h * dx * 0.30
+    ancho = max(8, round(m.w * dx * 0.20))
+    alto = max(12, round(m.h * dx * 0.26))
+    x0 = round(x - ancho * 0.5)
+    y1 = round(y0 + alto)
+    marco = con_alfa(iluminar(nivel.junta, luz * 0.72), 0.85)
+    interior = iluminar(velar(nivel.pared_baja, nivel.niebla, 0.80, 0.55), luz * 0.35)
+    bisagra = con_alfa(iluminar(nivel.luz, luz * 0.6), 0.7)
+    lz.fill(x0, int(y0), x0 + ancho, y1, interior)
+    lz.fill(x0, int(y0), x0 + ancho, int(y0) + 1, marco)
+    lz.fill(x0, y1 - 1, x0 + ancho, y1, marco)
+    lz.fill(x0, int(y0), x0 + 1, y1, marco)
+    lz.fill(x0 + ancho - 1, int(y0), x0 + ancho, y1, marco)
+    for i in range(2):
+        by = int(y0 + alto * (0.30 + i * 0.34))
+        lz.fill(x0, by, x0 + 3, by + 3, bisagra)
 
 
 def sala_puertas(lz, m, nivel, luz) -> None:
