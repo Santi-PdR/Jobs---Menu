@@ -3093,10 +3093,41 @@ def biblioteca(lz, m, nivel, luz, tiempo) -> None:
     t_juntas(lz, m, nivel, luz, BIB_TRAMOS, 1.0, 0.30)
     t_manchas(lz, m, nivel, luz, BIB_TRAMOS)
     bib_estanterias(lz, m, nivel, luz)
+    bib_arco_acceso(lz, m, nivel, luz)
     bib_paginas_dobladas(lz, m, nivel, luz)
     bib_polvo_estantes(lz, m, nivel, luz)
     bib_condensacion_ventanal(lz, m, nivel, luz)
     bib_lamparas(lz, m, nivel, luz, tiempo)
+
+
+def bib_arco_acceso(lz, m, nivel, luz) -> None:
+    # Arco de acceso entre estantes: la hilera derecha se interrumpe con un
+    # pasaje; al otro lado hay oscuridad y la biblioteca sigue.
+    dx = 1.52
+    x = m.lado(1.0, dx * BIB_HILERA)
+    if x < -20.0 or x > m.ancho + 20.0:
+        return
+    lej = limitar(1.0 / dx, 0.0, 1.0)
+    at = atenuar(luz, lej) * 0.9
+    y_suelo = m.suelo_en(dx)
+    y_techo = m.techo_en(dx * 0.86)
+    ancho = m.w * dx * 0.17
+    alto = m.h * dx * 0.30
+    x0, x1 = round(x - ancho * 0.5), round(x + ancho * 0.5)
+    y_base = round(y_suelo)
+    y_top = round(y_suelo - alto)
+    radio = max(2, (x1 - x0) // 2)
+    if y_top - radio <= y_techo:
+        return
+    interior = iluminar(velar(VANO, nivel.niebla, lej, 0.42), at * 0.55)
+    lz.fill(x0, y_top, x1, y_base, interior)
+    for d in range(0, radio + 1, 2):
+        f = 1.0 - d / float(radio)
+        hw = int(radio * math.sqrt(max(0.0, 1.0 - f * f)))
+        lz.fill(x0 + hw, y_top - d, x1 - hw, y_top - d + 2, interior)
+    filo = con_alfa(iluminar(nivel.pared_alta, at), 0.55)
+    lz.fill(x0 - 2, y_top - radio - 2, x0, y_base, filo)
+    lz.fill(x1, y_top - radio - 2, x1 + 2, y_base, filo)
 
 
 def bib_ventanal(lz, m, nivel, luz) -> None:

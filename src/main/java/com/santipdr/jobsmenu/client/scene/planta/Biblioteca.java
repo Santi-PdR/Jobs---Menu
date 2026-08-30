@@ -55,10 +55,52 @@ public final class Biblioteca implements Planta {
         Trazo.manchas(grafico, m, nivel, luz, TRAMOS);
 
         estanterias(grafico, m, nivel, luz);
+        arcoAcceso(grafico, m, nivel, luz);
         paginasDobladas(grafico, m, nivel, luz);
         polvoEstantes(grafico, m, nivel, luz);
         condensacionVentanal(grafico, m, nivel, luz);
         lamparas(grafico, m, nivel, luz, tiempo);
+    }
+
+    /**
+     * El arco de acceso entre estantes: la hilera derecha se interrumpe con un
+     * pasaje que no se ve del todo. Al otro lado hay oscuridad y la biblioteca
+     * sigue; el pasillo deja de ser una pared ininterrumpida de lomos.
+     */
+    private static void arcoAcceso(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 1.52F;
+        float x = m.lado(1.0F, dx * HILERA);
+        if (x < -20.0F || x > m.ancho() + 20.0F) {
+            return;
+        }
+        float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
+        float at = Trazo.atenuar(luz, lej) * 0.9F;
+        float ySuelo = m.sueloEn(dx);
+        float yTecho = m.techoEn(dx * 0.86F);
+        float ancho = m.w() * dx * 0.17F;
+        float alto = m.h() * dx * 0.30F;
+        int x0 = Math.round(x - ancho * 0.5F);
+        int x1 = Math.round(x + ancho * 0.5F);
+        int yBase = Math.round(ySuelo);
+        int yTop = Math.round(ySuelo - alto);
+        int radio = Math.max(2, (x1 - x0) / 2);
+        if (yTop - radio <= yTecho) {
+            return; // el arco no cabe en la pared de la hilera
+        }
+        int interior = Paleta.iluminar(Trazo.velar(Paleta.VANO, nivel.niebla, lej, 0.42F),
+                at * 0.55F);
+        grafico.fill(x0, yTop, x1, yBase, interior);
+        // La capucha: filas de ancho creciente desde el apice hasta la linea
+        // de arranque. El pasaje no es un rectangulo de tinta, es un arco.
+        for (int d = 0; d <= radio; d += 2) {
+            float f = 1.0F - d / (float) radio;
+            int hw = (int) (radio * Math.sqrt(1.0F - f * f));
+            grafico.fill(x0 + hw, yTop - d, x1 - hw, yTop - d + 2, interior);
+        }
+        // El canto: dos pilares delgados que enmarcan el pasaje.
+        int filo = Paleta.conAlfa(Paleta.iluminar(nivel.paredAlta, at), 0.55F);
+        grafico.fill(x0 - 2, yTop - radio - 2, x0, yBase, filo);
+        grafico.fill(x1, yTop - radio - 2, x1 + 2, yBase, filo);
     }
 
     /** Un ventanal alto al fondo, con la luz gris de afuera que no ayuda. */
