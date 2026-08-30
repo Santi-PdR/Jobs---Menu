@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Materializa y valida los fondos de imagen del menu.
+"""Materializa y valida los fondos de imagen 10-17.
 
-Los niveles 15-17 se guardan en el repositorio como payload base64 porque el
-conector de mantenimiento no transporta binarios de forma fiable. Este script
-los reconstruye antes de verificar/compilar. Los niveles 10-14 ya existen como
-PNG y se validan junto con los nuevos.
+Durante esta migracion los PNG se transportan como base64, a veces dividido en
+partes para evitar truncados del conector. El build reconstruye todos los
+fondos antes de verificarlos, de forma que un asset corrupto nunca llegue al
+JAR publicado.
 """
 from __future__ import annotations
 
@@ -29,14 +29,19 @@ def dimensiones_png(datos: bytes) -> tuple[int, int]:
     return struct.unpack(">II", datos[16:24])
 
 
+def leer_payload(indice: int) -> str:
+    unico = PAYLOAD / f"nivel{indice}.b64"
+    if unico.is_file():
+        return "".join(unico.read_text(encoding="ascii").split())
+    partes = sorted(PAYLOAD.glob(f"nivel{indice}.part*"))
+    if not partes:
+        raise FileNotFoundError(f"falta payload del nivel {indice}")
+    return "".join("".join(p.read_text(encoding="ascii").split()) for p in partes)
+
+
 def materializar(indice: int) -> None:
-    if indice < 15:
-        return
-    origen = PAYLOAD / f"nivel{indice}.b64"
-    if not origen.is_file():
-        raise FileNotFoundError(f"falta {origen.relative_to(RAIZ)}")
     try:
-        datos = base64.b64decode("".join(origen.read_text(encoding="ascii").split()), validate=True)
+        datos = base64.b64decode(leer_payload(indice), validate=True)
     except (ValueError, binascii.Error) as exc:
         raise ValueError(f"payload invalido nivel {indice}: {exc}") from exc
     DESTINO.mkdir(parents=True, exist_ok=True)
