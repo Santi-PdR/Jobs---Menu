@@ -175,9 +175,77 @@ public final class Cripta implements Planta {
             float yPared = m.techoEn(dx);
             float yCima = m.techoEn(dx * 0.82F);
             int cx = Math.round(m.centro(dx));
+            if (j == TRAMOS - 1) {
+                // El arco mas cercano no es una V de dos rectas: se construye
+                // con dovelas. La curva sube por piezas, cada una con su tono
+                // y su junta, y esa lectura de piedra colocada es la que da
+                // escala de canteria a toda la boveda.
+                dovelas(grafico, x0, (int) yPared, cx, (int) yCima, x1, (int) yPared,
+                        grosor, color, nivel, luz);
+                continue;
+            }
             trazoLinea(grafico, x0, (int) yPared, cx, (int) yCima, grosor, color);
             trazoLinea(grafico, cx, (int) yCima, x1, (int) yPared, grosor, color);
         }
+    }
+
+    /**
+     * Las dovelas del arco mas cercano: la curva no es una linea, son piedras
+     * que se reparten el arco. Cada una lleva su tono y su junta, y el conjunto
+     * se curva en bezier para que el arco no sea una V con tapa.
+     */
+    private static void dovelas(GuiGraphics grafico, int x0, int y0, int cx, int yc,
+                                int x1, int y1, int grosor, int color, Nivel nivel, float luz) {
+        // El punto de control refleja la clave: la bezier pasa exactamente por
+        // la cima (yc) y baja hacia las dos paredes.
+        float cy = 2.0F * yc - (y0 + y1) * 0.5F;
+        int mortero = Paleta.conAlfa(Paleta.iluminar(nivel.junta, luz * 0.55F), 0.72F);
+        for (int i = 0; i < DOVELAS; i++) {
+            float t0 = i / (float) DOVELAS;
+            float t1 = (i + 1) / (float) DOVELAS;
+            float ax = bezier(x0, cx, x1, t0);
+            float ay = bezier(y0, cy, y1, t0);
+            float bx = bezier(x0, cx, x1, t1);
+            float by = bezier(y0, cy, y1, t1);
+            int xa = Math.round(Math.min(ax, bx) - grosor);
+            int xb = Math.round(Math.max(ax, bx) + grosor);
+            int ya = Math.round(Math.min(ay, by) - grosor);
+            int yb = Math.round(Math.max(ay, by) + grosor);
+            // Ninguna dovela es del mismo tono que la de al lado.
+            float desvio = Trazo.pseudo(431 + i * 11) * 0.16F - 0.08F;
+            int piedra = Paleta.iluminar(
+                    Paleta.mezclar(color, nivel.paredBaja, 0.22F + desvio),
+                    Math.min(1.0F, luz * 0.85F + 0.20F));
+            grafico.fill(xa, ya, xb, yb, Paleta.conAlfa(piedra, 0.94F));
+
+            // La junta entre dovelas: una corta linea perpendicular a la curva
+            // en el borde derecho de la piedra. Sin esto las piedras no
+            // separan y el arco se lee como una banda pintada.
+            if (i < DOVELAS - 1) {
+                float tx = bezier(x0, cx, x1, t1);
+                float ty = bezier(y0, cy, y1, t1);
+                // Tangente de la bezier en ese punto, normalizada.
+                float u = 1.0F - t1;
+                float tgX = 2.0F * u * (cx - x0) + 2.0F * t1 * (x1 - cx);
+                float tgY = 2.0F * u * (cy - y0) + 2.0F * t1 * (y1 - cy);
+                float largo = Math.max(1.0F, (float) Math.hypot(tgX, tgY));
+                float nx = -tgY / largo;
+                float ny = tgX / largo;
+                int ext = Math.max(2, grosor + 1);
+                int jx = Math.round(tx + nx * ext);
+                int jy = Math.round(ty + ny * ext);
+                int kx = Math.round(tx - nx * ext);
+                int ky = Math.round(ty - ny * ext);
+                grafico.fill(Math.min(jx, kx), Math.min(jy, ky),
+                        Math.max(jx, kx) + 1, Math.max(jy, ky) + 1, mortero);
+            }
+        }
+    }
+
+    /** Un punto de la bezier cuadratica entre p0, control y p1. */
+    private static float bezier(float p0, float control, float p1, float t) {
+        float u = 1.0F - t;
+        return u * u * p0 + 2.0F * u * t * control + t * t * p1;
     }
 
     /** Una linea recta gruesa entre dos puntos, por pasos. Para las nervaduras. */

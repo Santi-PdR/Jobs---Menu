@@ -2719,8 +2719,51 @@ def cri_boveda(lz, m, nivel, luz) -> None:
         y_pared = m.techo_en(dx)
         y_cima = m.techo_en(dx * 0.82)
         cx = round(m.centro(dx))
+        if j == CRI_TRAMOS - 1:
+            cri_dovelas(lz, round(m.izq(dx)), int(y_pared), cx, int(y_cima),
+                        round(m.der(dx)), int(y_pared), grosor, color, nivel, luz)
+            continue
         _linea(lz, round(m.izq(dx)), int(y_pared), cx, int(y_cima), grosor, color)
         _linea(lz, cx, int(y_cima), round(m.der(dx)), int(y_pared), grosor, color)
+
+
+def cri_dovelas(lz, x0, y0, cx, yc, x1, y1, grosor, color, nivel, luz) -> None:
+    # El arco mas cercano se construye con dovelas: bezier que pasa por la
+    # clave, piedras con tono propio y junta perpendicular entre dovelas.
+    cy = 2.0 * yc - (y0 + y1) * 0.5
+    mortero = con_alfa(iluminar(nivel.junta, luz * 0.55), 0.72)
+    for i in range(9):
+        t0 = i / 9.0
+        t1 = (i + 1) / 9.0
+        ax = _bezier(x0, cx, x1, t0)
+        ay = _bezier(y0, cy, y1, t0)
+        bx = _bezier(x0, cx, x1, t1)
+        by = _bezier(y0, cy, y1, t1)
+        xa = round(min(ax, bx) - grosor)
+        xb = round(max(ax, bx) + grosor)
+        ya = round(min(ay, by) - grosor)
+        yb = round(max(ay, by) + grosor)
+        desvio = pseudo(431 + i * 11) * 0.16 - 0.08
+        piedra = iluminar(mezclar(color, nivel.pared_baja, 0.22 + desvio),
+                          min(1.0, luz * 0.85 + 0.20))
+        lz.fill(xa, ya, xb, yb, con_alfa(piedra, 0.94))
+        if i < 8:
+            tx = _bezier(x0, cx, x1, t1)
+            ty = _bezier(y0, cy, y1, t1)
+            u = 1.0 - t1
+            tg_x = 2.0 * u * (cx - x0) + 2.0 * t1 * (x1 - cx)
+            tg_y = 2.0 * u * (cy - y0) + 2.0 * t1 * (y1 - cy)
+            largo = max(1.0, math.hypot(tg_x, tg_y))
+            nx, ny = -tg_y / largo, tg_x / largo
+            ext = max(2, grosor + 1)
+            jx, jy = round(tx + nx * ext), round(ty + ny * ext)
+            kx, ky = round(tx - nx * ext), round(ty - ny * ext)
+            lz.fill(min(jx, kx), min(jy, ky), max(jx, kx) + 1, max(jy, ky) + 1, mortero)
+
+
+def _bezier(p0: float, control: float, p1: float, t: float) -> float:
+    u = 1.0 - t
+    return u * u * p0 + 2.0 * u * t * control + t * t * p1
 
 
 def cri_sillares(lz, m, nivel, luz) -> None:
