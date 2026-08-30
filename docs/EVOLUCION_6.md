@@ -6,7 +6,7 @@
 **Minecraft:** 1.20.1 · Forge 47.x · Java 17 objetivo
 **Rama fijada de esta sesión:** `arena/01a04ff1-jobs-menu`
 **Base:** `811586e` (merge de `arena/01a04e24-jobs-menu`)
-**Backups:** `backup-A-inicial-0.10.0`, `backup-B-tecnica-ui-sonido-config`, `backup-C-final` (ver `backups/README.md`)
+**Backups:** `backup-A-inicial-0.10.0`, `backup-B-tecnica-ui-sonido-config`, `backup-C-final-evolucion6` (ver `backups/README.md`)
 
 ## Estado real
 

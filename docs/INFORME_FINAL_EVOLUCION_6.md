@@ -17,7 +17,7 @@ Minecraft** (pendiente). Ninguna afirmación de runtime se da por verificada.
    previa `arena/01a04e24-jobs-menu` integrada en ella. No había otras ramas ni
    backups. No se hicieron merges de ramas antiguas.
 3. **Backups creados.** `backup-A-inicial-0.10.0` (`14efd06`), `backup-B-
-   tecnica-ui-sonido-config` (tras la etapa técnica), `backup-C-final` (estado
+   tecnica-ui-sonido-config` (tras la etapa técnica), `backup-C-final-evolucion6` (estado
    final de esta evolución). Tags de git subidos a GitHub; registro en
    `backups/README.md`; ninguna copia dentro de `mods/`.
 4. **Archivos y sistemas auditados.** 28 archivos con diff en esta rama
