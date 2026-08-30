@@ -84,7 +84,7 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
     protected void init() {
         this.lista = new OptionsList(this.minecraft, this.width, this.height, 32, this.height - 32, 25);
 
-        // Imagen del recinto.
+        // --- Imagen del recinto -------------------------------------------------
         this.lista.addBig(interruptor("jobsmenu.ajustes.escena",
                 ConfigTurno.escenaViva(), ConfigTurno::fijarEscenaViva));
         this.lista.addSmall(
@@ -102,6 +102,8 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
                         ConfigTurno.mostrarEstadoInstalacion(), ConfigTurno::fijarMostrarEstadoInstalacion),
                 interruptor("jobsmenu.ajustes.respiracion",
                         ConfigTurno.respiracionCamara(), ConfigTurno::fijarRespiracionCamara));
+        this.lista.addBig(interruptor("jobsmenu.ajustes.bajoconsumo",
+                ConfigTurno.bajoConsumo(), ConfigTurno::fijarBajoConsumo));
         this.lista.addSmall(
                 interruptor("jobsmenu.ajustes.rotar",
 
@@ -109,6 +111,9 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
                 interruptor("jobsmenu.ajustes.cuenta",
                         ConfigTurno.mostrarCuentaRegresivaBruto(), ConfigTurno::fijarMostrarCuentaRegresiva));
         this.lista.addBig(selectorNivel(ConfigTurno.nivelFijo()));
+        this.lista.addBig(deslizador("jobsmenu.ajustes.estancia",
+                ConfigTurno.duracionEstancia(), 15, 90,
+                "jobsmenu.ajustes.segundos", ConfigTurno::fijarDuracionEstancia));
         this.lista.addSmall(
                 interruptor("jobsmenu.ajustes.rotacioncalma",
                         ConfigTurno.rotacionCalma(), ConfigTurno::fijarRotacionCalma),
@@ -124,8 +129,9 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
                 interruptor("jobsmenu.ajustes.interfaz",
                         ConfigTurno.interfazMinima(), ConfigTurno::fijarInterfazMinima));
 
-        // Sonido del recinto y del menu. El volumen maestro va arriba, porque
-        // manda sobre todo lo demas: la musica, el ambiente y los gestos.
+        // --- Sonido del recinto y del menu ---------------------------------------
+        // El volumen maestro va arriba, porque manda sobre todo lo demas: la
+        // musica, el ambiente y los gestos.
         this.lista.addBig(deslizador("jobsmenu.ajustes.volaviso",
                 ConfigTurno.volumenAvisoPorcentaje(), ConfigTurno::fijarVolumenAviso));
         this.lista.addBig(deslizador("jobsmenu.ajustes.volmusica",
@@ -143,7 +149,9 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
                 interruptor("jobsmenu.ajustes.credito",
                         ConfigTurno.creditoMusica(), ConfigTurno::fijarCreditoMusica));
 
-        // Accesibilidad y comportamiento.
+        // --- Accesibilidad y comportamiento --------------------------------------
+        this.lista.addBig(interruptor("jobsmenu.ajustes.perfil",
+                ConfigTurno.perfilAccesible(), ConfigTurno::fijarPerfilAccesible));
         this.lista.addSmall(
                 interruptor("jobsmenu.ajustes.movimiento",
                         ConfigTurno.movimientoReducido(), ConfigTurno::fijarMovimientoReducido),

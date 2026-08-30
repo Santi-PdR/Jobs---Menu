@@ -1,5 +1,6 @@
 package com.santipdr.jobsmenu.client;
 
+import com.santipdr.jobsmenu.client.sound.GestorAmbiente;
 import com.santipdr.jobsmenu.client.sound.GestorMusica;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
@@ -14,6 +15,15 @@ import net.minecraft.client.Minecraft;
  * PantallaNivel. Mantener este estado separado de una clase de Screen evita
  * cortar y recrear la musica en cada salto y permite cerrarla con certeza al
  * entrar a un mundo, desactivar el menu o terminar la sesion.
+ *
+ * LA CONTINUIDAD DEL AMBIENTE
+ *
+ * La visita abarca el aviso y sus pantallas hijas (Opciones, Sonido, Mods...).
+ * Antes, al pasar a una hija se detenia el ambiente del recinto y al volver
+ * arrancaba de cero: las camas de sonido reiniciaban su bucle cada vez que se
+ * tocaba un deslizador, y el pasillo "arrancaba" decenas de veces por sesion.
+ * Ahora abrir/cerrar la visita es lo que levanta o detiene las camas, y las
+ * pantallas hijas solo pausan los sucesos puntuales, no el sitio.
  */
 public final class SesionMenu {
 
@@ -36,15 +46,23 @@ public final class SesionMenu {
             GestorMusica.nuevaVisita();
         }
         activa = true;
+        // Idempotente: abrir() se vuelve a llamar cada vez que la pantalla se
+        // reconstruye (resize, vuelta de una hija) y no debe reiniciar camas.
+        GestorAmbiente.abrir();
     }
 
     public static void cerrar() {
+        if (!activa) {
+            return;
+        }
         activa = false;
-        // La instancia del tema sigue recibiendo ticks y baja sola hasta
-        // detenerse (ver GestorMusica.tick): detenerla aca la cortaria en seco,
-        // y soltar la referencia permitiria crear una copia mientras la
-        // anterior todavia se oye. No hay nada que hacer, y eso es lo que hay
-        // que decir.
+        // El tema baja solo hasta detenerse (ver GestorMusica.tick); detenerlo
+        // aca lo cortaria en seco y soltar la referencia permitiria crear una
+        // copia mientras la anterior todavia se oye. Las camas del recinto, en
+        // cambio, se detienen ahora mismo: la visita termino (mundo, apagado
+        // del menu o salida al titulo) y no tienen que seguir sonando en la
+        // nada.
+        GestorAmbiente.cerrar();
     }
 
     /**
@@ -54,6 +72,9 @@ public final class SesionMenu {
     public static void prepararSalidaAlTitulo() {
         activa = false;
         salidaAlTituloPendiente = true;
+        // Se abandona el mundo: el recinto no debe seguir sonando detras del
+        // "Guardando..." ni del titulo vanilla.
+        GestorAmbiente.cerrar();
     }
 
     /** Consume el permiso de mostrar una vez el titulo vanilla. */

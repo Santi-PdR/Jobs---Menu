@@ -44,7 +44,14 @@ public class GestorMusica extends AbstractTickableSoundInstance {
     /** Bajada al cerrar el menu. Tampoco de golpe. */
     private static final float SUAVIZADO_BAJADA = 0.045F;
 
-    /** Silencio deliberado entre vueltas completas de la pista. */
+    /**
+     * Silencio de entrada: 40 ticks (2 s) entre que se pide el tema y la
+     * primera nota. Es el mismo margen que el fundido de subida, para que la
+     * musica nunca "entre" con un golpe. No es un silencio entre vueltas: el
+     * campo delay de SoundInstance solo se aplica al arranque de la instancia,
+     * no al bucle. El hueco entre repeticiones, si existe, lo lleva el propio
+     * archivo OGG.
+     */
     private static final int RETARDO_BUCLE = 40;
 
     /** Evita reintentar cada tick cuando el motor rechazo un recurso. */
@@ -52,6 +59,9 @@ public class GestorMusica extends AbstractTickableSoundInstance {
 
     private float actual;
     private int edad;
+
+    /** Edad observada desde el tick del cliente, para detectar instancias fantasma. */
+    private int ultimaEdadVista = -1;
 
     private GestorMusica(SoundEvent evento) {
         // MASTER evita que el deslizador Music de vanilla gobierne la pista
@@ -100,6 +110,17 @@ public class GestorMusica extends AbstractTickableSoundInstance {
     /**
      * Coordinacion por tick, independiente de la Screen visible. Asi la pista
      * continua en Opciones/Mods/Recursos y se detiene al entrar a un mundo.
+     *
+     * VIGILANCIA DE INSTANCIA FANTASMA
+     *
+     * Si el SoundEngine se reconstruye por una via que no pasa por nuestro
+     * listener de recarga (cambio de dispositivo, cierre de OpenAL), puede
+     * retirar la instancia sin marcarla como detenida. El sintoma es que
+     * isStopped() sigue devolviendo false pero la pista no se oye y, sobre
+     * todo, el motor deja de llamar a tick(): la edad de la instancia se
+     * congela. Este tick del cliente la observa: si no avanzo entre dos ticks
+     * seguidos con la visita activa, la instancia es un fantasma y se invalida
+     * para que asegurar() cree una nueva.
      */
     public static void atender() {
         if (reintento > 0) {
@@ -107,6 +128,28 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         }
         Minecraft cliente = Minecraft.getInstance();
         if (SesionMenu.activa() && ConfigTurno.musicaMenu()) {
+            GestorMusica viva = activa;
+            // La vigilancia solo corre cuando el cliente esta de verdad en marcha:
+            // pausado o sin foco, el motor deja de tickear las instancias por
+            // diseno (SoundManager.tick(boolean) y SoundManager.pause()), y la
+            // edad congelada entonces es normal, no un fantasma. Fuera de ese
+            // estado se desarma el vigia: al volver, el primer tick compara
+            // contra -1 y solo rearma, sin confundir la pausa con un fantasma.
+            boolean clienteTicando = !cliente.isPaused() && cliente.getWindow().isFocused();
+            if (viva != null && !viva.isStopped()) {
+                if (clienteTicando) {
+                    if (viva.ultimaEdadVista >= 0 && viva.edad == viva.ultimaEdadVista) {
+                        JobsMenu.LOG.warn(
+                                "[jobsmenu] La instancia de musica no recibe ticks del motor; "
+                                        + "se invalida y se crea una nueva.");
+                        nuevaVisita();
+                    } else {
+                        viva.ultimaEdadVista = viva.edad;
+                    }
+                } else {
+                    viva.ultimaEdadVista = -1;
+                }
+            }
             cliente.getMusicManager().stopPlaying();
             asegurar();
         }
@@ -144,6 +187,11 @@ public class GestorMusica extends AbstractTickableSoundInstance {
     /** Si el tema esta sonando ahora mismo. */
     public static boolean sonando() {
         return activa != null && !activa.isStopped();
+    }
+
+    /** Contador de reintento tras recarga, para el diagnostico interno oculto. */
+    public static int reintentoParaDiagnostico() {
+        return reintento;
     }
 
     /**

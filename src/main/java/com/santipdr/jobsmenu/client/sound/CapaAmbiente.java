@@ -4,7 +4,6 @@ import com.santipdr.jobsmenu.client.scene.Presencia;
 import com.santipdr.jobsmenu.client.scene.RotacionNiveles;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -200,9 +199,12 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
     public void tick() {
         this.edad++;
 
-        Minecraft cliente = Minecraft.getInstance();
         RotacionNiveles.Estado estado = RotacionNiveles.capturar();
-        boolean enMenu = cliente.screen instanceof com.santipdr.jobsmenu.client.screen.PantallaNivel;
+        // La cama sigue viva mientras dure la VISITA, no solo mientras el aviso
+        // sea la pantalla activa: abrir Opciones o Mods ya no reinicia el bucle
+        // del recinto. Al entrar a un mundo la visita se cierra y esta cama se
+        // detiene (via GestorAmbiente.cerrar o por su propia bajada).
+        boolean enMenu = com.santipdr.jobsmenu.client.SesionMenu.activa();
         boolean mia = estado.indice() == this.nivel;
         boolean permitido = enMenu && mia && ConfigTurno.sonidoAmbiente();
 

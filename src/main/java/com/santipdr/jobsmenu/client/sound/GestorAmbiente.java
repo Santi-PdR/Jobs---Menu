@@ -236,6 +236,11 @@ public final class GestorAmbiente {
         abierto = false;
     }
 
+    /** Cuantas camas hay vivas ahora mismo (diagnostico interno oculto). */
+    public static int capasActivas() {
+        return CAPAS.size();
+    }
+
     private static void detenerCapas() {
         for (CapaAmbiente capa : CAPAS) {
             capa.detenerAhora();
@@ -265,10 +270,14 @@ public final class GestorAmbiente {
      * Los ticks de las camas siguen siendo independientes, pero los disparos
      * puntuales ya no pueden caer en el frame equivocado al cruzar una frontera
      * de nivel.
+     *
+     * La guarda es la VISITA, no la pantalla: mientras el aviso sigue vivo en
+     * Opciones o en cualquier pantalla hija, las camas se mantienen y solo se
+     * pausan los sucesos (esta llamada no ocurre cuando el aviso no esta
+     * renderizando). Al entrar a un mundo, cerrar la visita detiene las capas.
      */
     public static void atender(RotacionNiveles.Estado estado) {
-        Minecraft cliente = Minecraft.getInstance();
-        if (!(cliente.screen instanceof com.santipdr.jobsmenu.client.screen.PantallaNivel)) {
+        if (!com.santipdr.jobsmenu.client.SesionMenu.activa()) {
             return;
         }
 

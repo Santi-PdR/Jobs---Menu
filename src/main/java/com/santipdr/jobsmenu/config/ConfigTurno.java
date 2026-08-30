@@ -41,6 +41,9 @@ public final class ConfigTurno {
     public final ForgeConfigSpec.BooleanValue presenciaFondo;
     public final ForgeConfigSpec.BooleanValue respiracionCamara;
     public final ForgeConfigSpec.BooleanValue suspensionRara;
+    public final ForgeConfigSpec.IntValue duracionEstancia;
+    public final ForgeConfigSpec.BooleanValue bajoConsumo;
+    public final ForgeConfigSpec.BooleanValue perfilAccesible;
 
     static {
         Pair<ConfigTurno, ForgeConfigSpec> par = new ForgeConfigSpec.Builder().configure(ConfigTurno::new);
@@ -167,6 +170,22 @@ public final class ConfigTurno {
                 .comment("Permitir el apagon raro y prolongado de La Suspension.")
                 .define("suspension_rara", true);
 
+        this.duracionEstancia = builder
+                .comment("Segundos que permanece cada nivel antes del apagon, de 15 a 90.")
+                .defineInRange("duracion_estancia", 24, 15, 90);
+
+        this.bajoConsumo = builder
+                .comment("Modo de bajo consumo: apaga polvo, grano, presencia, eventos "
+                        + "visuales y respiracion de camara para equipos modestos. "
+                        + "El recinto y su audio siguen intactos.")
+                .define("bajo_consumo", false);
+
+        this.perfilAccesible = builder
+                .comment("Perfil accesible: combina movimiento reducido, destellos "
+                        + "reducidos, alto contraste y texto grande. Tocar cualquiera "
+                        + "de esas cuatro opciones a mano desactiva el perfil.")
+                .define("perfil_accesible", false);
+
         builder.pop();
     }
 
@@ -189,20 +208,28 @@ public final class ConfigTurno {
         return leer(INSTANCE.escenaViva, true);
     }
 
+    /**
+     * Movimiento reducido, destellos reducidos, alto contraste y texto grande.
+     *
+     * Las cuatro admiten un perfil que las enciende juntas (perfil_accesible).
+     * Mientras el perfil este activo, su valor manda sobre el de la casilla
+     * individual: quien enciende el perfil no tiene que marcar cuatro opciones,
+     * y quien las toque a mano desactiva el perfil (ver los setters).
+     */
     public static boolean movimientoReducido() {
-        return leer(INSTANCE.movimientoReducido, false);
+        return perfilAccesible() || leer(INSTANCE.movimientoReducido, false);
     }
 
     public static boolean destellosReducidos() {
-        return leer(INSTANCE.destellosReducidos, false);
+        return perfilAccesible() || leer(INSTANCE.destellosReducidos, false);
     }
 
     public static boolean altoContraste() {
-        return leer(INSTANCE.altoContraste, false);
+        return perfilAccesible() || leer(INSTANCE.altoContraste, false);
     }
 
     public static boolean textoGrande() {
-        return leer(INSTANCE.textoGrande, false);
+        return perfilAccesible() || leer(INSTANCE.textoGrande, false);
     }
 
     public static boolean papelLimpio() {
@@ -262,6 +289,24 @@ public final class ConfigTurno {
 
     public static boolean suspensionRara() {
         return leer(INSTANCE.suspensionRara, true);
+    }
+
+    /** Segundos de permanencia de cada nivel antes del apagon. */
+    public static int duracionEstancia() {
+        if (!SPEC.isLoaded()) {
+            return 24;
+        }
+        return INSTANCE.duracionEstancia.get();
+    }
+
+    /** Modo de bajo consumo: recorta los efectos de aire y de escena. */
+    public static boolean bajoConsumo() {
+        return leer(INSTANCE.bajoConsumo, false);
+    }
+
+    /** Si el perfil accesible (las cuatro opciones juntas) esta activo. */
+    public static boolean perfilAccesible() {
+        return leer(INSTANCE.perfilAccesible, false);
     }
 
     /** Volumen del tema del menu, ya convertido a la escala 0.0 - 1.0 del motor. */
@@ -439,20 +484,32 @@ public final class ConfigTurno {
         fijar(INSTANCE.nivelFijo, Math.max(0, Math.min(9, nivel)));
     }
 
+    /**
+     * Tocar una de las cuatro opciones del perfil a mano lo desactiva: el
+     * perfil es un conjunto, y editarlo pieza a pieza ya no es el conjunto.
+     */
+    private static void fijarConSalidaDePerfil(ForgeConfigSpec.BooleanValue destino,
+                                               boolean valor) {
+        if (SPEC.isLoaded() && INSTANCE.perfilAccesible.get()) {
+            fijar(INSTANCE.perfilAccesible, false);
+        }
+        fijar(destino, valor);
+    }
+
     public static void fijarMovimientoReducido(boolean valor) {
-        fijar(INSTANCE.movimientoReducido, valor);
+        fijarConSalidaDePerfil(INSTANCE.movimientoReducido, valor);
     }
 
     public static void fijarDestellosReducidos(boolean valor) {
-        fijar(INSTANCE.destellosReducidos, valor);
+        fijarConSalidaDePerfil(INSTANCE.destellosReducidos, valor);
     }
 
     public static void fijarAltoContraste(boolean valor) {
-        fijar(INSTANCE.altoContraste, valor);
+        fijarConSalidaDePerfil(INSTANCE.altoContraste, valor);
     }
 
     public static void fijarTextoGrande(boolean valor) {
-        fijar(INSTANCE.textoGrande, valor);
+        fijarConSalidaDePerfil(INSTANCE.textoGrande, valor);
     }
 
     public static void fijarPapelLimpio(boolean valor) {
@@ -521,6 +578,34 @@ public final class ConfigTurno {
 
     public static void fijarSuspensionRara(boolean valor) {
         fijar(INSTANCE.suspensionRara, valor);
+    }
+
+    public static void fijarDuracionEstancia(int segundos) {
+        fijar(INSTANCE.duracionEstancia, Math.max(15, Math.min(90, segundos)));
+    }
+
+    public static void fijarBajoConsumo(boolean valor) {
+        fijar(INSTANCE.bajoConsumo, valor);
+    }
+
+    /**
+     * Enciende (o apaga) el perfil accesible completo.
+     *
+     * Al encenderlo, las cuatro opciones que lo componen quedan tambien en
+     * true: asi el archivo de configuracion dice la verdad y el perfil no
+     * depende de un valor calculado que nadie ve.
+     */
+    public static void fijarPerfilAccesible(boolean valor) {
+        if (SPEC.isLoaded()) {
+            INSTANCE.perfilAccesible.set(valor);
+            if (valor) {
+                INSTANCE.movimientoReducido.set(true);
+                INSTANCE.destellosReducidos.set(true);
+                INSTANCE.altoContraste.set(true);
+                INSTANCE.textoGrande.set(true);
+            }
+            marcarGuardado(INSTANCE.perfilAccesible);
+        }
     }
 
     public static void fijarVolumenMusica(int porcentaje) {

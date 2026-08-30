@@ -20,12 +20,6 @@ public final class RotacionNiveles {
     private RotacionNiveles() {
     }
 
-    /** Cuanto se queda quieto cada nivel antes de empezar a irse. */
-    private static final long ESTANCIA_MS = 24_000L;
-
-    /** Con la rotacion en calma, cada nivel se queda el doble de tiempo. */
-    private static final long ESTANCIA_CALMA_MS = 48_000L;
-
     /** Duracion del apagon raro de La Suspension. */
     private static final long SUSPENSION_MS = 22_000L;
 
@@ -57,6 +51,28 @@ public final class RotacionNiveles {
             {0.35F, 0.44F, 0.25F},
             {0.62F, 0.68F, 0.40F},
     };
+
+    /**
+     * Desplazamiento de la rotacion pedido a mano en esta sesion (tecla F en
+     * el aviso). No es configuracion: es una consulta al catalogo. Se suma al
+     * indice del ciclo y perdura hasta que el jugador vuelva a pedir otro.
+     */
+    private static int desplazamiento;
+
+    /** Instante del ultimo salto manual, o Long.MIN_VALUE si todavia no hubo. */
+    private static long ultimoSalto = Long.MIN_VALUE;
+
+    /**
+     * Adelanta un nivel el recinto que se muestra, con su apagon incluido.
+     *
+     * Es la unica forma de recorrer el catalogo sin esperar al ciclo: el
+     * cambio respeta la ventana de transicion (luz, chispazos y sonido salen
+     * del mismo estado) y no salta la escena en seco.
+     */
+    public static void adelantar() {
+        desplazamiento++;
+        ultimoSalto = System.currentTimeMillis();
+    }
 
     /**
      * Estado inmutable de la rotacion en un instante concreto.
@@ -113,6 +129,20 @@ public final class RotacionNiveles {
         // geometria nueva completamente iluminada antes de que termine el corte.
         if (dentro >= estancia + (long) (TRANSICION_MS * REPARTO_APAGADO)) {
             indice = (indice + 1) % Nivel.cantidad();
+        }
+
+        // Salto manual (tecla F): el indice pedido se suma a la rotacion, y
+        // durante la primera transicion la luz se fuerza dentro de la ventana
+        // de apagado para que el cambio suene y se vea como un traslado de
+        // verdad, no como un corte seco a plena luz.
+        if (desplazamiento != 0) {
+            indice = Math.floorMod(indice + desplazamiento, Nivel.cantidad());
+            if (ultimoSalto != Long.MIN_VALUE) {
+                long desde = ahora - ultimoSalto;
+                if (desde >= 0L && desde < TRANSICION_MS) {
+                    dentro = estancia + Math.min(TRANSICION_MS - 1L, desde);
+                }
+            }
         }
         float luz = luzPara(dentro, estancia);
         long cicloSuspension = Math.floorDiv(ahora, SUSPENSION_RANURA_MS);
@@ -332,8 +362,13 @@ public final class RotacionNiveles {
         return ConfigTurno.rotarNiveles();
     }
 
-    /** La estancia del nivel segun la cadencia elegida. */
+    /**
+     * La estancia del nivel, configurable (15 a 90 s) y con la rotacion en
+     * calma al doble. Antes eran dos constantes; ahora el jugador decide el
+     * ritmo y "en calma" sigue siendo el doble de lo que elija.
+     */
     private static long estanciaMs() {
-        return ConfigTurno.rotacionCalma() ? ESTANCIA_CALMA_MS : ESTANCIA_MS;
+        long base = ConfigTurno.duracionEstancia() * 1_000L;
+        return ConfigTurno.rotacionCalma() ? base * 2L : base;
     }
 }

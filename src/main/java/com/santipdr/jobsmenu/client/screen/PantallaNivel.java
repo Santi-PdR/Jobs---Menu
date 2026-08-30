@@ -7,6 +7,7 @@ import com.santipdr.jobsmenu.client.scene.RotacionNiveles;
 import com.santipdr.jobsmenu.client.sound.GestorAmbiente;
 import com.santipdr.jobsmenu.client.sound.GestorMusica;
 import com.santipdr.jobsmenu.client.sound.MezclaAudio;
+import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.client.ui.NotaAviso;
 import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.santipdr.jobsmenu.client.ui.RelojAparicion;
@@ -397,10 +398,11 @@ public class PantallaNivel extends Screen {
 
     @Override
     public void removed() {
-        // Al irse a otra pantalla el ambiente se suelta, pero la musica no: si
-        // el jugador va a las opciones y vuelve, el tema tiene que seguir donde
-        // estaba y no arrancar de cero.
-        GestorAmbiente.cerrar();
+        // Al irse a una pantalla hija (Opciones, Mods, Sonido...) la visita
+        // sigue viva: las camas del recinto no se detienen ni reinician su
+        // bucle (ver SesionMenu). La musica tampoco. Solo el fin de la visita
+        // -entrar a un mundo, apagar el menu o renunciar- detiene el audio,
+        // y de eso se encarga SesionMenu.cerrar().
         super.removed();
     }
 
@@ -726,9 +728,11 @@ public class PantallaNivel extends Screen {
      * recibir el cursor, porque mira isHoveredOrFocused y no solo el raton. El
      * teclado suena, entonces, exactamente igual que el raton.
      *
-     * Una tecla propia, visible en la pantalla de ajustes y no en la hoja:
+     * Dos teclas propias, visibles en la pantalla de ajustes y no en la hoja:
      *
      *   M - silencia o restaura todo el audio del aviso (volumen maestro).
+     *   F - adelanta un nivel el recinto, con su apagon, para recorrer el
+     *       catalogo sin esperar la rotacion (solo con traslados activos).
      *
      * Escape esta anulado en shouldCloseOnEsc: de la pantalla de titulo no se
      * sale con Escape, no hay adonde ir.
@@ -737,6 +741,15 @@ public class PantallaNivel extends Screen {
     public boolean keyPressed(int codigo, int escaneo, int modificadores) {
         if (codigo == GLFW.GLFW_KEY_M) {
             MezclaAudio.alternarSilencio();
+            return true;
+        }
+        if (codigo == GLFW.GLFW_KEY_F && ConfigTurno.rotarNiveles()) {
+            // El cambio de nivel lo dispara RotacionNiveles con su ventana de
+            // apagon; aca solo se pide el salto y se suena el gesto del que
+            // consulta el catalogo, no el del traslado en si (ese lo ponen los
+            // mismos sonidos de transicion de siempre).
+            RotacionNiveles.adelantar();
+            MezclaAudio.gesto(SonidosNivel.UI_ALTERNAR, 0.60F);
             return true;
         }
         return super.keyPressed(codigo, escaneo, modificadores);

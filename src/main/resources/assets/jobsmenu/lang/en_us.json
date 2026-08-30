@@ -186,7 +186,7 @@
   "jobsmenu.ajustes.respiracion": "Camera breathing",
   "jobsmenu.ajustes.respiracion.detalle": "Moves the vanishing point very slowly without changing other animation.",
   "jobsmenu.ajustes.rotar": "Transfers between levels",
-  "jobsmenu.ajustes.rotar.detalle": "The background changes level on its own, with the blackout between.",
+  "jobsmenu.ajustes.rotar.detalle": "The background changes level on its own, with the blackout in between. With this on, the F key on the notice shows the next room right away.",
   "jobsmenu.ajustes.rotacioncalma": "Calm rotation",
   "jobsmenu.ajustes.rotacioncalma.detalle": "Each level stays twice as long before the blackout.",
   "jobsmenu.ajustes.duracion": "Notice duration",
@@ -229,5 +229,11 @@
   "jobsmenu.ajustes.menu": "Notice on the main menu",
   "jobsmenu.ajustes.menu.detalle": "Replaces the game's title screen with the level notice.",
   "jobsmenu.ajustes.pausa": "Notice on pause",
-  "jobsmenu.ajustes.pausa.detalle": "Replaces the game's pause with the suspended stay."
+  "jobsmenu.ajustes.pausa.detalle": "Replaces the game's pause with the suspended stay.",
+  "jobsmenu.ajustes.bajoconsumo": "Low power mode",
+  "jobsmenu.ajustes.bajoconsumo.detalle": "Turns off dust, grain, the figure and camera breathing for modest hardware. The room and its sound remain intact.",
+  "jobsmenu.ajustes.estancia": "Stay per level",
+  "jobsmenu.ajustes.estancia.detalle": "Seconds each level stays before the blackout, from 15 to 90.",
+  "jobsmenu.ajustes.perfil": "Accessible profile",
+  "jobsmenu.ajustes.perfil.detalle": "Combines reduced motion, reduced flashes, high contrast and large text. Toggling any of the four by hand disables the profile."
 }
