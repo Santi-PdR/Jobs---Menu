@@ -94,6 +94,16 @@ def pseudo(indice: int) -> float:
     return (h % 10000) / 10000.0
 
 
+def java_hash(texto: str) -> int:
+    # Espejo de String.hashCode() de Java (int de 32 bits con signo), para
+    # que las semillas derivadas de la clave del nivel coincidan entre el
+    # juego y la vista previa.
+    h = 0
+    for c in texto:
+        h = (31 * h + ord(c)) & 0xFFFFFFFF
+    return h - 0x100000000 if h >= 0x80000000 else h
+
+
 def limitar(v: float, minimo: float, maximo: float) -> float:
     return max(minimo, min(maximo, v))
 
@@ -2189,6 +2199,16 @@ def nat_borde(lz, m, nivel, luz) -> None:
         # mas clara por reflexion del agua mismo.
         lz.fill(0, fy_borde - 1, m.ancho, fy_borde,
                 con_alfa(iluminar(nivel.suelo, luz * 0.40), 0.35))
+        # Sarro bajo el rebosadero: lenguetas minerales donde el agua
+        # se evaporo, no en toda la orilla.
+        semilla = java_hash(nivel.clave)
+        sarro = con_alfa(mezclar(nivel.pared_baja, nivel.techo, 0.45), 0.34)
+        for i in range(9):
+            px = pseudo(semilla + i * 23)
+            x = int(px * m.ancho)
+            largo = 3 + int(pseudo(semilla + i * 41) * 9)
+            lz.fill(x, fy_borde + 1, x + 2,
+                    min(m.alto, fy_borde + 1 + largo), sarro)
 
 
 def nat_agua(lz, m, nivel, luz, tiempo) -> None:

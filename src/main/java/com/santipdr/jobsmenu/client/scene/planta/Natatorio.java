@@ -291,6 +291,19 @@ public final class Natatorio implements Planta {
             // mas clara por reflejo del agua mismo.
             grafico.fill(0, fyBorde - 1, m.ancho(), fyBorde,
                     Paleta.conAlfa(Paleta.iluminar(nivel.suelo, luz * 0.40F), 0.35F));
+
+            // Sarro bajo el rebosadero: el agua que se evaporo dejo su mineral
+            // en lenguetas verticales que bajan del filo hacia la baldosa.
+            // Solo donde el agua estuvo, no por toda la orilla.
+            int semilla = nivel.clave.hashCode();
+            int sarro = Paleta.conAlfa(Paleta.mezclar(nivel.paredBaja, nivel.techo, 0.45F), 0.34F);
+            for (int i = 0; i < 9; i++) {
+                float px = Trazo.pseudo(semilla + i * 23);
+                int x = (int) (px * m.ancho());
+                int largo = 3 + (int) (Trazo.pseudo(semilla + i * 41) * 9);
+                grafico.fill(x, fyBorde + 1, x + 2,
+                        Math.min(m.alto(), fyBorde + 1 + largo), sarro);
+            }
         }
     }
 
