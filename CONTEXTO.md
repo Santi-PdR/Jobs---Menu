@@ -571,8 +571,9 @@ una mejora por cada uno de los diez fondos (filas AD-15, DE-17, SE-11, NA-22,
 SA-11, BI-12, IN-14, CA-13, CI-11 y TR-09/10/11/16/17 de
 `docs/AUDITORIA_FONDOS_50X10.md`). Documentación: `docs/EVOLUCION_6.md`,
 `docs/CATALOGO_MEJORAS_Y_FUNCIONES.md`, `docs/INFORME_FINAL_EVOLUCION_6.md`.
-Build con Java 17, JAR y prueba en Minecraft siguen pendientes
-(`KNOWN_ISSUES.md`).
+Build con Java 17, JAR y despliegue en `test-1` hechos el 29/08
+(`BUILD SUCCESSFUL`, commit `f23bc66`, SHA256 `305662E3…`); falta la prueba
+dentro de Minecraft (`KNOWN_ISSUES.md`).
 
 ---
 
@@ -605,7 +606,7 @@ no sustituyen el contrato actual de música original o pista local autorizada.
 | **0.8.3** | Arreglo real de la musica: la pista era estereo y las camas que si sonaban eran mono; el motor las trata distinto. Se re-codifico REQUIEM a mono (mas volumen) y `stream:false`, igual que el ambiente. Nivel 9 rehecho: trono alto y coronado (brazos, cojin, hueco de la corona) sobre estrado de cinco escalones, abside de piedra al fondo y haz cenital con polvo. Nueva respiracion de camara: la fuga deriva unos pixeles en un vaiven lentisimo en todos los niveles (se apaga con movimiento reducido). El espejo Python queda sincronizado | **Entregado** |
 | **0.9.0** | Evolución profesional: revisión de los diez recintos y Trono con primer plano bajo; snapshot temporal por frame para nivel/luz/audio; congelado real de movimiento reducido; cachés de texto y layout responsivo; tres camas ambientales con silencio intencional; lifecycle de audio y apagado inmediato al desactivar ambiente; música por `MASTER`; configuración con guardado limitado; **La Suspensión**, apagón raro localizado de 22 s; auditoría estática, procedimiento de compilación Java 17, documentación y pruebas pendientes separadas | **Código y auditoría estática entregados; build e integración dentro de Minecraft pendientes** |
 | **0.10.0** | Evolución de percepción: 10 funciones nuevas de lectura, contraste, papel, cámara, eventos y estado; 50 mejoras auditadas en UI, escena, audio, lifecycle, rendimiento y documentación | **Código y auditoría estática entregados; build e integración dentro de Minecraft pendientes** |
-| **0.10.0-E6** | Evolución 6 (rama `arena/01a04ff1-jobs-menu`): configuración ampliada (`duracion_estancia`, `bajo_consumo`, `perfil_accesible`), continuidad del ambiente por visita, salto manual de nivel, bajo consumo en render, vigilancia de instancia fantasma, diagnóstico oculto; etapa artística con una mejora por fondo (10 filas de la matriz) y Trono rediseñado; Backup C `backup-C-final-evolucion6` | **Código y auditoría estática entregados; build e integración dentro de Minecraft pendientes** |
+| **0.10.0-E6** | Evolución 6 (rama `arena/01a04ff1-jobs-menu`): configuración ampliada (`duracion_estancia`, `bajo_consumo`, `perfil_accesible`), continuidad del ambiente por visita, salto manual de nivel, bajo consumo en render, vigilancia de instancia fantasma, diagnóstico oculto; etapa artística con una mejora por fondo (10 filas de la matriz) y Trono rediseñado; Backup C `backup-C-final-evolucion6` | **Código, auditoría y build entregados (29/08); integración dentro de Minecraft pendiente** |
 | 1.0.0 | Pulido, accesibilidad completa, empaquetado para repartir | Pendiente |
 
 Fuera de alcance, explícitamente: entidades, ítems, mecánicas, comandos, economía real, cualquier cosa que
