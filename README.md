@@ -70,8 +70,8 @@ La etapa 1 añadió duración de estancia configurable, salto manual de nivel,
 perfil accesible, modo de bajo consumo y continuidad del ambiente al navegar
 pantallas hijas. La etapa 2 dio a cada uno de los diez fondos una mejora
 artística propia (una fila implementada por escenario en la matriz de
-auditoría de fondos) y rediseñó el Trono desde cero. Build con Java 17 y
-prueba en Minecraft pendientes: ver [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md).
+auditoría de fondos) y rediseñó el Trono desde cero. El build automatizado con Java 17 está activo;
+la prueba final dentro de Minecraft sigue siendo manual: ver [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md).
 
 ## Historial resumido
 
