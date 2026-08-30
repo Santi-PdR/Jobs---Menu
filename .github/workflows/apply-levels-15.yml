@@ -1,0 +1,42 @@
+name: Apply levels 10-14 migration
+
+on:
+  push:
+    branches:
+      - arena/20260830-backgrounds-deploy
+    paths:
+      - tools/aplicar_niveles_15.py
+      - .github/workflows/apply-levels-15.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: arena/20260830-backgrounds-deploy
+          fetch-depth: 0
+
+      - name: Apply migration
+        run: python3 tools/aplicar_niveles_15.py
+
+      - name: Commit migration
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "Migration already applied."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/main/java/com/santipdr/jobsmenu/client/scene/Nivel.java \
+                  src/main/java/com/santipdr/jobsmenu/client/scene/planta/PlantaImagen.java \
+                  src/main/java/com/santipdr/jobsmenu/config/ConfigTurno.java \
+                  src/main/resources/assets/jobsmenu/lang/es_es.json \
+                  src/main/resources/assets/jobsmenu/lang/en_us.json
+          git commit -m "feat: complete levels 10-14 integration"
+          git push origin HEAD:arena/20260830-backgrounds-deploy
