@@ -1760,9 +1760,38 @@ def servicio(lz, m, nivel, luz, tiempo) -> None:
     serv_compuerta(lz, m, nivel, luz)
     serv_haz(lz, m, nivel, luz)
     serv_apliques(lz, m, nivel, luz)
+    serv_bandeja(lz, m, nivel, luz)
     serv_valvula(lz, m, nivel, luz)
     serv_manguera(lz, m, nivel, luz)
     serv_rejillas(lz, m, nivel, luz)
+
+
+def serv_bandeja(lz, m, nivel, luz) -> None:
+    # Bandeja de cables colgada del techo, con un bucle de cable suelto bajo
+    # el colgador central: la instalacion electrica viaja por arriba, y alguien
+    # dejo la tarea a medias.
+    dy = 3.0
+    y_techo = m.techo_en(dy * 0.85)
+    y_bandeja = y_techo + m.h * dy * 0.045
+    lej = limitar(1.0 / dy, 0.0, 1.0)
+    at = atenuar(luz, lej)
+    metal = iluminar(velar(nivel.junta, nivel.niebla, lej, 0.45), at * 0.8)
+    cable = iluminar(velar(nivel.pared_baja, nivel.niebla, lej, 0.4), at * 0.55)
+    lz.fill(0, int(y_bandeja), m.ancho, int(y_bandeja) + 1, con_alfa(metal, 0.85))
+    for x in (m.lado(-1.0, dy * 0.62), m.centro(dy), m.lado(1.0, dy * 0.62)):
+        if x < -5.0 or x > m.ancho + 5.0:
+            continue
+        lz.fill(int(x), int(y_techo), int(x) + 1, int(y_bandeja), con_alfa(metal, 0.80))
+    ux = m.centro(dy) + m.w * dy * 0.10
+    if -5.0 < ux < m.ancho + 5.0:
+        y_fondo = int(y_bandeja + m.h * dy * 0.055)
+        media = m.w * dy * 0.012
+        for k in range(7):
+            t = k / 6.0
+            curva = abs(t * 2.0 - 1.0)
+            x = int(ux - media + (t - 0.5) * media * 2.0)
+            y = int(y_bandeja + (y_fondo - y_bandeja) * curva)
+            lz.fill(x, y, x + 1, y + 1, con_alfa(cable, 0.9))
 
 
 def serv_tablero(lz, m, nivel, luz) -> None:

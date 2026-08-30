@@ -50,9 +50,54 @@ public final class Servicio implements Planta {
         compuertaInspeccion(grafico, m, nivel, luz);
         haz(grafico, m, nivel, luz, tiempo);
         apliques(grafico, m, nivel, luz);
+        bandejaCables(grafico, m, nivel, luz);
         valvulaPrincipal(grafico, m, nivel, luz);
         mangueraCaida(grafico, m, nivel, luz);
         rejillas(grafico, m, nivel, luz);
+    }
+
+    /**
+     * Bandeja de cables colgada del techo, con un bucle de cable suelto.
+     *
+     * El pasillo de servicio no es solo tuberia: la instalacion electrica
+     * tambien viaja, y viaja por arriba. Tres colgadores bajan del techo a la
+     * bandeja, y de la bandeja cuelga un bucle de cable flojo, la senal de
+     * que alguien trabajo ahi con las manos y dejo la tarea a medias.
+     */
+    private static void bandejaCables(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dy = 3.0F;
+        float yTecho = m.techoEn(dy * 0.85F);
+        float yBandeja = yTecho + m.h() * dy * 0.045F;
+        float lej = Trazo.limitar(1.0F / dy, 0.0F, 1.0F);
+        float at = Trazo.atenuar(luz, lej);
+        int metal = Paleta.iluminar(Trazo.velar(nivel.junta, nivel.niebla, lej, 0.45F), at * 0.8F);
+        int cable = Paleta.iluminar(Trazo.velar(nivel.paredBaja, nivel.niebla, lej, 0.4F), at * 0.55F);
+
+        // El canto inferior de la bandeja, de pared a pared.
+        grafico.fill(0, (int) yBandeja, m.ancho(), (int) yBandeja + 1,
+                Paleta.conAlfa(metal, 0.85F));
+        // Tres colgadores verticales anclados al techo.
+        float[] colgadores = {m.lado(-1.0F, dy * 0.62F), m.centro(dy), m.lado(1.0F, dy * 0.62F)};
+        for (float x : colgadores) {
+            if (x < -5.0F || x > m.ancho() + 5.0F) {
+                continue;
+            }
+            grafico.fill((int) x, (int) yTecho, (int) x + 1, (int) yBandeja,
+                    Paleta.conAlfa(metal, 0.80F));
+        }
+        // Un bucle de cable suelto bajo la bandeja, cerca del colgador central.
+        float ux = m.centro(dy) + m.w() * dy * 0.10F;
+        if (ux > -5.0F && ux < m.ancho() + 5.0F) {
+            int yFondo = (int) (yBandeja + m.h() * dy * 0.055F);
+            float media = m.w() * dy * 0.012F;
+            for (int k = 0; k <= 6; k++) {
+                float t = k / 6.0F;
+                float curva = Math.abs(t * 2.0F - 1.0F);
+                int x = (int) (ux - media + (t - 0.5F) * media * 2.0F);
+                int y = (int) (yBandeja + (yFondo - yBandeja) * curva);
+                grafico.fill(x, y, x + 1, y + 1, Paleta.conAlfa(cable, 0.9F));
+            }
+        }
     }
 
     /**
