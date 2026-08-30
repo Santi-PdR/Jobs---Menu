@@ -16,9 +16,9 @@ import com.santipdr.jobsmenu.client.scene.planta.Trono;
 /**
  * Un nivel del servidor visto desde donde esta pegado el aviso.
  *
- * Los niveles 0-9 conservan sus plantas procedurales. Los niveles 10-14 son
- * escenas aportadas al proyecto y pasan por PlantaImagen, que las integra en
- * la misma luz, transicion y atmosfera en vez de mostrarlas como postales.
+ * Los niveles 0-9 conservan plantas procedurales. Los niveles 10-17 usan
+ * imagenes suministradas para el proyecto y pasan por PlantaImagen, por lo que
+ * participan de luz, apagones, Suspension y tratamiento ambiental.
  */
 public final class Nivel {
 
@@ -154,9 +154,10 @@ public final class Nivel {
                     0.470F, 0.530F, 0.160F, 0.140F, 0.185F, 0.140F,
                     0.26F, 0.55F),
 
-            // Rojo exclusivo de Executores. La imagen ya trae el lenguaje de
-            // contencion; la planta solo anade luz y atmosfera.
-            new Nivel("nivel10", new PlantaImagen("nivel10.png", 576, 323, 10),
+            // Los PNG empaquetados para 10-14 son 256x144. Antes se declaraban
+            // como ~576x28x; las UV terminaban fuera del recurso y varios fondos
+            // no se dibujaban de forma fiable.
+            new Nivel("nivel10", new PlantaImagen("nivel10.png", 256, 144, 10),
                     0xFF5C2420, 0xFF241014, 0xFF13090B,
                     0xFF241114, 0xFF13090B, 0xFF090406,
                     0xFF3D1717, 0xFF190A0D,
@@ -164,7 +165,7 @@ public final class Nivel {
                     0.500F, 0.500F, 0.220F, 0.220F, 0.160F, 0.140F,
                     0.12F, 0.18F),
 
-            new Nivel("nivel11", new PlantaImagen("nivel11.png", 576, 283, 11),
+            new Nivel("nivel11", new PlantaImagen("nivel11.png", 256, 144, 11),
                     0xFF355438, 0xFF17281D, 0xFF0B130E,
                     0xFF28261B, 0xFF15130D, 0xFF090A07,
                     0xFF243427, 0xFF111B13,
@@ -172,7 +173,7 @@ public final class Nivel {
                     0.520F, 0.500F, 0.250F, 0.250F, 0.155F, 0.135F,
                     0.30F, 0.72F),
 
-            new Nivel("nivel12", new PlantaImagen("nivel12.png", 576, 284, 12),
+            new Nivel("nivel12", new PlantaImagen("nivel12.png", 256, 144, 12),
                     0xFF304A32, 0xFF142218, 0xFF09100C,
                     0xFF252A22, 0xFF101510, 0xFF070A08,
                     0xFF26362B, 0xFF101A13,
@@ -180,7 +181,7 @@ public final class Nivel {
                     0.505F, 0.505F, 0.240F, 0.240F, 0.160F, 0.140F,
                     0.34F, 0.36F),
 
-            new Nivel("nivel13", new PlantaImagen("nivel13.png", 576, 282, 13),
+            new Nivel("nivel13", new PlantaImagen("nivel13.png", 256, 144, 13),
                     0xFF806038, 0xFF3E2D1A, 0xFF21150B,
                     0xFF4B3825, 0xFF2A1D11, 0xFF130C06,
                     0xFF5F472D, 0xFF302116,
@@ -188,13 +189,41 @@ public final class Nivel {
                     0.500F, 0.500F, 0.240F, 0.240F, 0.175F, 0.145F,
                     0.22F, 0.42F),
 
-            new Nivel("nivel14", new PlantaImagen("nivel14.png", 576, 285, 14),
+            new Nivel("nivel14", new PlantaImagen("nivel14.png", 256, 144, 14),
                     0xFF315136, 0xFF14251A, 0xFF09110C,
                     0xFF263027, 0xFF111912, 0xFF070B08,
                     0xFF28412F, 0xFF111D16,
                     0xFF13271B, 0xFF68FF67, 0xFF020603,
                     0.500F, 0.515F, 0.245F, 0.245F, 0.170F, 0.145F,
                     0.28F, 0.30F),
+
+            // Interferencia de Executor. El rojo sigue reservado al mismo eje
+            // narrativo de contencion/peligro, sin convertirse en color global.
+            new Nivel("nivel15", new PlantaImagen("nivel15.png", 256, 144, 15),
+                    0xFF6B1C12, 0xFF270907, 0xFF150504,
+                    0xFF26100D, 0xFF120706, 0xFF080303,
+                    0xFF45120D, 0xFF1A0806,
+                    0xFF2D0907, 0xFFFF5B2A, 0xFF040101,
+                    0.500F, 0.500F, 0.230F, 0.230F, 0.165F, 0.145F,
+                    0.10F, 0.14F),
+
+            // Archivo del prisma: frio, casi monocromo, con muy poca humedad.
+            new Nivel("nivel16", new PlantaImagen("nivel16.png", 256, 144, 16),
+                    0xFFBFC5C8, 0xFF3C4145, 0xFF171A1C,
+                    0xFF303438, 0xFF17191B, 0xFF090A0B,
+                    0xFF70767A, 0xFF2A2E31,
+                    0xFF565C60, 0xFFE6EEEE, 0xFF030405,
+                    0.500F, 0.500F, 0.220F, 0.220F, 0.160F, 0.140F,
+                    0.18F, 0.08F),
+
+            // Galeria de sombra: frio azulado y muy oscuro, sin agresion roja.
+            new Nivel("nivel17", new PlantaImagen("nivel17.png", 256, 144, 17),
+                    0xFF30446E, 0xFF11182D, 0xFF080B16,
+                    0xFF172038, 0xFF0B1020, 0xFF050810,
+                    0xFF263452, 0xFF11182A,
+                    0xFF17243E, 0xFF7FB8FF, 0xFF02040A,
+                    0.500F, 0.505F, 0.235F, 0.235F, 0.165F, 0.145F,
+                    0.24F, 0.26F),
     };
 
     public static int cantidad() {
@@ -206,7 +235,7 @@ public final class Nivel {
         return CATALOGO[((indice % n) + n) % n];
     }
 
-    /** Numero de nivel derivado de la clave, por ejemplo nivel14 -> 14. */
+    /** Numero de nivel derivado de la clave, por ejemplo nivel17 -> 17. */
     public int numero() {
         int n = 0;
         for (int i = 0; i < this.clave.length(); i++) {
