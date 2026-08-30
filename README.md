@@ -258,8 +258,11 @@ python tools\sonidos.py         # regenera las 73 piezas sintetizadas (74 OGG co
 
 Todo el diseño —canon del servidor, identidad, paleta, voz, alcance por fases y reglas de trabajo— está en
 [`CONTEXTO.md`](CONTEXTO.md). Para la entrega de esta evolución: [`CHANGELOG.md`](CHANGELOG.md),
-[`KNOWN_ISSUES.md`](KNOWN_ISSUES.md), [`docs/checklist-manual.md`](docs/checklist-manual.md),
-[`docs/compatibilidad.md`](docs/compatibilidad.md), [`docs/musica.md`](docs/musica.md),
-[`docs/EVOLUCION_5.md`](docs/EVOLUCION_5.md), [`docs/AUDITORIA_FONDOS_50X10.md`](docs/AUDITORIA_FONDOS_50X10.md),
-[`docs/INFORME_FINAL_EVOLUCION_3.md`](docs/INFORME_FINAL_EVOLUCION_3.md) y
-[`docs/EVOLUCION_4.md`](docs/EVOLUCION_4.md).
+[`KNOWN_ISSUES.md`](KNOWN_ISSUES.md), [`docs/EVOLUCION_6.md`](docs/EVOLUCION_6.md),
+[`docs/PLAN_EVOLUCION_6.md`](docs/PLAN_EVOLUCION_6.md),
+[`docs/CATALOGO_MEJORAS_Y_FUNCIONES.md`](docs/CATALOGO_MEJORAS_Y_FUNCIONES.md),
+[`docs/INFORME_FINAL_EVOLUCION_6.md`](docs/INFORME_FINAL_EVOLUCION_6.md),
+[`docs/DIRECCION_ARTISTICA.md`](docs/DIRECCION_ARTISTICA.md),
+[`docs/FONDOS_EXPLICADOS.md`](docs/FONDOS_EXPLICADOS.md),
+[`docs/checklist-manual.md`](docs/checklist-manual.md), [`docs/compatibilidad.md`](docs/compatibilidad.md),
+[`docs/musica.md`](docs/musica.md) y [`docs/AUDITORIA_FONDOS_50X10.md`](docs/AUDITORIA_FONDOS_50X10.md).

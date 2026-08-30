@@ -60,22 +60,35 @@ directamente en una terminal nueva; no se genera ningún archivo de PowerShell.
 
 | Comprobación | Estado |
 |---|---|
-| `python3 tools/verificar.py` | Superada: 0 avisos, 0 fallos |
-| JSON de idiomas | Superado |
+| `python3 tools/verificar.py` | Superada: **1 aviso** (`gradle-wrapper.jar`), 0 fallos |
+| JSON de idiomas | Superado (claves ES/EN idénticas) |
 | `py_compile` de herramientas | Superado |
 | `git diff --check` | Superado en la última validación registrada |
-| `clean build --no-daemon` | **Pendiente para esta rama con Java 17**; la prueba Windows del 29/08 usó la rama 0.9.0 y Java 21, por lo que no certifica 0.10.0 |
+| Segunda auditoría de la Evolución 6 | Superada: sin imports muertos, sin métodos huérfanos, ASCII y llaves en los 22 archivos tocados, espejo Java↔Python verificado método a método, sin arreglos temporales por frame en las plantas |
+| `clean build --no-daemon` | **Pendiente para esta rama con Java 17**; el entorno no tiene JDK 17, falta el wrapper y la red hacia `services.gradle.org` / `maven.minecraftforge.net` está bloqueada (HTTP 000), por lo que no se puede ejecutar aquí |
 | Arranque Forge en `test-1` | Pendiente |
 | Audio, modpack, GPU y GUI scales | Pendientes de prueba manual |
 
 La prueba de despliegue que terminó con `BUILD SUCCESSFUL` no debe marcarse
 como build de 0.10.0: se realizó en `arena/01a04e0d-jobs-menu` y el artefacto
-esperado no apareció. El bloque vigente del README detiene el proceso si la rama,
-la versión, Python o Java no coinciden.
+esperado no apareció. El bloque vigente del README detiene el proceso si la rama
+(ahora `arena/01a04ff1-jobs-menu`), la versión, Python o Java no coinciden.
 
-La matriz de aceptación de fondos de la próxima etapa está en
-[`AUDITORIA_FONDOS_50X10.md`](AUDITORIA_FONDOS_50X10.md), y el registro de la
-corrección de entrega está en [`EVOLUCION_5.md`](EVOLUCION_5.md).
+## Evolución 6 — decisiones de compatibilidad
+
+- Sin mixins ni dependencias nuevas. Los cambios usan únicamente las APIs ya
+  presentes en el proyecto (eventos de `Screen`, `OptionsList`/`OptionInstance`,
+  tick del cliente).
+- `PantallaAjustesAviso` no usa `addTitle` (esa API no existe en 1.20.1;
+  `OptionsList` sólo ofrece `addBig`/`addSmall`/`addAll`), lo que mantiene la
+  convivencia con otras pantallas de opciones de mods.
+- La escena sigue sin overlays sobre pantallas ajenas: las mejoras artísticas
+  viven dentro de los diez recintos propios.
+- La matriz de aceptación de fondos está en
+  [`AUDITORIA_FONDOS_50X10.md`](AUDITORIA_FONDOS_50X10.md) con las filas
+  implementadas por la Evolución 6 marcadas; el detalle de la evolución en
+  [`EVOLUCION_6.md`](EVOLUCION_6.md) y el catálogo en
+  [`CATALOGO_MEJORAS_Y_FUNCIONES.md`](CATALOGO_MEJORAS_Y_FUNCIONES.md).
 
 Las incidencias que afectan a la validación runtime se mantienen en
 [`KNOWN_ISSUES.md`](../KNOWN_ISSUES.md). Las pruebas paso a paso están en

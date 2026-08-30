@@ -128,10 +128,13 @@ Minecraft** (pendiente). Ninguna afirmación de runtime se da por verificada.
     torcidos con sesgo determinista. El trono es el foco inequívoco.
 31. **Código antiguo eliminado.** Llamadas a `addTitle`; esquema de `--nivel`
     con espacio en el espejo; comentarios de filas de la matriz sin estado.
-32. **Documentación actualizada.** README, CONTEXTO (referencias), CHANGELOG,
-    KNOWN_ISSUES, `docs/EVOLUCION_6.md`, `docs/CATALOGO_MEJORAS_Y_FUNCIONES.md`,
-    `docs/INFORME_FINAL_EVOLUCION_6.md`, `docs/AUDITORIA_FONDOS_50X10.md`,
-    `backups/README.md`. Ctrl+S no aparece en ninguna documentación pública.
+32. **Documentación actualizada.** README, CONTEXTO, CHANGELOG, KNOWN_ISSUES,
+    `docs/EVOLUCION_6.md`, `docs/PLAN_EVOLUCION_6.md`,
+    `docs/CATALOGO_MEJORAS_Y_FUNCIONES.md`, `docs/DIRECCION_ARTISTICA.md`,
+    `docs/FONDOS_EXPLICADOS.md`, `docs/INFORME_FINAL_EVOLUCION_6.md`,
+    `docs/musica.md`, `docs/compatibilidad.md`, `docs/checklist-manual.md`,
+    `docs/AUDITORIA_FONDOS_50X10.md`, `backups/README.md`. Ctrl+S no aparece
+    en ninguna documentación pública.
 33. **Compatibilidad.** Sin mixins ni dependencias nuevas; sin sustituir
     subclases de pantallas ajenas; `PantallaAjustesAviso` compatible con
     `OptionsList` de 1.20.1; los fondos no taponan botones ni overlays de
@@ -147,9 +150,10 @@ Minecraft** (pendiente). Ninguna afirmación de runtime se da por verificada.
     `bee642a` (matriz).
 37. **Commit final.** El último commit de la rama tras esta pasada de
     documentación (ver `git log` en la rama).
-38. **Resultado del build.** Pendiente: este entorno no tiene JDK 17 ni
-    `gradle-wrapper.jar`, y la red hacia gradle.org / maven.minecraftforge.net
-    está bloqueada. No se declara ningún build como exitoso.
+38. **Resultado del build.** Pendiente y re-verificado el 29/08: este entorno
+    no tiene JDK 17 ni `gradle-wrapper.jar`, y `services.gradle.org` /
+    `maven.minecraftforge.net` responden HTTP 000 (bloqueados) mientras
+    GitHub responde 200. No se declara ningún build como exitoso.
 39. **JAR generado.** Ninguno en esta sesión. El JAR `jobsmenu-0.10.0.jar` debe
     generarse localmente con JDK 17 según el procedimiento del README y
     probarse dentro de Minecraft antes de declarar la versión validada.

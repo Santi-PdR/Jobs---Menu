@@ -1,5 +1,21 @@
 # Registro de cambios
 
+## Evolución 6 — Documentación completa — 2026-08-29
+
+- `docs/PLAN_EVOLUCION_6.md`: las 31 propuestas evaluadas (13 mejoras de
+  sistemas + 10 artísticas + 8 funciones) con problema/solución/beneficio/
+  riesgo/coste/impacto/decisión.
+- `docs/DIRECCION_ARTISTICA.md` (lenguaje visual, cámara por nivel,
+  materiales, iluminación y reglas) y `docs/FONDOS_EXPLICADOS.md` (los diez
+  recintos con su mejora de la Evolución 6).
+- `docs/musica.md`, `docs/compatibilidad.md` y `docs/checklist-manual.md`
+  actualizados: vigilancia de fantasma, camas vivas en pantallas hijas,
+  opciones nuevas (duración de estancia, salto F, perfil accesible, bajo
+  consumo) y rama correcta `arena/01a04ff1-jobs-menu`.
+- README: lista de documentación al día. Verificador en verde (1 aviso).
+- Reintento de build: gradle.org y maven.minecraftforge.net siguen bloqueados
+  (HTTP 000); el `clean build` con Java 17 queda para el equipo local.
+
 ## Evolución 6 — Segunda auditoría y cierre — 2026-08-29
 
 - Revisión de los propios cambios: imports (eliminado el import muerto de

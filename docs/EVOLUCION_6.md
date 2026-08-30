@@ -87,11 +87,19 @@ implementadas, con sus conteos reales por escenario.
 - Segunda pasada estática sobre todos los cambios propios: verde.
 - `tools/vista_previa.py` acepta `--nivel N` (forma con espacio) además de
   `--nivel=N`, sin romper los posicionales.
-- Documentación final: este documento, `docs/CATALOGO_MEJORAS_Y_FUNCIONES.md`,
-  `docs/INFORME_FINAL_EVOLUCION_6.md`, CHANGELOG, KNOWN_ISSUES y README
-  actualizados.
+- Documentación final: este documento, `docs/PLAN_EVOLUCION_6.md` (las 31
+  propuestas evaluadas con problema/solución/beneficio/riesgo/coste/impacto/
+  decisión), `docs/CATALOGO_MEJORAS_Y_FUNCIONES.md`,
+  `docs/DIRECCION_ARTISTICA.md`, `docs/FONDOS_EXPLICADOS.md`,
+  `docs/INFORME_FINAL_EVOLUCION_6.md`, `docs/musica.md`,
+  `docs/compatibilidad.md`, `docs/checklist-manual.md` (con los checks de las
+  opciones nuevas), CHANGELOG, KNOWN_ISSUES, CONTEXTO y README.
+- Limpieza: sin basura versionada, sin OGG huérfanos, sin imports muertos;
+  las matrices por frame de tres plantas pasaron a `static final`.
+- Reintento de build el 29/08: `services.gradle.org` y
+  `maven.minecraftforge.net` siguen bloqueados (HTTP 000) y no hay JDK en el
+  entorno; el `clean build` con Java 17 queda para el equipo local del owner.
 - Backup C creado y subido.
-- Build con Java 17: pendiente (entorno), ver KNOWN_ISSUES.
 
 ## Lo que NO se hizo (y por qué)
 

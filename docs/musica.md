@@ -16,6 +16,12 @@ de una instancia Forge con Java 17; compilar no certifica el audio en vivo.
 
 - `GestorMusica` mantiene una única instancia del tema y evita duplicados al
   abrir, redimensionar o cambiar de pantalla.
+- **Vigilancia de instancia fantasma (Evolución 6).** Si una segunda instancia
+  quedara congelada (p. ej. por una recarga de recursos), el gestor la detecta
+  y la invalida. El vigía se desarma cuando el cliente no está tickeando
+  (juego pausado o sin foco) para no disparar falsas alarmas: al reanudar, el
+  primer tick sólo rearma la vigilancia. `reintentoParaDiagnostico()` alimenta
+  el volcado oculto de `DiagnosticoOculto` (Ctrl+D, no documentado en la UI).
 - El tema usa `SoundSource.MASTER`. Lo gobiernan el deslizador **Maestro** de
   Minecraft y el volumen de música del mod; no depende del deslizador **Música**
   de vanilla.
@@ -25,7 +31,10 @@ de una instancia Forge con Java 17; compilar no certifica el audio en vivo.
   tema del mod. Al salir, el ciclo de vida del gestor se cierra sin dejar
   instancias huérfanas.
 - Las camas ambientales siguen usando su canal ambiental y sus propios controles;
-  no deben confundirse con el contrato de la música.
+  no deben confundirse con el contrato de la música. Desde la Evolución 6, el
+  ambiente pertenece a la **visita** del menú: `SesionMenu` + `mantenerCamas()`
+  en el tick del cliente mantienen vivas las camas del nivel actual aunque se
+  abran Opciones o Mods, y las detienen al entrar a un mundo o salir del menú.
 - Una pista de terceros sólo lleva crédito cuando la autoría y el permiso para
   esa distribución están confirmados. La opción `credito_musica` permite ocultar
   un crédito válido, pero no sustituye la autorización.

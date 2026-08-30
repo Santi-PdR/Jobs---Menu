@@ -8,8 +8,8 @@ no sustituyen las comprobaciones visuales, de navegación, audio y lifecycle.
 La ejecución del 29/08/2026 quedó sin validar: la terminal estaba en
 `arena/01a04e0d-jobs-menu`, tenía Java 21 y el alias de Python de Microsoft
 Store, y Gradle produjo el JAR del snapshot 0.9.0. No marcar ninguna casilla de
-esta sección por ese resultado. La rama objetivo es
-`arena/01a04e24-jobs-menu`, con JDK 17 y Python 3 reales.
+esta sección por ese resultado. La rama objetivo de la Evolución 6 es
+`arena/01a04ff1-jobs-menu`, con JDK 17 y Python 3 reales.
 
 ## Preparación
 
@@ -50,6 +50,25 @@ esta sección por ese resultado. La rama objetivo es
 - [ ] Duración de avisos funciona entre 4 y 15 segundos y no cambia la hitbox.
 - [ ] Tooltips y narración no muestran claves sin traducir.
 
+## Evolución 6 — opciones nuevas
+
+- [ ] `duracion_estancia` entre 15 y 90 s se aplica en vivo: el apagón y el
+  cambio de nivel ocurren según el valor; con `rotacion_calma` la estancia se
+  duplica.
+- [ ] Tecla F salta de nivel con antirrepetición (dos pulsos seguidos no
+  avanzan dos niveles), suena el gesto y no interfiere con otros atajos.
+- [ ] `perfil_accesible` enciende juntas movimiento reducido, destellos
+  reducidos, alto contraste y texto grande; marcar a mano cualquiera de esas
+  cuatro desactiva el perfil y persiste al reiniciar.
+- [ ] `bajo_consumo` quita polvo, grano, presencia, motas y respiración de
+  cámara pero conserva el recinto completo y su audio.
+- [ ] Con Opciones o Mods abiertos, rotar de nivel no deja el recinto nuevo en
+  silencio (camas vivas en pantallas hijas); salir al mundo sí detiene el
+  ambiente.
+- [ ] La música no se reinicia al abrir y cerrar Opciones; una segunda instancia
+  congelada (p. ej. tras F3+T) se detecta y se invalida sin falsas alarmas por
+  pausa o falta de foco.
+
 ## Audio
 
 - [ ] La pista activa —original por defecto o copia local autorizada— tiene una
@@ -82,7 +101,7 @@ esta sección por ese resultado. La rama objetivo es
 ## Despliegue en `test-1`
 
 - [ ] El repositorio local es `C:\Users\santi\Desktop\Jobs---Menu` y la rama
-  actual es `arena/01a04e24-jobs-menu`.
+  actual es `arena/01a04ff1-jobs-menu`.
 - [ ] `git ls-remote` confirmó que la rama existe en `origin` antes del `pull`.
 - [ ] Java 17 está disponible y `python tools\verificar.py` termina sin fallos.
 - [ ] `clean build --no-daemon` termina con `BUILD SUCCESSFUL`.
