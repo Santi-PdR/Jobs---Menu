@@ -33,6 +33,7 @@ CONTEXT_SECTION = r'''## Regla vigente de build y despliegue
 
 Esta regla reemplaza cualquier procedimiento historico que aparezca mas abajo en este documento.
 
+- `main` es la rama de entrega. Los cambios estructurales se preparan en una rama de trabajo y solo se integran despues de pasar CI.
 - El CI de GitHub es quien verifica y compila la entrega de desarrollo con Java 17.
 - El build pasa primero por `tools/verificar.py` y luego por Gradle/Forge.
 - El JAR estable para pruebas se publica como `jobsmenu-latest.jar` en la release rodante `dev-latest`.
@@ -52,19 +53,22 @@ def update_readme() -> bool:
 
     text = text.replace("accesibilidad y la legibilidad de sus diez recintos.",
                         "accesibilidad y la legibilidad de sus quince recintos.")
+    text = text.replace(
+        "auditoría de fondos) y rediseñó el Trono desde cero. Build con Java 17 y\nprueba en Minecraft pendientes: ver [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md).",
+        "auditoría de fondos) y rediseñó el Trono desde cero. El build automatizado con Java 17 está activo;\nla prueba final dentro de Minecraft sigue siendo manual: ver [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md).",
+    )
 
-    start = text.find("## Compilar\n")
-    if start < 0:
-        start = text.find("## Compilar\r\n")
-    if start < 0:
-        raise SystemExit("README.md: no se encontro la seccion '## Compilar'.")
-
-    # El bloque historico contiene otro H2 ('Compilar y desplegar...'). El
-    # primer H2 realmente posterior al procedimiento completo es Herramientas.
-    end = text.find("\n## Herramientas sin JDK", start)
-    if end < 0:
-        raise SystemExit("README.md: no se encontro '## Herramientas sin JDK' despues de Compilar.")
-    text = text[:start] + DEPLOY_SECTION.rstrip() + "\n" + text[end:]
+    # Si ya fue migrado, no vuelvas a buscar el bloque historico.
+    if "## Compilacion y despliegue" not in text:
+        start = text.find("## Compilar\n")
+        if start < 0:
+            start = text.find("## Compilar\r\n")
+        if start < 0:
+            raise SystemExit("README.md: no se encontro la seccion '## Compilar'.")
+        end = text.find("\n## Herramientas sin JDK", start)
+        if end < 0:
+            raise SystemExit("README.md: no se encontro '## Herramientas sin JDK' despues de Compilar.")
+        text = text[:start] + DEPLOY_SECTION.rstrip() + "\n" + text[end:]
 
     marker = "[`docs/NIVELES_10_14.md`](docs/NIVELES_10_14.md)"
     if marker not in text:
@@ -98,6 +102,8 @@ def update_context() -> bool:
         if first_break < 0:
             raise SystemExit("CONTEXTO.md: formato inesperado.")
         text = text[:first_break + 1] + "\n" + CONTEXT_SECTION.rstrip() + "\n" + text[first_break + 1:]
+
+    text = re.sub(r"\| Rama de trabajo \| `[^`]+` \|", "| Rama de entrega | `main` |", text, count=1)
 
     if text != original:
         path.write_text(text, encoding="utf-8")
