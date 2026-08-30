@@ -183,30 +183,41 @@ if ($version -ne $versionEsperada) {
     throw "La version encontrada es $version; este despliegue espera $versionEsperada."
 }
 
-# --- 2. JDK 17 completo: java y javac. gradlew.bat usa JAVA_HOME si existe --
-$java = Get-Command java.exe -ErrorAction SilentlyContinue
-if (-not $java) {
-    throw "java no esta en el PATH. Instala o activa un JDK 17."
-}
-$javac = Get-Command javac.exe -ErrorAction SilentlyContinue
-if (-not $javac) {
-    throw "javac no esta en el PATH. Hace falta un JDK 17, no solo un JRE."
-}
-$javaText = (& $java.Source -version 2>&1 | Out-String).Trim()
-if ($javaText -notmatch 'version "17\.') {
-    throw "Se encontro Java distinto de 17:`n$javaText"
-}
-Write-Host $javaText -ForegroundColor Green
-
+# --- 2. JDK 17. gradlew.bat usa JAVA_HOME si existe; si no, el java del PATH --
 if ($env:JAVA_HOME) {
     $jhJava = Join-Path $env:JAVA_HOME "bin\java.exe"
-    if (Test-Path $jhJava -PathType Leaf) {
-        $jhText = (& $jhJava -version 2>&1 | Out-String).Trim()
-        if ($jhText -notmatch 'version "17\.') {
-            throw "JAVA_HOME apunta a $env:JAVA_HOME, pero su java no es 17:`n$jhText"
-        }
+    if (-not (Test-Path $jhJava -PathType Leaf)) {
+        throw "JAVA_HOME apunta a '$env:JAVA_HOME' pero no tiene bin\java.exe."
+    }
+    if (-not (Test-Path (Join-Path $env:JAVA_HOME "bin\javac.exe") -PathType Leaf)) {
+        throw "JAVA_HOME no tiene bin\javac.exe; hace falta un JDK, no un JRE."
+    }
+    try {
+        $javaText = (& $jhJava -version 2>&1 | Out-String).Trim()
+    } catch {
+        $javaText = $_.Exception.Message
+    }
+    if ($javaText -notmatch 'version "17\.') {
+        throw "JAVA_HOME apunta a un Java que no es 17:`n$javaText"
+    }
+} else {
+    $java = Get-Command java.exe -ErrorAction SilentlyContinue
+    if (-not $java) {
+        throw "No hay JAVA_HOME y java no esta en el PATH. Instala o activa un JDK 17."
+    }
+    if (-not (Get-Command javac.exe -ErrorAction SilentlyContinue)) {
+        throw "Sin JAVA_HOME hace falta un JDK 17 completo en el PATH (no encontre javac)."
+    }
+    try {
+        $javaText = (& $java.Source -version 2>&1 | Out-String).Trim()
+    } catch {
+        $javaText = $_.Exception.Message
+    }
+    if ($javaText -notmatch 'version "17\.') {
+        throw "Se encontro Java distinto de 17:`n$javaText"
     }
 }
+Write-Host $javaText -ForegroundColor Green
 
 # --- 3. Python real, evitando los alias de Microsoft Store -----------------
 $py = Get-Command py.exe -ErrorAction SilentlyContinue
