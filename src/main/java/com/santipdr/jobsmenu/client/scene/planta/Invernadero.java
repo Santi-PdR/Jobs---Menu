@@ -64,6 +64,7 @@ public final class Invernadero implements Planta {
         Trazo.manchas(grafico, m, nivel, luz, TRAMOS);
 
         bancos(grafico, m, nivel, luz);
+        pasarela(grafico, m, nivel, luz);
         vegetacion(grafico, m, nivel, luz, tiempo);
         haces(grafico, m, nivel, luz, tiempo);
         vahoSuperficie(grafico, m, nivel, luz, tiempo);
@@ -301,6 +302,49 @@ public final class Invernadero implements Planta {
                 grafico.fill((int) (x - ancho * 0.5F), (int) (y - alto * 1.35F), (int) (x + ancho * 0.5F), (int) (y - alto),
                         Paleta.iluminar(Trazo.velar(0xFF2C2415, nivel.niebla, lej, 0.4F), at * 0.6F));
             }
+        }
+    }
+
+    /**
+     * La pasarela oxidada sobre los cultivos: un tablon de servicio que cruza
+     * el recinto por encima de los bancos. Sus soportes bajan hasta el suelo y
+     * una barandilla de un solo lado la recorre entera. No es decoracion: es la
+     * via de trabajo del invernadero, y el oxido dice hace cuanto no se usa.
+     */
+    private static void pasarela(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 2.05F;
+        if (m.lado(-1.0F, dx * 0.58F) > m.ancho() || m.lado(1.0F, dx * 0.58F) < 0) {
+            return;
+        }
+        float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
+        float at = Trazo.atenuar(luz, lej);
+        float ySuelo = m.sueloEn(dx);
+        float yDeck = ySuelo - m.h() * dx * 0.30F;
+        int grosor = Math.max(2, (int) (m.h() * dx * 0.020F));
+        // Hierro oxidado: el metal de servicio que se comio la humedad.
+        int oxido = Paleta.iluminar(Trazo.velar(
+                Paleta.mezclar(nivel.junta, 0xFF7A4E2C, 0.45F), nivel.niebla, lej, 0.4F), at * 0.85F);
+        int borde = Paleta.iluminar(oxido, 1.12F);
+
+        // Soportes: dos postes que bajan hasta el suelo, con su sombra de
+        // contacto. El tablon no puede flotar.
+        for (int signo = -1; signo <= 1; signo += 2) {
+            int x = Math.round(m.lado(signo, dx * 0.58F));
+            grafico.fill(x, (int) yDeck, x + grosor, (int) ySuelo, oxido);
+            grafico.fill(x - grosor, (int) ySuelo, x + grosor * 2, (int) ySuelo + 2,
+                    Paleta.conAlfa(Paleta.VANO, 0.25F * at));
+        }
+        // El tablon: cruza de pared a pared, con el canto superior recogiendo luz.
+        int xIzq = Math.round(m.lado(-1.0F, dx * 0.58F));
+        int xDer = Math.round(m.lado(1.0F, dx * 0.58F));
+        grafico.fill(xIzq, (int) yDeck, xDer, (int) yDeck + grosor, oxido);
+        grafico.fill(xIzq, (int) yDeck, xDer, (int) yDeck + 1, borde);
+        // Barandilla del lado lejano: un solo pasamanos, con dos montantes.
+        float yRiel = yDeck - m.h() * dx * 0.055F;
+        grafico.fill(xIzq, (int) yRiel, xDer, (int) yRiel + 1, borde);
+        for (int i = 1; i <= 2; i++) {
+            int x = xIzq + (xDer - xIzq) * i / 3;
+            grafico.fill(x, (int) yRiel, x + 1, (int) yDeck, borde);
         }
     }
 

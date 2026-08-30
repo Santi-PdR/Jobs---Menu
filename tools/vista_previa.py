@@ -3327,6 +3327,7 @@ def invernadero(lz, m, nivel, luz, tiempo) -> None:
     t_juntas(lz, m, nivel, luz, INV_TRAMOS, 1.0, 0.28)
     t_manchas(lz, m, nivel, luz, INV_TRAMOS)
     inv_bancos(lz, m, nivel, luz)
+    inv_pasarela(lz, m, nivel, luz)
     inv_vegetacion(lz, m, nivel, luz, tiempo)
     inv_haces(lz, m, nivel, luz, tiempo)
     inv_vaho(lz, m, nivel, luz, tiempo)
@@ -3520,6 +3521,35 @@ def inv_bancos(lz, m, nivel, luz) -> None:
             # La tierra encima, como un reborde oscuro bien apoyado en el cajon.
             lz.fill(int(x - ancho * 0.5), int(y - alto * 1.35), int(x + ancho * 0.5), int(y - alto),
                     iluminar(velar(0xFF2C2415, nivel.niebla, lej, 0.4), at * 0.6))
+
+
+def inv_pasarela(lz, m, nivel, luz) -> None:
+    # Pasarela oxidada sobre los cultivos: tablon de servicio con soportes al
+    # suelo y barandilla de un solo lado. El oxido dice hace cuanto no se usa.
+    dx = 2.05
+    if m.lado(-1.0, dx * 0.58) > m.ancho or m.lado(1.0, dx * 0.58) < 0:
+        return
+    lej = limitar(1.0 / dx, 0.0, 1.0)
+    at = atenuar(luz, lej)
+    y_suelo = m.suelo_en(dx)
+    y_deck = y_suelo - m.h * dx * 0.30
+    grosor = max(2, int(m.h * dx * 0.020))
+    oxido = iluminar(velar(mezclar(nivel.junta, 0xFF7A4E2C, 0.45), nivel.niebla, lej, 0.4), at * 0.85)
+    borde = iluminar(oxido, 1.12)
+    for signo in (-1, 1):
+        x = round(m.lado(signo, dx * 0.58))
+        lz.fill(x, int(y_deck), x + grosor, int(y_suelo), oxido)
+        lz.fill(x - grosor, int(y_suelo), x + grosor * 2, int(y_suelo) + 2,
+                con_alfa(VANO, 0.25 * at))
+    x_izq = round(m.lado(-1.0, dx * 0.58))
+    x_der = round(m.lado(1.0, dx * 0.58))
+    lz.fill(x_izq, int(y_deck), x_der, int(y_deck) + grosor, oxido)
+    lz.fill(x_izq, int(y_deck), x_der, int(y_deck) + 1, borde)
+    y_riel = y_deck - m.h * dx * 0.055
+    lz.fill(x_izq, int(y_riel), x_der, int(y_riel) + 1, borde)
+    for i in (1, 2):
+        x = x_izq + (x_der - x_izq) * i // 3
+        lz.fill(x, int(y_riel), x + 1, int(y_deck), borde)
 
 
 def inv_vegetacion(lz, m, nivel, luz, tiempo) -> None:
