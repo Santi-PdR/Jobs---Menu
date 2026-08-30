@@ -124,7 +124,7 @@ public final class ConfigTurno {
 
         this.nivelFijo = builder
                 .comment("Nivel a mostrar cuando la rotacion esta apagada. 0 es el papel mural.")
-                .defineInRange("nivel_fijo", 0, 0, 9);
+                .defineInRange("nivel_fijo", 0, 0, 14);
 
         this.sonidoBotones = builder
                 .comment("Sonar la casilla al recorrer y al marcar los renglones del aviso.")

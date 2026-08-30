@@ -9,11 +9,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Planta para fondos fotográficos entregados para el menú.
+ * Planta para fondos fotograficos entregados para el menu.
  *
- * No estira la imagen: usa un recorte tipo cover, centrado, y después la mete
+ * No estira la imagen: usa un recorte tipo cover, centrado, y despues la mete
  * dentro del mismo sistema de luz de los recintos procedurales. Por eso un
- * apagón, La Suspensión o la penumbra de ronda también afectan a estas escenas.
+ * apagon, La Suspension o la penumbra de ronda tambien afectan a estas escenas.
  */
 public final class PlantaImagen implements Planta {
 
@@ -61,8 +61,8 @@ public final class PlantaImagen implements Planta {
         float a = (0.018F + 0.025F * onda) * luz;
 
         if (modo == 10) {
-            // Contención: el rojo ya existe en la imagen. Sólo respira el calor
-            // de abajo; no añadimos rojo a ningún otro recinto.
+            // Contencion: el rojo ya existe en la imagen. Solo respira el calor
+            // de abajo; no anadimos rojo a ningun otro recinto.
             int y = (int) (h * 0.58F);
             g.fill(0, y, w, h, Paleta.conAlfa(0xFFFF3A18, a * 1.35F));
             g.fill(0, 0, w, h / 5, Paleta.conAlfa(Paleta.VANO, 0.16F));
@@ -70,19 +70,19 @@ public final class PlantaImagen implements Planta {
         }
 
         if (modo == 11 || modo == 13) {
-            // Luz cálida secundaria en salas donde las luminarias son visibles.
+            // Luz calida secundaria en salas donde las luminarias son visibles.
             int y = (int) (h * (0.66F + 0.02F * onda));
             g.fill(0, y, w, Math.min(h, y + 2), Paleta.conAlfa(0xFFFFC06A, a * 0.75F));
         }
 
         if (modo == 11 || modo == 12 || modo == 14) {
-            // Respiración de instalación verde, tenue y amplia.
+            // Respiracion de instalacion verde, tenue y amplia.
             int banda = Math.max(2, h / 90);
             int y = (int) (h * (0.42F + 0.04F * (float) Math.sin(tiempo * 0.11F + modo)));
             g.fill(0, y, w, y + banda, Paleta.conAlfa(0xFF7CFF73, a * 0.55F));
         }
 
-        // Capa de aire común: suficiente para unir la foto con la UI sin
+        // Capa de aire comun: suficiente para unir la foto con la UI sin
         // convertirla en una postal lavada.
         g.fill(0, 0, w, h, Paleta.conAlfa(nivel.niebla, 0.035F));
     }

@@ -14,11 +14,11 @@ import com.santipdr.jobsmenu.client.scene.planta.Servicio;
 import com.santipdr.jobsmenu.client.scene.planta.Trono;
 
 /**
- * Un nivel del servidor visto desde donde está pegado el aviso.
+ * Un nivel del servidor visto desde donde esta pegado el aviso.
  *
- * Los niveles 0–9 conservan sus plantas procedurales. Los niveles 10–14 son
+ * Los niveles 0-9 conservan sus plantas procedurales. Los niveles 10-14 son
  * escenas aportadas al proyecto y pasan por PlantaImagen, que las integra en
- * la misma luz, transición y atmósfera en vez de mostrarlas como postales.
+ * la misma luz, transicion y atmosfera en vez de mostrarlas como postales.
  */
 public final class Nivel {
 
@@ -72,7 +72,7 @@ public final class Nivel {
         this.humedad = humedad;
     }
 
-    /** Catálogo completo en el orden de la rotación automática. */
+    /** Catalogo completo en el orden de la rotacion automatica. */
     public static final Nivel[] CATALOGO = new Nivel[] {
             new Nivel("nivel0", new Sala(),
                     0xFFE6D264, 0xFF9A8630, 0xFF5E5222,
@@ -155,7 +155,7 @@ public final class Nivel {
                     0.26F, 0.55F),
 
             // Rojo exclusivo de Executores. La imagen ya trae el lenguaje de
-            // contención; la planta sólo añade luz y atmósfera.
+            // contencion; la planta solo anade luz y atmosfera.
             new Nivel("nivel10", new PlantaImagen("nivel10.png", 576, 323, 10),
                     0xFF5C2420, 0xFF241014, 0xFF13090B,
                     0xFF241114, 0xFF13090B, 0xFF090406,
@@ -206,7 +206,7 @@ public final class Nivel {
         return CATALOGO[((indice % n) + n) % n];
     }
 
-    /** Número de nivel derivado de la clave, por ejemplo nivel14 -> 14. */
+    /** Numero de nivel derivado de la clave, por ejemplo nivel14 -> 14. */
     public int numero() {
         int n = 0;
         for (int i = 0; i < this.clave.length(); i++) {
