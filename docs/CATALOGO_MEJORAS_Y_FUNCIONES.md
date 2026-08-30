@@ -81,6 +81,11 @@ Convención de commits:
 
 13. **Textos ES/EN sincronizados** para estancia, salto manual y perfil
     accesible (`es_es.json`, `en_us.json`). Commit `5702eb2`.
+14. **Sin basura por frame en las plantas.** Las matrices locales de
+    `Servicio.haz`, `Biblioteca.paginasDobladas` y `Natatorio.
+    marcasProfundidad` pasan a `static final`, y el colgador central de la
+    bandeja de cables de `Servicio` ya no crea un arreglo temporal. Segunda
+    pasada de auditoría sobre los propios cambios (`d4f4e88`).
 
 ## B. Mejoras artísticas (una por fondo)
 

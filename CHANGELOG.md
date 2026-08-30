@@ -1,5 +1,23 @@
 # Registro de cambios
 
+## Evolución 6 — Segunda auditoría y cierre — 2026-08-29
+
+- Revisión de los propios cambios: imports (eliminado el import muerto de
+  `Nivel` en `GestorAmbiente`), métodos sin llamadas (ninguno: los detectados
+  se referencian por `this::` o `@SubscribeEvent`), ASCII en todos los
+  archivos tocados, llaves balanceadas, espejo Java↔Python verificado método a
+  método y claves de idioma ES/EN idénticas.
+- Rendimiento: las matrices locales por frame de `Servicio.haz`,
+  `Biblioteca.paginasDobladas` y `Natatorio.marcasProfundidad` pasan a
+  constantes `static final`; el colgador central de la bandeja de cables de
+  `Servicio` deja de crear un arreglo temporal.
+- Documentación contradictoria corregida: el bloque PowerShell del README
+  validaba la rama anterior `arena/01a04e24-jobs-menu`; ahora exige
+  `arena/01a04ff1-jobs-menu`. CONTEXTO actualizado (tabla de opciones,
+  sección 4.2, fila 0.10.0-E6 y cabecera con la rama correcta).
+- `tools/vista_previa.py` acepta `--nivel N` con espacio; cabecera de la
+  matriz de fondos con la rama y las filas implementadas.
+
 ## Evolución 6 — Etapa 2: dirección artística de los diez fondos — 2026-08-29
 
 - Un commit por escenario, cada uno con su espejo en `tools/vista_previa.py` y

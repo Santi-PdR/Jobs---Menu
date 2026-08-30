@@ -76,12 +76,18 @@ public final class Servicio implements Planta {
         // El canto inferior de la bandeja, de pared a pared.
         grafico.fill(0, (int) yBandeja, m.ancho(), (int) yBandeja + 1,
                 Paleta.conAlfa(metal, 0.85F));
-        // Tres colgadores verticales anclados al techo.
-        float[] colgadores = {m.lado(-1.0F, dy * 0.62F), m.centro(dy), m.lado(1.0F, dy * 0.62F)};
-        for (float x : colgadores) {
+        // Tres colgadores verticales anclados al techo. Sin arreglo temporal:
+        // los dos laterales y el central se dibujan cada uno por separado.
+        for (int lado = -1; lado <= 1; lado += 2) {
+            float x = m.lado(lado, dy * 0.62F);
             if (x < -5.0F || x > m.ancho() + 5.0F) {
                 continue;
             }
+            grafico.fill((int) x, (int) yTecho, (int) x + 1, (int) yBandeja,
+                    Paleta.conAlfa(metal, 0.80F));
+        }
+        {
+            float x = m.centro(dy);
             grafico.fill((int) x, (int) yTecho, (int) x + 1, (int) yBandeja,
                     Paleta.conAlfa(metal, 0.80F));
         }
@@ -254,12 +260,14 @@ public final class Servicio implements Planta {
      * material. La mas gruesa lleva aislante -por eso es mas clara y mate-, y
      * una de las finas tiene una junta que gotea cada tanto.
      */
-    private static void haz(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
-        final float[] alturas = {0.86F, 0.78F, 0.70F, 0.62F, 0.56F};
-        final float[] radios = {0.070F, 0.038F, 0.054F, 0.028F, 0.022F};
-        final float[] tonos = {0.45F, 0.10F, 0.28F, 0.05F, 0.18F};
+    /** Corridas del haz: altura relativa, radio y tono por tuberia. Fijos. */
+    private static final float[] ALTURAS_HAZ = {0.86F, 0.78F, 0.70F, 0.62F, 0.56F};
+    private static final float[] RADIOS_HAZ = {0.070F, 0.038F, 0.054F, 0.028F, 0.022F};
+    private static final float[] TONOS_HAZ = {0.45F, 0.10F, 0.28F, 0.05F, 0.18F};
 
-        for (int c = 0; c < alturas.length; c++) {
+    private static void haz(GuiGraphics grafico, Marco m, Nivel nivel, float luz, float tiempo) {
+
+        for (int c = 0; c < ALTURAS_HAZ.length; c++) {
             for (int x = 0; x < m.ancho(); x += Trazo.PASO) {
                 float dx = m.dx(x + Trazo.PASO * 0.5F);
                 if (dx <= 1.0F) {
@@ -272,10 +280,10 @@ public final class Servicio implements Planta {
                 // evalua el techo a una profundidad menor que la real: como el
                 // techo baja hacia la fuga, eso deja el cano por debajo del
                 // cielorraso sin tener que calcular la altura a mano.
-                float eje = m.techoEn(dx * alturas[c]);
-                float radio = Math.max(1.0F, m.h() * dx * radios[c]);
+                float eje = m.techoEn(dx * ALTURAS_HAZ[c]);
+                float radio = Math.max(1.0F, m.h() * dx * RADIOS_HAZ[c]);
 
-                int base = Paleta.mezclar(nivel.junta, nivel.paredAlta, 0.20F + tonos[c]);
+                int base = Paleta.mezclar(nivel.junta, nivel.paredAlta, 0.20F + TONOS_HAZ[c]);
                 grafico.fillGradient(x, (int) (eje - radio),
                         x + Trazo.PASO, (int) (eje + radio),
                         Paleta.iluminar(Paleta.mezclar(base, nivel.luz, 0.26F), at),

@@ -199,11 +199,13 @@ public final class Biblioteca implements Planta {
         }
     }
 
+    /** Profundidades fijas de las paginas dobladas, cerca de la camara. */
+    private static final float[] PROFUNDIDADES_PAGINAS = {1.35F, 1.75F};
+
     /** Paginas dobladas que sobresalen solo de los estantes cercanos. */
     private static void paginasDobladas(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
-        float[] profundidades = {1.35F, 1.75F};
-        for (int i = 0; i < profundidades.length; i++) {
-            float dx = profundidades[i];
+        for (int i = 0; i < PROFUNDIDADES_PAGINAS.length; i++) {
+            float dx = PROFUNDIDADES_PAGINAS[i];
             int signo = i == 0 ? -1 : 1;
             float x = m.lado(signo, dx * (HILERA - 0.04F));
             float y = m.techoEn(dx * 0.86F) + m.h() * dx * (0.30F + i * 0.18F);

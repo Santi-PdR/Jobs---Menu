@@ -231,11 +231,13 @@ public final class Natatorio implements Planta {
         }
     }
 
+    /** Profundidades fijas de las placas de profundidad. */
+    private static final float[] DISTANCIAS_MARCAS = {1.72F, 2.15F, 2.72F};
+
     /** Placas fisicas de profundidad, ancladas al borde y no flotando en azul. */
     private static void marcasProfundidad(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
-        float[] distancias = {1.72F, 2.15F, 2.72F};
-        for (int i = 0; i < distancias.length; i++) {
-            float dx = distancias[i];
+        for (int i = 0; i < DISTANCIAS_MARCAS.length; i++) {
+            float dx = DISTANCIAS_MARCAS[i];
             int x = Math.round(m.der(dx * VASO) - m.w() * dx * 0.17F);
             int y = Math.round(m.sueloEn(dx) - m.h() * dx * 0.04F);
             int ancho = Math.max(8, Math.round(m.w() * dx * 0.12F));

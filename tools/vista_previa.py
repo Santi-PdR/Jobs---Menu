@@ -1788,10 +1788,13 @@ def serv_bandeja(lz, m, nivel, luz) -> None:
     metal = iluminar(velar(nivel.junta, nivel.niebla, lej, 0.45), at * 0.8)
     cable = iluminar(velar(nivel.pared_baja, nivel.niebla, lej, 0.4), at * 0.55)
     lz.fill(0, int(y_bandeja), m.ancho, int(y_bandeja) + 1, con_alfa(metal, 0.85))
-    for x in (m.lado(-1.0, dy * 0.62), m.centro(dy), m.lado(1.0, dy * 0.62)):
+    for lado in (-1, 1):
+        x = m.lado(lado, dy * 0.62)
         if x < -5.0 or x > m.ancho + 5.0:
             continue
         lz.fill(int(x), int(y_techo), int(x) + 1, int(y_bandeja), con_alfa(metal, 0.80))
+    x = m.centro(dy)
+    lz.fill(int(x), int(y_techo), int(x) + 1, int(y_bandeja), con_alfa(metal, 0.80))
     ux = m.centro(dy) + m.w * dy * 0.10
     if -5.0 < ux < m.ancho + 5.0:
         y_fondo = int(y_bandeja + m.h * dy * 0.055)
