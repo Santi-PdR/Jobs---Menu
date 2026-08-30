@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - arena/20260830-backgrounds-deploy
+      - 'arena/**'
   workflow_dispatch:
 
 permissions:
@@ -24,6 +24,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: Materialize image backgrounds
+        run: python3 tools/materializar_fondos.py
 
       - name: Python verification
         run: python3 tools/verificar.py
