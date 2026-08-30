@@ -81,6 +81,45 @@ public final class Nave implements Planta {
         cerchas(grafico, m, nivel, luz);
         pilares(grafico, m, nivel, luz);
         campanas(grafico, m, nivel, luz);
+        lonaCaida(grafico, m, nivel, luz);
+    }
+
+    /**
+     * Una lona de carga caida, amontonada contra el piso del lado derecho.
+     *
+     * La nave es toda lineas rectas -pilares, cerchas, estantes- y una sola
+     * forma blanda rompe esa rigidez: la tela no se deja caer en un
+     * rectangulo, se pliega en bandas que se montan unas sobre otras, con sus
+     * costuras marcadas. Dice que hubo trabajo, y que paro sin orden.
+     */
+    private static void lonaCaida(GuiGraphics grafico, Marco m, Nivel nivel, float luz) {
+        float dx = 2.1F;
+        float x = m.lado(1.0F, dx * 0.62F);
+        float margen = m.w() * dx * 0.2F;
+        if (x < -margen || x > m.ancho() + margen) {
+            return;
+        }
+        float lej = Trazo.limitar(1.0F / dx, 0.0F, 1.0F);
+        float at = Trazo.atenuar(luz, lej) * 0.8F;
+        float ySuelo = m.sueloEn(dx);
+        float ancho = m.w() * dx * 0.17F;
+        float alto = m.h() * dx * 0.17F;
+        int tela = Paleta.iluminar(Trazo.velar(Paleta.mezclar(nivel.paredBaja, nivel.junta, 0.35F),
+                nivel.niebla, lej, 0.4F), at * 0.95F);
+        int pliegue = Paleta.iluminar(tela, 0.70F);
+        int borde = Paleta.iluminar(tela, 1.18F);
+        float sesgo = ancho * 0.14F;
+
+        for (int k = 0; k < 4; k++) {
+            float f = k / 4.0F;
+            float w = ancho * (1.0F - f * 0.16F);
+            float x0 = x - w * 0.5F + (k % 2 == 0 ? 0.0F : sesgo * f);
+            int y0 = (int) (ySuelo - alto + alto * f * 1.35F);
+            int y1 = Math.min((int) ySuelo, (int) (ySuelo - alto + alto * (f + 0.55F) * 1.35F));
+            grafico.fill((int) x0, y0, (int) (x0 + w), y1, tela);
+            grafico.fill((int) x0, y0, (int) (x0 + w), y0 + 1, borde);
+            grafico.fill((int) (x0 + w * 0.38F), y0, (int) (x0 + w * 0.38F) + 1, y1, pliegue);
+        }
     }
 
     /**

@@ -1530,6 +1530,36 @@ def nave(lz, m, nivel, luz, tiempo) -> None:
     nave_cerchas(lz, m, nivel, luz)
     nave_pilares(lz, m, nivel, luz)
     nave_campanas(lz, m, nivel, luz)
+    nave_lona(lz, m, nivel, luz)
+
+
+def nave_lona(lz, m, nivel, luz) -> None:
+    # Lona de carga caida, amontonada contra el piso del lado derecho. La
+    # nave es toda lineas rectas; esta es la unica forma blanda: bandas que
+    # se pliegan unas sobre otras, con costuras marcadas.
+    dx = 2.1
+    x = m.lado(1.0, dx * 0.62)
+    margen = m.w * dx * 0.2
+    if x < -margen or x > m.ancho + margen:
+        return
+    lej = limitar(1.0 / dx, 0.0, 1.0)
+    at = atenuar(luz, lej) * 0.8
+    y_suelo = m.suelo_en(dx)
+    ancho = m.w * dx * 0.17
+    alto = m.h * dx * 0.17
+    tela = iluminar(velar(mezclar(nivel.pared_baja, nivel.junta, 0.35), nivel.niebla, lej, 0.4), at * 0.95)
+    pliegue = iluminar(tela, 0.70)
+    borde = iluminar(tela, 1.18)
+    sesgo = ancho * 0.14
+    for k in range(4):
+        f = k / 4.0
+        w = ancho * (1.0 - f * 0.16)
+        x0 = x - w * 0.5 + (0.0 if k % 2 == 0 else sesgo * f)
+        y0 = int(y_suelo - alto + alto * f * 1.35)
+        y1 = min(int(y_suelo), int(y_suelo - alto + alto * (f + 0.55) * 1.35))
+        lz.fill(int(x0), y0, int(x0 + w), y1, tela)
+        lz.fill(int(x0), y0, int(x0 + w), y0 + 1, borde)
+        lz.fill(int(x0 + w * 0.38), y0, int(x0 + w * 0.38) + 1, y1, pliegue)
 
 
 def nave_porton(lz, m, nivel, luz) -> None:
