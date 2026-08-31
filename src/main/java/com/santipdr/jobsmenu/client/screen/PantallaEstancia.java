@@ -9,7 +9,6 @@ import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
-import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
@@ -145,7 +144,10 @@ public class PantallaEstancia extends Screen {
     }
 
     private void abrirCondiciones() {
-        this.minecraft.setScreen(new OptionsScreen(this, this.minecraft.options));
+        // Dentro de un mundo SesionMenu.activa() es false por diseño, asi que
+        // la redireccion global de OptionsScreen no se dispara. Se abre el hub
+        // Jobs de forma explicita para que la pausa no vuelva al gris vanilla.
+        this.minecraft.setScreen(new PantallaOpcionesJobs(this, this.minecraft.options));
     }
 
     /**
