@@ -1,127 +1,114 @@
 # Jobs · Aviso a los ocupantes
 
-Mod **de cliente** que reemplaza los menús de Minecraft por los del servidor **Jobs**: un aviso fotocopiado
-y pegado con cinta a la pared de un pasillo amarillo que no se termina. Dice en qué nivel estás, cuánto
-cuesta la salida al siguiente, y cuánto falta para la próxima ronda de los **Executores**.
+Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1 que reemplaza los menús por la interfaz del servidor **Jobs**: un aviso administrativo pegado a la pared de un recinto que cambia con el tiempo.
 
-Al fondo del pasillo hay un vano oscuro. Cada tanto algo lo cruza.
-
-El fondo va cambiando de nivel solo. Entre uno y otro se corta la luz.
-
-La rotacion actual tiene **15 niveles**: diez recintos procedurales y cinco fondos suministrados integrados con luz, ambiente y frases propias. Ver [`docs/NIVELES_10_14.md`](docs/NIVELES_10_14.md).
-
-No añade objetos, ni entidades, ni mecánicas. Sólo cambia lo que ves antes de entrar a trabajar.
-
-![Vista previa del menú](docs/vista_previa.png)
+La salida existe. Cuesta. Los **Executores** vuelven. El menú no es una pantalla separada del mundo: intenta sentirse como otro lugar del servidor antes de entrar a jugar.
 
 | | |
 |---|---|
-| Versión | **0.10.0** |
-| Minecraft | 1.20.1 |
-| Forge | 47.x |
-| Java | 17 |
-| Lado | Cliente (el servidor no necesita el mod) |
+| Versión | **0.11.0** |
+| Minecraft | **1.20.1** |
+| Forge | **47.x** |
+| Java | **17** |
+| Lado | **Cliente** |
+| Niveles | **18 (0–17)** |
 
-## Qué trae la 0.10.0
+## Estado actual
 
-Esta es la versión actual de Jobs Menu. No cambia pantallas de mods ajenos ni
-toca el mundo: concentra el trabajo en el ciclo de vida del menú, el audio, la
-accesibilidad y la legibilidad de sus quince recintos.
+La rotación contiene diez recintos procedurales (0–9) y ocho fondos suministrados (10–17). Todos participan del mismo sistema de luz, apagones, transición, ambiente, música, avisos, ronda de Executores y accesibilidad.
 
-- **Transición coherente por frame.** La escena captura nivel, luz y estado del
-  apagón en un mismo instante. La planta, el papel y los eventos ya no pueden
-  cruzar la frontera de un nivel en momentos distintos.
-- **Accesibilidad respetada.** Movimiento reducido congela la animación completa;
-  destellos reducidos conserva la lectura sin parpadeos. Los controles mantienen
-  sus hitboxes nativas, entran en Tab y tienen narración vanilla.
-- **Audio con lifecycle controlado.** El tema del menú tiene una única instancia,
-  depende de `Master` y del volumen del aviso, sobrevive a Opciones/Mods y se
-  invalida al recargar recursos o entrar a un mundo. Las camas ambientales se
-  detienen sin quedar huérfanas y los eventos respetan silencio y ducking.
-- **Personalización útil.** Se añadieron volumen maestro del aviso con M,
-  rotación en calma (24 s o 48 s) y fecha del turno. Los cambios de configuración
-  se aplican al instante y se guardan con límite de escritura, también al salir.
-- **La Suspensión.** Una vez cada aproximadamente 45–52 minutos, el edificio
-  queda a oscuras durante 22 segundos: la luz baja sin parpadeos, el ambiente se
-  reduce a su respiración más baja, la música cede y el rótulo avisa que el
-  edificio suspira. Es un evento raro del fondo, no una mecánica ni un susto.
-- **Diez funciones nuevas de percepción.** Alto contraste, texto grande, papel
-  limpio, guía de lectura, estado de instalación, respiración de cámara
-  independiente, duración configurable de avisos, presencia y eventos
-  ambientales separables, y control de La Suspensión. Todo se integra en la
-  pantalla de Opciones nativa y conserva los valores por defecto anteriores.
-- **Fondos revisados individualmente.** Los diez niveles conservan arquitectura
-  propia, materiales distinguibles, luz principal, rebotes y un punto focal. El
-  Trono fue ajustado para que el ábside, el haz cenital, las columnas y el
-  estrado conduzcan la mirada hacia un asiento vacío realmente legible.
-- **Entrega verificable.** La auditoría estática, el procedimiento reproducible de
-  compilación y el informe de compatibilidad están sincronizados con Forge 47.x,
-  Java 17 y el nombre real del JAR. La evolución vigente está en
-  [`docs/EVOLUCION_6.md`](docs/EVOLUCION_6.md) con su catálogo
-  [`docs/CATALOGO_MEJORAS_Y_FUNCIONES.md`](docs/CATALOGO_MEJORAS_Y_FUNCIONES.md)
-  y su informe final [`docs/INFORME_FINAL_EVOLUCION_6.md`](docs/INFORME_FINAL_EVOLUCION_6.md).
-  El historial de decisiones está en
-  [`docs/PROPUESTA_EVOLUCION_2.md`](docs/PROPUESTA_EVOLUCION_2.md) y
-  [`docs/EVOLUCION_4.md`](docs/EVOLUCION_4.md).
+Los fondos de imagen 10–17 se validan antes de compilar: firma PNG, CRC, flujo IDAT, descompresión y dimensiones. En runtime `PlantaImagen` vuelve a comprobar el recurso con `NativeImage`, el mismo decodificador que usa Minecraft. Un recurso inválido cae a una escena procedural segura en lugar de dejar la textura morado/negro.
 
-## Evolución reciente
+## Qué cambia en 0.11.0
 
-La etapa 1 añadió duración de estancia configurable, salto manual de nivel,
-perfil accesible, modo de bajo consumo y continuidad del ambiente al navegar
-pantallas hijas. La etapa 2 dio a cada uno de los diez fondos una mejora
-artística propia (una fila implementada por escenario en la matriz de
-auditoría de fondos) y rediseñó el Trono desde cero. El build automatizado con Java 17 está activo;
-la prueba final dentro de Minecraft sigue siendo manual: ver [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md).
+- **Política de versión obligatoria.** Todo JAR publicado lleva versión en el nombre. El CI falla si vuelve a aparecer un artefacto genérico sin versión.
+- **Release versionada.** `dev-latest` continúa siendo la release rodante, pero el asset es `jobsmenu-0.11.0.jar` (y en futuras versiones cambia junto con `mod_version`).
+- **Pulido cinematográfico común.** Los 18 niveles reciben halo residual de fluorescente, barrido de exposición sutil y una transición con masa visual en vez de depender únicamente del cambio de brillo.
+- **Transiciones reforzadas.** Durante el traslado la oscuridad entra desde los bordes y la recuperación eléctrica deja una banda de luz breve antes de estabilizarse. La Suspensión conserva su lenguaje propio y no añade flashes.
+- **Fondos animados.** Los niveles 10–17 mantienen zoom/paneo lento, vignette y efectos propios por escena; movimiento reducido y bajo consumo siguen teniendo prioridad.
+- **Ambiente menos repetitivo.** Las camas BASE y CARÁCTER incorporan una microderiva tonal de ciclo largo, suficientemente pequeña para no cambiar el material del sonido. ACTIVIDAD permanece estable para no deformar objetos reconocibles.
+- **Papel más físico.** El aviso comparte una sombra en dos planos, degradado de luz, marcas de fotocopia deterministas, desgaste mínimo de borde y cinta con volumen visual. `papel_limpio` continúa eliminando ese ruido decorativo.
+- **Pipeline endurecido.** Se verifican versión, fondos, recursos, idiomas y build Forge/Java 17 antes de publicar.
 
-## Historial resumido
+## Sistemas principales
 
-Las versiones anteriores añadieron los diez recintos, la pausa tematizada, la
-ruta de música local, las camas ambientales, el Trono y la primera auditoría
-profesional. El detalle histórico que todavía importa está en
-[`CHANGELOG.md`](CHANGELOG.md); este README conserva sólo el estado vigente para
-evitar instrucciones antiguas o afirmaciones desactualizadas sobre REQUIEM.
+- Rotación automática de 18 niveles con salto manual de diagnóstico/recorrido.
+- Transición diegética por apagado/encendido sincronizada con audio.
+- Evento raro **La Suspensión**.
+- Cuenta regresiva ambiental de rondas de Executores.
+- Presencia rara de fondo sin jumpscare.
+- Tres camas ambientales por nivel: BASE, CARÁCTER y ACTIVIDAD.
+- Eventos ambientales ponderados, con silencios largos deliberados.
+- Música de menú independiente de la cama ambiental y con ducking contextual.
+- Avisos rotativos y notas específicas por nivel.
+- Pantalla principal y pausa tematizadas.
+- Ajustes integrados dentro de Opciones de Minecraft.
+- Alto contraste, texto grande, papel limpio, guía de lectura, movimiento reducido, destellos reducidos y bajo consumo.
 
-## Compilacion y despliegue
+## Regla obligatoria de versión
 
-La entrega normal ya no se compila en la PC del usuario. GitHub Actions usa Java 17, ejecuta `tools/verificar.py`, compila con Forge/Gradle y, solo si todo termina correctamente, actualiza la release rodante `dev-latest` con `jobsmenu-latest.jar`.
+**El mod debe tener siempre una versión en el nombre del JAR entregado.**
 
-La **unica instancia de prueba y despliegue** es:
+Ejemplo correcto:
+
+```text
+jobsmenu-0.11.0.jar
+```
+
+Ejemplo prohibido:
+
+```text
+jobsmenu-latest.jar
+```
+
+`gradle.properties` es la fuente de verdad (`mod_version`). `tools/verificar_version.py` y GitHub Actions hacen cumplir esta regla.
+
+## Build y entrega
+
+GitHub Actions ejecuta:
+
+1. Java 17.
+2. `tools/verificar_version.py`.
+3. `tools/verificar_fondos.py`.
+4. `tools/verificar.py`.
+5. `./gradlew build --stacktrace --no-daemon`.
+6. Publicación del JAR **versionado** en `dev-latest` si el commit está en `main`.
+
+El JAR local de Gradle queda en:
+
+```text
+build/libs/jobsmenu-0.11.0.jar
+```
+
+## Despliegue de prueba
+
+La única instancia de prueba documentada es:
 
 ```text
 C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods
 ```
 
-No se mantienen rutas alternativas para `jobs-2`, `Test2.0` ni otras instancias. El procedimiento completo y el PowerShell canonico estan en [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md).
+No hace falta compilar localmente para una prueba normal. El PowerShell canónico consulta `dev-latest`, localiza el asset `jobsmenu-<version>.jar`, lo descarga y lo valida antes de sustituir la instalación anterior. Ver [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md).
 
-Para una prueba normal, el usuario solo abre PowerShell y pega el bloque de despliegue: descarga el ultimo JAR que ya paso CI, valida su cabecera antes de tocar la instalacion actual y reemplaza solamente los JAR de Jobs Menu dentro de `test-1\\mods`.
-
-El build local queda disponible solo para desarrollo o diagnostico:
+## Herramientas
 
 ```powershell
-.\gradlew.bat clean build --no-daemon
-```
-
-Debe ejecutarse con JDK 17 y terminar en `BUILD SUCCESSFUL`. El artefacto versionado local es `build\\libs\\jobsmenu-0.10.0.jar`.
-
-## Herramientas sin JDK
-
-```powershell
-python tools\verificar.py       # versiones, idiomas, JSON, ASCII, llaves, símbolos, audio y niveles
-python tools\vista_previa.py    # dibuja el menú a PNG para revisar la escena
-python tools\vista_previa.py --contacto docs\contacto-actual.png   # los diez niveles juntos
-python tools\vista_previa.py --presencia docs\presencia.png     # la manifestación del fondo, paso a paso
-python tools\sonidos.py         # regenera las 73 piezas sintetizadas (74 OGG con la música; requiere numpy, scipy y soundfile)
+python tools\verificar_version.py
+python tools\verificar_fondos.py
+python tools\verificar.py
+python tools\vista_previa.py
+python tools\sonidos.py
 ```
 
 ## Documentación
 
-Todo el diseño —canon del servidor, identidad, paleta, voz, alcance por fases y reglas de trabajo— está en
-[`CONTEXTO.md`](CONTEXTO.md). Para la entrega de esta evolución: [`CHANGELOG.md`](CHANGELOG.md),
-[`KNOWN_ISSUES.md`](KNOWN_ISSUES.md), [`docs/EVOLUCION_6.md`](docs/EVOLUCION_6.md),
-[`docs/PLAN_EVOLUCION_6.md`](docs/PLAN_EVOLUCION_6.md),
-[`docs/CATALOGO_MEJORAS_Y_FUNCIONES.md`](docs/CATALOGO_MEJORAS_Y_FUNCIONES.md),
-[`docs/INFORME_FINAL_EVOLUCION_6.md`](docs/INFORME_FINAL_EVOLUCION_6.md),
-[`docs/DIRECCION_ARTISTICA.md`](docs/DIRECCION_ARTISTICA.md),
-[`docs/FONDOS_EXPLICADOS.md`](docs/FONDOS_EXPLICADOS.md),
-[`docs/checklist-manual.md`](docs/checklist-manual.md), [`docs/compatibilidad.md`](docs/compatibilidad.md),
-[`docs/musica.md`](docs/musica.md) y [`docs/AUDITORIA_FONDOS_50X10.md`](docs/AUDITORIA_FONDOS_50X10.md).
+- [`CONTEXTO.md`](CONTEXTO.md): documento maestro y reglas duras del proyecto.
+- [`CHANGELOG.md`](CHANGELOG.md): cambios por versión/evolución.
+- [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): pruebas reales y riesgos pendientes.
+- [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): flujo de instalación en `test-1`.
+- [`docs/AUDITORIA_0.11.0.md`](docs/AUDITORIA_0.11.0.md): revisión completa de esta pasada.
+- [`docs/DIRECCION_ARTISTICA.md`](docs/DIRECCION_ARTISTICA.md): lenguaje visual.
+- [`docs/compatibilidad.md`](docs/compatibilidad.md): convivencia con otros mods.
+- [`docs/checklist-manual.md`](docs/checklist-manual.md): prueba dentro de Minecraft.
+
+El historial largo de auditorías y evoluciones anteriores se conserva en `docs/` como referencia, pero README y CONTEXTO describen siempre el estado vigente.
