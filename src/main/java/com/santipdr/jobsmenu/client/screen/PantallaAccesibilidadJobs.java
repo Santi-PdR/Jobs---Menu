@@ -25,10 +25,12 @@ public final class PantallaAccesibilidadJobs extends AccessibilityOptionsScreen 
             this.list.setRenderBackground(false);
             this.list.setRenderTopAndBottom(false);
             this.list.setRenderSelection(false);
+            this.list.updateSize(this.width, this.height, 50, this.height - 42);
         }
         for (var child : this.children()) {
             if (child instanceof Button b && b.getMessage().equals(CommonComponents.GUI_DONE)) {
                 b.visible = false;
+                b.active = false;
                 break;
             }
         }
