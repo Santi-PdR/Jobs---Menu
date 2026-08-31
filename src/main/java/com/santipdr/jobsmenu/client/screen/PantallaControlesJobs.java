@@ -9,6 +9,10 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
 /** Hub de controles: mantiene las opciones de Minecraft, cambia su jerarquia visual. */
 public final class PantallaControlesJobs extends Screen {
 
@@ -24,10 +28,10 @@ public final class PantallaControlesJobs extends Screen {
 
     @Override
     protected void init() {
-        this.panelW = Math.min(360, Math.max(250, this.width - 24));
-        this.panelH = Math.min(238, Math.max(210, this.height - 20));
+        this.panelW = Math.max(1, Math.min(360, this.width - 12));
+        this.panelH = Math.max(1, Math.min(238, this.height - 12));
         this.panelX = (this.width - panelW) / 2;
-        this.panelY = Math.max(6, (this.height - panelH) / 2);
+        this.panelY = Math.max(4, (this.height - panelH) / 2);
 
         int gap = 8;
         int bw = Math.max(100, (panelW - 48 - gap) / 2);
@@ -46,20 +50,22 @@ public final class PantallaControlesJobs extends Screen {
                 () -> this.minecraft.setScreen(new PantallaTeclasJobs(this, this.opciones))));
 
         int y1 = y + 32;
+        Function<Boolean, Component> holdToggle = v ->
+                Component.translatable(v ? "options.key.toggle" : "options.key.hold");
         this.addRenderableWidget(toggle(x0, y1, bw, h, "key.sneak",
                 () -> this.opciones.toggleCrouch().get(),
-                v -> this.opciones.toggleCrouch().set(v)));
+                v -> this.opciones.toggleCrouch().set(v), holdToggle));
         this.addRenderableWidget(toggle(x1, y1, bw, h, "key.sprint",
                 () -> this.opciones.toggleSprint().get(),
-                v -> this.opciones.toggleSprint().set(v)));
+                v -> this.opciones.toggleSprint().set(v), holdToggle));
 
         int y2 = y1 + 30;
         this.addRenderableWidget(toggle(x0, y2, bw, h, "options.autoJump",
                 () -> this.opciones.autoJump().get(),
-                v -> this.opciones.autoJump().set(v)));
+                v -> this.opciones.autoJump().set(v), null));
         this.addRenderableWidget(toggle(x1, y2, bw, h, "options.operatorItemsTab",
                 () -> this.opciones.operatorItemsTab().get(),
-                v -> this.opciones.operatorItemsTab().set(v)));
+                v -> this.opciones.operatorItemsTab().set(v), null));
 
         int volverW = Math.min(150, panelW - 40);
         this.addRenderableWidget(new BotonExpediente(
@@ -69,12 +75,16 @@ public final class PantallaControlesJobs extends Screen {
     }
 
     private ToggleExpediente toggle(int x, int y, int w, int h, String clave,
-                                    java.util.function.BooleanSupplier leer,
-                                    java.util.function.Consumer<Boolean> fijar) {
-        return new ToggleExpediente(x, y, w, h, Component.translatable(clave), leer, v -> {
+                                    BooleanSupplier leer, Consumer<Boolean> fijar,
+                                    Function<Boolean, Component> formato) {
+        Consumer<Boolean> guardar = v -> {
             fijar.accept(v);
             this.opciones.save();
-        });
+        };
+        if (formato == null) {
+            return new ToggleExpediente(x, y, w, h, Component.translatable(clave), leer, guardar);
+        }
+        return new ToggleExpediente(x, y, w, h, Component.translatable(clave), leer, guardar, formato);
     }
 
     @Override
