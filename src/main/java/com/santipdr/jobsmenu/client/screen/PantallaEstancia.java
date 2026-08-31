@@ -144,7 +144,7 @@ public class PantallaEstancia extends Screen {
     }
 
     private void abrirCondiciones() {
-        // Dentro de un mundo SesionMenu.activa() es false por diseño, asi que
+        // Dentro de un mundo SesionMenu.activa() es false por diseno, asi que
         // la redireccion global de OptionsScreen no se dispara. Se abre el hub
         // Jobs de forma explicita para que la pausa no vuelva al gris vanilla.
         this.minecraft.setScreen(new PantallaOpcionesJobs(this, this.minecraft.options));
