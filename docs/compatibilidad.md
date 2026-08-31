@@ -1,4 +1,4 @@
-# Compatibilidad y despliegue
+# Compatibilidad y despliegue — 0.12.0
 
 ## Perfil soportado
 
@@ -8,88 +8,151 @@
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente; el servidor no necesita Jobs Menu |
-| Versión del mod | **0.10.0** |
-| Artefacto | `build/libs/jobsmenu-0.10.0.jar` |
+| Versión del mod | **0.12.0** |
+| Artefacto | `build/libs/jobsmenu-0.12.0.jar` |
 
-Jobs Menu dibuja su menú y sus overlays sin reemplazar indiscriminadamente las
-pantallas de otros mods. Las opciones del mod viven en la pantalla nativa de
-Opciones mediante `OptionsList` y `OptionInstance`, por lo que se conservan la
-navegación, la narración, el foco, el teclado, el mouse y el scroll de vanilla.
-La compatibilidad efectiva con el modpack debe confirmarse dentro de Minecraft;
-la compilación no prueba el render ni el audio.
+Jobs Menu modifica la experiencia de menús del cliente, pero 0.12.0 distingue entre **pantallas que controla** y **pantallas que debe respetar**. La compatibilidad tiene prioridad sobre una skin perfecta: cuando una implementación externa ya resuelve una interfaz compleja, Jobs aporta contexto visual y no intenta copiarla por reflection profunda.
+
+## Regla de sustitución de pantallas
+
+Las redirecciones principales se hacen por **clase exacta**.
+
+- `TitleScreen` vanilla puede convertirse en `PantallaNivel`.
+- La pausa real vanilla puede convertirse en `PantallaEstancia`.
+- `OptionsScreen` vanilla dentro del flujo Jobs puede convertirse en `PantallaOpcionesJobs`.
+- `JoinMultiplayerScreen` vanilla dentro del flujo Jobs puede convertirse en `PantallaMultijugadorJobs`.
+
+Una subclase proporcionada por otro mod no se sustituye automáticamente sólo por heredar de una de estas clases. Las pantallas externas abiertas durante una visita pueden recibir una banda contextual discreta mediante el evento de render, sin cambiar sus widgets ni su lógica.
+
+## Opciones y subpantallas vanilla
+
+0.12.0 usa dos estrategias:
+
+### Hubs propios
+
+- Opciones/Condiciones de estancia.
+- Controles.
+- Idioma.
+- Piel.
+- Multijugador principal.
+
+Estos hubs escriben sobre `Options`, `LanguageManager`, `ServerSelectionList` o datos reales; no mantienen copias independientes de la configuración.
+
+### Envolturas de clases vanilla
+
+- Sonido.
+- Video vanilla.
+- Chat.
+- Accesibilidad.
+- Mouse.
+- Teclas.
+- Online.
+- Resource Packs.
+
+En ellas se ejecuta primero `super.init()`. Después Jobs retira fondos/bandas, desactiva el botón Done cuando lo sustituye y reserva espacio para el expediente. Las listas conservan su ancho original: sólo se alteran límites verticales cuando es seguro, porque ancho/columnas/hitboxes suelen estar acoplados en Minecraft.
+
+## Embeddium y pantallas de video externas
+
+`PantallaOpcionesJobs` intenta abrir la pantalla real de Embeddium mediante sus clases públicas conocidas. Si están disponibles, se usa esa implementación completa. Si no, se abre `PantallaVideoJobs` basada en `VideoSettingsScreen` vanilla.
+
+No se intenta reconstruir internamente el panel de Embeddium. Si una versión cambia paquetes o constructores, el fallback es video vanilla tematizado, no un crash.
+
+La compatibilidad con Oculus/Embeddium Extra u otros addons de video debe comprobarse en el modpack real.
+
+## Accesibilidad
+
+La pantalla de accesibilidad mantiene todas las opciones vanilla y añade al final cuatro ayudas del mod:
+
+- movimiento reducido;
+- destellos reducidos;
+- alto contraste;
+- texto grande.
+
+Todas escriben en `ConfigTurno` y usan el mismo guardado diferido que el resto de Jobs. Movimiento reducido también afecta las transiciones entre expedientes.
+
+## Resource Packs e idioma
+
+Los cambios de idioma y paquetes usan la recarga real de recursos de Minecraft. `RecargaRecursosCliente` invalida las referencias de música/ambiente en el hilo del cliente para que no sobrevivan instancias atadas a un `SoundEngine` anterior.
+
+Probar especialmente:
+
+- cambiar ES ↔ EN;
+- F3+T;
+- aplicar/quitar packs;
+- volver al menú tras la recarga;
+- comprobar que música y ambiente no se duplican.
+
+## Multijugador
+
+`PantallaMultijugadorJobs` conserva:
+
+- `ServerSelectionList`;
+- ping;
+- MOTD;
+- favicons;
+- búsqueda LAN;
+- servidores guardados;
+- acciones vanilla de seleccionar, conexión directa, añadir, editar, borrar, refrescar y cancelar.
+
+Los botones Jobs actúan como superficie visual sobre las acciones originales. Sus estados activos se sincronizan con los botones vanilla correspondientes.
+
+Los diálogos secundarios que siguen siendo vanilla pueden mostrar sólo la banda contextual Jobs. Esto es intencional: reimplementar protocolo/conexión/validaciones sólo para cambiar cosmética añadiría riesgo sin mejorar el comportamiento.
+
+## Audio y lifecycle
+
+La visita al menú mantiene continuidad de música y camas ambientales al navegar por sus pantallas. Abrir Opciones, Sonido, Mods o una interfaz hija no debe reiniciar el recinto.
+
+Al entrar a un mundo o terminar la visita, las camas se cierran. Las recargas de recursos se tratan aparte para no conservar referencias a un motor de sonido viejo.
+
+La prueba real debe cubrir:
+
+- entrar/salir repetidamente de subpantallas;
+- F3+T;
+- Alt+Tab/minimizar;
+- cambio de idioma;
+- resource packs;
+- entrada a mundo;
+- desconexión;
+- La Suspensión durante una pantalla hija.
 
 ## Instancia de referencia: SKLauncher `test-1`
 
-La instancia usada para el despliegue documentado es:
+La instancia de prueba documentada es:
 
 ```text
 C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\
 ```
 
-El JAR debe quedar únicamente en:
+El JAR de esta entrega debe quedar únicamente como:
 
 ```text
-C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.10.0.jar
+C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.12.0.jar
 ```
 
-Antes de abrir el juego, cierra Minecraft y retira sólo los JARs anteriores que
-coincidan con `jobsmenu-*.jar`. No copies backups, tags ni otros mods a `mods`.
-El bloque PowerShell del README comprueba el artefacto nuevo antes de borrar
-versiones viejas y guarda una copia fechada de la configuración del mod. Se pega
-directamente en una terminal nueva; no se genera ningún archivo de PowerShell.
+No se mantiene un `.ps1` dentro del repositorio. El procedimiento de entrega está en [`DESPLIEGUE.md`](DESPLIEGUE.md).
 
-## Límites conocidos de integración
+## Límites que requieren prueba manual
 
-- Embeddium, Oculus, ImmediatelyFast, Sophisticated Backpacks/Core, Architectury,
-  Cloth Config, Controlling, Searchables, Chat Heads, 3D Skin Layers, TRansition,
-  TRender, LowDragLib y los demás mods del pack deben probarse en conjunto. Jobs
-  Menu no debe interceptar sus pantallas ni asumir que su renderer es el activo.
-- La mezcla de REQUIEM o de una pista local usa `Master` y el volumen propio del
-  mod; las camas ambientales respetan su canal ambiental. Hay que verificar en
-  vivo que el gestor de música, el silencio y la suspensión no dejen sonidos
-  huérfanos.
-- Los `RegistryObject<SoundEvent>` se resuelven con presencia comprobada. Un
-  registro ausente ya no puede tumbar el render de un widget: UI vuelve al click
-  vanilla y una cama ambiental faltante se omite con un único aviso de log.
-- GUI scales extremos, narración, alto contraste, texto grande, movimiento y
-  destellos reducidos requieren comprobación manual en la instancia.
-- La auditoría estática no reemplaza la prueba con `SoundEngine`, GPU,
-  redimensionado, suspensión ni el arranque real del modpack.
+- Mods que sustituyen completamente una pantalla después de que Jobs ya la haya abierto.
+- Mods que reconstruyen widgets/listas fuera del `init()` vanilla.
+- Fuentes de resource packs con métricas muy distintas.
+- GUI Scale extremos.
+- Narración con widgets inyectados por otros mods.
+- Embeddium/Oculus/addons de video en las versiones exactas del modpack.
+- GPU y rendimiento real de la escena viva detrás de interfaces.
+- SoundEngine con el conjunto completo de mods de audio.
 
-## Estado de las comprobaciones
+## Estado de certificación
 
-| Comprobación | Estado |
-|---|---|
-| `python3 tools/verificar.py` | Superada: **0 avisos, 0 fallos** |
-| JSON de idiomas | Superado (claves ES/EN idénticas) |
-| `py_compile` de herramientas | Superado |
-| `git diff --check` | Superado en la última validación registrada |
-| Segunda auditoría de la Evolución 6 | Superada: sin imports muertos, sin métodos huérfanos, ASCII y llaves en los 22 archivos tocados, espejo Java↔Python verificado método a método, sin arreglos temporales por frame en las plantas |
-| `clean build --no-daemon` | **Pendiente para esta rama con Java 17**; el entorno no tiene JDK 17 y la red hacia `services.gradle.org` / `maven.minecraftforge.net` está bloqueada (HTTP 000), por lo que no se puede ejecutar aquí |
-| Arranque Forge en `test-1` | Pendiente |
-| Audio, modpack, GPU y GUI scales | Pendientes de prueba manual |
+CI certifica en cada commit de la rama:
 
-La prueba de despliegue que terminó con `BUILD SUCCESSFUL` no debe marcarse
-como build de 0.10.0: se realizó en `arena/01a04e0d-jobs-menu` y el artefacto
-esperado no apareció. El bloque vigente del README detiene el proceso si la rama
-(ahora `arena/01a04ff1-jobs-menu`), la versión, Python o Java no coinciden.
+1. Java 17.
+2. Política de artefacto versionado.
+3. PNG 10–17.
+4. Recursos, idiomas, ASCII de fuentes y coherencia estática.
+5. Build Forge.
+6. Preparación de `jobsmenu-0.12.0.jar`.
 
-## Evolución 6 — decisiones de compatibilidad
+La publicación a `dev-latest` se ejecuta únicamente desde `main`.
 
-- Sin mixins ni dependencias nuevas. Los cambios usan únicamente las APIs ya
-  presentes en el proyecto (eventos de `Screen`, `OptionsList`/`OptionInstance`,
-  tick del cliente).
-- `PantallaAjustesAviso` no usa `addTitle` (esa API no existe en 1.20.1;
-  `OptionsList` sólo ofrece `addBig`/`addSmall`/`addAll`), lo que mantiene la
-  convivencia con otras pantallas de opciones de mods.
-- La escena sigue sin overlays sobre pantallas ajenas: las mejoras artísticas
-  viven dentro de los diez recintos propios.
-- La matriz de aceptación de fondos está en
-  [`AUDITORIA_FONDOS_50X10.md`](AUDITORIA_FONDOS_50X10.md) con las filas
-  implementadas por la Evolución 6 marcadas; el detalle de la evolución en
-  [`EVOLUCION_6.md`](EVOLUCION_6.md) y el catálogo en
-  [`CATALOGO_MEJORAS_Y_FUNCIONES.md`](CATALOGO_MEJORAS_Y_FUNCIONES.md).
-
-Las incidencias que afectan a la validación runtime se mantienen en
-[`KNOWN_ISSUES.md`](../KNOWN_ISSUES.md). Las pruebas paso a paso están en
-[`checklist-manual.md`](checklist-manual.md).
+Un build verde no certifica hitboxes, estética, narración, scroll, sonido ni compatibilidad visual dentro del modpack. Esa aceptación está en [`checklist-manual.md`](checklist-manual.md) y los riesgos actuales en [`KNOWN_ISSUES.md`](../KNOWN_ISSUES.md).
