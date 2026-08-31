@@ -13,6 +13,7 @@ import net.minecraft.network.chat.Component;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /** Interruptor de expediente que conserva un setter real, no estado duplicado. */
 public final class ToggleExpediente extends AbstractButton {
@@ -20,15 +21,27 @@ public final class ToggleExpediente extends AbstractButton {
     private final Component etiqueta;
     private final BooleanSupplier leer;
     private final Consumer<Boolean> fijar;
+    private final Function<Boolean, Component> textoValor;
     private boolean hoverPrevio;
+    private boolean ultimoValor;
+    private boolean tieneUltimoValor;
 
     public ToggleExpediente(int x, int y, int ancho, int alto, Component etiqueta,
                             BooleanSupplier leer, Consumer<Boolean> fijar) {
+        this(x, y, ancho, alto, etiqueta, leer, fijar,
+                v -> Component.translatable(v ? "options.on" : "options.off"));
+    }
+
+    public ToggleExpediente(int x, int y, int ancho, int alto, Component etiqueta,
+                            BooleanSupplier leer, Consumer<Boolean> fijar,
+                            Function<Boolean, Component> textoValor) {
         super(x, y, ancho, alto, Component.empty());
         this.etiqueta = etiqueta;
         this.leer = leer;
         this.fijar = fijar;
-        actualizarMensaje();
+        this.textoValor = textoValor != null ? textoValor
+                : v -> Component.translatable(v ? "options.on" : "options.off");
+        sincronizarMensaje(true);
     }
 
     private boolean valor() {
@@ -36,17 +49,19 @@ public final class ToggleExpediente extends AbstractButton {
         catch (Throwable ignored) { return false; }
     }
 
-    private void actualizarMensaje() {
+    private void sincronizarMensaje(boolean forzar) {
         boolean v = valor();
-        this.setMessage(this.etiqueta.copy().append(": ")
-                .append(Component.translatable(v ? "options.on" : "options.off")));
+        if (!forzar && this.tieneUltimoValor && v == this.ultimoValor) return;
+        this.ultimoValor = v;
+        this.tieneUltimoValor = true;
+        this.setMessage(this.etiqueta.copy().append(": ").append(this.textoValor.apply(v)));
     }
 
     @Override
     public void onPress() {
         boolean nuevo = !valor();
         if (this.fijar != null) this.fijar.accept(nuevo);
-        actualizarMensaje();
+        sincronizarMensaje(true);
     }
 
     @Override
@@ -86,7 +101,7 @@ public final class ToggleExpediente extends AbstractButton {
             g.fill(cx + caja - 3, cy + 2, cx + caja - 1, cy + caja - 2, tinta);
         }
 
-        actualizarMensaje();
+        sincronizarMensaje(false);
         Font font = Minecraft.getInstance().font;
         String txt = getMessage().getString();
         int tx = cx + caja + 7;
