@@ -2,13 +2,13 @@ package com.santipdr.jobsmenu.client.screen;
 
 import com.santipdr.jobsmenu.client.ui.BotonExpediente;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
+import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.santipdr.jobsmenu.client.ui.SliderExpediente;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.VideoSettingsScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.repository.PackRepository;
 
@@ -21,6 +21,7 @@ public final class PantallaOpcionesJobs extends Screen {
     private final Screen anterior;
     private final Options opciones;
     private int panelX, panelY, panelW, panelH;
+    private boolean compacta;
 
     public PantallaOpcionesJobs(Screen anterior, Options opciones) {
         super(Component.translatable("jobsmenu.interfaz.opciones.titulo"));
@@ -30,20 +31,21 @@ public final class PantallaOpcionesJobs extends Screen {
 
     @Override
     protected void init() {
-        this.panelW = Math.min(PANEL_MAX_W, Math.max(220, this.width - 24));
-        this.panelH = Math.min(PANEL_MAX_H, Math.max(238, this.height - 20));
+        this.panelW = Math.max(1, Math.min(PANEL_MAX_W, this.width - 12));
+        this.panelH = Math.max(1, Math.min(PANEL_MAX_H, this.height - 12));
         this.panelX = (this.width - this.panelW) / 2;
-        this.panelY = Math.max(6, (this.height - this.panelH) / 2);
+        this.panelY = Math.max(4, (this.height - this.panelH) / 2);
+        this.compacta = this.panelH < 270 || this.panelW < 330;
 
-        int gap = 8;
-        int margen = 20;
-        int anchoUtil = this.panelW - margen * 2;
-        int bw = Math.max(88, (anchoUtil - gap) / 2);
-        int bh = 22;
+        int gap = compacta ? 6 : 8;
+        int margen = compacta ? 14 : 20;
+        int anchoUtil = Math.max(1, this.panelW - margen * 2);
+        int bw = Math.max(70, (anchoUtil - gap) / 2);
+        int bh = compacta ? 19 : 22;
         int x0 = this.panelX + margen;
         int x1 = x0 + bw + gap;
-        int y0 = this.panelY + 58;
-        int paso = 27;
+        int y0 = this.panelY + (compacta ? 48 : 58);
+        int paso = compacta ? 22 : 27;
 
         boton(x0, y0, bw, bh, "options.skinCustomisation", this::abrirPiel);
         boton(x1, y0, bw, bh, "options.sounds", this::abrirSonido);
@@ -59,11 +61,11 @@ public final class PantallaOpcionesJobs extends Screen {
                 Component.translatable("jobsmenu.ajustes.boton"),
                 BotonExpediente.Tipo.PRINCIPAL, this::abrirAviso));
 
-        int fovY = y0 + paso * 5 + 2;
-        int fovW = Math.max(120, anchoUtil);
+        int fovY = y0 + paso * 5 + (compacta ? 0 : 2);
+        int fovH = compacta ? 19 : 22;
         int fov = this.opciones.fov().get();
         this.addRenderableWidget(new SliderExpediente(
-                x0, fovY, fovW, 22, 30, 110, fov,
+                x0, fovY, anchoUtil, fovH, 30, 110, fov,
                 v -> Component.translatable("jobsmenu.interfaz.fov",
                         Component.translatable("options.fov"), v),
                 v -> {
@@ -71,10 +73,11 @@ public final class PantallaOpcionesJobs extends Screen {
                     this.opciones.save();
                 }));
 
-        int volverY = Math.min(this.panelY + this.panelH - 31, fovY + 30);
+        int volverH = compacta ? 19 : 22;
+        int volverY = this.panelY + this.panelH - volverH - 8;
         int volverW = Math.min(160, anchoUtil);
         this.addRenderableWidget(new BotonExpediente(
-                this.width / 2 - volverW / 2, volverY, volverW, 22,
+                this.width / 2 - volverW / 2, volverY, volverW, volverH,
                 Component.translatable("jobsmenu.interfaz.volver"),
                 BotonExpediente.Tipo.PRINCIPAL, this::onClose));
     }
@@ -91,12 +94,13 @@ public final class PantallaOpcionesJobs extends Screen {
         ChromeExpediente.cabecera(g, this.font, this.title,
                 Component.translatable("jobsmenu.interfaz.opciones.subtitulo"), panelX, panelY, panelW);
 
-        Component nota = Component.translatable("jobsmenu.interfaz.opciones.nota");
-        int nw = this.font.width(nota);
-        if (nw < this.panelW - 24) {
-            g.drawString(this.font, nota, this.width / 2 - nw / 2, panelY + 45,
-                    com.santipdr.jobsmenu.client.ui.Paleta.conAlfa(
-                            com.santipdr.jobsmenu.client.ui.Paleta.tintaSecundaria(), 0.64F), false);
+        if (!this.compacta) {
+            Component nota = Component.translatable("jobsmenu.interfaz.opciones.nota");
+            int nw = this.font.width(nota);
+            if (nw < this.panelW - 24) {
+                g.drawString(this.font, nota, this.width / 2 - nw / 2, panelY + 45,
+                        Paleta.conAlfa(Paleta.tintaSecundaria(), 0.64F), false);
+            }
         }
 
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
