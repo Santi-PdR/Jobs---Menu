@@ -22,6 +22,16 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Resolve mod version
+        shell: bash
+        run: |
+          VERSION="$(sed -n 's/^mod_version=//p' gradle.properties | tr -d '\r')"
+          if [ -z "$VERSION" ]; then
+            echo 'No se pudo leer mod_version de gradle.properties' >&2
+            exit 1
+          fi
+          echo "MOD_VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "MOD_JAR=jobsmenu-$VERSION.jar" >> "$GITHUB_ENV"
       - name: Verify image backgrounds
         run: python3 tools/verificar_fondos.py
       - name: Python verification
@@ -30,7 +40,7 @@ jobs:
         run: chmod +x gradlew
       - name: Build Forge mod
         run: ./gradlew build --stacktrace --no-daemon
-      - name: Prepare rolling JAR
+      - name: Prepare versioned JAR
         shell: bash
         run: |
           JAR="$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*sources*' ! -name '*javadoc*' | head -n 1)"
@@ -38,13 +48,13 @@ jobs:
             echo 'No se encontro el JAR principal en build/libs' >&2
             exit 1
           fi
-          cp "$JAR" jobsmenu-latest.jar
-          sha256sum jobsmenu-latest.jar
+          cp "$JAR" "$MOD_JAR"
+          sha256sum "$MOD_JAR"
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: jobsmenu-jar
-          path: jobsmenu-latest.jar
+          name: jobsmenu-${{ env.MOD_VERSION }}
+          path: ${{ env.MOD_JAR }}
           if-no-files-found: error
           retention-days: 30
       - name: Publish rolling development release
@@ -52,10 +62,10 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: dev-latest
-          name: Jobs Menu - Latest Dev Build
-          body: Build de desarrollo generado automaticamente desde el ultimo commit que paso verificacion y compilacion con Java 17.
+          name: Jobs Menu v${{ env.MOD_VERSION }} - Latest Dev Build
+          body: Build de desarrollo v${{ env.MOD_VERSION }} generado automaticamente desde el ultimo commit que paso verificacion y compilacion con Java 17.
           prerelease: true
           allowUpdates: true
           replacesArtifacts: true
           artifactErrorsFailBuild: true
-          artifacts: jobsmenu-latest.jar
+          artifacts: ${{ env.MOD_JAR }}
