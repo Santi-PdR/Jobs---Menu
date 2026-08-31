@@ -84,8 +84,9 @@ public final class EscenaNivel {
         MaterialesEscena.dibujar(grafico, ancho, alto, nivel, luz, tiempo, movimiento);
 
         // TratamientoEscena trabaja materiales/profundidad global y
-        // DireccionArte agrega el lenguaje propio de cada uno de los diez
-        // recintos a partir de las referencias visuales.
+        // DireccionArte agrega el lenguaje propio de cada recinto a partir de
+        // referencias visuales. Los fondos 10-17 tambien reciben esta capa
+        // global, pero conservan su propio movimiento en PlantaImagen.
         TratamientoEscena.dibujar(grafico, ancho, alto, nivel, luz, tiempo, movimiento);
         DireccionArte.dibujar(grafico, ancho, alto, nivel, luz, tiempo);
 
@@ -111,6 +112,12 @@ public final class EscenaNivel {
                 motas(grafico, ancho, alto, tiempo, luz, nivel, cantidadMotas);
             }
         }
+
+        // Acabado de camara/instalacion comun a los 18 niveles. Esta capa se
+        // dibuja despues del aire para integrar todo el recinto, pero antes de
+        // la vineta final para no reducir la legibilidad de los bordes.
+        PulidoEscena.dibujar(grafico, ancho, alto, nivel, luz, tiempo, estado,
+                movimiento, bajoConsumo);
         vineta(grafico, ancho, alto, penumbra);
     }
 
