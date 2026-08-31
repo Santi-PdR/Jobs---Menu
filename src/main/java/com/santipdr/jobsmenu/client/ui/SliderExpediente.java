@@ -62,7 +62,7 @@ public final class SliderExpediente extends AbstractSliderButton {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    public void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         int x = getX();
         int y = getY();
         int w = this.width;
