@@ -1,5 +1,62 @@
 # Registro de cambios
 
+## 0.12.0 — Familia de interfaces Jobs — 2026-08-31
+
+### Dirección de interfaz
+
+- Las pantallas que todavía se sentían ajenas al mod dejan de depender visualmente del gris/dirt de Minecraft y pasan a compartir un lenguaje de **expediente administrativo**: papel fotocopiado, tinta, archivo, fluorescente y el Nivel vigente detrás.
+- `GripeVerde` se usó únicamente como referencia de arquitectura de UI: conservar lógica vanilla cuando aporta compatibilidad y reimplementar sólo los hubs donde Jobs necesita una jerarquía propia. No se trasladó su tema victoriano.
+- El rojo sigue reservado a Executores. Incluso las acciones terminales usan tinta y peso visual, no color de alarma.
+
+### Hub de opciones y navegación
+
+- Nuevo `PantallaOpcionesJobs`: reemplaza el salto al hub vanilla por una mesa de configuración coherente con el resto del aviso.
+- Accesos integrados a Piel, Sonido, Video, Controles, Idioma, Chat, Resource Packs, Accesibilidad, Online y ajustes propios de Jobs.
+- FOV pasa a un `SliderExpediente` propio sin duplicar el valor de Minecraft.
+- El layout del hub ahora tiene modo compacto para ventanas con poco ancho/alto lógico, evitando cruces entre botones, FOV y Volver.
+- La pausa abre directamente el hub Jobs; no depende de una redirección del menú principal que, por diseño, no existe mientras hay un mundo cargado.
+
+### Pantallas vanilla tematizadas sin perder lógica
+
+- Nuevas envolturas Jobs para Sonido, Video, Chat, Accesibilidad, Mouse, Teclas, Online y selección de Resource Packs.
+- Las listas vanilla conservan su ancho y comportamiento interno; Jobs sólo retira fondo/bandas y reserva espacio vertical para cabecera y pie. Esto evita romper columnas, hitboxes o widgets inyectados por otras pantallas.
+- Los botones `Done` vanilla sustituidos por navegación Jobs quedan también inactivos, no sólo invisibles.
+- Accesibilidad incorpora al final de la lista de Minecraft las ayudas propias del mod: movimiento reducido, destellos reducidos, alto contraste y texto grande.
+- Los controles de Agacharse/Correr conservan la semántica vanilla **Mantener/Alternar**, en vez de mostrarse como un simple Sí/No.
+
+### Interfaces propias
+
+- Nuevo `PantallaPielJobs`: ficha de identificación para capas del modelo y mano principal.
+- Nuevo `PantallaIdiomaJobs`: lista real de idiomas, selección pendiente, doble clic para aplicar, fuente Unicode y recarga de recursos sin abandonar el flujo Jobs.
+- Nuevo `PantallaControlesJobs`: hub de Mouse/Teclas y controles booleanos frecuentes.
+- Nuevo `PantallaMultijugadorJobs`: conserva `ServerSelectionList`, ping, MOTD, LAN y acciones vanilla, pero sustituye el marco y la superficie de interacción por Jobs.
+- Los diálogos externos o de otros mods que no se reemplazan pueden recibir una banda contextual mínima en vez de ser forzados a una copia incompleta.
+
+### Sistema compartido de UI
+
+- Nuevo `ChromeExpediente`: fondo vivo, hoja, doble borde, marcas de archivador, cabeceras, divisores, pie de formulario, Nivel actual y versión runtime.
+- Nuevo `BotonExpediente`: estados normal/foco/pulsado/deshabilitado, navegación por teclado, narración, elipsis segura y gestos sonoros del mod.
+- Nuevo `SliderExpediente`: control entero con papel/tinta y feedback auditivo limitado mientras se arrastra.
+- Nuevo `ToggleExpediente`: enlaza getters/setters reales y admite etiquetas semánticas personalizadas.
+- Nuevo `ListasExpediente`: estilización defensiva de listas vanilla mediante reflection acotada y fallback seguro.
+- Nuevo `TransicionInterfazJobs`: transición breve entre expedientes; con movimiento reducido se simplifica para no añadir animación innecesaria.
+
+### Compatibilidad y seguridad
+
+- `EscuchaCliente` sólo sustituye clases vanilla exactas en los puntos de entrada previstos; una subclase de otro mod no se pisa de forma indiscriminada.
+- Embeddium conserva su propia pantalla de vídeo cuando está presente y recibe únicamente contexto visual Jobs.
+- El audio ambiental y la música mantienen continuidad entre pantallas de una misma visita.
+- El cambio de idioma continúa pasando por el sistema real de recursos de Minecraft y los gestores de audio ya existentes se recuperan mediante el listener de recarga.
+
+### Entrega
+
+- La versión sube a **0.12.0**.
+- El artefacto exigido es **`jobsmenu-0.12.0.jar`**.
+- ES/EN incorporan las nuevas claves de interfaz con paridad verificada.
+- README, CONTEXTO, riesgos y auditoría se actualizan al nuevo sistema de interfaces.
+
+---
+
 ## 0.11.0 — Pulido profesional y entregas versionadas — 2026-08-31
 
 ### Entrega y versión
