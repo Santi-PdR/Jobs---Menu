@@ -47,6 +47,10 @@ public final class EscuchaCliente {
         boolean salidaAlTitulo = siguiente != null
                 && siguiente.getClass() == TitleScreen.class
                 && SesionMenu.consumirSalidaAlTitulo();
+        boolean flujoAdministrativo = SesionMenu.activa()
+                || anterior instanceof PantallaNivel
+                || anterior instanceof PantallaEstancia
+                || anterior instanceof PantallaOpcionesJobs;
 
         if (ConfigTurno.menuPropio()
                 && siguiente != null
@@ -59,13 +63,13 @@ public final class EscuchaCliente {
         } else if (ConfigTurno.pausaPropia() && esPausaReal(siguiente)) {
             siguiente = new PantallaEstancia();
             evento.setNewScreen(siguiente);
-        } else if (ConfigTurno.menuPropio() && SesionMenu.activa()
+        } else if (ConfigTurno.menuPropio() && flujoAdministrativo
                 && siguiente != null && siguiente.getClass() == OptionsScreen.class) {
             // Clase exacta: una pantalla de opciones de otro mod conserva su
             // implementacion y solo recibe la banda contextual en Render.Post.
             siguiente = new PantallaOpcionesJobs(anterior, Minecraft.getInstance().options);
             evento.setNewScreen(siguiente);
-        } else if (ConfigTurno.menuPropio() && SesionMenu.activa()
+        } else if (ConfigTurno.menuPropio() && flujoAdministrativo
                 && siguiente != null && siguiente.getClass() == JoinMultiplayerScreen.class) {
             siguiente = new PantallaMultijugadorJobs(anterior);
             evento.setNewScreen(siguiente);
