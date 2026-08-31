@@ -30,6 +30,7 @@ public final class PantallaSonidoJobs extends SoundOptionsScreen {
         if (this.lista != null) {
             this.lista.setRenderBackground(false);
             this.lista.setRenderTopAndBottom(false);
+            this.lista.updateSize(this.width, this.height, 50, this.height - 42);
         }
         reemplazarDone();
     }
@@ -51,6 +52,7 @@ public final class PantallaSonidoJobs extends SoundOptionsScreen {
         for (var child : this.children()) {
             if (child instanceof Button b && b.getMessage().equals(CommonComponents.GUI_DONE)) {
                 b.visible = false;
+                b.active = false;
                 break;
             }
         }
