@@ -32,10 +32,14 @@ def main() -> int:
             error("el workflow no construye un nombre de JAR versionado")
         if "artifacts: ${{ env.MOD_JAR }}" not in workflow:
             error("la release no publica el JAR versionado")
+        if "Remove obsolete release JARs" not in workflow:
+            error("el workflow no limpia JARs obsoletos de dev-latest")
+        if "/releases/assets/" not in workflow or 'method="DELETE"' not in workflow:
+            error("la limpieza de dev-latest no elimina realmente los assets anteriores")
 
         print(f"Version: {version}")
         print(f"Artefacto exigido: jobsmenu-{version}.jar")
-        print("Politica de versionado: OK")
+        print("Politica de versionado y limpieza de release: OK")
         return 0
     except Exception as exc:
         print(f"ERROR versionado: {exc}", file=sys.stderr)
