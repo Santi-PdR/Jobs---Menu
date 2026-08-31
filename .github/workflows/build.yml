@@ -5,7 +5,18 @@ on:
     branches:
       - main
       - 'arena/**'
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
+
+# Una rama activa puede recibir varios commits de pulido en pocos segundos.
+# Compilar snapshots ya obsoletos desperdicia minutos y retrasa justo el build
+# que interesa. Main y cada PR/rama mantienen su propio grupo; un push nuevo
+# cancela solamente la ejecucion anterior del mismo flujo lógico.
+concurrency:
+  group: jobsmenu-build-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
