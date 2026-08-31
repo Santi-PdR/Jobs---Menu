@@ -32,6 +32,8 @@ jobs:
           fi
           echo "MOD_VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "MOD_JAR=jobsmenu-$VERSION.jar" >> "$GITHUB_ENV"
+      - name: Verify versioned artifact policy
+        run: python3 tools/verificar_version.py
       - name: Verify image backgrounds
         run: python3 tools/verificar_fondos.py
       - name: Python verification
