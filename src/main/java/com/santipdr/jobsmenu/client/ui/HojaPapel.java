@@ -78,7 +78,7 @@ public final class HojaPapel {
         g.fill(x1 - Math.max(12, w / 5), yB,
                 x1 - Math.max(4, w / 18), yB + 1, tinta);
 
-        // Desgaste minúsculo de borde. No invade el area de lectura.
+        // Desgaste minusculo de borde. No invade el area de lectura.
         int roce = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.075F);
         g.fill(x0, y0 + h / 3, x0 + 2, y0 + h / 3 + 1, roce);
         g.fill(x1 - 2, y0 + h * 4 / 5, x1, y0 + h * 4 / 5 + 1, roce);
