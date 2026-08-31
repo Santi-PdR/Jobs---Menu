@@ -22,10 +22,11 @@ public final class PantallaTeclasJobs extends KeyBindsScreen {
     @Override
     protected void init() {
         super.init();
-        ListasExpediente.estilizar(this);
+        ListasExpediente.estilizar(this, 50, this.height - 42);
         for (var child : this.children()) {
             if (child instanceof Button b && b.getMessage().equals(CommonComponents.GUI_DONE)) {
                 b.visible = false;
+                b.active = false;
                 break;
             }
         }
