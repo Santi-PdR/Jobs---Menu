@@ -35,6 +35,14 @@ public final class PlantaImagen implements Planta {
         this.modo = modo;
     }
 
+    /**
+     * Compatibilidad con las declaraciones antiguas de Nivel. Las dimensiones
+     * recibidas se ignoran deliberadamente: la fuente de verdad es el PNG real.
+     */
+    public PlantaImagen(String archivo, int anchoIgnorado, int altoIgnorado, int modo) {
+        this(archivo, modo);
+    }
+
     @Override
     public void dibujar(GuiGraphics g, Marco marco, Nivel nivel, float luz, float tiempo) {
         int w = marco.ancho();
