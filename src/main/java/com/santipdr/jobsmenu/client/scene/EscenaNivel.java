@@ -1,6 +1,7 @@
 package com.santipdr.jobsmenu.client.scene;
 
 import com.santipdr.jobsmenu.client.scene.planta.Planta;
+import com.santipdr.jobsmenu.client.scene.planta.PlantaImagen;
 import com.santipdr.jobsmenu.client.scene.planta.Trazo;
 import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.santipdr.jobsmenu.client.ui.RelojAparicion;
@@ -14,42 +15,30 @@ public final class EscenaNivel {
     private EscenaNivel() {
     }
 
-    /** Menos polvo generico; ahora pesa mas la identidad de cada recinto. */
     private static final int MOTAS = 52;
 
     public static void dibujar(GuiGraphics grafico, int ancho, int alto) {
         dibujar(grafico, ancho, alto, RotacionNiveles.capturar());
     }
 
-    /**
-     * Dibuja con un estado capturado al principio del frame.
-     *
-     * El overload publico conserva a los callers existentes; la pantalla
-     * principal usa este camino para que la planta, la luz y la transicion no
-     * puedan pertenecer a dos instantes distintos.
-     */
+    /** Dibuja con un estado capturado al principio del frame. */
     public static void dibujar(GuiGraphics grafico, int ancho, int alto,
                                RotacionNiveles.Estado estado) {
         Nivel nivel = estado.nivel();
+        Planta planta = nivel.planta;
+        boolean fondoImagen = planta instanceof PlantaImagen;
 
         boolean viva = ConfigTurno.escenaViva();
-        boolean destellos = viva && !ConfigTurno.destellosReducidos()
+        boolean destellos = viva && !fondoImagen && !ConfigTurno.destellosReducidos()
                 && !estado.enSuspension();
-        boolean movimiento = viva && !ConfigTurno.movimientoReducido();
-        // Bajo consumo no congela el recinto (eso es movimiento_reducido):
-        // quita las capas de aire y la respiracion, que son las que mas
-        // rellenan por fotograma en pantallas pequenas o integradas.
+        // Los PNG 10-17 son una excepcion deliberada desde 0.13.0: se mantienen
+        // estaticos aunque el resto de recintos siga usando escena viva.
+        boolean movimiento = viva && !fondoImagen && !ConfigTurno.movimientoReducido();
         boolean bajoConsumo = viva && ConfigTurno.bajoConsumo();
         boolean respiracion = movimiento && ConfigTurno.respiracionCamara()
                 && !bajoConsumo;
         boolean atmosferaMovimiento = movimiento && !estado.enSuspension();
 
-        // Con el movimiento reducido el reloj se congela a proposito: las
-        // plantas, los materiales, el tratamiento y la direccion de arte
-        // reciben un instante fijo, asi el fuego, el agua, las telas y los
-        // haces se quedan quietos de verdad. La luz sigue viva porque es otra
-        // opcion (destellos_reducidos). Antes solo se apagaban el polvo, la
-        // presencia y los eventos, y el resto del recinto seguia animandose.
         float tiempo = movimiento ? (estado.ahora() % 600_000L) / 1000.0F : 3.0F;
         long restanteRonda = RelojAparicion.restanteMs(estado.ahora());
         float penumbra = RelojAparicion.penumbra(restanteRonda);
@@ -75,49 +64,35 @@ public final class EscenaNivel {
                 ancho * nivel.semiIzq, ancho * nivel.semiDer,
                 ancho * nivel.semiAlto, ancho * nivel.semiBajo);
 
-        Planta planta = nivel.planta;
         planta.dibujar(grafico, marco, nivel, luz, tiempo);
 
-        // El detalle de material se pega a la arquitectura base antes de las
-        // capas de luz: asi una grieta o un remache recibe la misma atmosfera
-        // que el resto y no parece un sticker encima de la escena.
-        MaterialesEscena.dibujar(grafico, ancho, alto, nivel, luz, tiempo, movimiento);
+        // Las capas siguientes existen para dar vida a los recintos procedurales.
+        // Sobre un PNG del usuario alterarian o animarian la imagen, asi que no se
+        // aplican a los niveles 10-17.
+        if (!fondoImagen) {
+            MaterialesEscena.dibujar(grafico, ancho, alto, nivel, luz, tiempo, movimiento);
+            TratamientoEscena.dibujar(grafico, ancho, alto, nivel, luz, tiempo, movimiento);
+            DireccionArte.dibujar(grafico, ancho, alto, nivel, luz, tiempo);
 
-        // TratamientoEscena trabaja materiales/profundidad global y
-        // DireccionArte agrega el lenguaje propio de cada recinto a partir de
-        // referencias visuales. Los fondos 10-17 tambien reciben esta capa
-        // global, pero conservan su propio movimiento en PlantaImagen.
-        TratamientoEscena.dibujar(grafico, ancho, alto, nivel, luz, tiempo, movimiento);
-        DireccionArte.dibujar(grafico, ancho, alto, nivel, luz, tiempo);
+            planta.primerPlano(grafico, marco, nivel, luz, tiempo);
 
-        planta.primerPlano(grafico, marco, nivel, luz, tiempo);
-
-        // La Suspension apaga tambien los efectos que se mueven por el aire:
-        // no hay motas, presencia ni eventos visuales durante el silencio. La
-        // planta conserva su animacion normal si el usuario no pidio reducir
-        // movimiento; la luz es la que cuenta la historia del corte.
-        if (atmosferaMovimiento) {
-            // Los eventos tienen entrada/salida por luminancia; se omiten con
-            // destellos reducidos en vez de introducir un flash accidental.
-            if (!ConfigTurno.destellosReducidos()) {
-                EventosAmbientales.dibujar(grafico, ancho, alto, nivel, luz, estado.ahora());
+            if (atmosferaMovimiento) {
+                if (!ConfigTurno.destellosReducidos()) {
+                    EventosAmbientales.dibujar(grafico, ancho, alto, nivel, luz, estado.ahora());
+                }
+                if (!bajoConsumo) {
+                    Presencia.dibujar(grafico, nivel, marco, luz, planta.pisoPresencia(), estado.ahora());
+                    int cantidadMotas = ancho * alto < 300_000 ? 24 : MOTAS;
+                    motas(grafico, ancho, alto, tiempo, luz, nivel, cantidadMotas);
+                }
             }
-            if (!bajoConsumo) {
-                // La figura y el polvo son las dos capas de aire mas caras:
-                // en bajo consumo se saltan, y con ellas el rebote de la
-                // sombra de la figura sobre el suelo. El recinto queda igual,
-                // solo mas despejado y mas rapido.
-                Presencia.dibujar(grafico, nivel, marco, luz, planta.pisoPresencia(), estado.ahora());
-                int cantidadMotas = ancho * alto < 300_000 ? 24 : MOTAS;
-                motas(grafico, ancho, alto, tiempo, luz, nivel, cantidadMotas);
-            }
+
+            PulidoEscena.dibujar(grafico, ancho, alto, nivel, luz, tiempo, estado,
+                    movimiento, bajoConsumo);
         }
 
-        // Acabado de camara/instalacion comun a los 18 niveles. Esta capa se
-        // dibuja despues del aire para integrar todo el recinto, pero antes de
-        // la vineta final para no reducir la legibilidad de los bordes.
-        PulidoEscena.dibujar(grafico, ancho, alto, nivel, luz, tiempo, estado,
-                movimiento, bajoConsumo);
+        // Vignette y apagones pertenecen a la composicion/transicion del menu,
+        // no a una animacion del PNG en si.
         vineta(grafico, ancho, alto, penumbra);
     }
 
