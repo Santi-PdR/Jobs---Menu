@@ -1,4 +1,4 @@
-# Compatibilidad y despliegue — 0.14.0
+# Compatibilidad y despliegue — 0.14.1
 
 ## Perfil soportado
 
@@ -8,8 +8,8 @@
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente; el servidor no necesita Jobs Menu |
-| Versión del mod | **0.14.0** |
-| Artefacto | `build/libs/jobsmenu-0.14.0.jar` |
+| Versión del mod | **0.14.1** |
+| Artefacto | `build/libs/jobsmenu-0.14.1.jar` |
 
 Jobs Menu distingue entre **pantallas que controla**, **pantallas vanilla cuya lógica conserva** y **pantallas de otros mods que debe respetar**. La compatibilidad tiene prioridad sobre una reimplementación cosmética frágil.
 
@@ -21,6 +21,8 @@ Las redirecciones principales se hacen por **clase exacta**.
 - La pausa real vanilla puede convertirse en `PantallaEstancia`.
 - `OptionsScreen` vanilla dentro del flujo Jobs puede convertirse en `PantallaOpcionesJobs`.
 - `JoinMultiplayerScreen` vanilla dentro del flujo Jobs puede convertirse en `PantallaMultijugadorJobs`.
+- `SelectWorldScreen` vanilla puede envolverse como `PantallaMundosJobs` conservando la lista/previews originales.
+- `ModListScreen` de Forge puede envolverse como `PantallaModsJobs` conservando su panel, búsqueda y acciones.
 
 Una subclase de otro mod no se sustituye automáticamente sólo por heredar de estas clases.
 
@@ -28,7 +30,7 @@ Una subclase de otro mod no se sustituye automáticamente sólo por heredar de e
 
 `PantallaOpcionesJobs` es un hub propio. La configuración del mod aparece como acción principal diferenciada de las opciones Minecraft.
 
-`PantallaAjustesAviso` es también una pantalla propia desde 0.14.0: ya no usa `OptionsList`/`OptionInstance` como interfaz visible. Sus cinco categorías escriben directamente sobre `ConfigTurno` mediante widgets Jobs.
+`PantallaAjustesAviso` es también una pantalla propia: ya no usa `OptionsList`/`OptionInstance` como interfaz visible. Sus cinco categorías escriben directamente sobre `ConfigTurno` mediante widgets Jobs.
 
 Las dos entradas válidas son:
 
@@ -39,7 +41,7 @@ Ambas abren la misma implementación.
 
 ## Pantallas vanilla preservadas
 
-Se conserva la lógica de Minecraft en:
+Se conserva la lógica de Minecraft/Forge en:
 
 - Sonido;
 - Video vanilla;
@@ -49,6 +51,8 @@ Se conserva la lógica de Minecraft en:
 - Teclas;
 - Online;
 - Resource Packs;
+- Seleccionar mundo;
+- Mods de Forge;
 - diálogos de servidor y confirmación cuando conviene.
 
 Las envolturas ejecutan primero la lógica original. Jobs retira fondos/bandas cuando es seguro, reserva espacio para su chrome y desactiva botones `Done` duplicados cuando los sustituye.
@@ -78,7 +82,7 @@ Las pantallas de terceros no reciben `PielVanillaJobs`; como máximo reciben la 
 
 `ListasExpediente` conserva `AbstractSelectionList` como fuente de verdad para posición, wheel, click, drag y tamaño del contenido.
 
-Después del render vanilla, Jobs cubre la barra gris y dibuja sobre el mismo hitbox:
+Después del render vanilla, Jobs cubre la barra gris y dibuja sobre el mismo hitbox cuando puede resolver los datos internos:
 
 - canaleta de archivador;
 - topes;
@@ -86,7 +90,7 @@ Después del render vanilla, Jobs cubre la barra gris y dibuja sobre el mismo hi
 - tirador proporcional;
 - agarres internos.
 
-La integración usa reflection defensiva con nombres SRG. Si no puede resolverse una lista modificada, se conserva la presentación/funcionalidad disponible en vez de abortar la pantalla.
+La integración usa reflection defensiva con nombres SRG. Si no puede resolverse una lista modificada, se conserva una scrollbar utilizable/fallback en vez de abortar o inventar coordenadas.
 
 ## Embeddium y video externo
 
@@ -117,19 +121,31 @@ La familia Jobs respeta:
 - bajo consumo;
 - perfil accesible.
 
+La Guía de accesibilidad vanilla no se mantiene como botón inferior dentro de `PantallaAccesibilidadJobs`, porque Jobs ya proporciona su propio cierre y ese botón duplicado provocaba solape.
+
 Movimiento reducido simplifica microinteracciones y transiciones. Los PNG 10–17 permanecen estáticos con cualquier combinación de ajustes.
 
 ## Resource Packs e idioma
 
 Idioma y paquetes usan la recarga real de recursos de Minecraft. `RecargaRecursosCliente` invalida referencias de música/ambiente asociadas a un `SoundEngine` anterior.
 
-Probar ES ↔ EN, F3+T, aplicar/quitar packs y volver al menú sin duplicados de audio.
+`es_ar`, `es_cl`, `es_ec`, `es_mx`, `es_uy` y `es_ve` reutilizan el catálogo Jobs `es_es` durante `processResources`; esto evita que variantes españolas queden con cadenas propias del mod en inglés.
+
+Probar ES ↔ EN, Español (Uruguay), F3+T, aplicar/quitar packs y volver al menú sin duplicados de audio. Resource Packs no debe dejar un bloque de dirt aislado dentro del chrome Jobs.
 
 ## Multijugador
 
 `PantallaMultijugadorJobs` conserva `ServerSelectionList`, ping, MOTD, favicons, LAN, servidores guardados y las acciones vanilla de seleccionar, conexión directa, añadir, editar, borrar, refrescar y cancelar.
 
+Título, subtítulo y nota contextual ocupan zonas verticales distintas antes de la lista.
+
 Los diálogos auxiliares pueden recibir `PielVanillaJobs`, pero siguen usando la lógica original.
+
+## Selector de mundos y Mods
+
+`PantallaMundosJobs` conserva `SelectWorldScreen`: previews, selección y operaciones vanilla siguen siendo responsabilidad de Minecraft. Jobs sólo reemplaza el contexto visual y elimina bandas/fondos que rompían continuidad.
+
+`PantallaModsJobs` conserva `ModListScreen` de Forge: búsqueda, orden, logos, panel de información, Config y carpeta de mods permanecen intactos. No se reimplementa el registro de mods.
 
 ## Audio y lifecycle
 
@@ -146,7 +162,7 @@ C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\
 El JAR de esta entrega debe quedar únicamente como:
 
 ```text
-C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.14.0.jar
+C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.14.1.jar
 ```
 
 No se mantiene un `.ps1` dentro del repositorio. El procedimiento está en [`DESPLIEGUE.md`](DESPLIEGUE.md).
@@ -173,7 +189,7 @@ CI certifica:
 3. PNG 10–17;
 4. recursos/idiomas/ASCII/coherencia estática;
 5. build Forge;
-6. preparación de `jobsmenu-0.14.0.jar`.
+6. preparación de `jobsmenu-0.14.1.jar`.
 
 La publicación a `dev-latest` sólo ocurre desde `main`.
 
