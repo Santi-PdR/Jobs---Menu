@@ -10,7 +10,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.AccessibilityOptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 
 /** Accesibilidad vanilla completa dentro del expediente Jobs. */
@@ -45,21 +44,26 @@ public final class PantallaAccesibilidadJobs extends AccessibilityOptionsScreen 
             this.list.setRenderBackground(false);
             this.list.setRenderTopAndBottom(false);
             this.list.setRenderSelection(false);
-            // Mas aire arriba y abajo: cabecera, ultima fila, scrollbar y Volver
-            // ya no comparten pixeles incluso en GUI scale alto.
-            this.list.updateSize(this.width, this.height, 54, this.height - 50);
+            // La cabecera Jobs y el pie propio tienen una zona exclusiva. Esto evita
+            // que la ultima fila, la scrollbar o un control auxiliar caigan debajo del
+            // boton de cierre incluso con GUI scale alto.
+            this.list.updateSize(this.width, this.height, 58, this.height - 52);
         }
 
-        // Ocultamos cualquier Done que haya creado vanilla, no solo el primero.
+        // AccessibilityOptionsScreen crea dos acciones de pie: Done y el enlace a la
+        // guia de accesibilidad. Dentro del expediente Jobs ambas son chrome vanilla
+        // duplicado; la guia era precisamente el boton que se montaba sobre Cerrar.
+        // Los botones de opciones viven dentro de OptionsList, por lo que podemos
+        // retirar con seguridad todos los Button directos de la franja inferior.
         for (var child : this.children()) {
-            if (child instanceof Button b && b.getMessage().equals(CommonComponents.GUI_DONE)) {
+            if (child instanceof Button b && b.getY() >= this.height - 56) {
                 b.visible = false;
                 b.active = false;
             }
         }
 
         this.addRenderableWidget(new BotonExpediente(
-                this.width / 2 - 70, this.height - 30, 140, 20,
+                this.width / 2 - 76, this.height - 31, 152, 21,
                 Component.translatable("jobsmenu.interfaz.volver"),
                 BotonExpediente.Tipo.PRINCIPAL, this::onClose));
     }
@@ -75,7 +79,7 @@ public final class PantallaAccesibilidadJobs extends AccessibilityOptionsScreen 
         super.render(g, mouseX, mouseY, partialTick);
         ChromeExpediente.marcoSubpantalla(g, this.font, this.width, this.height,
                 8, 6, this.width - 16, this.height - 12,
-                Component.translatable("jobsmenu.interfaz.accesibilidad.subtitulo"), "ACC-013");
+                Component.translatable("jobsmenu.interfaz.accesibilidad.subtitulo"), "ACC-014");
     }
 
     @Override
