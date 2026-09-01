@@ -1,5 +1,56 @@
 # Registro de cambios
 
+## 0.14.0 — Profesionalización del sistema de interfaz — 2026-09-01
+
+### Options y Config
+
+- `PantallaOpcionesJobs` separa explícitamente la configuración **Jobs** de las opciones generales de Minecraft.
+- Config del mod pasa a ser una acción principal de ancho completo y utiliza el nuevo tipo visual `BotonExpediente.Tipo.JOBS`.
+- El acceso estándar **Mods → Jobs Menu → Config** sigue abriendo exactamente la misma configuración.
+- `PantallaAjustesAviso` se reescribe por completo: deja de usar `OptionsList`/`OptionInstance` como superficie visual y pasa a cinco categorías propias (visual, Nivel, audio, accesibilidad y sistema).
+- Los controles del mod quedan conectados directamente a los getters/setters reales de `ConfigTurno`; no se crea un estado visual duplicado.
+
+### Widgets de segunda generación
+
+- `BotonExpediente` gana jerarquía JOBS, marca administrativa, sombra diferenciada, foco progresivo y respuesta de presión.
+- `SliderExpediente` incorpora escala, marcas de lectura, tirador de papel/tinta y foco propio.
+- `ToggleExpediente` separa casilla, etiqueta y valor en una cápsula de estado en vez de parecer un botón Sí/No.
+- Las microinteracciones de foco se simplifican cuando está activo movimiento reducido.
+
+### Chrome y composición
+
+- `ChromeExpediente` recibe sombra en dos planos, pestaña de archivador, borde secundario y perforaciones más legibles.
+- Cabeceras con reglas laterales y truncado seguro de títulos/subtítulos.
+- Nuevo `ChromeExpediente.seccion` para crear jerarquía interna consistente entre hubs.
+- Vignette estática alrededor del documento para separar la interfaz del recinto sin animar los PNG suministrados.
+- Banda contextual externa más sólida y coherente con el resto del expediente.
+
+### Diálogos vanilla auxiliares
+
+- Nueva `PielVanillaJobs`: tematiza visualmente botones y campos de texto de pantallas `net.minecraft.*` durante una sesión Jobs.
+- La capa se dibuja después del render vanilla y conserva hitboxes, listeners, foco, validaciones y lógica original.
+- Sirve para Direct Connect, Add Server, confirmaciones y otros diálogos secundarios que no merece la pena reimplementar.
+- Las pantallas de otros mods no reciben esta piel de controles; conservan su implementación y sólo pueden recibir contexto mínimo.
+
+### Scrollbar y transición
+
+- La scrollbar Jobs gana canaleta, topes, marcas de recorrido y agarres internos conservando rueda/click/drag de Minecraft.
+- `TransicionInterfazJobs` incorpora sombra de carpeta, doble fibra de papel y marcas de archivo.
+- Movimiento reducido sigue reemplazando el gesto por un fade corto.
+
+### Fondos 10–17
+
+- Se mantiene sin excepción la regla de 0.13.0: los PNG 10–17 son estáticos.
+- El nuevo chrome puede dibujar capas estáticas de interfaz alrededor del expediente, pero no añade zoom, paneo, flicker, niebla móvil ni otros movimientos al PNG.
+
+### Entrega
+
+- La versión sube a **0.14.0**.
+- Artefacto obligatorio: **`jobsmenu-0.14.0.jar`**.
+- README y CONTEXTO se actualizan al nuevo centro de control y a la Config Jobs completamente propia.
+
+---
+
 ## 0.13.0 — PNG estáticos y pulido de controles — 2026-08-31
 
 ### Fondos 10–17
