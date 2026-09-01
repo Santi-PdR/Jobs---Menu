@@ -16,16 +16,18 @@ import net.minecraft.network.chat.Component;
 public class PantallaAjustesAviso extends Screen {
 
     private enum Categoria {
-        VISUAL("visual"),
-        NIVEL("nivel"),
-        AUDIO("audio"),
-        ACCESIBILIDAD("accesibilidad"),
-        SISTEMA("sistema");
+        VISUAL("options.video", "jobsmenu.ajustes.escena.detalle"),
+        NIVEL("jobsmenu.ajustes.nivelfijo", "jobsmenu.ajustes.nivelfijo.detalle"),
+        AUDIO("options.sounds", "jobsmenu.ajustes.volambiente.detalle"),
+        ACCESIBILIDAD("options.accessibility.title", "jobsmenu.ajustes.perfil.detalle"),
+        SISTEMA("options.title", "jobsmenu.ajustes.menu.detalle");
 
-        private final String clave;
+        private final String titulo;
+        private final String detalle;
 
-        Categoria(String clave) {
-            this.clave = clave;
+        Categoria(String titulo, String detalle) {
+            this.titulo = titulo;
+            this.detalle = detalle;
         }
     }
 
@@ -70,7 +72,7 @@ public class PantallaAjustesAviso extends Screen {
         for (Categoria c : Categoria.values()) {
             BotonExpediente boton = new BotonExpediente(
                     x, tabsY, tabW, tabH,
-                    Component.translatable("jobsmenu.ajustes.categoria." + c.clave),
+                    Component.translatable(c.titulo),
                     c == this.categoria ? BotonExpediente.Tipo.JOBS : BotonExpediente.Tipo.NORMAL,
                     () -> abrirCategoria(c));
             this.addRenderableWidget(boton);
@@ -115,15 +117,15 @@ public class PantallaAjustesAviso extends Screen {
         Grid grid = new Grid(margen, gap);
         grid.togglePar("jobsmenu.ajustes.rotar", ConfigTurno::rotarNivelesBruto, ConfigTurno::fijarRotarNiveles,
                 "jobsmenu.ajustes.cuenta", ConfigTurno::mostrarCuentaRegresivaBruto, ConfigTurno::fijarMostrarCuentaRegresiva);
-        grid.slider("jobsmenu.ajustes.nivelfijo", 0, 17, ConfigTurno.nivelFijo(), ConfigTurno::fijarNivelFijo,
+        grid.slider(0, 17, ConfigTurno.nivelFijo(), ConfigTurno::fijarNivelFijo,
                 v -> Component.translatable("jobsmenu.ajustes.nivelvalor",
                         Component.translatable("jobsmenu.ajustes.nivelfijo"), v));
-        grid.slider("jobsmenu.ajustes.estancia", 15, 90, ConfigTurno.duracionEstancia(), ConfigTurno::fijarDuracionEstancia,
+        grid.slider(15, 90, ConfigTurno.duracionEstancia(), ConfigTurno::fijarDuracionEstancia,
                 v -> Component.translatable("jobsmenu.ajustes.segundos",
                         Component.translatable("jobsmenu.ajustes.estancia"), v));
         grid.togglePar("jobsmenu.ajustes.rotacioncalma", ConfigTurno::rotacionCalma, ConfigTurno::fijarRotacionCalma,
                 "jobsmenu.ajustes.avisos", ConfigTurno::avisosRotativosBruto, ConfigTurno::fijarAvisosRotativos);
-        grid.slider("jobsmenu.ajustes.duracion", 4, 15, ConfigTurno.duracionAvisos(), ConfigTurno::fijarDuracionAvisos,
+        grid.slider(4, 15, ConfigTurno.duracionAvisos(), ConfigTurno::fijarDuracionAvisos,
                 v -> Component.translatable("jobsmenu.ajustes.segundos",
                         Component.translatable("jobsmenu.ajustes.duracion"), v));
         grid.toggleCompleto("jobsmenu.ajustes.fecha", ConfigTurno::mostrarFechaBruto, ConfigTurno::fijarMostrarFecha);
@@ -131,13 +133,13 @@ public class PantallaAjustesAviso extends Screen {
 
     private void construirAudio(int margen, int gap) {
         Grid grid = new Grid(margen, gap);
-        grid.slider("jobsmenu.ajustes.volaviso", 0, 100, ConfigTurno.volumenAvisoPorcentaje(), ConfigTurno::fijarVolumenAviso,
+        grid.slider(0, 100, ConfigTurno.volumenAvisoPorcentaje(), ConfigTurno::fijarVolumenAviso,
                 v -> Component.translatable("jobsmenu.ajustes.porciento",
                         Component.translatable("jobsmenu.ajustes.volaviso"), v));
-        grid.slider("jobsmenu.ajustes.volmusica", 0, 100, ConfigTurno.volumenMusicaPorcentaje(), ConfigTurno::fijarVolumenMusica,
+        grid.slider(0, 100, ConfigTurno.volumenMusicaPorcentaje(), ConfigTurno::fijarVolumenMusica,
                 v -> Component.translatable("jobsmenu.ajustes.porciento",
                         Component.translatable("jobsmenu.ajustes.volmusica"), v));
-        grid.slider("jobsmenu.ajustes.volambiente", 0, 100, ConfigTurno.volumenAmbientePorcentaje(), ConfigTurno::fijarVolumenAmbiente,
+        grid.slider(0, 100, ConfigTurno.volumenAmbientePorcentaje(), ConfigTurno::fijarVolumenAmbiente,
                 v -> Component.translatable("jobsmenu.ajustes.porciento",
                         Component.translatable("jobsmenu.ajustes.volambiente"), v));
         grid.togglePar("jobsmenu.ajustes.musica", ConfigTurno::musicaMenu, ConfigTurno::fijarMusicaMenu,
@@ -180,12 +182,11 @@ public class PantallaAjustesAviso extends Screen {
                 Component.translatable("jobsmenu.interfaz.aviso.subtitulo"), panelX, panelY, panelW);
 
         int margen = compacta ? 14 : 20;
-        Component seccion = Component.translatable("jobsmenu.ajustes.categoria." + this.categoria.clave + ".detalle");
         ChromeExpediente.seccion(g, this.font, panelX + margen, panelX + panelW - margen,
-                this.contentY - (compacta ? 6 : 9), seccion);
+                this.contentY - (compacta ? 6 : 9), Component.translatable(this.categoria.detalle));
 
         if (!compacta) {
-            Component ayuda = Component.translatable("jobsmenu.ajustes.hub.nota");
+            Component ayuda = Component.translatable("jobsmenu.interfaz.opciones.nota");
             String texto = ayuda.getString();
             int max = panelW - margen * 2;
             if (this.font.width(texto) <= max) {
@@ -220,12 +221,14 @@ public class PantallaAjustesAviso extends Screen {
         private final int x0;
         private final int x1;
         private final int colW;
+        private final int gap;
         private final int alto;
         private final int paso;
         private int fila;
 
         Grid(int margen, int gap) {
             int ancho = Math.max(1, panelW - margen * 2);
+            this.gap = gap;
             this.colW = Math.max(70, (ancho - gap) / 2);
             this.x0 = panelX + margen;
             this.x1 = x0 + colW + gap;
@@ -248,17 +251,16 @@ public class PantallaAjustesAviso extends Screen {
         void toggleCompleto(String clave, java.util.function.BooleanSupplier leer,
                             java.util.function.Consumer<Boolean> fijar) {
             int y = contentY + fila * paso;
-            addRenderableWidget(new ToggleExpediente(x0, y, colW * 2 + (x1 - x0 - colW), alto,
+            addRenderableWidget(new ToggleExpediente(x0, y, colW * 2 + gap, alto,
                     Component.translatable(clave), leer, fijar));
             fila++;
         }
 
-        void slider(String clave, int min, int max, int valor,
+        void slider(int min, int max, int valor,
                     java.util.function.IntConsumer fijar,
                     java.util.function.IntFunction<Component> rotulo) {
             int y = contentY + fila * paso;
-            addRenderableWidget(new SliderExpediente(x0, y,
-                    colW * 2 + (x1 - x0 - colW), alto,
+            addRenderableWidget(new SliderExpediente(x0, y, colW * 2 + gap, alto,
                     min, max, valor, rotulo, fijar));
             fila++;
         }
