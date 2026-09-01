@@ -18,7 +18,7 @@ public class PantallaAjustesAviso extends Screen {
     private enum Categoria {
         VISUAL("options.video", "jobsmenu.ajustes.escena.detalle"),
         NIVEL("jobsmenu.ajustes.nivelfijo", "jobsmenu.ajustes.nivelfijo.detalle"),
-        AUDIO("options.sounds", "jobsmenu.ajustes.volambiente.detalle"),
+        AUDIO("soundCategory.music", "jobsmenu.ajustes.volambiente.detalle"),
         ACCESIBILIDAD("options.accessibility.title", "jobsmenu.ajustes.perfil.detalle"),
         SISTEMA("options.title", "jobsmenu.ajustes.menu.detalle");
 
@@ -186,18 +186,41 @@ public class PantallaAjustesAviso extends Screen {
                 this.contentY - (compacta ? 6 : 9), Component.translatable(this.categoria.detalle));
 
         if (!compacta) {
-            Component ayuda = Component.translatable("jobsmenu.interfaz.opciones.nota");
-            String texto = ayuda.getString();
-            int max = panelW - margen * 2;
-            if (this.font.width(texto) <= max) {
-                g.drawString(this.font, texto, panelX + margen, panelY + panelH - 43,
-                        Paleta.conAlfa(Paleta.tintaSecundaria(), 0.48F), false);
-            }
+            dibujarResumenCategoria(g, margen);
         }
 
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
         ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "JOBS-014");
         super.render(g, mouseX, mouseY, partialTick);
+    }
+
+    private void dibujarResumenCategoria(GuiGraphics g, int margen) {
+        int x = panelX + margen;
+        int w = panelW - margen * 2;
+        int h = 29;
+        int y = panelY + panelH - 72;
+        int fondo = Paleta.conAlfa(Paleta.PARED_ALTA, 0.055F);
+        int borde = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.16F);
+        int marca = Paleta.conAlfa(Paleta.tintaPrincipal(), 0.44F);
+
+        g.fill(x, y, x + w, y + h, fondo);
+        g.fill(x, y, x + w, y + 1, borde);
+        g.fill(x, y + h - 1, x + w, y + h, borde);
+        g.fill(x, y, x + 1, y + h, borde);
+        g.fill(x + w - 1, y, x + w, y + h, borde);
+        g.fill(x + 7, y + 6, x + 9, y + h - 6, marca);
+
+        Component titulo = Component.translatable(this.categoria.titulo);
+        g.drawString(this.font, titulo, x + 15, y + 5, Paleta.tintaPrincipal(), false);
+
+        String detalle = Component.translatable(this.categoria.detalle).getString();
+        int max = Math.max(20, w - 30);
+        if (this.font.width(detalle) > max) {
+            detalle = this.font.plainSubstrByWidth(detalle,
+                    Math.max(0, max - this.font.width("..."))) + "...";
+        }
+        g.drawString(this.font, detalle, x + 15, y + 16,
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.58F), false);
     }
 
     @Override
