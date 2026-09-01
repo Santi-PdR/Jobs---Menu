@@ -2,7 +2,9 @@ package com.santipdr.jobsmenu.client;
 
 import com.santipdr.jobsmenu.JobsMenu;
 import com.santipdr.jobsmenu.client.screen.PantallaEstancia;
+import com.santipdr.jobsmenu.client.screen.PantallaModsJobs;
 import com.santipdr.jobsmenu.client.screen.PantallaMultijugadorJobs;
+import com.santipdr.jobsmenu.client.screen.PantallaMundosJobs;
 import com.santipdr.jobsmenu.client.screen.PantallaNivel;
 import com.santipdr.jobsmenu.client.screen.PantallaOpcionesJobs;
 import com.santipdr.jobsmenu.client.sound.MezclaAudio;
@@ -23,10 +25,12 @@ import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
+import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.client.gui.ModListScreen;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -74,6 +78,14 @@ public final class EscuchaCliente {
         } else if (ConfigTurno.menuPropio() && flujoAdministrativo
                 && siguiente != null && siguiente.getClass() == JoinMultiplayerScreen.class) {
             siguiente = new PantallaMultijugadorJobs(anterior);
+            evento.setNewScreen(siguiente);
+        } else if (ConfigTurno.menuPropio() && flujoAdministrativo
+                && siguiente != null && siguiente.getClass() == SelectWorldScreen.class) {
+            siguiente = new PantallaMundosJobs(anterior);
+            evento.setNewScreen(siguiente);
+        } else if (ConfigTurno.menuPropio() && flujoAdministrativo
+                && siguiente != null && siguiente.getClass() == ModListScreen.class) {
+            siguiente = new PantallaModsJobs(anterior);
             evento.setNewScreen(siguiente);
         }
 
