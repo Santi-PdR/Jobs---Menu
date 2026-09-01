@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.14.0
+# Riesgos y pruebas pendientes — 0.14.1
 
 Este documento contiene únicamente riesgos vigentes. Los incidentes históricos quedan en `CHANGELOG.md` y las auditorías de `docs/`.
 
@@ -11,7 +11,7 @@ Antes de publicar una entrega, GitHub Actions comprueba:
 - integridad PNG/CRC/IDAT de fondos 10–17;
 - recursos, idiomas, ASCII Java y coherencia estática;
 - build Forge 1.20.1;
-- creación de `jobsmenu-0.14.0.jar`;
+- creación de `jobsmenu-0.14.1.jar`;
 - publicación en `dev-latest` únicamente desde `main`.
 
 Un build que no termina en verde no debe actualizar la release.
@@ -28,7 +28,7 @@ Un build que no termina en verde no debe actualizar la release.
 8. **Diálogos vanilla auxiliares.** Direct Connect, Add Server y confirmaciones deben conservar su lógica pero mostrar botones/campos integrados con Jobs durante la sesión.
 9. **Pantallas de terceros.** Embeddium u otras interfaces externas no deben recibir `PielVanillaJobs`; sólo contexto visual mínimo cuando corresponda.
 10. **Scrollbar Jobs.** Rueda, click y drag deben coincidir con el tirador visual; probar Sonido, Chat, Accesibilidad, Teclas, Online y cualquier lista larga.
-11. **Accesibilidad vanilla.** Primera/última fila, scrollbar y Cerrar expediente deben quedar separados; los controles Jobs añadidos deben guardar correctamente.
+11. **Accesibilidad vanilla.** Primera/última fila, scrollbar y `Cerrar expediente` deben quedar separados; la Guía de accesibilidad vanilla no debe reaparecer superpuesta.
 12. **Options completo.** Piel, Sonido, Video, Controles, Idioma, Chat, Resource Packs, Accesibilidad, Online y FOV deben abrir/volver correctamente.
 13. **Multijugador.** Ping, MOTD, selección, LAN, Direct Connect, Add/Edit/Delete/Refresh y Cancel deben conservar funcionamiento real.
 14. **Idioma y resource reload.** ES ↔ EN, F3+T y Resource Packs no deben duplicar música/ambiente ni romper el chrome.
@@ -37,7 +37,11 @@ Un build que no termina en verde no debe actualizar la release.
 17. **Transición entre PNG.** El apagón/cambio de Nivel puede existir; una vez estabilizado, el PNG vuelve a estar completamente inmóvil.
 18. **Los 18 niveles.** Recorrer 0–17 verificando continuidad de escena/audio al navegar por interfaces.
 19. **Audio/lifecycle.** Abrir muchas pantallas, Alt+Tab, F3+T, cambiar idioma, entrar a mundo y volver sin loops duplicados ni sonidos huérfanos.
-20. **Entrega.** En `test-1\mods` debe quedar un único `jobsmenu-0.14.0.jar`.
+20. **Entrega.** En `test-1\mods` debe quedar un único `jobsmenu-0.14.1.jar`.
+21. **Español (Uruguay).** Seleccionar `Español (Uruguay)` y comprobar que Jobs no mezcla `Close file`, `Notice settings` u otras cadenas inglesas.
+22. **Seleccionar mundo.** Previews, selección, crear/editar/borrar/recrear y volver deben conservar lógica vanilla mientras el marco permanece Jobs.
+23. **Mods / Forge.** Búsqueda, orden A–Z/Z–A, selección, Config, panel de información y abrir carpeta deben seguir funcionando dentro del chrome Jobs.
+24. **Resource Packs.** No debe quedar un bloque aislado de dirt/bandas vanilla; selección, orden, aplicar y abrir carpeta deben conservarse.
 
 ## Riesgos conocidos
 
@@ -46,6 +50,7 @@ Un build que no termina en verde no debe actualizar la release.
 - Las envolturas de Sonido/Video/Chat/Accesibilidad/Mouse/Teclas/Online dependen de estructuras de Minecraft 1.20.1. Mods que las sustituyan completamente pueden necesitar integración dedicada.
 - Embeddium se respeta como pantalla externa. No se intenta reconstruir su interfaz por reflection profunda.
 - Resource packs con fuentes de métricas extremas pueden forzar elipsis o alterar el equilibrio del layout.
+- Los aliases de español se generan desde `es_es` durante el procesado de recursos; una variante futura de Minecraft no incluida explícitamente requerirá añadir su alias.
 - Los PNG suministrados son rasterizados; su calidad máxima depende de la imagen fuente.
 - No existe profiler GPU automático. Bajo consumo reduce capas, pero el coste final depende de resolución, GUI Scale y GPU.
 - `MusicaPropia` requiere OGG Vorbis compatible con Minecraft.
@@ -58,7 +63,7 @@ Un build que no termina en verde no debe actualizar la release.
 - Sustituciones importantes por clase exacta.
 - Pantallas de terceros no reciben skin de controles vanilla.
 - Botones vanilla duplicados se desactivan además de ocultarse.
-- Footer con zona central reservada para navegación.
+- Footer con zona central y esquina derecha reservadas para navegación/overlays.
 - Scrollbar visual conserva el comportamiento real de Minecraft y tiene fallback seguro.
 - `NativeImage` vuelve a validar fondos en runtime y existe fallback procedural.
 - JAR versionado y verificado por CI.

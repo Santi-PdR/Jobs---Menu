@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.14.0
+# Checklist manual de aceptación — 0.14.1
 
 Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código/recursos/build; no certifica estética, hitboxes, audio ni compatibilidad visual.
 
@@ -6,7 +6,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.14.0.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.14.1.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Título y pausa
@@ -120,18 +120,19 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 - [ ] Cabecera/footer no cubren contenido.
 - [ ] `Cerrar expediente` vuelve al padre correcto.
 - [ ] Accesibilidad mantiene las ayudas Jobs añadidas al final de la lista.
+- [ ] La **Guía de accesibilidad** vanilla no aparece como botón inferior superpuesto.
 - [ ] Agacharse/Correr conservan Mantener/Alternar.
 - [ ] Reasignación de teclas y conflictos funcionan.
 
 ## Scrollbar Jobs
 
-- [ ] Se ve canaleta, topes, marcas de recorrido y tirador.
+- [ ] Se ve canaleta, topes, marcas de recorrido y tirador cuando la lista permite resolver sus datos.
 - [ ] El tamaño del tirador representa aproximadamente el contenido visible.
 - [ ] La rueda funciona.
 - [ ] Click en la barra funciona.
 - [ ] Drag funciona.
 - [ ] La posición visual coincide con la posición real de scroll.
-- [ ] Una lista incompatible conserva una scrollbar utilizable/fallback en vez de romperse.
+- [ ] Una lista incompatible conserva una scrollbar utilizable/fallback en vez de romperse o dibujar una barra negra gigante.
 
 ## Video / Embeddium
 
@@ -144,8 +145,11 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] La lista de idiomas hace scroll completo.
 - [ ] ES ↔ EN aplica correctamente.
+- [ ] **Español (Uruguay)** mantiene títulos, subtítulos y botones Jobs en español.
+- [ ] No aparecen cadenas mezcladas como `Close file` o `Notice settings` al usar variantes españolas.
 - [ ] La recarga de recursos vuelve al flujo correcto.
 - [ ] Resource Packs mantiene selección, orden, aplicar y abrir carpeta.
+- [ ] Resource Packs no deja un bloque de dirt aislado dentro de la hoja Jobs.
 - [ ] F3+T no duplica música/ambiente.
 
 ## Multijugador
@@ -158,6 +162,26 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 - [ ] Refresh.
 - [ ] Cancel vuelve al padre.
 - [ ] Los estados activos de botones Jobs coinciden con las acciones reales.
+- [ ] Título, subtítulo y nota contextual no se solapan entre sí ni con la lista.
+
+## Seleccionar mundo
+
+- [ ] La lista conserva previews de mundos.
+- [ ] Seleccionar mundo activa las acciones correctas.
+- [ ] Crear mundo nuevo funciona.
+- [ ] Editar/borrar/recrear conservan los diálogos y callbacks vanilla.
+- [ ] Cancelar vuelve al padre correcto.
+- [ ] No aparece una banda central de dirt que rompa el chrome Jobs.
+
+## Mods / Forge
+
+- [ ] La lista de mods carga completa.
+- [ ] Orden normal, A–Z y Z–A funciona.
+- [ ] Search filtra sin perder la selección válida.
+- [ ] Config sólo se activa cuando el mod seleccionado expone configuración.
+- [ ] Open mods folder conserva la acción real.
+- [ ] Logos y panel de información siguen renderizando.
+- [ ] El marco Jobs no tapa el contenido de Forge.
 
 ## Layout y escalado
 
@@ -173,6 +197,7 @@ Probar como mínimo:
 - [ ] GUI Scale 4.
 - [ ] español.
 - [ ] inglés.
+- [ ] Español (Uruguay).
 
 En todos:
 
@@ -180,7 +205,8 @@ En todos:
 - [ ] no hay footer sobre Volver;
 - [ ] no hay controles fuera de pantalla;
 - [ ] el foco de teclado se ve;
-- [ ] las cadenas traducidas no muestran claves `jobsmenu.*`.
+- [ ] las cadenas traducidas no muestran claves `jobsmenu.*`;
+- [ ] las hojas grandes tienen jerarquía visual sin sentirse llenas de decoración arbitraria.
 
 ## Fondos 10–17
 
@@ -209,12 +235,13 @@ En todos:
 
 - [ ] `tools/verificar_version.py` sin fallos.
 - [ ] `tools/verificar_fondos.py` sin fallos.
-- [ ] `tools/verificar.py` sin fallos.
+- [ ] `tools/verificar.py` sin fallos ni avisos nuevos.
 - [ ] GitHub Actions compila con Java 17.
-- [ ] Artefacto exacto: `jobsmenu-0.14.0.jar`.
-- [ ] PR 0.14.0 verde antes de mergear.
+- [ ] Artefacto exacto: `jobsmenu-0.14.1.jar`.
+- [ ] PR 0.14.1 verde antes de mergear.
 - [ ] `main` verde después del merge.
 - [ ] `dev-latest` contiene únicamente el JAR versionado actual.
+- [ ] El PowerShell se pasa sólo después de completar los puntos anteriores.
 
 ## Evidencia ante fallos
 

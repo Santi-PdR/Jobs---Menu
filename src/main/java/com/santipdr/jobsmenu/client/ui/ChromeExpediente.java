@@ -174,20 +174,27 @@ public final class ChromeExpediente {
         int margen = 13;
         int reservaDerecha = w >= 420 ? 42 : 24;
 
-        String codigo = formulario + " - N" + nivelTexto;
-        String revision = "v" + version;
-        int rw = font.width(revision);
-        int maxCodigo = Math.max(0, w - margen * 2 - reservaDerecha - rw - 18);
-        String codigoVisible = ajustar(font, codigo, maxCodigo);
-        String revisionVisible = ajustar(font, revision, Math.max(24, w / 5));
+        String registroCompleto = Component.translatable(
+                "jobsmenu.interfaz.formulario", formulario, nivelTexto, version).getString();
+        int maxRegistro = Math.max(0, w - margen * 2 - reservaDerecha);
+        if (w >= 500 && font.width(registroCompleto) <= maxRegistro) {
+            g.drawString(font, registroCompleto, x + margen, ty, color, false);
+        } else {
+            String codigo = formulario + " - N" + nivelTexto;
+            String revision = "v" + version;
+            int rw = font.width(revision);
+            int maxCodigo = Math.max(0, w - margen * 2 - reservaDerecha - rw - 18);
+            String codigoVisible = ajustar(font, codigo, maxCodigo);
+            String revisionVisible = ajustar(font, revision, Math.max(24, w / 5));
 
-        if (!codigoVisible.isEmpty()) {
-            g.drawString(font, codigoVisible, x + margen, ty, color, false);
-        }
-        if (!revisionVisible.isEmpty()) {
-            int vrw = font.width(revisionVisible);
-            int rx = Math.max(x + margen, x + w - margen - reservaDerecha - vrw);
-            g.drawString(font, revisionVisible, rx, ty, color, false);
+            if (!codigoVisible.isEmpty()) {
+                g.drawString(font, codigoVisible, x + margen, ty, color, false);
+            }
+            if (!revisionVisible.isEmpty()) {
+                int vrw = font.width(revisionVisible);
+                int rx = Math.max(x + margen, x + w - margen - reservaDerecha - vrw);
+                g.drawString(font, revisionVisible, rx, ty, color, false);
+            }
         }
 
         int centro = x + w / 2;

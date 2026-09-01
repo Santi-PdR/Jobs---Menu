@@ -8,8 +8,8 @@ Documento maestro del estado **vigente** del mod. El historial de implementacion
 | Rama de entrega | `main` |
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
-| Versión actual | **0.14.0** |
-| Artefacto esperado | **`jobsmenu-0.14.0.jar`** |
+| Versión actual | **0.14.1** |
+| Artefacto esperado | **`jobsmenu-0.14.1.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -32,6 +32,7 @@ Documento maestro del estado **vigente** del mod. El historial de implementacion
 11. Accesibilidad y bajo consumo tienen prioridad sobre efectos decorativos.
 12. Ningún control visible puede solaparse con otro control o conservar un hitbox vanilla invisible debajo.
 13. Cuando se conserva una pantalla vanilla por compatibilidad, Jobs puede cambiar **su presentación**, pero no debe duplicar ni reimplementar a ciegas su lógica sensible.
+14. El PowerShell se entrega **después** de CI verde y sólo instala el build publicado en `test-1`; no sustituye el proceso de compilación/certificación.
 
 ## 2. Identidad
 
@@ -61,9 +62,9 @@ Todos comparten rotación de Nivel, apagón, música, camas ambientales, avisos,
 
 Sobre niveles 10–17 no se ejecutan las capas animadas de materiales, dirección artística, tratamiento, presencia, motas, eventos ni pulido de cámara. Los apagones y transiciones entre Niveles se conservan porque pertenecen al estado general del menú, no a la animación de la imagen.
 
-## 4. Interfaz 0.14.0
+## 4. Interfaz 0.14.1
 
-0.14.0 convierte la familia de interfaces en un sistema más autónomo y reduce otro bloque importante de presentación vanilla.
+0.14.1 conserva la arquitectura autónoma de 0.14.0 y añade el pase de corrección realizado sobre capturas reales: solapes, barras de scroll anómalas, pantallas vanilla aisladas, mezcla de idiomas y espacios visuales sin jerarquía.
 
 ### 4.1 Principio de compatibilidad
 
@@ -157,13 +158,26 @@ Las pantallas de otros mods no reciben esta piel de controles.
 - tirador proporcional;
 - agarres internos.
 
-Si reflection falla, se conserva el comportamiento vanilla en vez de bloquear la pantalla.
+Si reflection falla, se conserva un fallback utilizable en vez de bloquear o dibujar una barra Jobs incorrecta.
 
 ### 4.8 Transiciones
 
 `TransicionInterfazJobs` usa una hoja/carpeta con sombra, doble fibra y marcas de archivo. No bloquea input ni cambia la Screen.
 
 Con movimiento reducido se convierte en un fade breve sin desplazamiento obligatorio.
+
+### 4.9 Pase visual basado en capturas
+
+El pase 0.14.1 corrige específicamente problemas que una compilación estática no podía detectar por sí sola:
+
+- el botón vanilla de **Guía de accesibilidad** ya no aparece encima de `Cerrar expediente`;
+- Multijugador reserva zonas separadas para título, subtítulo y nota contextual;
+- Español (Uruguay), Argentina, Chile, Ecuador, México y Venezuela reutilizan el catálogo `es_es` para no mezclar inglés con español;
+- `PantallaMundosJobs` conserva `SelectWorldScreen` y sus previews/acciones, pero elimina el bloque visual aislado de dirt;
+- `PantallaModsJobs` conserva la lógica completa de Forge Mods y la presenta dentro del lenguaje Jobs;
+- Resource Packs oculta el dirt/bandas incompatibles cuando la pantalla está dentro de una visita Jobs;
+- las hojas grandes reciben reglas/pliegues estáticos de muy baja intensidad para evitar composición vacía;
+- el pie reserva la esquina derecha para overlays externos y usa el formulario localizado completo cuando el ancho lo permite.
 
 ## 5. Pantallas vigentes
 
@@ -174,6 +188,8 @@ Familia Jobs propia o tematizada:
 - Options;
 - Config Jobs;
 - Multijugador;
+- Seleccionar mundo / `PantallaMundosJobs`;
+- Mods / `PantallaModsJobs`;
 - Controles;
 - Mouse;
 - Teclas;
@@ -219,18 +235,20 @@ Una interfaz nueva no puede saltarse estas preferencias. Los PNG 10–17 permane
 Además del CI:
 
 - GUI scale 2, 3 y 4;
-- ES y EN;
+- ES, EN y Español (Uruguay);
 - Title → Options → Config Jobs → cinco categorías → volver;
 - **Mods → Jobs Menu → Config** → misma pantalla;
 - botón Config claramente visible y separado de opciones Minecraft;
 - botones/toggles/sliders sin solapes en 854×480 y ventanas estrechas;
 - tabs de Config con mouse, Tab, Enter, Espacio y Escape;
 - Direct Connect / Add Server / confirmaciones con piel Jobs pero lógica intacta;
-- Accesibilidad: primera/última fila, scrollbar y Volver;
-- scrollbar Jobs: rueda, click y drag;
+- Accesibilidad: primera/última fila, scrollbar, ausencia de la Guía vanilla superpuesta y Volver;
+- scrollbar Jobs: rueda, click, drag y fallback;
 - Multijugador: seleccionar/directo/agregar/editar/borrar/refrescar;
+- Seleccionar mundo: previews, selección, crear/editar/borrar/recrear y volver;
+- Mods: búsqueda, orden, Config, información y abrir carpeta;
 - cambio de idioma + recarga de recursos;
-- resource packs;
+- Resource Packs sin dirt aislado y con selección/aplicación intactas;
 - pause in-world → Options → volver;
 - Embeddium presente y ausente;
 - movimiento reducido / destellos reducidos / bajo consumo;
@@ -239,10 +257,11 @@ Además del CI:
 
 ## 9. Documentación vigente
 
-- `README.md`: resumen de 0.14.0.
+- `README.md`: resumen de 0.14.1.
 - `CHANGELOG.md`: historial.
 - `KNOWN_ISSUES.md`: pruebas/riesgos pendientes.
-- `docs/AUDITORIA_0.14.0_UI.md`: auditoría de esta evolución.
+- `docs/AUDITORIA_0.14.1_UI_POLISH.md`: auditoría del pase visual sobre capturas.
+- `docs/AUDITORIA_0.14.0_UI.md`: arquitectura previa conservada como registro.
 - `docs/DESPLIEGUE.md`: instalación.
 - `docs/compatibilidad.md`: convivencia con otros mods.
 - `docs/checklist-manual.md`: verificación dentro de Minecraft.

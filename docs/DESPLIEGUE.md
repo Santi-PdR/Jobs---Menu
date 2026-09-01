@@ -10,11 +10,25 @@ El mod se prueba siempre en:
 
 No se mantienen rutas alternativas. El usuario tampoco tiene que compilar localmente ni guardar scripts `.ps1` para una prueba normal.
 
+## Orden obligatorio de entrega
+
+El PowerShell se entrega **únicamente después** de que se cumpla este orden:
+
+1. código y documentos actualizados;
+2. verificadores estáticos sin fallos;
+3. PR con CI verde;
+4. merge a `main`;
+5. build de `main` verde;
+6. `dev-latest` actualizado con el JAR versionado nuevo;
+7. recién entonces se pasa el PowerShell al usuario.
+
+El bloque no compila el proyecto. Descarga el artefacto ya certificado por GitHub Actions y lo instala solamente en `test-1`.
+
 ## Regla obligatoria de versión
 
 Todo JAR instalado o publicado debe incluir la versión en el nombre. Para esta entrega:
 
-`jobsmenu-0.14.0.jar`
+`jobsmenu-0.14.1.jar`
 
 El nombre genérico `jobsmenu-latest.jar` queda prohibido. La release sigue usando el tag rodante `dev-latest`, pero su único asset cambia de nombre con `mod_version`.
 
@@ -91,7 +105,7 @@ Write-Host "SHA-256: $sha"
 10. limpieza de JARs obsoletos de `dev-latest`;
 11. actualización de `dev-latest` sólo desde `main`.
 
-Si falla cualquier paso, la release no se actualiza.
+Si falla cualquier paso, la release no se actualiza y el PowerShell no se entrega todavía.
 
 ## Flujo de trabajo
 
