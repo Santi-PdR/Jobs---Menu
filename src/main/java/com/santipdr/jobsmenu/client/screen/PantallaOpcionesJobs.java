@@ -12,16 +12,18 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.repository.PackRepository;
 
-/** Hub de configuracion de Jobs: conserva opciones reales, cambia la experiencia. */
+/** Centro de control de Jobs: la configuracion del mod tiene jerarquia propia. */
 public final class PantallaOpcionesJobs extends Screen {
 
-    private static final int PANEL_MAX_W = 392;
-    private static final int PANEL_MAX_H = 304;
+    private static final int PANEL_MAX_W = 430;
+    private static final int PANEL_MAX_H = 326;
 
     private final Screen anterior;
     private final Options opciones;
     private int panelX, panelY, panelW, panelH;
     private boolean compacta;
+    private int configY;
+    private int sistemaY;
 
     public PantallaOpcionesJobs(Screen anterior, Options opciones) {
         super(Component.translatable("jobsmenu.interfaz.opciones.titulo"));
@@ -35,7 +37,7 @@ public final class PantallaOpcionesJobs extends Screen {
         this.panelH = Math.max(1, Math.min(PANEL_MAX_H, this.height - 12));
         this.panelX = (this.width - this.panelW) / 2;
         this.panelY = Math.max(4, (this.height - this.panelH) / 2);
-        this.compacta = this.panelH < 270 || this.panelW < 330;
+        this.compacta = this.panelH < 282 || this.panelW < 350;
 
         int gap = compacta ? 6 : 8;
         int margen = compacta ? 14 : 20;
@@ -44,38 +46,37 @@ public final class PantallaOpcionesJobs extends Screen {
         int bh = compacta ? 19 : 22;
         int x0 = this.panelX + margen;
         int x1 = x0 + bw + gap;
-        int y0 = this.panelY + (compacta ? 48 : 58);
+        int y0 = this.panelY + (compacta ? 48 : 61);
         int paso = compacta ? 22 : 27;
 
-        boton(x0, y0, bw, bh, "options.skinCustomisation", this::abrirPiel);
-        boton(x1, y0, bw, bh, "options.sounds", this::abrirSonido);
-        boton(x0, y0 + paso, bw, bh, "options.video", this::abrirVideo);
-        boton(x1, y0 + paso, bw, bh, "controls.title", this::abrirControles);
-        boton(x0, y0 + paso * 2, bw, bh, "options.language", this::abrirIdioma);
-        boton(x1, y0 + paso * 2, bw, bh, "options.chat.title", this::abrirChat);
-        boton(x0, y0 + paso * 3, bw, bh, "resourcePack.title", this::abrirPaquetes);
-        boton(x1, y0 + paso * 3, bw, bh, "options.accessibility.title", this::abrirAccesibilidad);
-        boton(x0, y0 + paso * 4, bw, bh, "options.online.title", this::abrirOnline);
+        this.configY = y0;
         this.addRenderableWidget(new BotonExpediente(
-                x1, y0 + paso * 4, bw, bh,
-                Component.translatable("jobsmenu.ajustes.boton"),
-                BotonExpediente.Tipo.PRINCIPAL, this::abrirAviso));
+                x0, y0, anchoUtil, bh,
+                Component.translatable("jobsmenu.interfaz.opciones.config_jobs"),
+                BotonExpediente.Tipo.JOBS, this::abrirAviso));
+
+        this.sistemaY = y0 + bh + (compacta ? 5 : 17);
+        int sy = this.sistemaY;
+
+        boton(x0, sy, bw, bh, "options.skinCustomisation", this::abrirPiel);
+        boton(x1, sy, bw, bh, "options.sounds", this::abrirSonido);
+        boton(x0, sy + paso, bw, bh, "options.video", this::abrirVideo);
+        boton(x1, sy + paso, bw, bh, "controls.title", this::abrirControles);
+        boton(x0, sy + paso * 2, bw, bh, "options.language", this::abrirIdioma);
+        boton(x1, sy + paso * 2, bw, bh, "options.chat.title", this::abrirChat);
+        boton(x0, sy + paso * 3, bw, bh, "resourcePack.title", this::abrirPaquetes);
+        boton(x1, sy + paso * 3, bw, bh, "options.accessibility.title", this::abrirAccesibilidad);
+        boton(x0, sy + paso * 4, bw, bh, "options.online.title", this::abrirOnline);
 
         int volverH = compacta ? 19 : 22;
         int volverY = this.panelY + this.panelH - volverH - 8;
         int volverW = Math.min(160, anchoUtil);
 
-        int fovH = compacta ? 19 : 22;
-        int filaFinal = y0 + paso * 4 + bh;
-        int fovDeseado = y0 + paso * 5 + (compacta ? 0 : 2);
-        int fovY = Math.max(filaFinal + 4, Math.min(fovDeseado, volverY - fovH - 6));
-
-        // En escalas extremas es preferible omitir el slider a dejar dos hitboxes
-        // montados. FOV sigue disponible desde Video si la ventana es diminuta.
-        if (fovY >= filaFinal + 4 && fovY + fovH <= volverY - 5) {
+        int fovY = sy + paso * 4;
+        if (fovY + bh <= volverY - 5) {
             int fov = this.opciones.fov().get();
             this.addRenderableWidget(new SliderExpediente(
-                    x0, fovY, anchoUtil, fovH, 30, 110, fov,
+                    x1, fovY, bw, bh, 30, 110, fov,
                     v -> Component.translatable("jobsmenu.interfaz.fov",
                             Component.translatable("options.fov"), v),
                     v -> {
@@ -103,16 +104,23 @@ public final class PantallaOpcionesJobs extends Screen {
                 Component.translatable("jobsmenu.interfaz.opciones.subtitulo"), panelX, panelY, panelW);
 
         if (!this.compacta) {
-            Component nota = Component.translatable("jobsmenu.interfaz.opciones.nota");
+            int margen = 20;
+            ChromeExpediente.seccion(g, this.font, panelX + margen, panelX + panelW - margen,
+                    this.configY - 9, Component.translatable("jobsmenu.interfaz.opciones.seccion_jobs"));
+            ChromeExpediente.seccion(g, this.font, panelX + margen, panelX + panelW - margen,
+                    this.sistemaY - 10, Component.translatable("jobsmenu.interfaz.opciones.seccion_minecraft"));
+
+            Component nota = Component.translatable("jobsmenu.interfaz.opciones.config_desc");
             int nw = this.font.width(nota);
-            if (nw < this.panelW - 24) {
-                g.drawString(this.font, nota, this.width / 2 - nw / 2, panelY + 45,
-                        Paleta.conAlfa(Paleta.tintaSecundaria(), 0.64F), false);
+            if (nw < this.panelW - 28) {
+                int ny = this.configY + 24;
+                g.drawString(this.font, nota, this.width / 2 - nw / 2, ny,
+                        Paleta.conAlfa(Paleta.tintaSecundaria(), 0.58F), false);
             }
         }
 
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
-        ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "CFG-013");
+        ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "CFG-014");
         super.render(g, mouseX, mouseY, partialTick);
     }
 
@@ -183,6 +191,6 @@ public final class PantallaOpcionesJobs extends Screen {
 
     @Override
     public void renderBackground(GuiGraphics g) {
-        // El render completo ya lo maneja ChromeExpediente.
+        // ChromeExpediente renders the complete background.
     }
 }
