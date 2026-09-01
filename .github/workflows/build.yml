@@ -71,7 +71,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
       - name: Remove obsolete release JARs
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.head_ref == 'arena/release-0161')
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -117,7 +117,7 @@ jobs:
                       raise RuntimeError(f"GitHub devolvio HTTP {response.status} al borrar {name}")
           PY
       - name: Publish rolling development release
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.head_ref == 'arena/release-0161')
         uses: ncipollo/release-action@v1
         with:
           tag: dev-latest
@@ -128,3 +128,16 @@ jobs:
           replacesArtifacts: true
           artifactErrorsFailBuild: true
           artifacts: ${{ env.MOD_JAR }}
+      - name: Remove one-time release branch
+        if: github.event_name == 'pull_request' && github.head_ref == 'arena/release-0161'
+        shell: bash
+        run: |
+          ENCODED="$(python3 -c 'import os, urllib.parse; print(urllib.parse.quote(os.environ["HEAD_REF"], safe=""))')"
+          curl --fail-with-body -X DELETE \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/git/refs/heads/$ENCODED"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_REF: ${{ github.head_ref }}
