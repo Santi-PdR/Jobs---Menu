@@ -12,6 +12,7 @@ import com.santipdr.jobsmenu.client.sound.MusicaPropia;
 import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import com.santipdr.jobsmenu.client.ui.ListasExpediente;
+import com.santipdr.jobsmenu.client.ui.PielVanillaJobs;
 import com.santipdr.jobsmenu.client.ui.TransicionInterfazJobs;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
@@ -86,11 +87,7 @@ public final class EscuchaCliente {
         gesto(anterior, siguiente);
     }
 
-    /**
-     * Varias pantallas vanilla crean su boton Done antes de que el wrapper Jobs
-     * pueda reemplazarlo. Ocultamos todos los duplicados en pantallas propias;
-     * asi ninguno puede quedar solapado o capturando clicks por debajo.
-     */
+    /** Oculta los Done vanilla duplicados dentro de pantallas propias. */
     @SubscribeEvent
     public static void alInicializarPantalla(ScreenEvent.Init.Post evento) {
         Screen pantalla = evento.getScreen();
@@ -109,21 +106,24 @@ public final class EscuchaCliente {
     }
 
     /**
-     * Las pantallas propias se pintan enteras. Una pantalla externa o vanilla
-     * que aparezca durante la visita conserva su render, pero recibe la banda
-     * de expediente para que no parezca un salto fuera de Jobs.
+     * Las pantallas propias se pintan enteras. Los dialogos vanilla auxiliares
+     * conservan su logica, pero reciben chrome, controles y campos Jobs. Las
+     * pantallas de terceros solo reciben contexto minimo para no romper hooks.
      */
     @SubscribeEvent
     public static void alRenderizarPantalla(ScreenEvent.Render.Post evento) {
         Screen pantalla = evento.getScreen();
         if (pantalla == null) return;
 
-        boolean propia = pantalla.getClass().getName().startsWith("com.santipdr.jobsmenu.");
+        String clase = pantalla.getClass().getName();
+        boolean propia = clase.startsWith("com.santipdr.jobsmenu.");
         if (propia) {
-            // Se dibuja despues de vanilla para cubrir visualmente su scrollbar
-            // sin tocar el comportamiento de rueda, click o drag.
             ListasExpediente.renderarBarras(pantalla, evento.getGuiGraphics());
         } else if (SesionMenu.activa()) {
+            if (clase.startsWith("net.minecraft.")) {
+                PielVanillaJobs.dibujar(pantalla, evento.getGuiGraphics(),
+                        evento.getMouseX(), evento.getMouseY());
+            }
             ChromeExpediente.bandaContextual(evento.getGuiGraphics(),
                     Minecraft.getInstance().font, pantalla.width, pantalla.height);
         }
