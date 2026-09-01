@@ -1,5 +1,32 @@
 # Registro de cambios
 
+## 0.14.1 — Pulido visual e integración de interfaces — 2026-09-01
+
+### Correcciones visibles
+
+- Accesibilidad oculta/desactiva la **Guía de accesibilidad** vanilla cuando Jobs ya usa su propio cierre, eliminando el solape observado con `Cerrar expediente`.
+- Multijugador separa título, subtítulo y nota contextual; la lista empieza debajo de esas tres capas.
+- El pie de `ChromeExpediente` reserva espacio para overlays de terceros y usa el formulario localizado completo cuando el ancho lo permite.
+- Las hojas grandes ganan reglas/pliegues estáticos muy tenues para reducir el vacío visual sin recargar la interfaz.
+
+### Idioma y pantallas preservadas
+
+- Español (Uruguay), Argentina, Chile, Ecuador, México y Venezuela reutilizan el catálogo `es_es`, evitando mezclas español/inglés en botones, títulos y subtítulos Jobs.
+- Nuevo `PantallaMundosJobs`: conserva `SelectWorldScreen` y toda su lógica, pero integra el selector de mundos en el papel/chrome Jobs.
+- Nuevo `PantallaModsJobs`: conserva `ModListScreen` de Forge con búsqueda, logos, Config, información y carpeta de mods, pero evita que se vea como una pantalla aislada.
+- Resource Packs elimina el bloque visual de dirt que rompía continuidad durante una visita Jobs.
+- `ListasExpediente` incorpora un fallback más seguro cuando no puede obtener todos los campos internos de una lista.
+
+### Limpieza y entrega
+
+- `ChromeExpediente` vuelve a usar la clave localizada `jobsmenu.interfaz.formulario`, eliminando el aviso pendiente del verificador estático sin añadir texto duro a Java.
+- README, CONTEXTO, riesgos, compatibilidad, checklist y despliegue se sincronizan con el estado real.
+- La versión sube a **0.14.1**.
+- Artefacto obligatorio: **`jobsmenu-0.14.1.jar`**.
+- El PowerShell se entrega únicamente después de PR verde, merge a `main`, build verde en `main` y actualización de `dev-latest`.
+
+---
+
 ## 0.14.0 — Profesionalización del sistema de interfaz — 2026-09-01
 
 ### Options y Config
