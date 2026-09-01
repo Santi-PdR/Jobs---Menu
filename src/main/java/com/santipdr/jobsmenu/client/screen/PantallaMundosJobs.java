@@ -11,7 +11,7 @@ import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 /**
  * Selector de mundos vanilla conservado, pero presentado sobre el expediente
  * Jobs. No reemplaza la lista ni sus acciones: solo elimina el bloque de dirt
- * aislado que rompía la continuidad visual del menú.
+ * aislado que rompia la continuidad visual del menu.
  */
 public final class PantallaMundosJobs extends SelectWorldScreen {
 
