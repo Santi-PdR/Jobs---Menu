@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.16.0
+# Checklist manual de aceptación — 0.16.1
 
 Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código/recursos/build; no certifica estética, hitboxes, audio ni compatibilidad visual.
 
@@ -6,7 +6,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.16.0.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.16.1.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Título y pausa
@@ -243,8 +243,8 @@ En todos:
 - [ ] `tools/verificar_fondos.py` sin fallos.
 - [ ] `tools/verificar.py` sin fallos ni avisos nuevos.
 - [ ] GitHub Actions compila con Java 17.
-- [ ] Artefacto exacto: `jobsmenu-0.16.0.jar`.
-- [ ] PR 0.16.0 verde antes de mergear.
+- [ ] Artefacto exacto: `jobsmenu-0.16.1.jar`.
+- [ ] PR 0.16.1 verde antes de mergear.
 - [ ] `main` verde después del merge.
 - [ ] `dev-latest` contiene únicamente el JAR versionado actual.
 - [ ] El PowerShell se pasa sólo después de completar los puntos anteriores.

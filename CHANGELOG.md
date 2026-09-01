@@ -1,5 +1,26 @@
 # Registro de cambios
 
+## 0.16.1 — Corrección visual basada en capturas — 2026-09-01
+
+### Fallos corregidos
+
+- Idioma registra `ListaIdiomas` como widget renderizable: las 143 entradas vuelven a aparecer sin duplicar la lista ni la scrollbar.
+- El buscador de Idioma abandona el bloque negro/blanco vanilla y usa papel con tinta oscura.
+- World Selection, Multiplayer y Resource Packs eliminan la cabecera vanilla con una banda opaca; ya no hay títulos blancos debajo del título Jobs.
+- Resource Packs pasa un título vacío a la pantalla vanilla y conserva una sola cabecera compacta.
+- Mods retira el rótulo superpuesto al panel de información y sustituye el tinte marrón oscuro por una tinta cálida más neutral.
+- Los campos de búsqueda oscuros usan texto cálido en vez de blanco puro.
+- Ajustes reemplaza las cinco etiquetas largas por `Visual`, `Nivel/Level`, `Audio`, `Acceso/Access` y `Sistema/System`.
+- El indicador de página se mueve a una cápsula propia en la cabecera y deja de invadir pestañas o descripciones.
+- Se elimina el resumen truncado que se montaba sobre la última fila de Nivel; el detalle completo permanece en cada tooltip.
+- Los pies de archivo que coincidían con botones vanilla se retiran de Mundos, Multiplayer, Mods y Resource Packs.
+- La migración elimina carpetas o ZIP llamados `jobsmenu-musica` y `jobsmenu-musica-activa`, además de deseleccionarlos.
+
+### Entrega
+
+- Versión y artefacto: **0.16.1** / **`jobsmenu-0.16.1.jar`**.
+- Evidencia y contrato de revisión: `docs/AUDITORIA_0.16.1_CAPTURAS.md`.
+
 ## 0.16.0 — Interfaz profesional y respuesta inmediata — 2026-09-01
 
 ### Sistema visual compartido

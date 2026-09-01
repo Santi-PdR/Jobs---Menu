@@ -294,9 +294,9 @@
   "jobsmenu.nivel17.nota1": "No confunda una silueta inmóvil con una silueta vacía.",
   "jobsmenu.nivel17.nota2": "La luz azul alcanza el fondo. Eso no significa que el fondo termine allí.",
   "jobsmenu.interfaz.cambio_guardado": "Cambio guardado",
+  "jobsmenu.interfaz.idioma.titulo": "ARCHIVO DE IDIOMAS",
   "jobsmenu.interfaz.idioma.buscar": "Buscar idioma o código...",
-  "jobsmenu.interfaz.idioma.resultados": "%s idiomas",
-  "jobsmenu.interfaz.mods.titulo": "Archivo de modificaciones",
+  "jobsmenu.interfaz.mods.buscar": "Buscar modificaciones",
   "jobsmenu.interfaz.recursos.titulo": "Paquetes de recursos",
   "jobsmenu.servidor.fijado": "FIJADO",
   "jobsmenu.tooltip.piel": "Cambia el modelo, el brazo y las capas visibles de tu aspecto.",
@@ -316,5 +316,10 @@
   "jobsmenu.tooltip.servidor.editar": "Modifica el nombre o la dirección seleccionada.",
   "jobsmenu.tooltip.servidor.eliminar": "Elimina el servidor seleccionado de tu lista.",
   "jobsmenu.tooltip.servidor.actualizar": "Actualiza estados y latencias. Atajo: F5.",
-  "jobsmenu.tooltip.servidor.protegido": "El servidor oficial está fijado y no puede editarse ni eliminarse."
+  "jobsmenu.tooltip.servidor.protegido": "El servidor oficial está fijado y no puede editarse ni eliminarse.",
+  "jobsmenu.ajustes.categoria.visual": "Visual",
+  "jobsmenu.ajustes.categoria.nivel": "Nivel",
+  "jobsmenu.ajustes.categoria.audio": "Audio",
+  "jobsmenu.ajustes.categoria.accesibilidad": "Acceso",
+  "jobsmenu.ajustes.categoria.sistema": "Sistema"
 }

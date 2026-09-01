@@ -10,12 +10,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Set;
 
 /** Retira el resource pack temporal usado por versiones anteriores. */
 public final class LimpiezaRecursosLegados {
 
-    private static final String PAQUETE_MUSICA = "jobsmenu-musica-activa";
+    private static final Set<String> PAQUETES_MUSICA = Set.of(
+            "jobsmenu-musica-activa",
+            "jobsmenu-musica"
+    );
     private static boolean ejecutada;
 
     private LimpiezaRecursosLegados() {
@@ -39,16 +43,20 @@ public final class LimpiezaRecursosLegados {
                 recargar = true;
             }
 
-            Path raiz = cliente.gameDirectory.toPath()
-                    .resolve("resourcepacks").resolve(PAQUETE_MUSICA);
-            if (Files.exists(raiz)) {
-                try (var rutas = Files.walk(raiz)) {
-                    for (Path ruta : rutas.sorted(Comparator.reverseOrder()).toList()) {
-                        Files.deleteIfExists(ruta);
+            Path resourcepacks = cliente.gameDirectory.toPath().resolve("resourcepacks");
+            for (String nombre : PAQUETES_MUSICA) {
+                for (String candidato : new String[] { nombre, nombre + ".zip" }) {
+                    Path raiz = resourcepacks.resolve(candidato);
+                    if (Files.exists(raiz)) {
+                        try (var rutas = Files.walk(raiz)) {
+                            for (Path ruta : rutas.sorted(Comparator.reverseOrder()).toList()) {
+                                Files.deleteIfExists(ruta);
+                            }
+                        }
+                        recargar = true;
+                        JobsMenu.LOG.info("[jobsmenu] Resource pack de musica legado '{}' retirado.", candidato);
                     }
                 }
-                recargar = true;
-                JobsMenu.LOG.info("[jobsmenu] Resource pack de musica legado retirado; la pista vive dentro del mod.");
             }
         } catch (IOException | RuntimeException fallo) {
             JobsMenu.LOG.warn("[jobsmenu] No se pudo retirar por completo el resource pack de musica legado.", fallo);
@@ -58,8 +66,16 @@ public final class LimpiezaRecursosLegados {
     }
 
     private static boolean esPaqueteMusica(String id) {
-        return id.equals(PAQUETE_MUSICA)
-                || id.endsWith("/" + PAQUETE_MUSICA)
-                || id.endsWith(":" + PAQUETE_MUSICA);
+        if (id == null) return false;
+        String normalizado = id.toLowerCase(Locale.ROOT).replace('\\', '/');
+        for (String nombre : PAQUETES_MUSICA) {
+            if (normalizado.equals(nombre)
+                    || normalizado.equals(nombre + ".zip")
+                    || normalizado.endsWith("/" + nombre)
+                    || normalizado.endsWith("/" + nombre + ".zip")
+                    || normalizado.endsWith(":" + nombre)
+                    || normalizado.endsWith(":" + nombre + ".zip")) return true;
+        }
+        return false;
     }
 }

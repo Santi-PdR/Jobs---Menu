@@ -2,6 +2,7 @@ package com.santipdr.jobsmenu.client.screen;
 
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import com.santipdr.jobsmenu.client.ui.ListasExpediente;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
@@ -30,6 +31,8 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
         for (var child : this.children()) {
             if (child instanceof EditBox campo) {
                 campo.setY(PANEL_Y + 43);
+                campo.setTextColor(com.santipdr.jobsmenu.client.ui.Paleta.PARED_ALTA);
+                campo.setTextColorUneditable(com.santipdr.jobsmenu.client.ui.Paleta.PARED);
                 this.busqueda = campo;
             }
         }
@@ -62,18 +65,13 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
         // SelectWorldScreen no necesita conocer nada del mod: preparamos la hoja,
         // dejamos que vanilla pinte sus previews/lista y luego vestimos controles.
         renderBackground(g);
+        RenderSystem.setShaderColor(0.72F, 0.67F, 0.52F, 1.0F);
         super.render(g, mouseX, mouseY, partialTick);
-        // SelectWorldScreen pinta su titulo vanilla sobre el marco. Se cubre
-        // solo esa franja; el buscador queda debajo y conserva su hitbox real.
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         int panelW = this.width - PANEL_X * 2;
-        g.fill(PANEL_X + 5, PANEL_Y + 5, PANEL_X + panelW - 5, PANEL_Y + 40,
-                com.santipdr.jobsmenu.client.ui.Paleta.conAlfa(
-                        com.santipdr.jobsmenu.client.ui.Paleta.VANO, 0.96F));
-        ChromeExpediente.cabeceraArchivo(g, this.font,
+        ChromeExpediente.reemplazarCabeceraArchivo(g, this.font,
                 net.minecraft.network.chat.Component.translatable("jobsmenu.interfaz.mundos.titulo"),
                 net.minecraft.network.chat.Component.translatable("jobsmenu.interfaz.mundos.subtitulo"),
                 PANEL_X, PANEL_Y, panelW);
-        ChromeExpediente.pieArchivo(g, this.font, PANEL_X, PANEL_Y,
-                panelW, this.height - PANEL_Y * 2, "SHIFTS");
     }
 }

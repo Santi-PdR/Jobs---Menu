@@ -36,7 +36,7 @@ public final class PantallaIdiomaJobs extends Screen {
     private boolean aplicando;
 
     public PantallaIdiomaJobs(Screen anterior, Options opciones, LanguageManager idiomas) {
-        super(Component.translatable("options.language"));
+        super(Component.translatable("jobsmenu.interfaz.idioma.titulo"));
         this.anterior = anterior;
         this.opciones = opciones;
         this.idiomas = idiomas;
@@ -56,7 +56,11 @@ public final class PantallaIdiomaJobs extends Screen {
         int searchY = panelY + 48;
         this.busqueda = new EditBox(this.font, listX, searchY, listW, 18,
                 Component.translatable("jobsmenu.interfaz.idioma.buscar"));
-        this.busqueda.setHint(Component.translatable("jobsmenu.interfaz.idioma.buscar"));
+        this.busqueda.setBordered(false);
+        this.busqueda.setTextColor(Paleta.tintaPrincipal());
+        this.busqueda.setTextColorUneditable(Paleta.tintaSecundaria());
+        this.busqueda.setHint(Component.translatable("jobsmenu.interfaz.idioma.buscar")
+                .withStyle(s -> s.withColor(Paleta.tintaSecundaria())));
         this.busqueda.setResponder(s -> {
             if (this.lista != null) this.lista.recargar(s);
         });
@@ -66,7 +70,7 @@ public final class PantallaIdiomaJobs extends Screen {
         int footerY = panelY + panelH - 31;
         int listH = Math.max(70, footerY - listY - 12);
         this.lista = new ListaIdiomas(this.minecraft, listX, listY, listW, listH);
-        this.addWidget(this.lista);
+        this.addRenderableWidget(this.lista);
 
         int gap = 8;
         int bw = Math.max(100, (panelW - 48 - gap) / 2);
@@ -106,17 +110,15 @@ public final class PantallaIdiomaJobs extends Screen {
         ChromeExpediente.cabecera(g, this.font, this.title,
                 Component.translatable("jobsmenu.interfaz.idioma.subtitulo"), panelX, panelY, panelW);
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
-        ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "LNG-012");
-        // La lista es un widget y super.render ya la dibuja. Renderizarla aqui
-        // tambien producia dos scrollbars y filas que parecian salir del panel.
+        int sx = this.busqueda.getX();
+        int sy = this.busqueda.getY();
+        int sw = this.busqueda.getWidth();
+        int sh = this.busqueda.getHeight();
+        g.fill(sx - 1, sy - 1, sx + sw + 1, sy + sh + 1,
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.42F));
+        g.fill(sx, sy, sx + sw, sy + sh,
+                Paleta.mezclar(Paleta.papelAviso(), Paleta.PARED_ALTA, 0.06F));
         super.render(g, mouseX, mouseY, partialTick);
-
-        if (this.lista != null) {
-            Component cuenta = Component.translatable("jobsmenu.interfaz.idioma.resultados",
-                    this.lista.cantidad());
-            g.drawString(this.font, cuenta, panelX + panelW - 20 - this.font.width(cuenta),
-                    panelY + 35, Paleta.conAlfa(Paleta.tintaSecundaria(), 0.68F), false);
-        }
 
         if (this.aplicando) {
             g.fill(0, 0, this.width, this.height, Paleta.conAlfa(Paleta.VANO, 0.56F));
@@ -198,8 +200,6 @@ public final class PantallaIdiomaJobs extends Screen {
         @Override
         public int getRowWidth() { return this.rowW; }
 
-        int cantidad() { return this.children().size(); }
-
         @Override
         protected int getScrollbarPosition() { return this.getRowLeft() + this.getRowWidth() + 4; }
     }
@@ -223,15 +223,20 @@ public final class PantallaIdiomaJobs extends Screen {
                 g.fill(left + 2, top + 1, left + rowWidth - 2, top + rowHeight - 2,
                         Paleta.conAlfa(Paleta.PARED, pending ? 0.24F : 0.12F));
             }
-            Component label = (pending ? Component.literal("> ") : active ? Component.literal("- ") : Component.empty())
-                    .copy().append(this.info.toComponent());
-            int tw = PantallaIdiomaJobs.this.font.width(label);
-            int tx = left + Math.max(6, (rowWidth - tw) / 2);
+            String prefijo = pending ? "> " : active ? "- " : "";
+            String nombre = this.info.toComponent().getString();
+            String codigoTxt = this.codigo;
+            int cw = PantallaIdiomaJobs.this.font.width(codigoTxt);
+            int maxNombre = Math.max(24, rowWidth - cw - 30);
+            if (PantallaIdiomaJobs.this.font.width(prefijo + nombre) > maxNombre) {
+                nombre = PantallaIdiomaJobs.this.font.plainSubstrByWidth(nombre,
+                        Math.max(8, maxNombre - PantallaIdiomaJobs.this.font.width(prefijo + "..."))) + "...";
+            }
+            Component label = Component.literal(prefijo + nombre);
+            int tx = left + 8;
             int ty = top + (rowHeight - PantallaIdiomaJobs.this.font.lineHeight) / 2;
             g.drawString(PantallaIdiomaJobs.this.font, label, tx, ty,
                     pending ? Paleta.tintaPrincipal() : Paleta.tintaSecundaria(), false);
-            String codigoTxt = this.codigo;
-            int cw = PantallaIdiomaJobs.this.font.width(codigoTxt);
             if (rowWidth > 190) {
                 g.drawString(PantallaIdiomaJobs.this.font, codigoTxt,
                         left + rowWidth - cw - 8, ty,

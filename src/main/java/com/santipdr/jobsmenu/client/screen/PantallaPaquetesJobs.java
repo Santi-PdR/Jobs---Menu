@@ -2,6 +2,7 @@ package com.santipdr.jobsmenu.client.screen;
 
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import com.santipdr.jobsmenu.client.ui.ListasExpediente;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.packs.PackSelectionScreen;
@@ -16,7 +17,7 @@ public final class PantallaPaquetesJobs extends PackSelectionScreen {
 
     public PantallaPaquetesJobs(PackRepository repo, Consumer<PackRepository> callback,
                                 Path directorio, Component titulo) {
-        super(repo, callback, directorio, titulo);
+        super(repo, callback, directorio, Component.empty());
     }
 
     @Override
@@ -42,10 +43,11 @@ public final class PantallaPaquetesJobs extends PackSelectionScreen {
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        RenderSystem.setShaderColor(0.72F, 0.67F, 0.52F, 1.0F);
         super.render(g, mouseX, mouseY, partialTick);
-        ChromeExpediente.rotuloArchivoCompacto(g, this.font, this.width,
-                Component.translatable("jobsmenu.interfaz.recursos.titulo"), "PACKS");
-        ChromeExpediente.pieArchivo(g, this.font, 12, 8,
-                this.width - 24, this.height - 16, "RESOURCES");
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        ChromeExpediente.reemplazarRotuloArchivo(g, this.font,
+                Component.translatable("jobsmenu.interfaz.recursos.titulo"),
+                12, 8, this.width - 24);
     }
 }
