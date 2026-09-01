@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.14.1
+# Checklist manual de aceptación — 0.15.0
 
 Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código/recursos/build; no certifica estética, hitboxes, audio ni compatibilidad visual.
 
@@ -6,7 +6,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.14.1.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.15.0.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Título y pausa
@@ -40,6 +40,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 - [ ] Cerrar/reabrir conserva los valores.
 - [ ] No se ven filas, sliders o botones con skin vanilla.
 - [ ] Ningún toggle, slider, tab, footer o Volver se solapa.
+- [ ] Mantener el puntero sobre cada tab/toggle/slider muestra una explicación localizada y legible.
 
 ### Visual
 
@@ -149,7 +150,8 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 - [ ] No aparecen cadenas mezcladas como `Close file` o `Notice settings` al usar variantes españolas.
 - [ ] La recarga de recursos vuelve al flujo correcto.
 - [ ] Resource Packs mantiene selección, orden, aplicar y abrir carpeta.
-- [ ] Resource Packs no deja un bloque de dirt aislado dentro de la hoja Jobs.
+- [ ] Resource Packs no deja dirt ni una hoja gigante; se ve el archivo oscuro con margen.
+- [ ] No aparece `jobsmenu-musica-activa`; si existía de una versión anterior, se retira sin tocar otros packs.
 - [ ] F3+T no duplica música/ambiente.
 
 ## Multijugador
@@ -162,7 +164,9 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 - [ ] Refresh.
 - [ ] Cancel vuelve al padre.
 - [ ] Los estados activos de botones Jobs coinciden con las acciones reales.
-- [ ] Título, subtítulo y nota contextual no se solapan entre sí ni con la lista.
+- [ ] La cabecera **Puestos de acceso** no se solapa con la lista.
+- [ ] `JobsDosh.exaroton.me:56477` aparece primero como servidor oficial en el idioma seleccionado.
+- [ ] Con el servidor oficial seleccionado, Edit/Delete quedan desactivados y Seleccionar sigue funcionando.
 
 ## Seleccionar mundo
 
@@ -172,6 +176,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 - [ ] Editar/borrar/recrear conservan los diálogos y callbacks vanilla.
 - [ ] Cancelar vuelve al padre correcto.
 - [ ] No aparece una banda central de dirt que rompa el chrome Jobs.
+- [ ] El título visible es **Archivo de turnos** / **Shift archive** y el buscador conserva su hitbox.
 
 ## Mods / Forge
 
@@ -181,6 +186,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 - [ ] Config sólo se activa cuando el mod seleccionado expone configuración.
 - [ ] Open mods folder conserva la acción real.
 - [ ] Logos y panel de información siguen renderizando.
+- [ ] El texto de Forge se ve en tinta sepia, no blanco puro.
 - [ ] El marco Jobs no tapa el contenido de Forge.
 
 ## Layout y escalado
@@ -237,8 +243,8 @@ En todos:
 - [ ] `tools/verificar_fondos.py` sin fallos.
 - [ ] `tools/verificar.py` sin fallos ni avisos nuevos.
 - [ ] GitHub Actions compila con Java 17.
-- [ ] Artefacto exacto: `jobsmenu-0.14.1.jar`.
-- [ ] PR 0.14.1 verde antes de mergear.
+- [ ] Artefacto exacto: `jobsmenu-0.15.0.jar`.
+- [ ] PR 0.15.0 verde antes de mergear.
 - [ ] `main` verde después del merge.
 - [ ] `dev-latest` contiene únicamente el JAR versionado actual.
 - [ ] El PowerShell se pasa sólo después de completar los puntos anteriores.

@@ -23,13 +23,15 @@ public final class PantallaPaquetesJobs extends PackSelectionScreen {
     @Override
     protected void init() {
         super.init();
+        // Son dos listas independientes; cambiarles el ancho con updateSize las
+        // superpone. Solo se retiran dirt y bandas vanilla.
         ListasExpediente.estilizar(this);
     }
 
     @Override
     public void renderBackground(GuiGraphics g) {
         ChromeExpediente.fondo(g, this.width, this.height);
-        ChromeExpediente.panel(g, 8, 6, this.width - 16, this.height - 12);
+        ChromeExpediente.panelArchivo(g, 12, 8, this.width - 24, this.height - 16);
     }
 
     @Override
@@ -43,8 +45,7 @@ public final class PantallaPaquetesJobs extends PackSelectionScreen {
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
         PielVanillaJobs.dibujar(this, g, mouseX, mouseY);
-        ChromeExpediente.marcoSubpantalla(g, this.font, this.width, this.height,
-                8, 6, this.width - 16, this.height - 12,
-                Component.translatable("jobsmenu.interfaz.paquetes.subtitulo"), "ARC-014");
+        ChromeExpediente.pieArchivo(g, this.font, 12, 8,
+                this.width - 24, this.height - 16, "RESOURCES");
     }
 }

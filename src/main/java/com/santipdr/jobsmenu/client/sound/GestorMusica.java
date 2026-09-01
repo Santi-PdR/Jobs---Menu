@@ -22,10 +22,8 @@ import org.lwjgl.glfw.GLFW;
  * SOBRE LA PISTA
  *
  * El evento musica.tema apunta a musica/defecto.ogg. La ranura de fabrica es
- * un recurso original del mod y no reclama autoria de una obra de terceros. Un
- * resource pack generado por MusicaPropia puede sustituirlo sin recompilar el
- * mod; el credito solo se habilita cuando el paquete empaquetado trae su propio
- * marcador.
+ * un recurso original incluido directamente en el mod. Jobs no genera ni
+ * activa resource packs auxiliares para reproducir su musica.
  *
  * COMO SE COMPORTA
  *
@@ -33,8 +31,7 @@ import org.lwjgl.glfw.GLFW;
  * cambiar de nivel ni al reconstruirse la pantalla, y sigue sonando durante el
  * apagon: es lo unico que no se apaga cuando se corta la luz, porque no es un
  * sonido del pasillo sino de la escena. La ranura de fabrica contiene la pieza
- * original del mod; una pista local autorizada puede sustituirla sin cambiar
- * este gestor.
+ * original del mod y es la unica fuente del tema.
  */
 public class GestorMusica extends AbstractTickableSoundInstance {
 

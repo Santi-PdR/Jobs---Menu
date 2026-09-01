@@ -27,6 +27,7 @@ public final class ToggleExpediente extends AbstractButton {
     private boolean ultimoValor;
     private boolean tieneUltimoValor;
     private float focoSuave;
+    private long presionadoHasta;
 
     public ToggleExpediente(int x, int y, int ancho, int alto, Component etiqueta,
                             BooleanSupplier leer, Consumer<Boolean> fijar) {
@@ -61,6 +62,7 @@ public final class ToggleExpediente extends AbstractButton {
 
     @Override
     public void onPress() {
+        this.presionadoHasta = System.currentTimeMillis() + 110L;
         boolean nuevo = !valor();
         if (this.fijar != null) this.fijar.accept(nuevo);
         sincronizarMensaje(true);
@@ -86,9 +88,14 @@ public final class ToggleExpediente extends AbstractButton {
         int w = this.width;
         int h = this.height;
         boolean v = valor();
+        boolean pulsado = this.active && System.currentTimeMillis() < this.presionadoHasta;
 
         int fondo = Paleta.mezclar(Paleta.papelAviso(), Paleta.PARED_ALTA, 0.04F + 0.13F * this.focoSuave);
         g.fill(x, y, x + w, y + h, fondo);
+        if (pulsado) {
+            g.fill(x + 2, y + 2, x + w - 2, y + h - 2,
+                    Paleta.conAlfa(Paleta.PARED_ALTA, 0.12F));
+        }
         int borde = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.34F + 0.30F * this.focoSuave);
         g.fill(x, y, x + w, y + 1, borde);
         g.fill(x, y + h - 1, x + w, y + h, borde);
@@ -150,6 +157,11 @@ public final class ToggleExpediente extends AbstractButton {
         if (hover) {
             g.fill(x + 2, y + 2, x + 3, y + h - 2,
                     Paleta.conAlfa(Paleta.tintaPrincipal(), 0.34F));
+        }
+        if (pulsado) {
+            int centro = x + w / 2;
+            g.fill(centro - 8, y + h - 3, centro + 8, y + h - 2,
+                    Paleta.conAlfa(Paleta.FLUOR, 0.56F));
         }
     }
 

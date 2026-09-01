@@ -8,8 +8,8 @@ Documento maestro del estado **vigente** del mod. El historial de implementacion
 | Rama de entrega | `main` |
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
-| Versión actual | **0.14.1** |
-| Artefacto esperado | **`jobsmenu-0.14.1.jar`** |
+| Versión actual | **0.15.0** |
+| Artefacto esperado | **`jobsmenu-0.15.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -62,9 +62,9 @@ Todos comparten rotación de Nivel, apagón, música, camas ambientales, avisos,
 
 Sobre niveles 10–17 no se ejecutan las capas animadas de materiales, dirección artística, tratamiento, presencia, motas, eventos ni pulido de cámara. Los apagones y transiciones entre Niveles se conservan porque pertenecen al estado general del menú, no a la animación de la imagen.
 
-## 4. Interfaz 0.14.1
+## 4. Interfaz 0.15.0
 
-0.14.1 conserva la arquitectura autónoma de 0.14.0 y añade el pase de corrección realizado sobre capturas reales: solapes, barras de scroll anómalas, pantallas vanilla aisladas, mezcla de idiomas y espacios visuales sin jerarquía.
+0.15.0 conserva la arquitectura autónoma y aplica un segundo pase basado en uso real: paneles compactos, marcos oscuros para archivos extensos, scroll estable, ayuda contextual y jerarquías nuevas para mundos, servidores, mods y recursos.
 
 ### 4.1 Principio de compatibilidad
 
@@ -108,6 +108,8 @@ Usa directamente:
 
 No hay estado decorativo duplicado. Forge **Mods → Jobs Menu → Config** y el botón de Options abren la misma implementación.
 
+Cada tab, toggle y slider tiene un tooltip localizado con su clave `.detalle`. El panel máximo es 480×300 y deja margen real alrededor de la interfaz.
+
 ### 4.4 Widgets de segunda generación
 
 - `BotonExpediente`: estados normal/principal/JOBS/terminal, foco, presión, sombra, marcas administrativas y sonidos propios.
@@ -130,6 +132,8 @@ No hay estado decorativo duplicado. Forge **Mods → Jobs Menu → Config** y el
 - pie con formulario/Nivel/versión;
 - vignette estática de interfaz;
 - banda contextual para pantallas auxiliares.
+
+`panelArchivo`, `cabeceraArchivo` y `pieArchivo` forman la variante oscura para listas extensas. Papel identifica formularios compactos; el archivo oscuro identifica mundos, servidores, mods y recursos. Ninguna pantalla debe usar papel por defecto sólo por pertenecer a Jobs.
 
 El chrome puede añadir textura **estática** alrededor de un PNG, pero no mueve ni anima los fondos 10–17.
 
@@ -168,15 +172,17 @@ Con movimiento reducido se convierte en un fade breve sin desplazamiento obligat
 
 ### 4.9 Pase visual basado en capturas
 
-El pase 0.14.1 corrige específicamente problemas que una compilación estática no podía detectar por sí sola:
+El pase 0.15.0 corrige específicamente problemas que una compilación estática no podía detectar por sí sola:
 
 - el botón vanilla de **Guía de accesibilidad** ya no aparece encima de `Cerrar expediente`;
-- Multijugador reserva zonas separadas para título, subtítulo y nota contextual;
+- Multijugador se titula **Puestos de acceso** y fija `JobsDosh.exaroton.me:56477` como **Servidor oficial de Jobs** / **Jobs Official Server** en el primer renglón;
 - Español (Uruguay), Argentina, Chile, Ecuador, México y Venezuela reutilizan el catálogo `es_es` para no mezclar inglés con español;
-- `PantallaMundosJobs` conserva `SelectWorldScreen` y sus previews/acciones, pero elimina el bloque visual aislado de dirt;
-- `PantallaModsJobs` conserva la lógica completa de Forge Mods y la presenta dentro del lenguaje Jobs;
-- Resource Packs oculta el dirt/bandas incompatibles cuando la pantalla está dentro de una visita Jobs;
-- las hojas grandes reciben reglas/pliegues estáticos de muy baja intensidad para evitar composición vacía;
+- `PantallaMundosJobs` conserva `SelectWorldScreen`, mueve el buscador y presenta **Archivo de turnos** sin hoja gigante;
+- `PantallaModsJobs` conserva Forge Mods y tiñe el blanco duro hacia tinta sepia;
+- Resource Packs usa archivo oscuro sin alterar sus dos listas;
+- Idioma se renderiza una sola vez y su scrollbar usa los límites reales `y0/y1`;
+- Sonido, Video, Chat, Accesibilidad, Online, Mouse y Teclas adoptan geometría compacta compartida;
+- el sistema de música local que generaba `jobsmenu-musica-activa` se elimina y migra limpiando el pack legado;
 - el pie reserva la esquina derecha para overlays externos y usa el formulario localizado completo cuando el ancho lo permite.
 
 ## 5. Pantallas vigentes
@@ -257,10 +263,10 @@ Además del CI:
 
 ## 9. Documentación vigente
 
-- `README.md`: resumen de 0.14.1.
+- `README.md`: resumen de 0.15.0.
 - `CHANGELOG.md`: historial.
 - `KNOWN_ISSUES.md`: pruebas/riesgos pendientes.
-- `docs/AUDITORIA_0.14.1_UI_POLISH.md`: auditoría del pase visual sobre capturas.
+- `docs/AUDITORIA_0.15.0_UI_POLISH.md`: auditoría del pase compacto y de archivos.
 - `docs/AUDITORIA_0.14.0_UI.md`: arquitectura previa conservada como registro.
 - `docs/DESPLIEGUE.md`: instalación.
 - `docs/compatibilidad.md`: convivencia con otros mods.

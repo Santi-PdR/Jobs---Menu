@@ -6,27 +6,30 @@ La salida existe. Cuesta. Los **Executores** vuelven. El objetivo no es aplicar 
 
 | | |
 |---|---|
-| Versión | **0.14.1** |
-| Artefacto | **`jobsmenu-0.14.1.jar`** |
+| Versión | **0.15.0** |
+| Artefacto | **`jobsmenu-0.15.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
 | Lado | **Cliente** |
 | Niveles | **18 (0–17)** |
 
-## 0.14.1 · Pulido de interfaces y coherencia visual
+## 0.15.0 · Archivos compactos y navegación profesional
 
-0.14.1 conserva la arquitectura introducida en 0.14.0 y aplica el pase posterior basado en capturas reales del mod. La prioridad es eliminar solapes, fondos vanilla aislados, zonas excesivamente vacías y diferencias entre pantallas Jobs, Minecraft y Forge.
+0.15.0 responde al pase visual realizado dentro del juego: reduce paneles vacíos, separa papel y archivo oscuro según el tipo de contenido, corrige definitivamente el scroll de Idioma y eleva Singleplayer, Multiplayer, Mods y Resource Packs sin sustituir su lógica sensible.
 
 ### Correcciones del pase visual
 
 - Accesibilidad deja de mostrar el botón vanilla **Guía de accesibilidad** cuando Jobs ya proporciona su propia navegación inferior; no vuelve a solaparse con `Cerrar expediente`.
-- Multijugador separa título, subtítulo y nota contextual para que ninguna capa de texto invada otra.
+- Multijugador usa la cabecera **Puestos de acceso** y mantiene `JobsDosh.exaroton.me:56477` guardado, traducido y en el primer renglón.
 - Español (Uruguay) y las variantes españolas soportadas reutilizan el archivo `es_es`, evitando mezclas como `Close file`, `Notice settings` o subtítulos en inglés.
-- Seleccionar mundo y Mods de Forge se integran en el papel/chrome Jobs sin sustituir su lógica interna.
-- Resource Packs deja de mostrar bloques de dirt aislados dentro de una visita Jobs.
-- Las listas disponen de fallback visual de scrollbar para evitar barras negras o mal dimensionadas cuando una lista no expone todos sus campos internos.
-- El chrome añade reglas, pliegues y estructura estática muy tenue para que las hojas grandes no se sientan vacías sin convertirlas en una UI recargada.
+- Seleccionar mundo pasa a **Archivo de turnos** y Multiplayer a **Puestos de acceso**, ambos sobre un archivo oscuro con margen completo.
+- Mods conserva búsqueda, orden, Config, logos y carpeta, pero transforma el blanco puro de Forge en tinta sepia.
+- Resource Packs elimina el papel gigante y el dirt aislado; conserva sus dos listas y acciones vanilla.
+- Idioma deja de dibujar su lista dos veces. La scrollbar Jobs usa `y0/y1` reales; ya no desaparece ni deja asomar la barra gris al subir.
+- Sonido, Video, Chat, Accesibilidad, Online, Mouse y Teclas usan paneles compactos con contenido ceñido y márgenes visibles.
+- Cada tab, toggle y slider de **Ajustes del aviso** expone una explicación localizada mediante tooltip.
+- El pack generado `jobsmenu-musica-activa` se retira al migrar: la música incluida vive únicamente dentro del mod.
 - El pie reserva espacio para badges y overlays de otros mods y, cuando el ancho lo permite, usa el formulario localizado completo.
 
 ### Options ahora separa Jobs de Minecraft
@@ -41,7 +44,7 @@ La salida existe. Cuesta. Los **Executores** vuelven. El objetivo no es aplicar 
 
 ### Config del mod completamente propia
 
-`PantallaAjustesAviso` ya no depende visualmente de `OptionsList` ni de controles vanilla.
+`PantallaAjustesAviso` ya no depende visualmente de `OptionsList` ni de controles vanilla y reduce su superficie máxima a un expediente de 480×300.
 
 La configuración se reorganiza como un expediente Jobs con cinco áreas:
 
@@ -52,6 +55,8 @@ La configuración se reorganiza como un expediente Jobs con cinco áreas:
 - sistema.
 
 Cada área usa `BotonExpediente`, `ToggleExpediente` y `SliderExpediente` conectados directamente con `ConfigTurno`. No existe un segundo estado de configuración ni una copia decorativa de los valores.
+
+Todos los controles muestran su explicación al mantener el puntero encima. Los toggles también incorporan confirmación visual breve al pulsarlos.
 
 Esto reemplaza uno de los últimos bloques grandes de widgets vanilla dentro del propio mod.
 
@@ -127,6 +132,7 @@ Se conserva lógica vanilla cuando aporta compatibilidad y se reimplementa la su
 - Tres camas ambientales por recinto: BASE, CARÁCTER y ACTIVIDAD.
 - Eventos ocasionales con silencios deliberados.
 - Música de menú independiente y mezcla contextual.
+- La pista se carga desde `assets/jobsmenu` dentro del JAR; Jobs no crea resource packs musicales auxiliares.
 - Gestos propios para foco, selección, alternancia, confirmación, apertura, cierre y rechazo.
 - BASE/CARÁCTER usan microvariación tonal de ciclo largo; ACTIVIDAD permanece estable para no deformar materiales reconocibles.
 
@@ -137,7 +143,7 @@ Se conserva lógica vanilla cuando aporta compatibilidad y se reimplementa la su
 Correcto:
 
 ```text
-jobsmenu-0.14.1.jar
+jobsmenu-0.15.0.jar
 ```
 
 Prohibido:
@@ -157,7 +163,7 @@ GitHub Actions ejecuta:
 3. `tools/verificar_fondos.py`.
 4. `tools/verificar.py`.
 5. `./gradlew build --stacktrace --no-daemon`.
-6. Publicación de **`jobsmenu-0.14.1.jar`** en `dev-latest` sólo desde `main`.
+6. Publicación de **`jobsmenu-0.15.0.jar`** en `dev-latest` sólo desde `main`.
 
 El PowerShell de despliegue se entrega **después** de que el PR y `main` terminen en verde. El usuario no necesita compilar localmente: el script consume el JAR ya construido por CI y lo instala únicamente en `test-1`.
 
@@ -167,7 +173,8 @@ El PowerShell de despliegue se entrega **después** de que el PR y `main` termin
 - [`CHANGELOG.md`](CHANGELOG.md): historial de cambios.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y pruebas pendientes.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalación del build versionado.
-- [`docs/AUDITORIA_0.14.1_UI_POLISH.md`](docs/AUDITORIA_0.14.1_UI_POLISH.md): auditoría del pase basado en capturas.
+- [`docs/AUDITORIA_0.15.0_UI_POLISH.md`](docs/AUDITORIA_0.15.0_UI_POLISH.md): auditoría del pase basado en capturas.
+- [`docs/AUDITORIA_0.14.1_UI_POLISH.md`](docs/AUDITORIA_0.14.1_UI_POLISH.md): pase visual anterior.
 - [`docs/AUDITORIA_0.14.0_UI.md`](docs/AUDITORIA_0.14.0_UI.md): auditoría de la arquitectura anterior.
 - [`docs/DIRECCION_ARTISTICA.md`](docs/DIRECCION_ARTISTICA.md): lenguaje visual.
 - [`docs/compatibilidad.md`](docs/compatibilidad.md): convivencia con otros mods.

@@ -17,18 +17,22 @@ import java.util.Set;
 public final class ListasExpediente {
 
     private static final Field CAMPO_Y0;
+    private static final Field CAMPO_Y1;
     private static final Method METODO_SCROLLBAR_X;
 
     static {
         Field y0 = null;
+        Field y1 = null;
         Method barra = null;
         try {
             y0 = ObfuscationReflectionHelper.findField(AbstractSelectionList.class, "f_93390_");
+            y1 = ObfuscationReflectionHelper.findField(AbstractSelectionList.class, "f_93391_");
             barra = ObfuscationReflectionHelper.findMethod(AbstractSelectionList.class, "m_5756_");
         } catch (Throwable ignored) {
             // En mappings/implementaciones distintas usamos geometria publica.
         }
         CAMPO_Y0 = y0;
+        CAMPO_Y1 = y1;
         METODO_SCROLLBAR_X = barra;
     }
 
@@ -68,7 +72,7 @@ public final class ListasExpediente {
 
                 int x = resolverScrollbarX(lista);
                 int y0 = resolverY0(lista);
-                int y1 = lista.getScrollBottom();
+                int y1 = resolverY1(lista);
                 int alto = y1 - y0;
                 if (alto < 24) continue;
 
@@ -145,6 +149,20 @@ public final class ListasExpediente {
         // y0 no tiene getter publico en 1.20.1. Este camino solo se usa si un
         // mapping externo rompe la reflexion; 0 es preferible a abortar la UI.
         return 0;
+    }
+
+    private static int resolverY1(AbstractSelectionList<?> lista) {
+        if (CAMPO_Y1 != null) {
+            try {
+                return CAMPO_Y1.getInt(lista);
+            } catch (Throwable ignored) {
+            }
+        }
+        // getScrollBottom() no es el borde inferior visual en 1.20.1: devuelve
+        // una coordenada ligada al desplazamiento y puede ser negativa. Si un
+        // mapping externo rompe la reflexion, se omite la barra antes que
+        // dibujarla atravesando toda la pantalla.
+        return resolverY0(lista);
     }
 
     private static List<AbstractSelectionList<?>> encontrarListas(Screen pantalla) {

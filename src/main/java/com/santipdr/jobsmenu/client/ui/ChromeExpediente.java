@@ -81,6 +81,69 @@ public final class ChromeExpediente {
                 Paleta.conAlfa(Paleta.tintaSecundaria(), 0.24F));
     }
 
+    /**
+     * Marco de archivo para pantallas con listas grandes. Mantiene la identidad
+     * Jobs sin convertir cada vista en otra hoja de papel gigante.
+     */
+    public static void panelArchivo(GuiGraphics g, int x, int y, int w, int h) {
+        int sombra = Paleta.conAlfa(Paleta.VANO, 0.48F);
+        g.fill(x + 4, y + 5, x + w + 5, y + h + 6, sombra);
+        g.fill(x, y, x + w, y + h,
+                Paleta.conAlfa(Paleta.VANO, ConfigTurno.altoContraste() ? 0.90F : 0.78F));
+
+        int borde = Paleta.conAlfa(Paleta.PARED_ALTA, 0.42F);
+        int bordeFino = Paleta.conAlfa(Paleta.PAPEL, 0.12F);
+        g.fill(x, y, x + w, y + 1, borde);
+        g.fill(x, y + h - 1, x + w, y + h, borde);
+        g.fill(x, y, x + 1, y + h, borde);
+        g.fill(x + w - 1, y, x + w, y + h, borde);
+        g.fill(x + 5, y + 5, x + w - 5, y + 6, bordeFino);
+        g.fill(x + 5, y + h - 6, x + w - 5, y + h - 5, bordeFino);
+
+        // Marcas de inventario, mas cercanas a metal pintado que a papel.
+        int marca = Paleta.conAlfa(Paleta.PARED_ALTA, 0.28F);
+        for (int i = 0; i < 3; i++) {
+            int py = y + h / 4 + i * h / 4;
+            g.fill(x + 7, py - 2, x + 9, py + 2, marca);
+        }
+        g.fill(x + w - 48, y + 1, x + w - 14, y + 4,
+                Paleta.conAlfa(Paleta.PARED, 0.44F));
+    }
+
+    /** Cabecera clara para el marco oscuro de archivo. */
+    public static void cabeceraArchivo(GuiGraphics g, Font font, Component titulo, Component subtitulo,
+                                       int panelX, int panelY, int panelW) {
+        int centro = panelX + panelW / 2;
+        String tituloVisible = ajustar(font, titulo == null ? "" : titulo.getString(),
+                Math.max(24, panelW - 80));
+        int tw = font.width(tituloVisible);
+        int ty = panelY + 12;
+        g.drawString(font, tituloVisible, centro - tw / 2, ty,
+                Paleta.conAlfa(Paleta.FLUOR, 0.94F), false);
+
+        if (subtitulo != null) {
+            String texto = ajustar(font, subtitulo.getString(), Math.max(20, panelW - 52));
+            int sw = font.width(texto);
+            g.drawString(font, texto, centro - sw / 2, ty + 13,
+                    Paleta.conAlfa(Paleta.TECHO, 0.72F), false);
+        }
+        int linea = Paleta.conAlfa(Paleta.PARED_ALTA, 0.34F);
+        g.fill(panelX + 18, panelY + 41, panelX + panelW - 18, panelY + 42, linea);
+        g.fill(centro - 12, panelY + 40, centro + 12, panelY + 43,
+                Paleta.conAlfa(Paleta.PARED, 0.54F));
+    }
+
+    /** Pie discreto para archivos oscuros. */
+    public static void pieArchivo(GuiGraphics g, Font font, int x, int y, int w, int h,
+                                  String formulario) {
+        int nivel = RotacionNiveles.capturar().indice();
+        String texto = formulario + "  //  N" + String.format(java.util.Locale.ROOT, "%02d", nivel)
+                + "  //  v" + version();
+        texto = ajustar(font, texto, Math.max(20, w - 34));
+        g.drawString(font, texto, x + 14, y + h - 15,
+                Paleta.conAlfa(Paleta.TECHO, 0.48F), false);
+    }
+
     /** Cabecera de una pantalla propia. */
     public static void cabecera(GuiGraphics g, Font font, Component titulo, Component subtitulo,
                                 int panelX, int panelY, int panelW) {

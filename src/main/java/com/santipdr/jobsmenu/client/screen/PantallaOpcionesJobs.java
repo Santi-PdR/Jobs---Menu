@@ -2,12 +2,12 @@ package com.santipdr.jobsmenu.client.screen;
 
 import com.santipdr.jobsmenu.client.ui.BotonExpediente;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
-import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.santipdr.jobsmenu.client.ui.SliderExpediente;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.repository.PackRepository;
@@ -15,8 +15,8 @@ import net.minecraft.server.packs.repository.PackRepository;
 /** Centro de control de Jobs: la configuracion del mod tiene jerarquia propia. */
 public final class PantallaOpcionesJobs extends Screen {
 
-    private static final int PANEL_MAX_W = 430;
-    private static final int PANEL_MAX_H = 326;
+    private static final int PANEL_MAX_W = 404;
+    private static final int PANEL_MAX_H = 288;
 
     private final Screen anterior;
     private final Options opciones;
@@ -37,7 +37,7 @@ public final class PantallaOpcionesJobs extends Screen {
         this.panelH = Math.max(1, Math.min(PANEL_MAX_H, this.height - 12));
         this.panelX = (this.width - this.panelW) / 2;
         this.panelY = Math.max(4, (this.height - this.panelH) / 2);
-        this.compacta = this.panelH < 282 || this.panelW < 350;
+        this.compacta = this.panelH < 262 || this.panelW < 350;
 
         int gap = compacta ? 6 : 8;
         int margen = compacta ? 14 : 20;
@@ -46,16 +46,17 @@ public final class PantallaOpcionesJobs extends Screen {
         int bh = compacta ? 19 : 22;
         int x0 = this.panelX + margen;
         int x1 = x0 + bw + gap;
-        int y0 = this.panelY + (compacta ? 48 : 61);
-        int paso = compacta ? 22 : 27;
+        int y0 = this.panelY + (compacta ? 47 : 56);
+        int paso = compacta ? 22 : 25;
 
         this.configY = y0;
-        this.addRenderableWidget(new BotonExpediente(
+        BotonExpediente ajustesJobs = this.addRenderableWidget(new BotonExpediente(
                 x0, y0, anchoUtil, bh,
                 Component.translatable("jobsmenu.ajustes.boton"),
                 BotonExpediente.Tipo.JOBS, this::abrirAviso));
+        ajustesJobs.setTooltip(Tooltip.create(Component.translatable("jobsmenu.ajustes.boton.detalle")));
 
-        this.sistemaY = y0 + bh + (compacta ? 5 : 17);
+        this.sistemaY = y0 + bh + (compacta ? 5 : 10);
         int sy = this.sistemaY;
 
         boton(x0, sy, bw, bh, "options.skinCustomisation", this::abrirPiel);
@@ -110,13 +111,6 @@ public final class PantallaOpcionesJobs extends Screen {
             ChromeExpediente.seccion(g, this.font, panelX + margen, panelX + panelW - margen,
                     this.sistemaY - 10, Component.translatable("options.title"));
 
-            Component nota = Component.translatable("jobsmenu.interfaz.opciones.nota");
-            int nw = this.font.width(nota);
-            if (nw < this.panelW - 28) {
-                int ny = this.configY + 24;
-                g.drawString(this.font, nota, this.width / 2 - nw / 2, ny,
-                        Paleta.conAlfa(Paleta.tintaSecundaria(), 0.58F), false);
-            }
         }
 
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);

@@ -28,7 +28,7 @@ El bloque no compila el proyecto. Descarga el artefacto ya certificado por GitHu
 
 Todo JAR instalado o publicado debe incluir la versión en el nombre. Para esta entrega:
 
-`jobsmenu-0.14.1.jar`
+`jobsmenu-0.15.0.jar`
 
 El nombre genérico `jobsmenu-latest.jar` queda prohibido. La release sigue usando el tag rodante `dev-latest`, pero su único asset cambia de nombre con `mod_version`.
 

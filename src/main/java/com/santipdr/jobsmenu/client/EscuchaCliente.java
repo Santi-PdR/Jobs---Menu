@@ -10,7 +10,7 @@ import com.santipdr.jobsmenu.client.screen.PantallaOpcionesJobs;
 import com.santipdr.jobsmenu.client.sound.MezclaAudio;
 import com.santipdr.jobsmenu.client.sound.GestorAmbiente;
 import com.santipdr.jobsmenu.client.sound.GestorMusica;
-import com.santipdr.jobsmenu.client.sound.MusicaPropia;
+import com.santipdr.jobsmenu.client.sound.LimpiezaRecursosLegados;
 import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import com.santipdr.jobsmenu.client.ui.ListasExpediente;
@@ -63,7 +63,7 @@ public final class EscuchaCliente {
                 && siguiente.getClass() == TitleScreen.class
                 && !salidaAlTitulo
                 && !(siguiente instanceof PantallaNivel)) {
-            MusicaPropia.preparar();
+            LimpiezaRecursosLegados.ejecutar();
             siguiente = new PantallaNivel();
             evento.setNewScreen(siguiente);
         } else if (ConfigTurno.pausaPropia() && esPausaReal(siguiente)) {

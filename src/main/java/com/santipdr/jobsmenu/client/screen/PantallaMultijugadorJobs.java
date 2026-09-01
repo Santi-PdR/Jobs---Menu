@@ -9,6 +9,8 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.multiplayer.ServerSelectionList;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.multiplayer.ServerList;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -16,6 +18,8 @@ import net.minecraft.network.chat.Component;
  * de Minecraft; solo se cambia el marco y la superficie de interaccion.
  */
 public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
+
+    private static final String SERVIDOR_IP = "JobsDosh.exaroton.me:56477";
 
     private Button realSelect, realDirect, realAdd, realEdit, realDelete, realRefresh, realCancel;
     private BotonExpediente select, edit, delete;
@@ -28,10 +32,12 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
     @Override
     protected void init() {
         super.init();
-        this.panelX = 8;
-        this.panelY = 6;
-        this.panelW = this.width - 16;
-        this.panelH = this.height - 12;
+        this.panelX = 12;
+        this.panelY = 8;
+        this.panelW = this.width - 24;
+        this.panelH = this.height - 16;
+
+        asegurarServidorOficial();
 
         this.realSelect = buscar("selectServer.select");
         this.realDirect = buscar("selectServer.direct");
@@ -48,12 +54,41 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
                 lista.setRenderTopAndBottom(false);
                 // La lista empieza debajo de titulo, subtitulo y nota. En 0.14.0
                 // esos tres textos compartian la misma franja y se montaban.
-                int top = Math.max(64, panelY + 58);
-                int bottom = Math.max(top + 40, this.height - 78);
+                int top = Math.max(78, panelY + 70);
+                int bottom = Math.max(top + 40, this.height - 80);
                 lista.updateSize(this.width, this.height, top, bottom);
             }
         }
         crearBotones();
+    }
+
+    /** Mantiene el acceso oficial guardado, traducido y en el primer renglon. */
+    private void asegurarServidorOficial() {
+        ServerList servidores = this.getServers();
+        if (servidores == null) return;
+
+        String nombre = Component.translatable("jobsmenu.servidor.oficial").getString();
+        int indice = -1;
+        for (int i = 0; i < servidores.size(); i++) {
+            ServerData dato = servidores.get(i);
+            if (SERVIDOR_IP.equalsIgnoreCase(dato.ip)) {
+                dato.name = nombre;
+                indice = i;
+                break;
+            }
+        }
+        if (indice < 0) {
+            servidores.add(new ServerData(nombre, SERVIDOR_IP, false), false);
+            indice = servidores.size() - 1;
+        }
+        while (indice > 0) {
+            servidores.swap(indice, indice - 1);
+            indice--;
+        }
+        servidores.save();
+        if (this.serverSelectionList != null) {
+            this.serverSelectionList.updateOnlineServers(servidores);
+        }
     }
 
     private Button buscar(String clave) {
@@ -106,15 +141,23 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
     }
 
     private void sincronizarEstados() {
+        boolean oficial = servidorOficialSeleccionado();
         if (this.select != null) this.select.active = this.realSelect != null && this.realSelect.active;
-        if (this.edit != null) this.edit.active = this.realEdit != null && this.realEdit.active;
-        if (this.delete != null) this.delete.active = this.realDelete != null && this.realDelete.active;
+        if (this.edit != null) this.edit.active = !oficial && this.realEdit != null && this.realEdit.active;
+        if (this.delete != null) this.delete.active = !oficial && this.realDelete != null && this.realDelete.active;
+    }
+
+    private boolean servidorOficialSeleccionado() {
+        if (this.serverSelectionList == null) return false;
+        ServerSelectionList.Entry entrada = this.serverSelectionList.getSelected();
+        return entrada instanceof ServerSelectionList.OnlineServerEntry online
+                && SERVIDOR_IP.equalsIgnoreCase(online.getServerData().ip);
     }
 
     @Override
     public void renderBackground(GuiGraphics g) {
         ChromeExpediente.fondo(g, this.width, this.height);
-        ChromeExpediente.panel(g, panelX, panelY, panelW, panelH);
+        ChromeExpediente.panelArchivo(g, panelX, panelY, panelW, panelH);
     }
 
     @Override
@@ -124,26 +167,31 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
 
         // JoinMultiplayerScreen dibuja su titulo despues del fondo. Cubrimos solo
         // la franja de cabecera, nunca la lista, y reconstruimos una unica jerarquia.
-        int headerBottom = Math.min(this.height - 80, this.panelY + 58);
+        int headerBottom = Math.min(this.height - 82, this.panelY + 70);
         g.fill(this.panelX + 6, this.panelY + 6,
                 this.panelX + this.panelW - 6, headerBottom,
-                Paleta.papelAviso());
-        ChromeExpediente.cabecera(g, this.font, this.title,
+                Paleta.conAlfa(Paleta.VANO, 0.96F));
+        ChromeExpediente.cabeceraArchivo(g, this.font,
+                Component.translatable("jobsmenu.interfaz.multijugador.titulo"),
                 Component.translatable("jobsmenu.interfaz.multijugador.subtitulo"),
                 panelX, panelY, panelW);
 
-        Component nota = Component.translatable("jobsmenu.interfaz.multijugador.nota");
-        String texto = nota.getString();
-        int max = Math.max(40, this.panelW - 52);
-        if (this.font.width(texto) > max) {
-            texto = this.font.plainSubstrByWidth(texto,
-                    Math.max(0, max - this.font.width("..."))) + "...";
+        int tarjetaX = panelX + 20;
+        int tarjetaY = panelY + 47;
+        int tarjetaW = panelW - 40;
+        g.fill(tarjetaX, tarjetaY, tarjetaX + tarjetaW, tarjetaY + 18,
+                Paleta.conAlfa(Paleta.PARED, 0.12F));
+        g.fill(tarjetaX, tarjetaY, tarjetaX + 3, tarjetaY + 18,
+                Paleta.conAlfa(Paleta.PARED_ALTA, 0.72F));
+        Component oficial = Component.translatable("jobsmenu.servidor.oficial");
+        g.drawString(this.font, oficial, tarjetaX + 9, tarjetaY + 5,
+                Paleta.conAlfa(Paleta.FLUOR, 0.90F), false);
+        int ipW = this.font.width(SERVIDOR_IP);
+        if (ipW < tarjetaW / 2) {
+            g.drawString(this.font, SERVIDOR_IP, tarjetaX + tarjetaW - ipW - 8, tarjetaY + 5,
+                    Paleta.conAlfa(Paleta.TECHO, 0.62F), false);
         }
-        int nw = this.font.width(texto);
-        g.drawString(this.font, texto, this.width / 2 - nw / 2, this.panelY + 47,
-                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.58F), false);
 
-        ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
-        ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "CREW-014");
+        ChromeExpediente.pieArchivo(g, this.font, panelX, panelY, panelW, panelH, "ACCESS");
     }
 }

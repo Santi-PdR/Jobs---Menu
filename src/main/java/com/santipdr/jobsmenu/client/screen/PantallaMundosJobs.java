@@ -5,6 +5,7 @@ import com.santipdr.jobsmenu.client.ui.ListasExpediente;
 import com.santipdr.jobsmenu.client.ui.PielVanillaJobs;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 
@@ -15,8 +16,8 @@ import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
  */
 public final class PantallaMundosJobs extends SelectWorldScreen {
 
-    private static final int PANEL_X = 8;
-    private static final int PANEL_Y = 6;
+    private static final int PANEL_X = 12;
+    private static final int PANEL_Y = 8;
 
     public PantallaMundosJobs(Screen anterior) {
         super(anterior);
@@ -25,14 +26,18 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
     @Override
     protected void init() {
         super.init();
-        // La lista sigue siendo la de Minecraft; solo pierde sus bandas dirt.
-        ListasExpediente.estilizar(this);
+        ListasExpediente.estilizar(this, 70, this.height - 66);
+        for (var child : this.children()) {
+            if (child instanceof EditBox campo) {
+                campo.setY(PANEL_Y + 43);
+            }
+        }
     }
 
     @Override
     public void renderBackground(GuiGraphics g) {
         ChromeExpediente.fondo(g, this.width, this.height);
-        ChromeExpediente.panel(g, PANEL_X, PANEL_Y,
+        ChromeExpediente.panelArchivo(g, PANEL_X, PANEL_Y,
                 this.width - PANEL_X * 2, this.height - PANEL_Y * 2);
     }
 
@@ -43,9 +48,18 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
         renderBackground(g);
         super.render(g, mouseX, mouseY, partialTick);
         PielVanillaJobs.dibujar(this, g, mouseX, mouseY);
-        ChromeExpediente.esquinas(g, PANEL_X, PANEL_Y,
-                this.width - PANEL_X * 2, this.height - PANEL_Y * 2);
-        ChromeExpediente.pie(g, this.font, PANEL_X, PANEL_Y,
-                this.width - PANEL_X * 2, this.height - PANEL_Y * 2, "WRLD-014");
+
+        // SelectWorldScreen pinta su titulo vanilla sobre el marco. Se cubre
+        // solo esa franja; el buscador queda debajo y conserva su hitbox real.
+        int panelW = this.width - PANEL_X * 2;
+        g.fill(PANEL_X + 5, PANEL_Y + 5, PANEL_X + panelW - 5, PANEL_Y + 40,
+                com.santipdr.jobsmenu.client.ui.Paleta.conAlfa(
+                        com.santipdr.jobsmenu.client.ui.Paleta.VANO, 0.96F));
+        ChromeExpediente.cabeceraArchivo(g, this.font,
+                net.minecraft.network.chat.Component.translatable("jobsmenu.interfaz.mundos.titulo"),
+                net.minecraft.network.chat.Component.translatable("jobsmenu.interfaz.mundos.subtitulo"),
+                PANEL_X, PANEL_Y, panelW);
+        ChromeExpediente.pieArchivo(g, this.font, PANEL_X, PANEL_Y,
+                panelW, this.height - PANEL_Y * 2, "SHIFTS");
     }
 }

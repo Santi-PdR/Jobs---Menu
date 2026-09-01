@@ -2,6 +2,7 @@ package com.santipdr.jobsmenu.client.screen;
 
 import com.santipdr.jobsmenu.client.ui.BotonExpediente;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
+import com.santipdr.jobsmenu.client.ui.GeometriaExpediente;
 
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.GuiGraphics;
@@ -18,6 +19,7 @@ import java.lang.reflect.Field;
 public final class PantallaSonidoJobs extends SoundOptionsScreen {
 
     private OptionsList lista;
+    private GeometriaExpediente.Panel panel;
 
     public PantallaSonidoJobs(Screen anterior, Options opciones) {
         super(anterior, opciones);
@@ -26,11 +28,12 @@ public final class PantallaSonidoJobs extends SoundOptionsScreen {
     @Override
     protected void init() {
         super.init();
+        this.panel = GeometriaExpediente.compacto(this.width, this.height, 430, 318);
         this.lista = resolverLista();
         if (this.lista != null) {
             this.lista.setRenderBackground(false);
             this.lista.setRenderTopAndBottom(false);
-            this.lista.updateSize(this.width, this.height, 50, this.height - 42);
+            this.lista.updateSize(this.width, this.height, panel.listaArriba(), panel.listaAbajo());
         }
         reemplazarDone();
     }
@@ -57,7 +60,7 @@ public final class PantallaSonidoJobs extends SoundOptionsScreen {
             }
         }
         this.addRenderableWidget(new BotonExpediente(
-                this.width / 2 - 70, this.height - 28, 140, 20,
+                this.width / 2 - 70, panel.botonY(), 140, 20,
                 Component.translatable("jobsmenu.interfaz.volver"),
                 BotonExpediente.Tipo.PRINCIPAL, this::onClose));
     }
@@ -65,14 +68,14 @@ public final class PantallaSonidoJobs extends SoundOptionsScreen {
     @Override
     public void renderBackground(GuiGraphics g) {
         ChromeExpediente.fondo(g, this.width, this.height);
-        ChromeExpediente.panel(g, 8, 6, this.width - 16, this.height - 12);
+        if (panel != null) ChromeExpediente.panel(g, panel.x(), panel.y(), panel.w(), panel.h());
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
         ChromeExpediente.marcoSubpantalla(g, this.font, this.width, this.height,
-                8, 6, this.width - 16, this.height - 12,
+                panel.x(), panel.y(), panel.w(), panel.h(),
                 Component.translatable("jobsmenu.interfaz.sonido.subtitulo"), "AUD-012");
     }
 }

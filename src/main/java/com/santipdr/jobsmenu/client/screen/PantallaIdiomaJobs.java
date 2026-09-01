@@ -106,7 +106,8 @@ public final class PantallaIdiomaJobs extends Screen {
                 Component.translatable("jobsmenu.interfaz.idioma.subtitulo"), panelX, panelY, panelW);
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
         ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "LNG-012");
-        if (this.lista != null) this.lista.render(g, mouseX, mouseY, partialTick);
+        // La lista es un widget y super.render ya la dibuja. Renderizarla aqui
+        // tambien producia dos scrollbars y filas que parecian salir del panel.
         super.render(g, mouseX, mouseY, partialTick);
 
         if (this.aplicando) {

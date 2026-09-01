@@ -1,5 +1,31 @@
 # Registro de cambios
 
+## 0.15.0 — Archivos compactos y navegación profesional — 2026-09-01
+
+### Interfaz
+
+- Opciones y Ajustes del aviso reducen su superficie y eliminan la nota que se solapaba con la sección Minecraft.
+- Tabs, toggles y sliders de Jobs reciben tooltips localizados; toggles incorporan confirmación visual de presión.
+- Idioma deja de renderizar la lista dos veces y la scrollbar usa los límites verticales reales.
+- Sonido, Video, Chat, Accesibilidad, Online, Mouse y Teclas comparten geometría compacta.
+- Se añade archivo oscuro para contenido extenso, evitando usar papel como fondo universal.
+
+### Mundos, servidores, mods y recursos
+
+- Singleplayer pasa a **Archivo de turnos** y conserva previews, búsqueda y acciones vanilla.
+- Multiplayer pasa a **Puestos de acceso** y mantiene `JobsDosh.exaroton.me:56477` como servidor oficial traducido, guardado y primero en la lista.
+- Mods conserva búsqueda, orden, Config, carpeta, logos y panel de información, con tinta sepia en lugar de blanco puro.
+- Resource Packs conserva sus dos listas sin dirt ni hoja gigante.
+
+### Música y migración
+
+- Se elimina `MusicaPropia` y la generación de `jobsmenu-musica-activa`.
+- `LimpiezaRecursosLegados` desactiva y borra exclusivamente ese pack legado; la pista incluida permanece dentro del JAR.
+
+### Entrega
+
+- Versión y artefacto: **0.15.0** / **`jobsmenu-0.15.0.jar`**.
+
 ## 0.14.1 — Pulido visual e integración de interfaces — 2026-09-01
 
 ### Correcciones visibles
