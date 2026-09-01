@@ -43,8 +43,8 @@ public final class PantallaPaquetesJobs extends PackSelectionScreen {
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
         PielVanillaJobs.dibujar(this, g, mouseX, mouseY);
-        ChromeExpediente.esquinas(g, 8, 6, this.width - 16, this.height - 12);
-        ChromeExpediente.pie(g, this.font, 8, 6,
-                this.width - 16, this.height - 12, "ARC-014");
+        ChromeExpediente.marcoSubpantalla(g, this.font, this.width, this.height,
+                8, 6, this.width - 16, this.height - 12,
+                Component.translatable("jobsmenu.interfaz.paquetes.subtitulo"), "ARC-014");
     }
 }
