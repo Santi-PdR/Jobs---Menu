@@ -52,7 +52,7 @@ public final class PantallaOpcionesJobs extends Screen {
         this.configY = y0;
         this.addRenderableWidget(new BotonExpediente(
                 x0, y0, anchoUtil, bh,
-                Component.translatable("jobsmenu.interfaz.opciones.config_jobs"),
+                Component.translatable("jobsmenu.ajustes.boton"),
                 BotonExpediente.Tipo.JOBS, this::abrirAviso));
 
         this.sistemaY = y0 + bh + (compacta ? 5 : 17);
@@ -106,11 +106,11 @@ public final class PantallaOpcionesJobs extends Screen {
         if (!this.compacta) {
             int margen = 20;
             ChromeExpediente.seccion(g, this.font, panelX + margen, panelX + panelW - margen,
-                    this.configY - 9, Component.translatable("jobsmenu.interfaz.opciones.seccion_jobs"));
+                    this.configY - 9, Component.translatable("jobsmenu.titulo"));
             ChromeExpediente.seccion(g, this.font, panelX + margen, panelX + panelW - margen,
-                    this.sistemaY - 10, Component.translatable("jobsmenu.interfaz.opciones.seccion_minecraft"));
+                    this.sistemaY - 10, Component.translatable("options.title"));
 
-            Component nota = Component.translatable("jobsmenu.interfaz.opciones.config_desc");
+            Component nota = Component.translatable("jobsmenu.interfaz.opciones.nota");
             int nw = this.font.width(nota);
             if (nw < this.panelW - 28) {
                 int ny = this.configY + 24;
