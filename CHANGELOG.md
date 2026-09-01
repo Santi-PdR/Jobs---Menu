@@ -1,5 +1,43 @@
 # Registro de cambios
 
+## 0.13.0 — PNG estáticos y pulido de controles — 2026-08-31
+
+### Fondos 10–17
+
+- Por requisito del proyecto, los PNG 10–17 dejan de recibir cualquier animación visual propia.
+- `PlantaImagen` elimina zoom, paneo, scanline, flicker, niebla móvil y efectos particulares por escena; el recorte pasa a ser un cover centrado y estable.
+- `EscenaNivel` identifica `PlantaImagen` y no ejecuta sobre esos niveles las capas animadas de materiales, tratamiento, dirección artística, presencia, motas, eventos ni pulido de cámara.
+- Se conserva únicamente una integración estática mínima y los apagones/transiciones generales del menú.
+- La validación fuerte PNG/CRC/IDAT y el fallback con `NativeImage` continúan vigentes.
+
+### Configuración
+
+- Se restaura el acceso estándar de Forge **Mods → Jobs Menu → Config** mediante `ConfigScreenHandler.ConfigScreenFactory`.
+- Ese botón abre la misma `PantallaAjustesAviso` utilizada desde el hub Jobs, sin duplicar configuraciones.
+
+### Scrollbar y listas
+
+- `ListasExpediente` incorpora una scrollbar visual propia de Jobs sobre las listas vanilla.
+- Se conservan rueda, click, drag, posición y cantidad de scroll de Minecraft; sólo cambia la presentación.
+- El carril y tirador usan papel/tinta y evitan el rojo genérico, reservado a Executores.
+- La integración usa reflection defensiva y vuelve a la scrollbar vanilla si una pantalla externa cambia internamente la lista.
+
+### Layout y solapes
+
+- `EscuchaCliente` desactiva todos los botones `Done` vanilla duplicados dentro de pantallas Jobs para evitar hitboxes invisibles superpuestos.
+- Accesibilidad reserva más espacio entre cabecera, última fila, scrollbar y botón Volver.
+- `PantallaAjustesAviso` reserva un footer completo para navegación y metadatos.
+- `ChromeExpediente` divide el pie en extremos y deja libre el centro para `Cerrar expediente`.
+- `PantallaOpcionesJobs` valida el espacio disponible para el slider FOV; en ventanas extremadamente pequeñas lo omite antes que crear un solape.
+
+### Entrega
+
+- La versión sube a **0.13.0**.
+- El artefacto obligatorio es **`jobsmenu-0.13.0.jar`**.
+- README y CONTEXTO documentan como regla permanente que los PNG 10–17 son estáticos.
+
+---
+
 ## 0.12.0 — Familia de interfaces Jobs — 2026-08-31
 
 ### Dirección de interfaz
