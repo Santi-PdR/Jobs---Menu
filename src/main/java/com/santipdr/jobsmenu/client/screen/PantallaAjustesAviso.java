@@ -12,7 +12,7 @@ import net.minecraft.client.gui.screens.OptionsSubScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-/** Ajustes propios del aviso, ahora integrados visualmente con el resto de 0.12.0. */
+/** Ajustes propios del aviso, integrados visualmente con el resto de Jobs. */
 public class PantallaAjustesAviso extends OptionsSubScreen {
 
     private OptionsList lista;
@@ -58,7 +58,9 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
 
     @Override
     protected void init() {
-        this.lista = new OptionsList(this.minecraft, this.width, this.height, 48, this.height - 36, 25);
+        // Cabecera 0-47 y footer desde height-48 quedan reservados. Ninguna fila
+        // de opciones puede entrar en el hitbox de Volver o en el pie del papel.
+        this.lista = new OptionsList(this.minecraft, this.width, this.height, 50, this.height - 48, 25);
         this.lista.setRenderBackground(false);
         this.lista.setRenderTopAndBottom(false);
 
@@ -143,7 +145,7 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
 
         this.addWidget(this.lista);
         this.addRenderableWidget(new BotonExpediente(
-                this.width / 2 - 80, this.height - 29, 160, 21,
+                this.width / 2 - 80, this.height - 30, 160, 20,
                 Component.translatable("jobsmenu.interfaz.volver"),
                 BotonExpediente.Tipo.PRINCIPAL,
                 () -> this.minecraft.setScreen(this.lastScreen)));
@@ -160,7 +162,7 @@ public class PantallaAjustesAviso extends OptionsSubScreen {
         this.basicListRender(grafico, this.lista, ratonX, ratonY, parcial);
         ChromeExpediente.marcoSubpantalla(grafico, this.font, this.width, this.height,
                 8, 6, this.width - 16, this.height - 12,
-                Component.translatable("jobsmenu.interfaz.aviso.subtitulo"), "JOBS-012");
+                Component.translatable("jobsmenu.interfaz.aviso.subtitulo"), "JOBS-013");
     }
 
     @Override

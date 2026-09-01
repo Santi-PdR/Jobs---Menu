@@ -16,7 +16,7 @@ import net.minecraft.server.packs.repository.PackRepository;
 public final class PantallaOpcionesJobs extends Screen {
 
     private static final int PANEL_MAX_W = 392;
-    private static final int PANEL_MAX_H = 292;
+    private static final int PANEL_MAX_H = 304;
 
     private final Screen anterior;
     private final Options opciones;
@@ -61,21 +61,29 @@ public final class PantallaOpcionesJobs extends Screen {
                 Component.translatable("jobsmenu.ajustes.boton"),
                 BotonExpediente.Tipo.PRINCIPAL, this::abrirAviso));
 
-        int fovY = y0 + paso * 5 + (compacta ? 0 : 2);
-        int fovH = compacta ? 19 : 22;
-        int fov = this.opciones.fov().get();
-        this.addRenderableWidget(new SliderExpediente(
-                x0, fovY, anchoUtil, fovH, 30, 110, fov,
-                v -> Component.translatable("jobsmenu.interfaz.fov",
-                        Component.translatable("options.fov"), v),
-                v -> {
-                    this.opciones.fov().set(v);
-                    this.opciones.save();
-                }));
-
         int volverH = compacta ? 19 : 22;
         int volverY = this.panelY + this.panelH - volverH - 8;
         int volverW = Math.min(160, anchoUtil);
+
+        int fovH = compacta ? 19 : 22;
+        int filaFinal = y0 + paso * 4 + bh;
+        int fovDeseado = y0 + paso * 5 + (compacta ? 0 : 2);
+        int fovY = Math.max(filaFinal + 4, Math.min(fovDeseado, volverY - fovH - 6));
+
+        // En escalas extremas es preferible omitir el slider a dejar dos hitboxes
+        // montados. FOV sigue disponible desde Video si la ventana es diminuta.
+        if (fovY >= filaFinal + 4 && fovY + fovH <= volverY - 5) {
+            int fov = this.opciones.fov().get();
+            this.addRenderableWidget(new SliderExpediente(
+                    x0, fovY, anchoUtil, fovH, 30, 110, fov,
+                    v -> Component.translatable("jobsmenu.interfaz.fov",
+                            Component.translatable("options.fov"), v),
+                    v -> {
+                        this.opciones.fov().set(v);
+                        this.opciones.save();
+                    }));
+        }
+
         this.addRenderableWidget(new BotonExpediente(
                 this.width / 2 - volverW / 2, volverY, volverW, volverH,
                 Component.translatable("jobsmenu.interfaz.volver"),
@@ -104,7 +112,7 @@ public final class PantallaOpcionesJobs extends Screen {
         }
 
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
-        ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "CFG-012");
+        ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "CFG-013");
         super.render(g, mouseX, mouseY, partialTick);
     }
 
@@ -117,9 +125,6 @@ public final class PantallaOpcionesJobs extends Screen {
     }
 
     private void abrirVideo() {
-        // Embeddium, cuando existe, tiene su propia pantalla. No se sustituye
-        // por una copia incompleta: se abre y el decorador global de Jobs le da
-        // contexto. Si no existe, se usa el wrapper vanilla tematizado.
         try {
             Class<?> pagesCls = Class.forName("me.jellysquid.mods.sodium.client.gui.SodiumGameOptionPages");
             Class<?> screenCls = Class.forName("org.embeddedt.embeddium.gui.EmbeddiumVideoOptionsScreen");

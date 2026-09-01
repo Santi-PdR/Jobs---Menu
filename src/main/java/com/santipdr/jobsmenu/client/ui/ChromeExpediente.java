@@ -10,30 +10,20 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.fml.ModList;
 
-/**
- * Lenguaje visual compartido por las pantallas administrativas de Jobs.
- *
- * La referencia de GripeVerde enseno una idea util: las pantallas hijas deben
- * sentirse parte del mismo sitio aunque por dentro sigan usando la logica de
- * Minecraft. Aqui esa idea se traduce al lenguaje de Jobs: expediente, papel
- * fotocopiado, tinta seca, luz de instalacion y el recinto vivo detras.
- */
+/** Lenguaje visual compartido por las pantallas administrativas de Jobs. */
 public final class ChromeExpediente {
 
     private ChromeExpediente() {
     }
 
-    /** Fondo vivo comun. No abre/cierra audio: solo dibuja el recinto vigente. */
+    /** Fondo comun. No abre/cierra audio: solo dibuja el recinto vigente. */
     public static void fondo(GuiGraphics g, int ancho, int alto) {
         g.fill(0, 0, ancho, alto, 0xFF000000);
         EscenaNivel.dibujar(g, ancho, alto);
 
-        // Las pantallas de trabajo necesitan mas calma que el aviso principal.
         g.fill(0, 0, ancho, alto, Paleta.conAlfa(Paleta.VANO,
                 ConfigTurno.altoContraste() ? 0.58F : 0.46F));
 
-        // Un grano horizontal casi invisible integra widgets vanilla con el
-        // recinto. Bajo consumo lo omite por completo.
         if (!ConfigTurno.bajoConsumo()) {
             for (int y = 1; y < alto; y += 5) {
                 g.fill(0, y, ancho, y + 1, Paleta.conAlfa(Paleta.FLUOR, 0.012F));
@@ -51,7 +41,6 @@ public final class ChromeExpediente {
         g.fill(x + 4, y + 4, x + 5, y + h - 4, borde);
         g.fill(x + w - 5, y + 4, x + w - 4, y + h - 4, borde);
 
-        // Perforaciones de carpeta: pequenas y deterministas.
         int agujero = Paleta.conAlfa(Paleta.VANO, 0.28F);
         for (int i = 0; i < 3; i++) {
             int py = y + h / 4 + i * h / 4;
@@ -94,8 +83,6 @@ public final class ChromeExpediente {
         int medio = (x0 + x1) / 2;
         int fuerte = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.40F);
         int suave = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.08F);
-        // fillGradient solo interpola verticalmente; el degradado horizontal se
-        // aproxima por cuatro tramos para no repetir el bug historico del mod.
         int q = Math.max(1, (x1 - x0) / 4);
         g.fill(x0, y, x0 + q, y + 1, suave);
         g.fill(x0 + q, y, medio, y + 1, fuerte);
@@ -119,16 +106,56 @@ public final class ChromeExpediente {
         g.fill(x + w - m - 1, y + h - m - l, x + w - m, y + h - m, c);
     }
 
-    /** Sello inferior con formulario, nivel actual y version real del mod. */
+    /**
+     * Pie seguro para pantallas estrechas y expresivo en paneles anchos. En
+     * anchos normales se divide a los extremos y deja el centro libre para
+     * navegacion; en superficies muy anchas puede usar la cadena localizada
+     * completa sin acercarse al boton central.
+     */
     public static void pie(GuiGraphics g, Font font, int x, int y, int w, int h, String formulario) {
         int nivel = RotacionNiveles.capturar().indice();
         String version = version();
-        Component texto = Component.translatable("jobsmenu.interfaz.formulario",
-                formulario, String.format(java.util.Locale.ROOT, "%02d", nivel), version);
-        int tx = x + w - font.width(texto) - 13;
         int ty = y + h - 15;
-        g.drawString(font, texto, Math.max(x + 12, tx), ty,
-                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.54F), false);
+        int color = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.54F);
+        String nivelTexto = String.format(java.util.Locale.ROOT, "%02d", nivel);
+
+        if (w >= 560) {
+            Component completo = Component.translatable("jobsmenu.interfaz.formulario",
+                    formulario, nivelTexto, version);
+            int tw = font.width(completo);
+            g.drawString(font, completo, x + w - 13 - tw, ty, color, false);
+            return;
+        }
+
+        String codigo = formulario + " - N" + nivelTexto;
+        String revision = "v" + version;
+
+        int margen = 13;
+        int mitad = x + w / 2;
+        int reservaCentral = Math.min(94, Math.max(54, w / 5));
+        int maxLado = Math.max(0, w / 2 - reservaCentral - margen - 4);
+
+        String codigoVisible = ajustar(font, codigo, maxLado);
+        String revisionVisible = ajustar(font, revision, maxLado);
+
+        if (!codigoVisible.isEmpty()) {
+            g.drawString(font, codigoVisible, x + margen, ty, color, false);
+        }
+        if (!revisionVisible.isEmpty()) {
+            int rw = font.width(revisionVisible);
+            g.drawString(font, revisionVisible, x + w - margen - rw, ty, color, false);
+        }
+
+        int marca = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.16F);
+        g.fill(mitad - reservaCentral, ty + 3, mitad - reservaCentral + 4, ty + 4, marca);
+        g.fill(mitad + reservaCentral - 4, ty + 3, mitad + reservaCentral, ty + 4, marca);
+    }
+
+    private static String ajustar(Font font, String texto, int maximo) {
+        if (texto == null || maximo <= 8) return "";
+        if (font.width(texto) <= maximo) return texto;
+        String puntos = "...";
+        return font.plainSubstrByWidth(texto, Math.max(0, maximo - font.width(puntos))) + puntos;
     }
 
     /** Banda discreta para pantallas menores que siguen siendo de otra clase. */

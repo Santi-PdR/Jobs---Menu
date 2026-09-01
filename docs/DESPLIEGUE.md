@@ -12,11 +12,11 @@ No se mantienen rutas alternativas. El usuario tampoco tiene que compilar localm
 
 ## Regla obligatoria de versión
 
-Todo JAR instalado o publicado debe incluir la versión en el nombre:
+Todo JAR instalado o publicado debe incluir la versión en el nombre. Para esta entrega:
 
-`jobsmenu-0.11.0.jar`
+`jobsmenu-0.13.0.jar`
 
-El nombre genérico `jobsmenu-latest.jar` queda prohibido. La release sigue usando el tag rodante `dev-latest`, pero su asset cambia de nombre con `mod_version`.
+El nombre genérico `jobsmenu-latest.jar` queda prohibido. La release sigue usando el tag rodante `dev-latest`, pero su único asset cambia de nombre con `mod_version`.
 
 ## PowerShell canónico
 
@@ -64,7 +64,7 @@ Write-Host "JAR validado: $sha" -ForegroundColor Green
 
 # El JAR nuevo ya existe y fue validado. Recién ahora se quitan versiones previas.
 Get-ChildItem $mods -File -ErrorAction SilentlyContinue |
-    Where-Object { $_.Name -match '^jobsmenu-.*\.jar$' } |
+    Where-Object { $_.Name -match '^jobsmenu.*\.jar$' } |
     Remove-Item -Force
 
 Move-Item $temp $dest -Force
@@ -88,7 +88,8 @@ Write-Host "SHA-256: $sha"
 7. build Forge;
 8. preparación del JAR versionado;
 9. artifact de workflow;
-10. actualización de `dev-latest` sólo desde `main`.
+10. limpieza de JARs obsoletos de `dev-latest`;
+11. actualización de `dev-latest` sólo desde `main`.
 
 Si falla cualquier paso, la release no se actualiza.
 

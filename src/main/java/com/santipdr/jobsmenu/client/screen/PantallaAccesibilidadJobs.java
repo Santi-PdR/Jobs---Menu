@@ -31,9 +31,6 @@ public final class PantallaAccesibilidadJobs extends AccessibilityOptionsScreen 
     protected void init() {
         super.init();
         if (this.list != null) {
-            // Las ayudas visuales del propio mod viven junto a las de Minecraft,
-            // no escondidas en otra pantalla. Se agregan al final de la lista
-            // para no alterar el orden que el jugador ya conoce de vanilla.
             this.list.addSmall(
                     interruptor("jobsmenu.ajustes.movimiento",
                             ConfigTurno.movimientoReducido(), ConfigTurno::fijarMovimientoReducido),
@@ -48,17 +45,21 @@ public final class PantallaAccesibilidadJobs extends AccessibilityOptionsScreen 
             this.list.setRenderBackground(false);
             this.list.setRenderTopAndBottom(false);
             this.list.setRenderSelection(false);
-            this.list.updateSize(this.width, this.height, 50, this.height - 42);
+            // Mas aire arriba y abajo: cabecera, ultima fila, scrollbar y Volver
+            // ya no comparten pixeles incluso en GUI scale alto.
+            this.list.updateSize(this.width, this.height, 54, this.height - 50);
         }
+
+        // Ocultamos cualquier Done que haya creado vanilla, no solo el primero.
         for (var child : this.children()) {
             if (child instanceof Button b && b.getMessage().equals(CommonComponents.GUI_DONE)) {
                 b.visible = false;
                 b.active = false;
-                break;
             }
         }
+
         this.addRenderableWidget(new BotonExpediente(
-                this.width / 2 - 70, this.height - 28, 140, 20,
+                this.width / 2 - 70, this.height - 30, 140, 20,
                 Component.translatable("jobsmenu.interfaz.volver"),
                 BotonExpediente.Tipo.PRINCIPAL, this::onClose));
     }
@@ -74,7 +75,7 @@ public final class PantallaAccesibilidadJobs extends AccessibilityOptionsScreen 
         super.render(g, mouseX, mouseY, partialTick);
         ChromeExpediente.marcoSubpantalla(g, this.font, this.width, this.height,
                 8, 6, this.width - 16, this.height - 12,
-                Component.translatable("jobsmenu.interfaz.accesibilidad.subtitulo"), "ACC-012");
+                Component.translatable("jobsmenu.interfaz.accesibilidad.subtitulo"), "ACC-013");
     }
 
     @Override
