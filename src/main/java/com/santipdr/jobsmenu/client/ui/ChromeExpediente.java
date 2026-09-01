@@ -24,28 +24,49 @@ public final class ChromeExpediente {
         g.fill(0, 0, ancho, alto, Paleta.conAlfa(Paleta.VANO,
                 ConfigTurno.altoContraste() ? 0.58F : 0.46F));
 
-        if (!ConfigTurno.bajoConsumo()) {
+        // El ruido de monitor pertenece a la interfaz, no anima los PNG.
+        if (!ConfigTurno.bajoConsumo() && !ConfigTurno.papelLimpio()) {
             for (int y = 1; y < alto; y += 5) {
-                g.fill(0, y, ancho, y + 1, Paleta.conAlfa(Paleta.FLUOR, 0.012F));
+                g.fill(0, y, ancho, y + 1, Paleta.conAlfa(Paleta.FLUOR, 0.010F));
             }
         }
+
+        // Vignette administrativa estatica para separar escena y documento.
+        int sombra = Paleta.conAlfa(Paleta.VANO, ConfigTurno.altoContraste() ? 0.34F : 0.20F);
+        int banda = Math.max(10, Math.min(28, Math.min(ancho, alto) / 10));
+        g.fill(0, 0, ancho, banda, sombra);
+        g.fill(0, alto - banda, ancho, alto, sombra);
+        g.fill(0, banda, Math.max(1, banda / 2), alto - banda, sombra);
+        g.fill(ancho - Math.max(1, banda / 2), banda, ancho, alto - banda, sombra);
     }
 
-    /** Papel principal del expediente con doble borde y marcas de archivado. */
+    /** Papel principal del expediente con profundidad, borde y marcas de archivo. */
     public static void panel(GuiGraphics g, int x, int y, int w, int h) {
+        int sombra = Paleta.conAlfa(Paleta.VANO, 0.34F);
+        g.fill(x + 4, y + 5, x + w + 5, y + h + 6, sombra);
+        g.fill(x + 2, y + 3, x + w + 3, y + h + 4, Paleta.conAlfa(Paleta.VANO, 0.16F));
+
         HojaPapel.dibujar(g, x, y, x + w, y + h, false, 0.94F);
 
         int borde = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.42F);
+        int bordeFino = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.16F);
         g.fill(x + 4, y + 4, x + w - 4, y + 5, borde);
         g.fill(x + 4, y + h - 5, x + w - 4, y + h - 4, borde);
         g.fill(x + 4, y + 4, x + 5, y + h - 4, borde);
         g.fill(x + w - 5, y + 4, x + w - 4, y + h - 4, borde);
+        g.fill(x + 7, y + 7, x + w - 7, y + 8, bordeFino);
 
         int agujero = Paleta.conAlfa(Paleta.VANO, 0.28F);
         for (int i = 0; i < 3; i++) {
             int py = y + h / 4 + i * h / 4;
-            g.fill(x + 7, py - 1, x + 9, py + 1, agujero);
+            g.fill(x + 7, py - 1, x + 10, py + 1, agujero);
+            g.fill(x + 8, py, x + 9, py + 1, Paleta.conAlfa(Paleta.PAPEL, 0.32F));
         }
+
+        // Pequena pestana de archivador, sin texto duro en Java.
+        int tabW = Math.min(54, Math.max(28, w / 7));
+        g.fill(x + w - tabW - 16, y + 1, x + w - 16, y + 4,
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.24F));
     }
 
     /** Cabecera de una pantalla propia. */
@@ -54,14 +75,38 @@ public final class ChromeExpediente {
         int centro = panelX + panelW / 2;
         int ty = panelY + 13;
         int tw = font.width(titulo);
+
+        // Dos marcas laterales hacen que el titulo se lea como encabezado de formulario.
+        int linea = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.28F);
+        int espacio = Math.min(48, Math.max(18, (panelW - tw) / 5));
+        g.fill(panelX + 18, ty + 4, Math.max(panelX + 19, centro - tw / 2 - espacio), ty + 5, linea);
+        g.fill(Math.min(panelX + panelW - 19, centro + tw / 2 + espacio), ty + 4,
+                panelX + panelW - 18, ty + 5, linea);
         g.drawString(font, titulo, centro - tw / 2, ty, Paleta.tintaPrincipal(), false);
 
         if (subtitulo != null) {
-            int sw = font.width(subtitulo);
-            g.drawString(font, subtitulo, centro - sw / 2, ty + 13,
+            String texto = ajustar(font, subtitulo.getString(), Math.max(16, panelW - 48));
+            int sw = font.width(texto);
+            g.drawString(font, texto, centro - sw / 2, ty + 13,
                     Paleta.conAlfa(Paleta.tintaSecundaria(), 0.82F), false);
         }
         divisor(g, panelX + 18, panelX + panelW - 18, panelY + 42);
+    }
+
+    /** Rotulo de seccion con regla interrumpida, reutilizable en hubs propios. */
+    public static void seccion(GuiGraphics g, Font font, int x0, int x1, int y, Component rotulo) {
+        if (x1 <= x0 || rotulo == null) return;
+        String texto = ajustar(font, rotulo.getString(), Math.max(12, (x1 - x0) / 2));
+        int tw = font.width(texto);
+        int color = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.66F);
+        int linea = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.20F);
+        g.drawString(font, texto, x0, y - font.lineHeight / 2, color, false);
+        int lx = x0 + tw + 7;
+        if (lx < x1) {
+            g.fill(lx, y + 1, x1, y + 2, linea);
+            int marca = Math.min(x1, lx + 18);
+            g.fill(lx, y, marca, y + 1, Paleta.conAlfa(Paleta.tintaPrincipal(), 0.28F));
+        }
     }
 
     /** Decoracion ligera para una subpantalla vanilla que conserva su titulo. */
@@ -69,8 +114,9 @@ public final class ChromeExpediente {
                                         int panelX, int panelY, int panelW, int panelH,
                                         Component subtitulo, String formulario) {
         if (subtitulo != null && panelH > 90) {
-            int sw = font.width(subtitulo);
-            g.drawString(font, subtitulo, ancho / 2 - sw / 2, panelY + 28,
+            String texto = ajustar(font, subtitulo.getString(), Math.max(18, panelW - 48));
+            int sw = font.width(texto);
+            g.drawString(font, texto, ancho / 2 - sw / 2, panelY + 28,
                     Paleta.conAlfa(Paleta.tintaSecundaria(), 0.70F), false);
             divisor(g, panelX + 18, panelX + panelW - 18, panelY + 40);
         }
@@ -106,12 +152,7 @@ public final class ChromeExpediente {
         g.fill(x + w - m - 1, y + h - m - l, x + w - m, y + h - m, c);
     }
 
-    /**
-     * Pie seguro para pantallas estrechas y expresivo en paneles anchos. En
-     * anchos normales se divide a los extremos y deja el centro libre para
-     * navegacion; en superficies muy anchas puede usar la cadena localizada
-     * completa sin acercarse al boton central.
-     */
+    /** Pie seguro para pantallas estrechas y expresivo en paneles anchos. */
     public static void pie(GuiGraphics g, Font font, int x, int y, int w, int h, String formulario) {
         int nivel = RotacionNiveles.capturar().indice();
         String version = version();
@@ -129,7 +170,6 @@ public final class ChromeExpediente {
 
         String codigo = formulario + " - N" + nivelTexto;
         String revision = "v" + version;
-
         int margen = 13;
         int mitad = x + w / 2;
         int reservaCentral = Math.min(94, Math.max(54, w / 5));
@@ -160,16 +200,18 @@ public final class ChromeExpediente {
 
     /** Banda discreta para pantallas menores que siguen siendo de otra clase. */
     public static void bandaContextual(GuiGraphics g, Font font, int ancho, int alto) {
-        int altoBanda = 17;
-        g.fill(0, 0, ancho, altoBanda, Paleta.conAlfa(Paleta.PAPEL, 0.88F));
-        g.fill(0, altoBanda - 1, ancho, altoBanda,
+        int altoBanda = 19;
+        g.fill(0, 0, ancho, altoBanda, Paleta.conAlfa(Paleta.PAPEL, 0.92F));
+        g.fill(0, altoBanda - 2, ancho, altoBanda,
                 Paleta.conAlfa(Paleta.tintaSecundaria(), 0.38F));
+        g.fill(5, 4, 7, altoBanda - 5, Paleta.conAlfa(Paleta.tintaPrincipal(), 0.58F));
+
         Component rotulo = Component.translatable("jobsmenu.interfaz.banda");
-        g.drawString(font, rotulo, 8, 4, Paleta.tintaSecundaria(), false);
+        g.drawString(font, rotulo, 11, 5, Paleta.tintaSecundaria(), false);
 
         Component estado = Component.translatable("jobsmenu.interfaz.estado");
         int ew = font.width(estado);
-        g.drawString(font, estado, Math.max(8, ancho - ew - 8), 4,
+        g.drawString(font, estado, Math.max(11, ancho - ew - 10), 5,
                 Paleta.conAlfa(Paleta.tintaSecundaria(), 0.68F), false);
 
         g.fill(0, alto - 2, ancho, alto,

@@ -2,6 +2,7 @@ package com.santipdr.jobsmenu.client.ui;
 
 import com.santipdr.jobsmenu.client.sound.MezclaAudio;
 import com.santipdr.jobsmenu.client.sound.SonidosNivel;
+import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -25,6 +26,7 @@ public final class ToggleExpediente extends AbstractButton {
     private boolean hoverPrevio;
     private boolean ultimoValor;
     private boolean tieneUltimoValor;
+    private float focoSuave;
 
     public ToggleExpediente(int x, int y, int ancho, int alto, Component etiqueta,
                             BooleanSupplier leer, Consumer<Boolean> fijar) {
@@ -75,22 +77,28 @@ public final class ToggleExpediente extends AbstractButton {
         if (hover && !this.hoverPrevio) MezclaAudio.gesto(SonidosNivel.UI_PASAR, 0.22F);
         this.hoverPrevio = hover;
 
+        float destino = hover ? 1.0F : 0.0F;
+        if (ConfigTurno.movimientoReducido()) this.focoSuave = destino;
+        else this.focoSuave += (destino - this.focoSuave) * 0.24F;
+
         int x = getX();
         int y = getY();
         int w = this.width;
         int h = this.height;
         boolean v = valor();
 
-        int fondo = Paleta.mezclar(Paleta.papelAviso(), Paleta.PARED_ALTA, hover ? 0.15F : 0.04F);
+        int fondo = Paleta.mezclar(Paleta.papelAviso(), Paleta.PARED_ALTA, 0.04F + 0.13F * this.focoSuave);
         g.fill(x, y, x + w, y + h, fondo);
-        int borde = Paleta.conAlfa(Paleta.tintaSecundaria(), hover ? 0.66F : 0.34F);
+        int borde = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.34F + 0.30F * this.focoSuave);
         g.fill(x, y, x + w, y + 1, borde);
         g.fill(x, y + h - 1, x + w, y + h, borde);
+        g.fill(x, y, x + 1, y + h, Paleta.conAlfa(Paleta.tintaSecundaria(), 0.22F));
+        g.fill(x + w - 1, y, x + w, y + h, Paleta.conAlfa(Paleta.tintaSecundaria(), 0.22F));
 
         int caja = Math.min(10, h - 6);
         int cx = x + 6;
         int cy = y + (h - caja) / 2;
-        int tinta = Paleta.conAlfa(Paleta.tintaPrincipal(), v ? 0.86F : 0.42F);
+        int tinta = Paleta.conAlfa(Paleta.tintaPrincipal(), v ? 0.88F : 0.40F);
         g.fill(cx, cy, cx + caja, cy + 1, tinta);
         g.fill(cx, cy + caja - 1, cx + caja, cy + caja, tinta);
         g.fill(cx, cy, cx + 1, cy + caja, tinta);
@@ -103,14 +111,46 @@ public final class ToggleExpediente extends AbstractButton {
 
         sincronizarMensaje(false);
         Font font = Minecraft.getInstance().font;
-        String txt = getMessage().getString();
+        String etiquetaTxt = this.etiqueta.getString();
+        String valorTxt = this.textoValor.apply(v).getString();
+
+        int pillPad = 6;
+        int pillW = Math.min(Math.max(30, font.width(valorTxt) + pillPad * 2), Math.max(30, w / 3));
+        int pillX = x + w - pillW - 5;
+        int pillY = y + 4;
+        int pillH = Math.max(10, h - 8);
+        int pillBg = v
+                ? Paleta.conAlfa(Paleta.tintaPrincipal(), 0.12F + 0.08F * this.focoSuave)
+                : Paleta.conAlfa(Paleta.VANO, 0.08F);
+        g.fill(pillX, pillY, pillX + pillW, pillY + pillH, pillBg);
+        g.fill(pillX, pillY, pillX + pillW, pillY + 1,
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.28F));
+        g.fill(pillX, pillY + pillH - 1, pillX + pillW, pillY + pillH,
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.28F));
+
         int tx = cx + caja + 7;
-        int max = Math.max(8, x + w - 6 - tx);
-        if (font.width(txt) > max) {
-            txt = font.plainSubstrByWidth(txt, Math.max(0, max - font.width("..."))) + "...";
+        int maxEtiqueta = Math.max(8, pillX - tx - 6);
+        if (font.width(etiquetaTxt) > maxEtiqueta) {
+            etiquetaTxt = font.plainSubstrByWidth(etiquetaTxt,
+                    Math.max(0, maxEtiqueta - font.width("..."))) + "...";
         }
-        g.drawString(font, txt, tx, y + (h - font.lineHeight) / 2,
+        g.drawString(font, etiquetaTxt, tx, y + (h - font.lineHeight) / 2,
                 this.active ? Paleta.tintaPrincipal() : Paleta.conAlfa(Paleta.tintaSecundaria(), 0.55F), false);
+
+        int maxValor = Math.max(8, pillW - pillPad * 2);
+        if (font.width(valorTxt) > maxValor) {
+            valorTxt = font.plainSubstrByWidth(valorTxt,
+                    Math.max(0, maxValor - font.width("..."))) + "...";
+        }
+        int vw = font.width(valorTxt);
+        g.drawString(font, valorTxt, pillX + (pillW - vw) / 2,
+                y + (h - font.lineHeight) / 2,
+                Paleta.conAlfa(Paleta.tintaPrincipal(), v ? 0.90F : 0.68F), false);
+
+        if (hover) {
+            g.fill(x + 2, y + 2, x + 3, y + h - 2,
+                    Paleta.conAlfa(Paleta.tintaPrincipal(), 0.34F));
+        }
     }
 
     @Override

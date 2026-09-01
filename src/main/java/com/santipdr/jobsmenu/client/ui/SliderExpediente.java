@@ -2,6 +2,7 @@ package com.santipdr.jobsmenu.client.ui;
 
 import com.santipdr.jobsmenu.client.sound.MezclaAudio;
 import com.santipdr.jobsmenu.client.sound.SonidosNivel;
+import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -21,6 +22,7 @@ public final class SliderExpediente extends AbstractSliderButton {
     private final IntFunction<Component> rotulo;
     private int ultimoAplicado;
     private long ultimoSonido;
+    private float focoSuave;
 
     public SliderExpediente(int x, int y, int ancho, int alto,
                             int minimo, int maximo, int inicial,
@@ -68,33 +70,62 @@ public final class SliderExpediente extends AbstractSliderButton {
         int w = this.width;
         int h = this.height;
         boolean foco = this.active && this.isHoveredOrFocused();
+        float destino = foco ? 1.0F : 0.0F;
+        if (ConfigTurno.movimientoReducido()) this.focoSuave = destino;
+        else this.focoSuave += (destino - this.focoSuave) * 0.24F;
 
-        g.fill(x, y, x + w, y + h, Paleta.papelAviso());
-        int borde = Paleta.conAlfa(Paleta.tintaSecundaria(), foco ? 0.72F : 0.40F);
-        g.fill(x, y, x + w, y + 1, borde);
-        g.fill(x, y + h - 1, x + w, y + h, borde);
-        g.fill(x, y, x + 1, y + h, borde);
-        g.fill(x + w - 1, y, x + w, y + h, borde);
+        int fondo = Paleta.mezclar(Paleta.papelAviso(), Paleta.PARED_ALTA, 0.05F + 0.12F * this.focoSuave);
+        g.fill(x, y, x + w, y + h, fondo);
+        int borde = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.38F + 0.34F * this.focoSuave);
+        marco(g, x, y, w, h, borde);
 
-        int margen = 7;
-        int barraY = y + h - 5;
+        int margen = 8;
+        int barraY = y + h - 6;
         int barraX0 = x + margen;
         int barraX1 = x + w - margen;
+        int largo = Math.max(1, barraX1 - barraX0);
+
         g.fill(barraX0, barraY, barraX1, barraY + 1,
                 Paleta.conAlfa(Paleta.tintaSecundaria(), 0.24F));
-        int knob = barraX0 + (int) Math.round((barraX1 - barraX0) * this.value);
+
+        // Marcas de escala para que el control parezca instrumento, no slider vanilla.
+        for (int i = 0; i <= 8; i++) {
+            int tx = barraX0 + Math.round(largo * (i / 8.0F));
+            int th = (i % 4 == 0) ? 3 : 2;
+            g.fill(tx, barraY - th, tx + 1, barraY,
+                    Paleta.conAlfa(Paleta.tintaSecundaria(), i % 4 == 0 ? 0.34F : 0.18F));
+        }
+
+        int knob = barraX0 + (int) Math.round(largo * this.value);
         g.fill(barraX0, barraY, knob, barraY + 2,
-                Paleta.conAlfa(Paleta.tintaPrincipal(), foco ? 0.74F : 0.52F));
-        g.fill(knob - 1, barraY - 2, knob + 2, barraY + 4,
+                Paleta.conAlfa(Paleta.tintaPrincipal(), 0.50F + 0.22F * this.focoSuave));
+
+        int knobH = Math.min(8, h - 5);
+        int ky = barraY - knobH / 2;
+        g.fill(knob - 2, ky, knob + 3, ky + knobH,
                 Paleta.conAlfa(Paleta.tintaPrincipal(), 0.82F));
+        g.fill(knob - 1, ky + 1, knob + 2, ky + knobH - 1,
+                Paleta.conAlfa(Paleta.FLUOR, 0.78F));
+
+        if (foco) {
+            g.fill(x + 4, y + 3, x + 5, y + h - 3,
+                    Paleta.conAlfa(Paleta.tintaPrincipal(), 0.42F));
+        }
 
         Font font = Minecraft.getInstance().font;
         String txt = getMessage().getString();
-        int max = Math.max(8, w - 16);
+        int max = Math.max(8, w - 18);
         if (font.width(txt) > max) {
             txt = font.plainSubstrByWidth(txt, Math.max(0, max - font.width("..."))) + "...";
         }
         int tw = font.width(txt);
         g.drawString(font, txt, x + (w - tw) / 2, y + 3, Paleta.tintaPrincipal(), false);
+    }
+
+    private static void marco(GuiGraphics g, int x, int y, int w, int h, int c) {
+        g.fill(x, y, x + w, y + 1, c);
+        g.fill(x, y + h - 1, x + w, y + h, c);
+        g.fill(x, y, x + 1, y + h, c);
+        g.fill(x + w - 1, y, x + w, y + h, c);
     }
 }

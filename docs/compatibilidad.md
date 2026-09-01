@@ -1,4 +1,4 @@
-# Compatibilidad y despliegue — 0.13.0
+# Compatibilidad y despliegue — 0.14.0
 
 ## Perfil soportado
 
@@ -8,12 +8,12 @@
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente; el servidor no necesita Jobs Menu |
-| Versión del mod | **0.13.0** |
-| Artefacto | `build/libs/jobsmenu-0.13.0.jar` |
+| Versión del mod | **0.14.0** |
+| Artefacto | `build/libs/jobsmenu-0.14.0.jar` |
 
-Jobs Menu modifica la experiencia de menús del cliente, pero distingue entre **pantallas que controla** y **pantallas que debe respetar**. La compatibilidad tiene prioridad sobre una skin perfecta: cuando una implementación externa ya resuelve una interfaz compleja, Jobs aporta contexto visual y no intenta copiarla de forma frágil.
+Jobs Menu distingue entre **pantallas que controla**, **pantallas vanilla cuya lógica conserva** y **pantallas de otros mods que debe respetar**. La compatibilidad tiene prioridad sobre una reimplementación cosmética frágil.
 
-## Regla de sustitución de pantallas
+## Regla de sustitución
 
 Las redirecciones principales se hacen por **clase exacta**.
 
@@ -22,125 +22,122 @@ Las redirecciones principales se hacen por **clase exacta**.
 - `OptionsScreen` vanilla dentro del flujo Jobs puede convertirse en `PantallaOpcionesJobs`.
 - `JoinMultiplayerScreen` vanilla dentro del flujo Jobs puede convertirse en `PantallaMultijugadorJobs`.
 
-Una subclase proporcionada por otro mod no se sustituye automáticamente sólo por heredar de una de estas clases. Las pantallas externas abiertas durante una visita pueden recibir una banda contextual discreta sin cambiar sus widgets ni su lógica.
+Una subclase de otro mod no se sustituye automáticamente sólo por heredar de estas clases.
 
-## Opciones y subpantallas vanilla
+## Options y Config Jobs
 
-### Hubs propios
+`PantallaOpcionesJobs` es un hub propio. La configuración del mod aparece como acción principal diferenciada de las opciones Minecraft.
 
-- Opciones/Condiciones de estancia.
-- Controles.
-- Idioma.
-- Piel.
-- Multijugador principal.
+`PantallaAjustesAviso` es también una pantalla propia desde 0.14.0: ya no usa `OptionsList`/`OptionInstance` como interfaz visible. Sus cinco categorías escriben directamente sobre `ConfigTurno` mediante widgets Jobs.
 
-Estos hubs escriben sobre `Options`, `LanguageManager`, `ServerSelectionList` o datos reales; no mantienen copias independientes de la configuración.
+Las dos entradas válidas son:
 
-### Envolturas de clases vanilla
+- Options → Config Jobs;
+- **Mods → Jobs Menu → Config**.
 
-- Sonido.
-- Video vanilla.
-- Chat.
-- Accesibilidad.
-- Mouse.
-- Teclas.
-- Online.
-- Resource Packs.
+Ambas abren la misma implementación.
 
-Se ejecuta primero la lógica vanilla y después Jobs aplica presentación. Los límites verticales de listas sólo se cambian cuando es seguro. Los botones `Done` sustituidos por navegación Jobs se dejan invisibles **e inactivos** para que no conserven hitboxes ocultos.
+## Pantallas vanilla preservadas
+
+Se conserva la lógica de Minecraft en:
+
+- Sonido;
+- Video vanilla;
+- Chat;
+- Accesibilidad;
+- Mouse;
+- Teclas;
+- Online;
+- Resource Packs;
+- diálogos de servidor y confirmación cuando conviene.
+
+Las envolturas ejecutan primero la lógica original. Jobs retira fondos/bandas cuando es seguro, reserva espacio para su chrome y desactiva botones `Done` duplicados cuando los sustituye.
+
+## `PielVanillaJobs`
+
+Durante una sesión Jobs, pantallas auxiliares cuyo paquete pertenece a `net.minecraft.*` pueden recibir una capa visual posterior al render:
+
+- botones de papel/tinta;
+- estados hover/foco visibles;
+- borde administrativo en campos de texto.
+
+La capa **no cambia**:
+
+- hitboxes;
+- listeners;
+- validación;
+- foco;
+- protocolo;
+- datos de la pantalla.
+
+Por eso Direct Connect, Add Server y confirmaciones pueden verse integrados sin duplicar su lógica.
+
+Las pantallas de terceros no reciben `PielVanillaJobs`; como máximo reciben la banda contextual general durante la visita.
 
 ## Scrollbar Jobs
 
-`ListasExpediente` conserva `AbstractSelectionList` como fuente de verdad para:
+`ListasExpediente` conserva `AbstractSelectionList` como fuente de verdad para posición, wheel, click, drag y tamaño del contenido.
 
-- posición de scroll;
-- wheel;
-- click;
-- drag;
-- tamaño del contenido.
+Después del render vanilla, Jobs cubre la barra gris y dibuja sobre el mismo hitbox:
 
-Después del render vanilla, Jobs cubre la barra gris y dibuja su propia barra papel/tinta sobre el mismo hitbox. La integración usa reflection defensiva con nombres SRG. Si otro mod cambia la implementación y no puede resolverse, la lista conserva la scrollbar vanilla en vez de fallar.
+- canaleta de archivador;
+- topes;
+- marcas de recorrido;
+- tirador proporcional;
+- agarres internos.
 
-Debe probarse especialmente con listas modificadas por mods y con GUI Scale altos.
+La integración usa reflection defensiva con nombres SRG. Si no puede resolverse una lista modificada, se conserva la presentación/funcionalidad disponible en vez de abortar la pantalla.
 
-## Acceso Config de Forge
+## Embeddium y video externo
 
-`JobsMenu` registra `ConfigScreenHandler.ConfigScreenFactory`. La ruta:
+`PantallaOpcionesJobs` intenta abrir la pantalla real de Embeddium mediante sus clases públicas conocidas. Si están disponibles, utiliza esa implementación completa. Si no, usa `PantallaVideoJobs` sobre video vanilla.
 
-**Mods → Jobs Menu → Config**
-
-abre `PantallaAjustesAviso`, la misma pantalla disponible desde el hub Jobs. Esto evita dos estados de configuración diferentes.
+No se reconstruye internamente Embeddium mediante reflection profunda. Oculus, Embeddium Extra y addons deben probarse en el modpack real.
 
 ## Fondos PNG 10–17
 
-Desde 0.13.0 estos fondos son **estáticos por requisito del proyecto**.
+Los fondos 10–17 son **estáticos por requisito permanente**.
 
-No reciben:
+No reciben zoom, paneo, respiración, parallax, flicker, niebla móvil, scanline animada, motas, presencia ni tratamientos globales que desplacen la imagen.
 
-- zoom/paneo;
-- respiración de cámara;
-- flicker;
-- niebla móvil;
-- scanline;
-- motas/presencia;
-- materiales o tratamiento animado global.
+`ChromeExpediente` puede dibujar elementos estáticos de interfaz delante/alrededor del documento; eso no altera el PNG.
 
-Siguen participando en apagones y transiciones de Nivel porque esos estados pertenecen al flujo del menú. Continúan validados por `tools/verificar_fondos.py` y por `NativeImage` en runtime.
-
-## Embeddium y pantallas de video externas
-
-`PantallaOpcionesJobs` intenta abrir la pantalla real de Embeddium mediante sus clases conocidas. Si están disponibles, se usa esa implementación completa. Si no, se abre `PantallaVideoJobs` basada en video vanilla.
-
-No se reconstruye internamente el panel de Embeddium. Si una versión cambia paquetes o constructores, el fallback es video vanilla tematizado, no un crash.
-
-La compatibilidad con Oculus/Embeddium Extra u otros addons de video debe comprobarse en el modpack real.
+Los apagones/transiciones de Nivel continúan porque representan el estado general del menú. `tools/verificar_fondos.py` y `NativeImage` siguen validando los recursos.
 
 ## Accesibilidad
 
-La pantalla de accesibilidad mantiene todas las opciones vanilla y añade al final cuatro ayudas del mod:
+La familia Jobs respeta:
 
 - movimiento reducido;
 - destellos reducidos;
 - alto contraste;
-- texto grande.
+- texto grande;
+- papel limpio;
+- guía de lectura;
+- bajo consumo;
+- perfil accesible.
 
-0.13.0 reserva explícitamente espacio entre cabecera, lista, scrollbar, footer y botón Volver. Todas las ayudas escriben en `ConfigTurno` y usan el mismo guardado diferido que el resto de Jobs.
+Movimiento reducido simplifica microinteracciones y transiciones. Los PNG 10–17 permanecen estáticos con cualquier combinación de ajustes.
 
 ## Resource Packs e idioma
 
-Los cambios de idioma y paquetes usan la recarga real de recursos de Minecraft. `RecargaRecursosCliente` invalida las referencias de música/ambiente en el hilo del cliente para que no sobrevivan instancias atadas a un `SoundEngine` anterior.
+Idioma y paquetes usan la recarga real de recursos de Minecraft. `RecargaRecursosCliente` invalida referencias de música/ambiente asociadas a un `SoundEngine` anterior.
 
-Probar especialmente:
-
-- cambiar ES ↔ EN;
-- F3+T;
-- aplicar/quitar packs;
-- volver al menú tras la recarga;
-- comprobar que música y ambiente no se duplican.
+Probar ES ↔ EN, F3+T, aplicar/quitar packs y volver al menú sin duplicados de audio.
 
 ## Multijugador
 
-`PantallaMultijugadorJobs` conserva:
+`PantallaMultijugadorJobs` conserva `ServerSelectionList`, ping, MOTD, favicons, LAN, servidores guardados y las acciones vanilla de seleccionar, conexión directa, añadir, editar, borrar, refrescar y cancelar.
 
-- `ServerSelectionList`;
-- ping;
-- MOTD;
-- favicons;
-- búsqueda LAN;
-- servidores guardados;
-- acciones vanilla de seleccionar, conexión directa, añadir, editar, borrar, refrescar y cancelar.
-
-Los diálogos secundarios que siguen siendo vanilla pueden mostrar sólo la banda contextual Jobs. Reimplementar protocolo/conexión/validaciones por cosmética añadiría riesgo sin mejorar comportamiento.
+Los diálogos auxiliares pueden recibir `PielVanillaJobs`, pero siguen usando la lógica original.
 
 ## Audio y lifecycle
 
-La visita al menú mantiene continuidad de música y camas ambientales al navegar. Abrir Opciones, Sonido, Mods o una interfaz hija no debe reiniciar el recinto.
+La visita al menú mantiene continuidad de música y camas ambientales al navegar. Abrir Options, Config, Sonido, Mods o una pantalla hija no debe reiniciar el recinto.
 
-Al entrar a un mundo o terminar la visita, las camas se cierran. Las recargas de recursos se tratan aparte para no conservar referencias a un motor de sonido viejo.
+Al entrar a un mundo o terminar la visita, las camas se cierran. Las recargas de recursos se manejan aparte para no conservar referencias al motor de sonido anterior.
 
-## Instancia de referencia: SKLauncher `test-1`
-
-La instancia de prueba documentada es:
+## Instancia de referencia
 
 ```text
 C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\
@@ -149,34 +146,35 @@ C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\
 El JAR de esta entrega debe quedar únicamente como:
 
 ```text
-C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.13.0.jar
+C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.14.0.jar
 ```
 
-No se mantiene un `.ps1` dentro del repositorio. El procedimiento de entrega está en [`DESPLIEGUE.md`](DESPLIEGUE.md).
+No se mantiene un `.ps1` dentro del repositorio. El procedimiento está en [`DESPLIEGUE.md`](DESPLIEGUE.md).
 
 ## Límites que requieren prueba manual
 
-- Mods que sustituyen completamente una pantalla después de que Jobs ya la haya abierto.
-- Mods que reconstruyen widgets/listas fuera del `init()` vanilla.
-- Scrollbar Jobs con listas inyectadas o modificadas por otros mods.
-- Fuentes de resource packs con métricas muy distintas.
-- GUI Scale extremos.
-- Narración con widgets inyectados por otros mods.
-- Embeddium/Oculus/addons de video en las versiones exactas del modpack.
-- GPU y rendimiento real de las escenas procedurales 0–9.
+- mods que sustituyen pantallas después de que Jobs ya las haya abierto;
+- widgets/listas reconstruidos por otros mods fuera del `init()` vanilla;
+- `PielVanillaJobs` con resource packs de GUI muy agresivos;
+- scrollbar con listas profundamente modificadas;
+- fuentes con métricas extremas;
+- GUI Scale extremos;
+- narración y navegación de teclado;
+- Embeddium/Oculus/addons exactos del modpack;
+- GPU/rendimiento de escenas procedurales 0–9;
 - SoundEngine con el conjunto completo de mods de audio.
 
 ## Estado de certificación
 
-CI certifica en cada commit de la rama:
+CI certifica:
 
-1. Java 17.
-2. Política de artefacto versionado.
-3. PNG 10–17.
-4. Recursos, idiomas, ASCII de fuentes y coherencia estática.
-5. Build Forge.
-6. Preparación de `jobsmenu-0.13.0.jar`.
+1. Java 17;
+2. política de artefacto versionado;
+3. PNG 10–17;
+4. recursos/idiomas/ASCII/coherencia estática;
+5. build Forge;
+6. preparación de `jobsmenu-0.14.0.jar`.
 
-La publicación a `dev-latest` se ejecuta únicamente desde `main`.
+La publicación a `dev-latest` sólo ocurre desde `main`.
 
-Un build verde no certifica hitboxes, estética, narración, scroll, sonido ni compatibilidad visual dentro del modpack. Esa aceptación está en [`checklist-manual.md`](checklist-manual.md) y los riesgos actuales en [`KNOWN_ISSUES.md`](../KNOWN_ISSUES.md).
+Un build verde no certifica estética, hitboxes, narración, scroll ni compatibilidad visual dentro del modpack. Esa aceptación depende de la prueba manual documentada.

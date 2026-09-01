@@ -2,104 +2,113 @@
 
 Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1 que reemplaza el flujo de menús por la interfaz del servidor **Jobs**: expedientes, avisos administrativos y recintos que continúan detrás de la interfaz.
 
-La salida existe. Cuesta. Los **Executores** vuelven. El menú no intenta parecer una skin puesta encima de Minecraft: intenta sentirse como otra parte de la instalación.
+La salida existe. Cuesta. Los **Executores** vuelven. El objetivo no es aplicar una skin sobre Minecraft: el menú debe sentirse como otra dependencia de la instalación.
 
 | | |
 |---|---|
-| Versión | **0.13.0** |
-| Artefacto | **`jobsmenu-0.13.0.jar`** |
+| Versión | **0.14.0** |
+| Artefacto | **`jobsmenu-0.14.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
 | Lado | **Cliente** |
 | Niveles | **18 (0–17)** |
 
-## 0.13.0 · Estabilidad visual y controles
+## 0.14.0 · Centro de control y lenguaje de interfaz
 
-Esta versión consolida la familia de interfaces creada en 0.12.0 y corrige varios detalles que todavía podían sentirse poco integrados o provocar cruces de elementos en escalas de GUI exigentes.
+0.14.0 profundiza el trabajo de 0.12/0.13. La prioridad es que navegar por Opciones, Config y diálogos auxiliares deje de sentirse como entrar y salir de Minecraft vanilla.
 
-### Fondos PNG 10–17: estáticos por diseño
+### Options ahora separa Jobs de Minecraft
 
-Por requisito del proyecto, los ocho PNG suministrados para los niveles **10–17** ya no reciben animaciones.
+`PantallaOpcionesJobs` deja de mezclar la configuración del mod como un botón más del grid.
 
-Se eliminaron de esos fondos:
+- **Config de Jobs** es ahora la acción principal de ancho completo y usa una jerarquía visual exclusiva.
+- Las opciones de Minecraft quedan agrupadas debajo como una segunda sección.
+- FOV se integra en la última fila cuando existe espacio real.
+- El layout sigue degradando de forma segura en ventanas pequeñas antes de permitir solapes.
+- El acceso de Forge **Mods → Jobs Menu → Config** continúa disponible y abre exactamente el mismo sistema.
 
-- zoom y paneo;
-- parallax o respiración de cámara;
-- scanlines y barridos;
-- flicker propio;
-- niebla móvil;
-- partículas, motas y presencia superpuestas;
-- tratamientos globales animados que pudieran hacer parecer que la imagen se mueve.
+### Config del mod completamente propia
 
-`PlantaImagen` hace ahora un **cover centrado y estable**. Sólo conserva una integración estática muy leve y sigue participando de apagones/cambios de Nivel porque esos efectos pertenecen al flujo general del menú, no a la animación del PNG.
+`PantallaAjustesAviso` ya no depende visualmente de `OptionsList` ni de controles vanilla.
 
-Los niveles 0–9 continúan siendo recintos procedurales vivos.
+La configuración se reorganiza como un expediente Jobs con cinco áreas:
 
-Los PNG 10–17 siguen verificándose antes de compilar: firma PNG, CRC, IDAT, descompresión y dimensiones. En runtime `NativeImage` vuelve a comprobar cada recurso. Un PNG inválido cae a un fallback seguro en vez de mostrar la textura morado/negro.
+- visual;
+- Nivel;
+- audio;
+- accesibilidad;
+- sistema.
 
-### Configuración recuperada
+Cada área usa `BotonExpediente`, `ToggleExpediente` y `SliderExpediente` conectados directamente con `ConfigTurno`. No existe un segundo estado de configuración ni una copia decorativa de los valores.
 
-El mod vuelve a registrar una pantalla de configuración de Forge. Por tanto debe existir de nuevo:
+Esto reemplaza uno de los últimos bloques grandes de widgets vanilla dentro del propio mod.
 
-**Mods → Jobs Menu → Config**
+### Widgets de segunda generación
 
-Ese acceso abre la misma `PantallaAjustesAviso` utilizada desde el hub Jobs, evitando dos sistemas de configuración diferentes.
+- `BotonExpediente` gana una jerarquía **JOBS** para acciones propias del mod, microinteracción de foco, respuesta de presión y marcas de expediente.
+- `SliderExpediente` incorpora escala, marcas de lectura, tirador de tinta/papel y foco progresivo.
+- `ToggleExpediente` separa etiqueta y estado en una cápsula administrativa en vez de imitar un botón Sí/No.
+- Todos respetan movimiento reducido cuando una animación de foco no aporta información necesaria.
 
-### Scrollbar Jobs
+### Chrome de expediente más profundo
 
-Las listas vanilla conservan toda su lógica real de Minecraft —rueda, click, drag, posición y cantidad de scroll— pero la barra gris original queda sustituida visualmente por una barra propia de Jobs:
+`ChromeExpediente` incorpora:
 
-- carril fino de archivador;
-- papel e tinta;
-- tirador proporcional al contenido;
-- sin rojo genérico, que continúa reservado a Executores;
-- fallback seguro a la scrollbar vanilla si una modificación externa impide localizar la lista.
+- sombra en dos planos;
+- pestana de archivador;
+- borde secundario;
+- cabeceras con reglas laterales;
+- rótulos de sección reutilizables;
+- elipsis segura en títulos/subtítulos;
+- vignette de interfaz para separar escena y documento;
+- banda contextual más sólida en pantallas auxiliares.
 
-### Layout y solapes
+El ruido visual añadido por el chrome es **estático** y se desactiva cuando corresponde por papel limpio/bajo consumo.
 
-- Accesibilidad reserva más espacio entre cabecera, lista y botón de cierre.
-- Los botones `Done` vanilla duplicados quedan ocultos **e inactivos** de forma global en las pantallas Jobs.
-- El pie de formulario deja libre el centro de la pantalla para que nunca compita con `Cerrar expediente`.
-- El hub de Opciones calcula el espacio real antes de mostrar el slider de FOV; en una ventana extremadamente pequeña prefiere omitir ese duplicado antes que superponer hitboxes.
-- Los ajustes propios reservan una franja inferior completa para navegación y metadatos.
+### Diálogos vanilla auxiliares tematizados
+
+Nueva `PielVanillaJobs`.
+
+Durante una visita Jobs, diálogos vanilla que conviene conservar por compatibilidad —por ejemplo conexión directa, añadir servidor o confirmaciones— mantienen su lógica y hitboxes originales, pero sus botones y campos de texto reciben una capa de papel/tinta Jobs después del render de Minecraft.
+
+Las pantallas de terceros no reciben esta sustitución de controles: mantienen su implementación y sólo pueden recibir contexto visual mínimo.
+
+### Scrollbar y transiciones
+
+- La scrollbar Jobs mantiene rueda/click/drag de Minecraft, pero ahora usa canaleta, topes, marcas de recorrido y tirador de expediente.
+- `TransicionInterfazJobs` gana sombra de carpeta, doble fibra de papel y marcas de archivo.
+- Movimiento reducido sigue convirtiendo la transición en un fade breve sin desplazamiento obligatorio.
+
+## Fondos PNG 10–17: estáticos por diseño
+
+La regla introducida en 0.13.0 sigue siendo dura: los ocho PNG suministrados para los niveles **10–17 no se animan**.
+
+No reciben zoom, paneo, parallax, respiración, scanlines animadas, flicker, niebla móvil, motas, presencia ni tratamientos globales que muevan la imagen. `PlantaImagen` hace un cover centrado estable y una integración fija mínima.
+
+Los apagones/cambios de Nivel continúan porque pertenecen al flujo del menú, no a la animación del PNG. Los niveles 0–9 siguen siendo recintos procedurales vivos.
+
+Los PNG 10–17 siguen pasando firma PNG, CRC, IDAT, descompresión y dimensiones en CI, y `NativeImage` vuelve a validarlos en runtime. Un recurso roto cae a fallback seguro, nunca se acepta la textura morado/negro como resultado final.
 
 ## Familia de interfaces Jobs
 
-La arquitectura introducida en 0.12.0 continúa vigente. `GripeVerde` se tomó únicamente como referencia de estructura/UX; su estética victoriana/cuarentena no se copia.
+Además de Options y Config, permanecen tematizados:
 
-### Pantallas propias
+- Multijugador;
+- Controles;
+- Mouse;
+- Teclas;
+- Idioma;
+- Piel;
+- Sonido;
+- Video;
+- Chat;
+- Accesibilidad;
+- Online;
+- Resource Packs;
+- Pausa.
 
-- **Condiciones de estancia / Opciones:** hub Jobs en dos columnas, FOV integrado cuando hay espacio y acceso a todas las áreas de configuración.
-- **Multijugador:** conserva lista de servidores, ping, MOTD, LAN y acciones de Minecraft bajo presentación Jobs.
-- **Controles:** hub propio para mouse, teclas y hábitos de control.
-- **Idioma:** selector real de idiomas con recarga de recursos.
-- **Personalización de piel:** ficha administrativa del ocupante.
-
-### Vanilla preservado, presentación Jobs
-
-Estas pantallas mantienen internamente la lógica de Minecraft y sus opciones reales:
-
-- Sonido
-- Video
-- Chat
-- Accesibilidad
-- Mouse
-- Teclas
-- Opciones online
-- Paquetes de recursos
-- Ajustes propios del aviso
-
-Las pantallas de terceros no se sustituyen indiscriminadamente. Las redirecciones automáticas usan **clase exacta** y las interfaces externas pueden recibir sólo una banda contextual.
-
-### Lenguaje visual compartido
-
-- `ChromeExpediente`: recinto vigente, papel administrativo, bordes, cabeceras y pie seguro.
-- `BotonExpediente`: botones de tinta/papel, foco de teclado y sonidos Jobs.
-- `SliderExpediente`: slider propio para controles simples como FOV.
-- `ToggleExpediente`: interruptor enlazado al estado real.
-- `ListasExpediente`: integración de listas vanilla y scrollbar Jobs sin reimplementar su comportamiento.
-- `TransicionInterfazJobs`: gesto breve entre expedientes, respetando movimiento reducido.
+Se conserva lógica vanilla cuando aporta compatibilidad y se reimplementa la superficie cuando Jobs necesita una jerarquía propia. Las redirecciones automáticas importantes usan **clase exacta** para no barrer subclases de otros mods.
 
 ## Audio
 
@@ -107,7 +116,7 @@ Las pantallas de terceros no se sustituyen indiscriminadamente. Las redireccione
 - Eventos ocasionales con silencios deliberados.
 - Música de menú independiente y mezcla contextual.
 - Gestos propios para foco, selección, alternancia, confirmación, apertura, cierre y rechazo.
-- BASE/CARÁCTER usan microvariación tonal de ciclo largo; ACTIVIDAD se mantiene estable para no deformar materiales reconocibles.
+- BASE/CARÁCTER usan microvariación tonal de ciclo largo; ACTIVIDAD permanece estable para no deformar materiales reconocibles.
 
 ## Regla obligatoria de versión
 
@@ -116,7 +125,7 @@ Las pantallas de terceros no se sustituyen indiscriminadamente. Las redireccione
 Correcto:
 
 ```text
-jobsmenu-0.13.0.jar
+jobsmenu-0.14.0.jar
 ```
 
 Prohibido:
@@ -136,7 +145,7 @@ GitHub Actions ejecuta:
 3. `tools/verificar_fondos.py`.
 4. `tools/verificar.py`.
 5. `./gradlew build --stacktrace --no-daemon`.
-6. Publicación de **`jobsmenu-0.13.0.jar`** en `dev-latest` sólo desde `main`.
+6. Publicación de **`jobsmenu-0.14.0.jar`** en `dev-latest` sólo desde `main`.
 
 ## Documentación
 
@@ -144,7 +153,7 @@ GitHub Actions ejecuta:
 - [`CHANGELOG.md`](CHANGELOG.md): historial de cambios.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y pruebas pendientes.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalación del build versionado.
-- [`docs/AUDITORIA_0.12.0_INTERFACES.md`](docs/AUDITORIA_0.12.0_INTERFACES.md): arquitectura base de interfaces.
+- [`docs/AUDITORIA_0.14.0_UI.md`](docs/AUDITORIA_0.14.0_UI.md): revisión de esta evolución.
 - [`docs/DIRECCION_ARTISTICA.md`](docs/DIRECCION_ARTISTICA.md): lenguaje visual.
 - [`docs/compatibilidad.md`](docs/compatibilidad.md): convivencia con otros mods.
 - [`docs/checklist-manual.md`](docs/checklist-manual.md): prueba dentro de Minecraft.

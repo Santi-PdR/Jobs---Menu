@@ -23,11 +23,10 @@ public final class ListasExpediente {
         Field y0 = null;
         Method barra = null;
         try {
-            // SRG: ObfuscationReflectionHelper remapea tanto en dev como en jar.
             y0 = ObfuscationReflectionHelper.findField(AbstractSelectionList.class, "f_93390_");
             barra = ObfuscationReflectionHelper.findMethod(AbstractSelectionList.class, "m_5756_");
         } catch (Throwable ignored) {
-            // El fallback es simplemente conservar la scrollbar vanilla.
+            // El fallback conserva la scrollbar vanilla.
         }
         CAMPO_Y0 = y0;
         METODO_SCROLLBAR_X = barra;
@@ -36,15 +35,11 @@ public final class ListasExpediente {
     private ListasExpediente() {
     }
 
-    /** Solo retira dirt/gradientes. */
     public static void estilizar(Screen pantalla) {
         estilizar(pantalla, -1, -1);
     }
 
-    /**
-     * Retira dirt/gradientes y, si se pasa un rango valido, reserva una banda
-     * superior para cabecera Jobs y otra inferior para navegacion/pie.
-     */
+    /** Retira dirt/gradientes y reserva bandas de cabecera/pie cuando es seguro. */
     public static void estilizar(Screen pantalla, int arriba, int abajo) {
         for (AbstractSelectionList<?> lista : encontrarListas(pantalla)) {
             try {
@@ -54,15 +49,14 @@ public final class ListasExpediente {
                     lista.updateSize(pantalla.width, pantalla.height, arriba, abajo);
                 }
             } catch (Throwable ignored) {
-                // Si otro mod cambia la lista, conserva su comportamiento original.
+                // Otro mod puede cambiar la implementacion; no se fuerza.
             }
         }
     }
 
     /**
      * Cubre la barra gris vanilla despues de su render y dibuja una barra Jobs
-     * en exactamente el mismo hitbox. El scroll, rueda y drag siguen siendo los
-     * de Minecraft: solo cambia la presentacion.
+     * en el mismo hitbox. Rueda, click y drag siguen siendo de Minecraft.
      */
     public static void renderarBarras(Screen pantalla, GuiGraphics g) {
         if (pantalla == null || g == null || CAMPO_Y0 == null || METODO_SCROLLBAR_X == null) {
@@ -72,17 +66,13 @@ public final class ListasExpediente {
         for (AbstractSelectionList<?> lista : encontrarListas(pantalla)) {
             try {
                 int maxScroll = lista.getMaxScroll();
-                if (maxScroll <= 0) {
-                    continue;
-                }
+                if (maxScroll <= 0) continue;
 
                 int x = (int) METODO_SCROLLBAR_X.invoke(lista);
                 int y0 = CAMPO_Y0.getInt(lista);
                 int y1 = lista.getScrollBottom();
                 int alto = y1 - y0;
-                if (alto < 24) {
-                    continue;
-                }
+                if (alto < 24) continue;
 
                 int thumbH = (int) Math.round((double) alto * alto / (alto + maxScroll));
                 thumbH = Math.max(24, Math.min(alto - 8, thumbH));
@@ -91,23 +81,44 @@ public final class ListasExpediente {
                         lista.getScrollAmount() / Math.max(1.0D, maxScroll)));
                 int thumbY = y0 + (int) Math.round(recorrido * proporcion);
 
-                // Borrado opaco: la barra gris de Minecraft no queda visible debajo.
-                g.fill(x - 2, y0, x + 8, y1, Paleta.PAPEL);
-
+                int papel = Paleta.papelAviso();
                 int tintaSuave = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.28F);
-                int tinta = Paleta.conAlfa(Paleta.tintaPrincipal(), 0.78F);
-                int papelActivo = Paleta.conAlfa(Paleta.FLUOR, 0.86F);
+                int tintaFina = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.16F);
+                int tinta = Paleta.conAlfa(Paleta.tintaPrincipal(), 0.76F);
+                int papelActivo = Paleta.mezclar(papel, Paleta.FLUOR, 0.12F);
 
-                // Carril fino de archivador.
-                g.fill(x + 2, y0 + 3, x + 4, y1 - 3, tintaSuave);
-                g.fill(x + 1, y0 + 3, x + 5, y0 + 4, tintaSuave);
-                g.fill(x + 1, y1 - 4, x + 5, y1 - 3, tintaSuave);
+                // Limpia la barra vanilla y crea una canaleta de archivador.
+                g.fill(x - 3, y0, x + 9, y1, papel);
+                g.fill(x - 1, y0 + 1, x + 7, y1 - 1,
+                        Paleta.conAlfa(Paleta.VANO, 0.05F));
+                g.fill(x + 2, y0 + 5, x + 4, y1 - 5, tintaSuave);
 
-                // Tirador de papel/tinta. No usa rojo: sigue reservado a Executores.
+                // Marcas de recorrido: ayudan a leer posicion sin copiar un scrollbar web.
+                for (int i = 0; i <= 4; i++) {
+                    int my = y0 + 5 + Math.round((alto - 10) * (i / 4.0F));
+                    g.fill(x, my, x + 2, my + 1, tintaFina);
+                    g.fill(x + 4, my, x + 6, my + 1, tintaFina);
+                }
+
+                // Topes mecanicos arriba y abajo.
+                g.fill(x, y0 + 2, x + 6, y0 + 3, tintaSuave);
+                g.fill(x + 1, y0 + 3, x + 5, y0 + 4, tintaFina);
+                g.fill(x, y1 - 3, x + 6, y1 - 2, tintaSuave);
+                g.fill(x + 1, y1 - 4, x + 5, y1 - 3, tintaFina);
+
+                // Tirador: papel claro dentro de marco de tinta.
+                g.fill(x - 1, thumbY - 1, x + 7, thumbY + thumbH + 1,
+                        Paleta.conAlfa(Paleta.VANO, 0.16F));
                 g.fill(x, thumbY, x + 6, thumbY + thumbH, tinta);
                 g.fill(x + 1, thumbY + 1, x + 5, thumbY + thumbH - 1, papelActivo);
-                int marcaY = thumbY + thumbH / 2;
-                g.fill(x + 1, marcaY, x + 5, Math.min(thumbY + thumbH - 1, marcaY + 1), tintaSuave);
+
+                int centro = thumbY + thumbH / 2;
+                for (int d = -2; d <= 2; d += 2) {
+                    int gy = centro + d;
+                    if (gy > thumbY + 2 && gy < thumbY + thumbH - 2) {
+                        g.fill(x + 1, gy, x + 5, gy + 1, tintaSuave);
+                    }
+                }
             } catch (Throwable ignored) {
                 // Fallo visual no debe impedir usar una pantalla de opciones.
             }
@@ -116,18 +127,14 @@ public final class ListasExpediente {
 
     private static List<AbstractSelectionList<?>> encontrarListas(Screen pantalla) {
         List<AbstractSelectionList<?>> resultado = new ArrayList<>();
-        if (pantalla == null) {
-            return resultado;
-        }
+        if (pantalla == null) return resultado;
 
         Set<Object> vistos = Collections.newSetFromMap(new IdentityHashMap<>());
         Class<?> tipo = pantalla.getClass();
         while (tipo != null && tipo != Object.class) {
             for (Field f : tipo.getDeclaredFields()) {
                 try {
-                    if (!AbstractSelectionList.class.isAssignableFrom(f.getType())) {
-                        continue;
-                    }
+                    if (!AbstractSelectionList.class.isAssignableFrom(f.getType())) continue;
                     f.setAccessible(true);
                     Object o = f.get(pantalla);
                     if (o instanceof AbstractSelectionList<?> lista && vistos.add(lista)) {

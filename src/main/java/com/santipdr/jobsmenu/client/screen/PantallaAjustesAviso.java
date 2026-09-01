@@ -2,172 +2,267 @@ package com.santipdr.jobsmenu.client.screen;
 
 import com.santipdr.jobsmenu.client.ui.BotonExpediente;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
+import com.santipdr.jobsmenu.client.ui.Paleta;
+import com.santipdr.jobsmenu.client.ui.SliderExpediente;
+import com.santipdr.jobsmenu.client.ui.ToggleExpediente;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
-import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.OptionsList;
-import net.minecraft.client.gui.screens.OptionsSubScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-/** Ajustes propios del aviso, integrados visualmente con el resto de Jobs. */
-public class PantallaAjustesAviso extends OptionsSubScreen {
+/** Configuracion nativa de Jobs. No usa OptionsList ni widgets visuales vanilla. */
+public class PantallaAjustesAviso extends Screen {
 
-    private OptionsList lista;
+    private enum Categoria {
+        VISUAL("options.video", "jobsmenu.ajustes.escena.detalle"),
+        NIVEL("jobsmenu.ajustes.nivelfijo", "jobsmenu.ajustes.nivelfijo.detalle"),
+        AUDIO("options.sounds", "jobsmenu.ajustes.volambiente.detalle"),
+        ACCESIBILIDAD("options.accessibility.title", "jobsmenu.ajustes.perfil.detalle"),
+        SISTEMA("options.title", "jobsmenu.ajustes.menu.detalle");
+
+        private final String titulo;
+        private final String detalle;
+
+        Categoria(String titulo, String detalle) {
+            this.titulo = titulo;
+            this.detalle = detalle;
+        }
+    }
+
+    private final Screen anterior;
+    private final Options opciones;
+    private final Categoria categoria;
+
+    private int panelX;
+    private int panelY;
+    private int panelW;
+    private int panelH;
+    private boolean compacta;
+    private int contentY;
 
     public PantallaAjustesAviso(Screen anterior, Options opciones) {
-        super(anterior, opciones, Component.translatable("jobsmenu.ajustes.titulo"));
+        this(anterior, opciones, Categoria.VISUAL);
     }
 
-    private static OptionInstance<Boolean> interruptor(String clave, boolean valor,
-                                                       java.util.function.Consumer<Boolean> fijar) {
-        return OptionInstance.createBoolean(clave,
-                OptionInstance.cachedConstantTooltip(Component.translatable(clave + ".detalle")),
-                valor, fijar::accept);
-    }
-
-    private static OptionInstance<Integer> deslizador(String clave, int valor,
-                                                      java.util.function.IntConsumer fijar) {
-        return deslizador(clave, valor, 0, 100,
-                "jobsmenu.ajustes.porciento", fijar);
-    }
-
-    private static OptionInstance<Integer> deslizador(String clave, int valor,
-                                                      int minimo, int maximo,
-                                                      String formato,
-                                                      java.util.function.IntConsumer fijar) {
-        return new OptionInstance<>(clave,
-                OptionInstance.cachedConstantTooltip(Component.translatable(clave + ".detalle")),
-                (caption, v) -> Component.translatable(formato, caption, v),
-                new OptionInstance.IntRange(minimo, maximo),
-                Math.max(minimo, Math.min(maximo, valor)),
-                (v) -> fijar.accept(v));
-    }
-
-    private static OptionInstance<Integer> selectorNivel(int valor) {
-        String clave = "jobsmenu.ajustes.nivelfijo";
-        return new OptionInstance<>(clave,
-                OptionInstance.cachedConstantTooltip(Component.translatable(clave + ".detalle")),
-                (caption, v) -> Component.translatable("jobsmenu.ajustes.nivelvalor", caption, v),
-                new OptionInstance.IntRange(0, 17),
-                Math.max(0, Math.min(17, valor)),
-                ConfigTurno::fijarNivelFijo);
+    private PantallaAjustesAviso(Screen anterior, Options opciones, Categoria categoria) {
+        super(Component.translatable("jobsmenu.ajustes.titulo"));
+        this.anterior = anterior;
+        this.opciones = opciones;
+        this.categoria = categoria == null ? Categoria.VISUAL : categoria;
     }
 
     @Override
     protected void init() {
-        // Cabecera 0-47 y footer desde height-48 quedan reservados. Ninguna fila
-        // de opciones puede entrar en el hitbox de Volver o en el pie del papel.
-        this.lista = new OptionsList(this.minecraft, this.width, this.height, 50, this.height - 48, 25);
-        this.lista.setRenderBackground(false);
-        this.lista.setRenderTopAndBottom(false);
+        this.panelW = Math.max(1, Math.min(520, this.width - 12));
+        this.panelH = Math.max(1, Math.min(340, this.height - 12));
+        this.panelX = (this.width - this.panelW) / 2;
+        this.panelY = Math.max(4, (this.height - this.panelH) / 2);
+        this.compacta = this.panelW < 430 || this.panelH < 296;
 
-        this.lista.addBig(interruptor("jobsmenu.ajustes.escena",
-                ConfigTurno.escenaViva(), ConfigTurno::fijarEscenaViva));
-        this.lista.addSmall(
-                interruptor("jobsmenu.ajustes.alto",
-                        ConfigTurno.altoContraste(), ConfigTurno::fijarAltoContraste),
-                interruptor("jobsmenu.ajustes.grande",
-                        ConfigTurno.textoGrande(), ConfigTurno::fijarTextoGrande));
-        this.lista.addSmall(
-                interruptor("jobsmenu.ajustes.papel",
-                        ConfigTurno.papelLimpio(), ConfigTurno::fijarPapelLimpio),
-                interruptor("jobsmenu.ajustes.guia",
-                        ConfigTurno.guiaLectura(), ConfigTurno::fijarGuiaLectura));
-        this.lista.addSmall(
-                interruptor("jobsmenu.ajustes.estado",
-                        ConfigTurno.mostrarEstadoInstalacion(), ConfigTurno::fijarMostrarEstadoInstalacion),
-                interruptor("jobsmenu.ajustes.respiracion",
-                        ConfigTurno.respiracionCamara(), ConfigTurno::fijarRespiracionCamara));
-        this.lista.addBig(interruptor("jobsmenu.ajustes.bajoconsumo",
-                ConfigTurno.bajoConsumo(), ConfigTurno::fijarBajoConsumo));
-        this.lista.addSmall(
-                interruptor("jobsmenu.ajustes.rotar",
-                        ConfigTurno.rotarNivelesBruto(), ConfigTurno::fijarRotarNiveles),
-                interruptor("jobsmenu.ajustes.cuenta",
-                        ConfigTurno.mostrarCuentaRegresivaBruto(), ConfigTurno::fijarMostrarCuentaRegresiva));
-        this.lista.addBig(selectorNivel(ConfigTurno.nivelFijo()));
-        this.lista.addBig(deslizador("jobsmenu.ajustes.estancia",
-                ConfigTurno.duracionEstancia(), 15, 90,
-                "jobsmenu.ajustes.segundos", ConfigTurno::fijarDuracionEstancia));
-        this.lista.addSmall(
-                interruptor("jobsmenu.ajustes.rotacioncalma",
-                        ConfigTurno.rotacionCalma(), ConfigTurno::fijarRotacionCalma),
-                interruptor("jobsmenu.ajustes.avisos",
-                        ConfigTurno.avisosRotativosBruto(), ConfigTurno::fijarAvisosRotativos));
-        this.lista.addBig(deslizador("jobsmenu.ajustes.duracion",
-                ConfigTurno.duracionAvisos(), 4, 15,
-                "jobsmenu.ajustes.segundos", ConfigTurno::fijarDuracionAvisos));
-        this.lista.addSmall(
-                interruptor("jobsmenu.ajustes.fecha",
-                        ConfigTurno.mostrarFechaBruto(), ConfigTurno::fijarMostrarFecha),
-                interruptor("jobsmenu.ajustes.interfaz",
-                        ConfigTurno.interfazMinima(), ConfigTurno::fijarInterfazMinima));
+        int margen = compacta ? 14 : 20;
+        int gap = compacta ? 5 : 7;
+        int anchoUtil = Math.max(1, panelW - margen * 2);
+        int tabsY = panelY + (compacta ? 48 : 53);
+        int tabH = compacta ? 18 : 20;
+        int tabW = Math.max(44, (anchoUtil - gap * 4) / 5);
 
-        this.lista.addBig(deslizador("jobsmenu.ajustes.volaviso",
-                ConfigTurno.volumenAvisoPorcentaje(), ConfigTurno::fijarVolumenAviso));
-        this.lista.addBig(deslizador("jobsmenu.ajustes.volmusica",
-                ConfigTurno.volumenMusicaPorcentaje(), ConfigTurno::fijarVolumenMusica));
-        this.lista.addBig(deslizador("jobsmenu.ajustes.volambiente",
-                ConfigTurno.volumenAmbientePorcentaje(), ConfigTurno::fijarVolumenAmbiente));
-        this.lista.addSmall(
-                interruptor("jobsmenu.ajustes.musica",
-                        ConfigTurno.musicaMenu(), ConfigTurno::fijarMusicaMenu),
-                interruptor("jobsmenu.ajustes.ambiente",
-                        ConfigTurno.sonidoAmbiente(), ConfigTurno::fijarSonidoAmbiente));
-        this.lista.addSmall(
-                interruptor("jobsmenu.ajustes.botones",
-                        ConfigTurno.sonidoBotones(), ConfigTurno::fijarSonidoBotones),
-                interruptor("jobsmenu.ajustes.credito",
-                        ConfigTurno.creditoMusica(), ConfigTurno::fijarCreditoMusica));
+        int x = panelX + margen;
+        for (Categoria c : Categoria.values()) {
+            BotonExpediente boton = new BotonExpediente(
+                    x, tabsY, tabW, tabH,
+                    Component.translatable(c.titulo),
+                    c == this.categoria ? BotonExpediente.Tipo.JOBS : BotonExpediente.Tipo.NORMAL,
+                    () -> abrirCategoria(c));
+            this.addRenderableWidget(boton);
+            x += tabW + gap;
+        }
 
-        this.lista.addBig(interruptor("jobsmenu.ajustes.perfil",
-                ConfigTurno.perfilAccesible(), ConfigTurno::fijarPerfilAccesible));
-        this.lista.addSmall(
-                interruptor("jobsmenu.ajustes.movimiento",
-                        ConfigTurno.movimientoReducido(), ConfigTurno::fijarMovimientoReducido),
-                interruptor("jobsmenu.ajustes.destellos",
-                        ConfigTurno.destellosReducidos(), ConfigTurno::fijarDestellosReducidos));
-        this.lista.addSmall(
-                interruptor("jobsmenu.ajustes.presencia",
-                        ConfigTurno.presenciaFondo(), ConfigTurno::fijarPresenciaFondo),
-                interruptor("jobsmenu.ajustes.eventos",
-                        ConfigTurno.eventosAmbientales(), ConfigTurno::fijarEventosAmbientales));
-        this.lista.addSmall(
-                interruptor("jobsmenu.ajustes.suspension",
-                        ConfigTurno.suspensionRara(), ConfigTurno::fijarSuspensionRara),
-                interruptor("jobsmenu.ajustes.menu",
-                        ConfigTurno.menuPropio(), ConfigTurno::fijarMenuPropio));
-        this.lista.addBig(interruptor("jobsmenu.ajustes.pausa",
-                ConfigTurno.pausaPropia(), ConfigTurno::fijarPausaPropia));
+        this.contentY = tabsY + tabH + (compacta ? 9 : 16);
+        switch (this.categoria) {
+            case VISUAL -> construirVisual(margen, gap);
+            case NIVEL -> construirNivel(margen, gap);
+            case AUDIO -> construirAudio(margen, gap);
+            case ACCESIBILIDAD -> construirAccesibilidad(margen, gap);
+            case SISTEMA -> construirSistema(margen, gap);
+        }
 
-        this.addWidget(this.lista);
+        int volverH = compacta ? 19 : 21;
+        int volverW = Math.min(170, anchoUtil);
         this.addRenderableWidget(new BotonExpediente(
-                this.width / 2 - 80, this.height - 30, 160, 20,
+                this.width / 2 - volverW / 2,
+                panelY + panelH - volverH - 8,
+                volverW, volverH,
                 Component.translatable("jobsmenu.interfaz.volver"),
                 BotonExpediente.Tipo.PRINCIPAL,
-                () -> this.minecraft.setScreen(this.lastScreen)));
+                this::onClose));
+    }
+
+    private void construirVisual(int margen, int gap) {
+        Grid grid = new Grid(margen, gap);
+        grid.togglePar("jobsmenu.ajustes.escena", ConfigTurno::escenaViva, ConfigTurno::fijarEscenaViva,
+                "jobsmenu.ajustes.estado", ConfigTurno::mostrarEstadoInstalacion, ConfigTurno::fijarMostrarEstadoInstalacion);
+        grid.togglePar("jobsmenu.ajustes.respiracion", ConfigTurno::respiracionCamara, ConfigTurno::fijarRespiracionCamara,
+                "jobsmenu.ajustes.presencia", ConfigTurno::presenciaFondo, ConfigTurno::fijarPresenciaFondo);
+        grid.togglePar("jobsmenu.ajustes.eventos", ConfigTurno::eventosAmbientales, ConfigTurno::fijarEventosAmbientales,
+                "jobsmenu.ajustes.papel", ConfigTurno::papelLimpio, ConfigTurno::fijarPapelLimpio);
+        grid.togglePar("jobsmenu.ajustes.guia", ConfigTurno::guiaLectura, ConfigTurno::fijarGuiaLectura,
+                "jobsmenu.ajustes.interfaz", ConfigTurno::interfazMinima, ConfigTurno::fijarInterfazMinima);
+        grid.togglePar("jobsmenu.ajustes.alto", ConfigTurno::altoContraste, ConfigTurno::fijarAltoContraste,
+                "jobsmenu.ajustes.grande", ConfigTurno::textoGrande, ConfigTurno::fijarTextoGrande);
+    }
+
+    private void construirNivel(int margen, int gap) {
+        Grid grid = new Grid(margen, gap);
+        grid.togglePar("jobsmenu.ajustes.rotar", ConfigTurno::rotarNivelesBruto, ConfigTurno::fijarRotarNiveles,
+                "jobsmenu.ajustes.cuenta", ConfigTurno::mostrarCuentaRegresivaBruto, ConfigTurno::fijarMostrarCuentaRegresiva);
+        grid.slider(0, 17, ConfigTurno.nivelFijo(), ConfigTurno::fijarNivelFijo,
+                v -> Component.translatable("jobsmenu.ajustes.nivelvalor",
+                        Component.translatable("jobsmenu.ajustes.nivelfijo"), v));
+        grid.slider(15, 90, ConfigTurno.duracionEstancia(), ConfigTurno::fijarDuracionEstancia,
+                v -> Component.translatable("jobsmenu.ajustes.segundos",
+                        Component.translatable("jobsmenu.ajustes.estancia"), v));
+        grid.togglePar("jobsmenu.ajustes.rotacioncalma", ConfigTurno::rotacionCalma, ConfigTurno::fijarRotacionCalma,
+                "jobsmenu.ajustes.avisos", ConfigTurno::avisosRotativosBruto, ConfigTurno::fijarAvisosRotativos);
+        grid.slider(4, 15, ConfigTurno.duracionAvisos(), ConfigTurno::fijarDuracionAvisos,
+                v -> Component.translatable("jobsmenu.ajustes.segundos",
+                        Component.translatable("jobsmenu.ajustes.duracion"), v));
+        grid.toggleCompleto("jobsmenu.ajustes.fecha", ConfigTurno::mostrarFechaBruto, ConfigTurno::fijarMostrarFecha);
+    }
+
+    private void construirAudio(int margen, int gap) {
+        Grid grid = new Grid(margen, gap);
+        grid.slider(0, 100, ConfigTurno.volumenAvisoPorcentaje(), ConfigTurno::fijarVolumenAviso,
+                v -> Component.translatable("jobsmenu.ajustes.porciento",
+                        Component.translatable("jobsmenu.ajustes.volaviso"), v));
+        grid.slider(0, 100, ConfigTurno.volumenMusicaPorcentaje(), ConfigTurno::fijarVolumenMusica,
+                v -> Component.translatable("jobsmenu.ajustes.porciento",
+                        Component.translatable("jobsmenu.ajustes.volmusica"), v));
+        grid.slider(0, 100, ConfigTurno.volumenAmbientePorcentaje(), ConfigTurno::fijarVolumenAmbiente,
+                v -> Component.translatable("jobsmenu.ajustes.porciento",
+                        Component.translatable("jobsmenu.ajustes.volambiente"), v));
+        grid.togglePar("jobsmenu.ajustes.musica", ConfigTurno::musicaMenu, ConfigTurno::fijarMusicaMenu,
+                "jobsmenu.ajustes.ambiente", ConfigTurno::sonidoAmbiente, ConfigTurno::fijarSonidoAmbiente);
+        grid.togglePar("jobsmenu.ajustes.botones", ConfigTurno::sonidoBotones, ConfigTurno::fijarSonidoBotones,
+                "jobsmenu.ajustes.credito", ConfigTurno::creditoMusica, ConfigTurno::fijarCreditoMusica);
+    }
+
+    private void construirAccesibilidad(int margen, int gap) {
+        Grid grid = new Grid(margen, gap);
+        grid.toggleCompleto("jobsmenu.ajustes.perfil", ConfigTurno::perfilAccesible, ConfigTurno::fijarPerfilAccesible);
+        grid.togglePar("jobsmenu.ajustes.movimiento", ConfigTurno::movimientoReducido, ConfigTurno::fijarMovimientoReducido,
+                "jobsmenu.ajustes.destellos", ConfigTurno::destellosReducidos, ConfigTurno::fijarDestellosReducidos);
+        grid.togglePar("jobsmenu.ajustes.bajoconsumo", ConfigTurno::bajoConsumo, ConfigTurno::fijarBajoConsumo,
+                "jobsmenu.ajustes.alto", ConfigTurno::altoContraste, ConfigTurno::fijarAltoContraste);
+        grid.togglePar("jobsmenu.ajustes.grande", ConfigTurno::textoGrande, ConfigTurno::fijarTextoGrande,
+                "jobsmenu.ajustes.papel", ConfigTurno::papelLimpio, ConfigTurno::fijarPapelLimpio);
+        grid.toggleCompleto("jobsmenu.ajustes.guia", ConfigTurno::guiaLectura, ConfigTurno::fijarGuiaLectura);
+    }
+
+    private void construirSistema(int margen, int gap) {
+        Grid grid = new Grid(margen, gap);
+        grid.toggleCompleto("jobsmenu.ajustes.suspension", ConfigTurno::suspensionRara, ConfigTurno::fijarSuspensionRara);
+        grid.togglePar("jobsmenu.ajustes.menu", ConfigTurno::menuPropio, ConfigTurno::fijarMenuPropio,
+                "jobsmenu.ajustes.pausa", ConfigTurno::pausaPropia, ConfigTurno::fijarPausaPropia);
+        grid.toggleCompleto("jobsmenu.ajustes.rotacioncalma", ConfigTurno::rotacionCalma, ConfigTurno::fijarRotacionCalma);
+    }
+
+    private void abrirCategoria(Categoria nueva) {
+        if (nueva == this.categoria) return;
+        ConfigTurno.guardarPendiente();
+        this.minecraft.setScreen(new PantallaAjustesAviso(this.anterior, this.opciones, nueva));
     }
 
     @Override
-    public void renderBackground(GuiGraphics g) {
+    public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         ChromeExpediente.fondo(g, this.width, this.height);
-        ChromeExpediente.panel(g, 8, 6, this.width - 16, this.height - 12);
+        ChromeExpediente.panel(g, panelX, panelY, panelW, panelH);
+        ChromeExpediente.cabecera(g, this.font, this.title,
+                Component.translatable("jobsmenu.interfaz.aviso.subtitulo"), panelX, panelY, panelW);
+
+        int margen = compacta ? 14 : 20;
+        ChromeExpediente.seccion(g, this.font, panelX + margen, panelX + panelW - margen,
+                this.contentY - (compacta ? 6 : 9), Component.translatable(this.categoria.detalle));
+
+        if (!compacta) {
+            Component ayuda = Component.translatable("jobsmenu.interfaz.opciones.nota");
+            String texto = ayuda.getString();
+            int max = panelW - margen * 2;
+            if (this.font.width(texto) <= max) {
+                g.drawString(this.font, texto, panelX + margen, panelY + panelH - 43,
+                        Paleta.conAlfa(Paleta.tintaSecundaria(), 0.48F), false);
+            }
+        }
+
+        ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
+        ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "JOBS-014");
+        super.render(g, mouseX, mouseY, partialTick);
     }
 
     @Override
-    public void render(GuiGraphics grafico, int ratonX, int ratonY, float parcial) {
-        this.basicListRender(grafico, this.lista, ratonX, ratonY, parcial);
-        ChromeExpediente.marcoSubpantalla(grafico, this.font, this.width, this.height,
-                8, 6, this.width - 16, this.height - 12,
-                Component.translatable("jobsmenu.interfaz.aviso.subtitulo"), "JOBS-013");
+    public void onClose() {
+        ConfigTurno.guardarPendiente();
+        if (this.minecraft != null) this.minecraft.setScreen(this.anterior);
     }
 
     @Override
     public void removed() {
         ConfigTurno.guardarPendiente();
         super.removed();
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics g) {
+        // ChromeExpediente renders the complete background.
+    }
+
+    private final class Grid {
+        private final int x0;
+        private final int x1;
+        private final int colW;
+        private final int gap;
+        private final int alto;
+        private final int paso;
+        private int fila;
+
+        Grid(int margen, int gap) {
+            int ancho = Math.max(1, panelW - margen * 2);
+            this.gap = gap;
+            this.colW = Math.max(70, (ancho - gap) / 2);
+            this.x0 = panelX + margen;
+            this.x1 = x0 + colW + gap;
+            this.alto = compacta ? 19 : 22;
+            this.paso = compacta ? 23 : 27;
+        }
+
+        void togglePar(String claveA, java.util.function.BooleanSupplier leerA,
+                       java.util.function.Consumer<Boolean> fijarA,
+                       String claveB, java.util.function.BooleanSupplier leerB,
+                       java.util.function.Consumer<Boolean> fijarB) {
+            int y = contentY + fila * paso;
+            addRenderableWidget(new ToggleExpediente(x0, y, colW, alto,
+                    Component.translatable(claveA), leerA, fijarA));
+            addRenderableWidget(new ToggleExpediente(x1, y, colW, alto,
+                    Component.translatable(claveB), leerB, fijarB));
+            fila++;
+        }
+
+        void toggleCompleto(String clave, java.util.function.BooleanSupplier leer,
+                            java.util.function.Consumer<Boolean> fijar) {
+            int y = contentY + fila * paso;
+            addRenderableWidget(new ToggleExpediente(x0, y, colW * 2 + gap, alto,
+                    Component.translatable(clave), leer, fijar));
+            fila++;
+        }
+
+        void slider(int min, int max, int valor,
+                    java.util.function.IntConsumer fijar,
+                    java.util.function.IntFunction<Component> rotulo) {
+            int y = contentY + fila * paso;
+            addRenderableWidget(new SliderExpediente(x0, y, colW * 2 + gap, alto,
+                    min, max, valor, rotulo, fijar));
+            fila++;
+        }
     }
 }

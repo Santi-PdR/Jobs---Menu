@@ -8,8 +8,8 @@ Documento maestro del estado **vigente** del mod. El historial de implementacion
 | Rama de entrega | `main` |
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
-| Versión actual | **0.13.0** |
-| Artefacto esperado | **`jobsmenu-0.13.0.jar`** |
+| Versión actual | **0.14.0** |
+| Artefacto esperado | **`jobsmenu-0.14.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -23,14 +23,15 @@ Documento maestro del estado **vigente** del mod. El historial de implementacion
 2. `gradle.properties` es la fuente de verdad de la versión. README, CONTEXTO y changelog se actualizan en la misma entrega.
 3. `main` es la rama entregable. Trabajo estructural en rama aparte; merge sólo después de CI verde.
 4. CI obligatorio: Java 17 → política de versión → fondos → verificador estático → Forge build → JAR versionado.
-5. `dev-latest` puede seguir siendo una release rodante, pero debe contener **un solo JAR y ese JAR debe estar versionado**. El workflow elimina assets obsoletos antes de publicar.
+5. `dev-latest` puede seguir siendo una release rodante, pero debe contener **un solo JAR y ese JAR debe estar versionado**.
 6. Los fondos 10–17 deben superar validación PNG/CRC/IDAT. Runtime vuelve a probarlos con `NativeImage`.
-7. **Los PNG 10–17 son estáticos por requisito del proyecto.** No se les agrega zoom, paneo, parallax, flicker, niebla móvil, scanlines, motas, presencia ni otra capa animada.
-8. Todo Java permanece ASCII; acentos y texto visible pertenecen a `lang/es_es.json` y `lang/en_us.json`.
+7. **Los PNG 10–17 son estáticos por requisito del proyecto.** No se les agrega zoom, paneo, parallax, flicker, niebla móvil, scanlines animadas, motas, presencia ni otra capa animada.
+8. Todo Java permanece ASCII; acentos y texto visible pertenecen a los archivos de idioma.
 9. ES/EN tienen paridad estricta de claves.
 10. El rojo es exclusivo de los Executores. No se usa como color genérico de botones peligrosos.
 11. Accesibilidad y bajo consumo tienen prioridad sobre efectos decorativos.
 12. Ningún control visible puede solaparse con otro control o conservar un hitbox vanilla invisible debajo.
+13. Cuando se conserva una pantalla vanilla por compatibilidad, Jobs puede cambiar **su presentación**, pero no debe duplicar ni reimplementar a ciegas su lógica sensible.
 
 ## 2. Identidad
 
@@ -51,7 +52,7 @@ Grafía canónica: **Executor / Executores**.
 
 Hay 18 niveles:
 
-- 0–9: recintos procedurales vivos.
+- 0–9: recintos procedurales vivos;
 - 10–17: fondos PNG suministrados, validados y **estáticos**.
 
 Todos comparten rotación de Nivel, apagón, música, camas ambientales, avisos, ronda, accesibilidad y estado de instalación. Esto no significa que las imágenes 10–17 reciban animación interna.
@@ -60,73 +61,134 @@ Todos comparten rotación de Nivel, apagón, música, camas ambientales, avisos,
 
 Sobre niveles 10–17 no se ejecutan las capas animadas de materiales, dirección artística, tratamiento, presencia, motas, eventos ni pulido de cámara. Los apagones y transiciones entre Niveles se conservan porque pertenecen al estado general del menú, no a la animación de la imagen.
 
-## 4. Interfaz 0.13.0
+## 4. Interfaz 0.14.0
 
-La base de la familia de interfaces nació en 0.12.0 y se consolida en 0.13.0 con controles más robustos, scrollbar propia y reglas de layout.
+0.14.0 convierte la familia de interfaces en un sistema más autónomo y reduce otro bloque importante de presentación vanilla.
 
 ### 4.1 Principio de compatibilidad
 
-Se tomó `Santi-PdR/GripeVerde` únicamente como **referencia de arquitectura de UI**: una familia coherente de pantallas, wrappers visuales sobre lógica vanilla y redirecciones por clase exacta. Su tema victoriano/cuarentena **no se copia**.
+`Santi-PdR/GripeVerde` fue sólo referencia de arquitectura de UI. Su tema victoriano/cuarentena no se copia.
 
-Regla:
+Regla vigente:
 
-- cuando la pantalla vanilla contiene lógica compleja o hooks de otros mods, se preserva y se tematiza alrededor;
-- cuando la pantalla es principalmente navegación/jerarquía, Jobs puede reimplementarla con widgets propios;
-- nunca se sustituye por `instanceof` una subclase de otro mod: las redirecciones automáticas usan clase exacta.
+- hubs y jerarquías simples pueden ser pantallas Jobs completas;
+- lógica vanilla compleja se conserva cuando aporta compatibilidad;
+- la presentación vanilla puede cubrirse o enmarcarse sin reemplazar hitboxes/listeners;
+- las redirecciones importantes usan clase exacta para no barrer subclases de otros mods;
+- una pantalla de terceros no recibe una reimplementación falsa sólo para mantener estética.
 
-### 4.2 Familia propia Jobs
+### 4.2 Options como centro de control
 
-- `PantallaOpcionesJobs`: hub de Condiciones de estancia.
-- `PantallaMultijugadorJobs`: registro de cuadrillas, conservando lista/ping/MOTD/LAN vanilla.
-- `PantallaControlesJobs`: hub de mouse, teclas y hábitos.
-- `PantallaIdiomaJobs`: selección/aplicación de idioma.
-- `PantallaPielJobs`: ficha visible del ocupante.
+`PantallaOpcionesJobs` separa explícitamente dos capas:
 
-### 4.3 Vanilla preservado con presentación Jobs
+1. **Jobs**, con Config del mod como acción principal de ancho completo y jerarquía `BotonExpediente.Tipo.JOBS`;
+2. **Minecraft**, con accesos a Piel, Sonido, Video, Controles, Idioma, Chat, Resource Packs, Accesibilidad, Online y FOV cuando cabe.
 
-- Sonido.
-- Video.
-- Chat.
-- Accesibilidad.
-- Mouse.
-- Teclas.
-- Online.
-- Resource packs.
-- Ajustes del aviso.
+El botón de Config no puede volver a quedar escondido entre opciones genéricas.
 
-Estas pantallas usan `ChromeExpediente`, recinto, papel, marco y pie de formulario; sus opciones reales siguen siendo las de Minecraft.
+### 4.3 Config Jobs sin OptionsList
 
-### 4.4 Widgets y comportamiento compartido
+`PantallaAjustesAviso` ya no usa `OptionsList` ni `OptionInstance` como superficie visual.
 
-- `ChromeExpediente`: superficie y contexto común; el pie reserva el centro para navegación y divide formulario/Nivel a la izquierda y versión a la derecha.
-- `BotonExpediente`: reemplazo visual/sonoro de botones del flujo propio.
-- `SliderExpediente`: slider propio para controles simples como FOV.
-- `ToggleExpediente`: interruptor con getter/setter reales.
-- `ListasExpediente`: quita fondos vanilla de listas y dibuja una **scrollbar Jobs** sobre el mismo hitbox sin sustituir la lógica de scroll.
-- `TransicionInterfazJobs`: gesto corto entre pantallas; con movimiento reducido se convierte en fade simple.
+Es una pantalla Jobs propia dividida en cinco categorías:
 
-`EscuchaCliente` desactiva cualquier `Done` vanilla duplicado que sobreviva dentro de una pantalla Jobs. Un botón invisible no puede conservar un hitbox activo detrás de otro control.
+- visual;
+- Nivel;
+- audio;
+- accesibilidad;
+- sistema.
 
-### 4.5 Acceso a configuración
+Usa directamente:
 
-Hay dos entradas válidas a la misma pantalla de configuración:
+- `BotonExpediente`;
+- `ToggleExpediente`;
+- `SliderExpediente`;
+- getters/setters reales de `ConfigTurno`.
 
-- hub Jobs → ajustes del aviso;
-- Forge → **Mods → Jobs Menu → Config**.
+No hay estado decorativo duplicado. Forge **Mods → Jobs Menu → Config** y el botón de Options abren la misma implementación.
 
-`JobsMenu` registra `ConfigScreenHandler.ConfigScreenFactory`; no se mantiene una segunda implementación de ajustes.
+### 4.4 Widgets de segunda generación
 
-### 4.6 Reglas de layout
+- `BotonExpediente`: estados normal/principal/JOBS/terminal, foco, presión, sombra, marcas administrativas y sonidos propios.
+- `SliderExpediente`: escala visible, tirador de tinta/papel, marcas de lectura y microfeedback sonoro.
+- `ToggleExpediente`: casilla + etiqueta + cápsula de estado; deja de parecer un botón Sí/No.
+- Los efectos de foco respetan movimiento reducido.
 
-- Cabecera, contenido y footer deben tener zonas verticales separadas.
-- El pie nunca ocupa el centro reservado a `Cerrar expediente`.
-- Accesibilidad deja margen extra al final de la lista.
-- El hub de Opciones sólo muestra el slider FOV duplicado si existe espacio real; en escalas extremas se omite antes de superponer controles.
-- Las listas deben seguir siendo utilizables con rueda, click y drag aun cuando su presentación visual cambie.
+### 4.5 Chrome compartido
 
-Las pantallas externas o auxiliares que no se sustituyen reciben como máximo una banda contextual durante la visita al menú.
+`ChromeExpediente` aporta:
 
-## 5. Sonido
+- sombra en dos planos;
+- panel de papel;
+- doble borde;
+- perforaciones/marcas de archivo;
+- pestaña de archivador;
+- cabeceras con reglas laterales;
+- divisores y rótulos de sección;
+- elipsis segura;
+- pie con formulario/Nivel/versión;
+- vignette estática de interfaz;
+- banda contextual para pantallas auxiliares.
+
+El chrome puede añadir textura **estática** alrededor de un PNG, pero no mueve ni anima los fondos 10–17.
+
+### 4.6 Diálogos vanilla auxiliares
+
+`PielVanillaJobs` se aplica durante una sesión Jobs sólo a pantallas cuyo paquete es `net.minecraft.*`.
+
+La capa se dibuja **después** del render vanilla y tematiza botones/campos conservando:
+
+- hitbox original;
+- listener original;
+- foco original;
+- validación y navegación original.
+
+Esto permite que diálogos como Direct Connect, Add Server o confirmaciones no rompan visualmente la experiencia sin reimplementar protocolos.
+
+Las pantallas de otros mods no reciben esta piel de controles.
+
+### 4.7 Scrollbar y listas
+
+`ListasExpediente` conserva rueda, click, drag, cantidad y posición de scroll de Minecraft. Sólo sustituye la presentación de la barra por:
+
+- canaleta de archivador;
+- topes;
+- marcas de recorrido;
+- tirador proporcional;
+- agarres internos.
+
+Si reflection falla, se conserva el comportamiento vanilla en vez de bloquear la pantalla.
+
+### 4.8 Transiciones
+
+`TransicionInterfazJobs` usa una hoja/carpeta con sombra, doble fibra y marcas de archivo. No bloquea input ni cambia la Screen.
+
+Con movimiento reducido se convierte en un fade breve sin desplazamiento obligatorio.
+
+## 5. Pantallas vigentes
+
+Familia Jobs propia o tematizada:
+
+- Title / `PantallaNivel`;
+- Pausa / `PantallaEstancia`;
+- Options;
+- Config Jobs;
+- Multijugador;
+- Controles;
+- Mouse;
+- Teclas;
+- Idioma;
+- Piel;
+- Sonido;
+- Video;
+- Chat;
+- Accesibilidad;
+- Online;
+- Resource Packs.
+
+Embeddium conserva su propia pantalla de vídeo cuando está presente. Jobs no reconstruye internamente su UI por reflection profunda.
+
+## 6. Sonido
 
 El mod usa sus propios gestos de interfaz y no debe mezclar el click vanilla sobre widgets propios.
 
@@ -135,9 +197,9 @@ El mod usa sus propios gestos de interfaz y no debe mezclar el click vanilla sob
 - Eventos: ocasionales, ponderados y con silencios deliberados.
 - Música: independiente de las camas del recinto.
 
-Todo audio empaquetado debe ser mono. Los nuevos sonidos se agregan sólo si tienen función identificable; cantidad no equivale a calidad.
+Todo audio empaquetado debe ser mono. Un sonido nuevo necesita una función identificable; cantidad no equivale a calidad.
 
-## 6. Accesibilidad / rendimiento
+## 7. Accesibilidad / rendimiento
 
 Controles vigentes incluyen:
 
@@ -150,39 +212,39 @@ Controles vigentes incluyen:
 - bajo consumo;
 - perfil accesible.
 
-Una interfaz nueva no puede saltarse estas preferencias. En particular, transiciones nuevas no pueden introducir flashes blancos ni movimiento obligatorio.
+Una interfaz nueva no puede saltarse estas preferencias. Los PNG 10–17 permanecen estáticos independientemente de ellas.
 
-Los PNG 10–17 permanecen estáticos independientemente de estas opciones; `movimiento_reducido` sigue gobernando las escenas procedurales 0–9 y las transiciones compatibles.
-
-## 7. Pruebas mínimas antes de una entrega
+## 8. Pruebas mínimas antes de una entrega
 
 Además del CI:
 
 - GUI scale 2, 3 y 4;
 - ES y EN;
-- Title → Opciones → todas las subpantallas → volver;
-- comprobar que **Mods → Jobs Menu → Config** existe y abre los ajustes correctos;
-- revisar que ningún `Done` vanilla invisible capture clicks;
-- Accesibilidad: primera/última fila, scrollbar y Volver sin solapes;
-- scrollbar Jobs en Sonido, Video, Chat, Accesibilidad, Mouse, Teclas, Online, Resource Packs y ajustes cuando haya contenido suficiente;
-- rueda, click y drag de scrollbar;
-- Title → Multijugador → seleccionar/directo/agregar/editar/borrar/refrescar;
+- Title → Options → Config Jobs → cinco categorías → volver;
+- **Mods → Jobs Menu → Config** → misma pantalla;
+- botón Config claramente visible y separado de opciones Minecraft;
+- botones/toggles/sliders sin solapes en 854×480 y ventanas estrechas;
+- tabs de Config con mouse, Tab, Enter, Espacio y Escape;
+- Direct Connect / Add Server / confirmaciones con piel Jobs pero lógica intacta;
+- Accesibilidad: primera/última fila, scrollbar y Volver;
+- scrollbar Jobs: rueda, click y drag;
+- Multijugador: seleccionar/directo/agregar/editar/borrar/refrescar;
 - cambio de idioma + recarga de recursos;
 - resource packs;
-- pause in-world → Opciones → volver;
-- movimiento reducido / destellos reducidos / bajo consumo;
+- pause in-world → Options → volver;
 - Embeddium presente y ausente;
-- navegación con mouse y teclado;
-- niveles 10–17: **ningún zoom, paneo, niebla móvil, flicker, scanline, motas o presencia visual**;
+- movimiento reducido / destellos reducidos / bajo consumo;
+- niveles 10–17: ningún zoom, paneo, niebla móvil, flicker, scanline animada, motas o presencia visual;
 - 18 niveles y transición entre fondos.
 
-## 8. Documentación vigente
+## 9. Documentación vigente
 
-- `README.md`: resumen de la versión actual.
+- `README.md`: resumen de 0.14.0.
 - `CHANGELOG.md`: historial.
 - `KNOWN_ISSUES.md`: pruebas/riesgos pendientes.
-- `docs/AUDITORIA_0.12.0_INTERFACES.md`: arquitectura de la familia de interfaces.
+- `docs/AUDITORIA_0.14.0_UI.md`: auditoría de esta evolución.
 - `docs/DESPLIEGUE.md`: instalación.
+- `docs/compatibilidad.md`: convivencia con otros mods.
 - `docs/checklist-manual.md`: verificación dentro de Minecraft.
 
 Si un documento histórico contradice este archivo en versión, rama, cantidad de niveles, carácter estático de los PNG 10–17 o procedimiento de entrega, **manda CONTEXTO**.
