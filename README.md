@@ -6,17 +6,28 @@ La salida existe. Cuesta. Los **Executores** vuelven. El objetivo no es aplicar 
 
 | | |
 |---|---|
-| Versión | **0.14.0** |
-| Artefacto | **`jobsmenu-0.14.0.jar`** |
+| Versión | **0.14.1** |
+| Artefacto | **`jobsmenu-0.14.1.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
 | Lado | **Cliente** |
 | Niveles | **18 (0–17)** |
 
-## 0.14.0 · Centro de control y lenguaje de interfaz
+## 0.14.1 · Pulido de interfaces y coherencia visual
 
-0.14.0 profundiza el trabajo de 0.12/0.13. La prioridad es que navegar por Opciones, Config y diálogos auxiliares deje de sentirse como entrar y salir de Minecraft vanilla.
+0.14.1 conserva la arquitectura introducida en 0.14.0 y aplica el pase posterior basado en capturas reales del mod. La prioridad es eliminar solapes, fondos vanilla aislados, zonas excesivamente vacías y diferencias entre pantallas Jobs, Minecraft y Forge.
+
+### Correcciones del pase visual
+
+- Accesibilidad deja de mostrar el botón vanilla **Guía de accesibilidad** cuando Jobs ya proporciona su propia navegación inferior; no vuelve a solaparse con `Cerrar expediente`.
+- Multijugador separa título, subtítulo y nota contextual para que ninguna capa de texto invada otra.
+- Español (Uruguay) y las variantes españolas soportadas reutilizan el archivo `es_es`, evitando mezclas como `Close file`, `Notice settings` o subtítulos en inglés.
+- Seleccionar mundo y Mods de Forge se integran en el papel/chrome Jobs sin sustituir su lógica interna.
+- Resource Packs deja de mostrar bloques de dirt aislados dentro de una visita Jobs.
+- Las listas disponen de fallback visual de scrollbar para evitar barras negras o mal dimensionadas cuando una lista no expone todos sus campos internos.
+- El chrome añade reglas, pliegues y estructura estática muy tenue para que las hojas grandes no se sientan vacías sin convertirlas en una UI recargada.
+- El pie reserva espacio para badges y overlays de otros mods y, cuando el ancho lo permite, usa el formulario localizado completo.
 
 ### Options ahora separa Jobs de Minecraft
 
@@ -68,21 +79,20 @@ El ruido visual añadido por el chrome es **estático** y se desactiva cuando co
 
 ### Diálogos vanilla auxiliares tematizados
 
-Nueva `PielVanillaJobs`.
-
-Durante una visita Jobs, diálogos vanilla que conviene conservar por compatibilidad —por ejemplo conexión directa, añadir servidor o confirmaciones— mantienen su lógica y hitboxes originales, pero sus botones y campos de texto reciben una capa de papel/tinta Jobs después del render de Minecraft.
+`PielVanillaJobs` conserva lógica y hitboxes originales en diálogos vanilla que conviene mantener por compatibilidad —por ejemplo conexión directa, añadir servidor o confirmaciones— y les aplica una capa de papel/tinta Jobs después del render de Minecraft.
 
 Las pantallas de terceros no reciben esta sustitución de controles: mantienen su implementación y sólo pueden recibir contexto visual mínimo.
 
 ### Scrollbar y transiciones
 
-- La scrollbar Jobs mantiene rueda/click/drag de Minecraft, pero ahora usa canaleta, topes, marcas de recorrido y tirador de expediente.
-- `TransicionInterfazJobs` gana sombra de carpeta, doble fibra de papel y marcas de archivo.
+- La scrollbar Jobs mantiene rueda/click/drag de Minecraft, pero usa canaleta, topes, marcas de recorrido y tirador de expediente cuando puede obtener los datos reales de la lista.
+- Si una lista externa no expone esos datos, el mod prioriza una presentación utilizable antes que romper la pantalla.
+- `TransicionInterfazJobs` usa sombra de carpeta, doble fibra de papel y marcas de archivo.
 - Movimiento reducido sigue convirtiendo la transición en un fade breve sin desplazamiento obligatorio.
 
 ## Fondos PNG 10–17: estáticos por diseño
 
-La regla introducida en 0.13.0 sigue siendo dura: los ocho PNG suministrados para los niveles **10–17 no se animan**.
+Los ocho PNG suministrados para los niveles **10–17 no se animan**.
 
 No reciben zoom, paneo, parallax, respiración, scanlines animadas, flicker, niebla móvil, motas, presencia ni tratamientos globales que muevan la imagen. `PlantaImagen` hace un cover centrado estable y una integración fija mínima.
 
@@ -95,6 +105,8 @@ Los PNG 10–17 siguen pasando firma PNG, CRC, IDAT, descompresión y dimensione
 Además de Options y Config, permanecen tematizados:
 
 - Multijugador;
+- Seleccionar mundo;
+- Mods / Forge;
 - Controles;
 - Mouse;
 - Teclas;
@@ -125,7 +137,7 @@ Se conserva lógica vanilla cuando aporta compatibilidad y se reimplementa la su
 Correcto:
 
 ```text
-jobsmenu-0.14.0.jar
+jobsmenu-0.14.1.jar
 ```
 
 Prohibido:
@@ -145,7 +157,9 @@ GitHub Actions ejecuta:
 3. `tools/verificar_fondos.py`.
 4. `tools/verificar.py`.
 5. `./gradlew build --stacktrace --no-daemon`.
-6. Publicación de **`jobsmenu-0.14.0.jar`** en `dev-latest` sólo desde `main`.
+6. Publicación de **`jobsmenu-0.14.1.jar`** en `dev-latest` sólo desde `main`.
+
+El PowerShell de despliegue se entrega **después** de que el PR y `main` terminen en verde. El usuario no necesita compilar localmente: el script consume el JAR ya construido por CI y lo instala únicamente en `test-1`.
 
 ## Documentación
 
@@ -153,7 +167,8 @@ GitHub Actions ejecuta:
 - [`CHANGELOG.md`](CHANGELOG.md): historial de cambios.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y pruebas pendientes.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalación del build versionado.
-- [`docs/AUDITORIA_0.14.0_UI.md`](docs/AUDITORIA_0.14.0_UI.md): revisión de esta evolución.
+- [`docs/AUDITORIA_0.14.1_UI_POLISH.md`](docs/AUDITORIA_0.14.1_UI_POLISH.md): auditoría del pase basado en capturas.
+- [`docs/AUDITORIA_0.14.0_UI.md`](docs/AUDITORIA_0.14.0_UI.md): auditoría de la arquitectura anterior.
 - [`docs/DIRECCION_ARTISTICA.md`](docs/DIRECCION_ARTISTICA.md): lenguaje visual.
 - [`docs/compatibilidad.md`](docs/compatibilidad.md): convivencia con otros mods.
 - [`docs/checklist-manual.md`](docs/checklist-manual.md): prueba dentro de Minecraft.
