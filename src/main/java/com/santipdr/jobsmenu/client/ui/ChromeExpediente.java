@@ -117,7 +117,7 @@ public final class ChromeExpediente {
         int ty = y + h - 15;
         int color = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.54F);
 
-        String codigo = formulario + " · N" + String.format(java.util.Locale.ROOT, "%02d", nivel);
+        String codigo = formulario + " - N" + String.format(java.util.Locale.ROOT, "%02d", nivel);
         String revision = "v" + version;
 
         int margen = 13;
@@ -136,7 +136,6 @@ public final class ChromeExpediente {
             g.drawString(font, revisionVisible, x + w - margen - rw, ty, color, false);
         }
 
-        // Pequenas marcas delimitan la zona central reservada al boton.
         int marca = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.16F);
         g.fill(mitad - reservaCentral, ty + 3, mitad - reservaCentral + 4, ty + 4, marca);
         g.fill(mitad + reservaCentral - 4, ty + 3, mitad + reservaCentral, ty + 4, marca);
