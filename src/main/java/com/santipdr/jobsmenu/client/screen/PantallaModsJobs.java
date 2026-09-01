@@ -10,7 +10,7 @@ import net.minecraftforge.client.gui.ModListScreen;
 
 /**
  * Pantalla Forge de mods con continuidad visual Jobs. Se conserva ModListScreen
- * íntegra (filtros, logos, Config, carpeta y panel de información).
+ * integra (filtros, logos, Config, carpeta y panel de informacion).
  */
 public final class PantallaModsJobs extends ModListScreen {
 
