@@ -2,7 +2,6 @@ package com.santipdr.jobsmenu.client.screen;
 
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import com.santipdr.jobsmenu.client.ui.ListasExpediente;
-import com.santipdr.jobsmenu.client.ui.PielVanillaJobs;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -45,7 +44,8 @@ public final class PantallaModsJobs extends ModListScreen {
         RenderSystem.setShaderColor(0.48F, 0.40F, 0.24F, 1.0F);
         super.render(g, mouseX, mouseY, partialTick);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        PielVanillaJobs.dibujar(this, g, mouseX, mouseY);
+        ChromeExpediente.rotuloArchivoCompacto(g, this.font, this.width,
+                net.minecraft.network.chat.Component.translatable("jobsmenu.interfaz.mods.titulo"), "MODS");
         ChromeExpediente.pieArchivo(g, this.font, PANEL_X, PANEL_Y,
                 this.width - PANEL_X * 2, this.height - PANEL_Y * 2, "MODS");
     }

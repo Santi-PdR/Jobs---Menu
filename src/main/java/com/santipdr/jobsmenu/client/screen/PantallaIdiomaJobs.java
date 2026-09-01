@@ -5,16 +5,18 @@ import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.client.ui.BotonExpediente;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import com.santipdr.jobsmenu.client.ui.Paleta;
+import com.santipdr.jobsmenu.client.ui.ToggleExpediente;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.LanguageInfo;
 import net.minecraft.client.resources.language.LanguageManager;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.Objects;
 
@@ -26,7 +28,8 @@ public final class PantallaIdiomaJobs extends Screen {
     private final Options opciones;
     private final LanguageManager idiomas;
     private ListaIdiomas lista;
-    private BotonExpediente unicode;
+    private ToggleExpediente unicode;
+    private EditBox busqueda;
     private String aplicado;
     private String pendiente;
     private int panelX, panelY, panelW, panelH;
@@ -49,7 +52,16 @@ public final class PantallaIdiomaJobs extends Screen {
         this.panelY = Math.max(6, (this.height - panelH) / 2);
 
         int listX = panelX + 20;
-        int listY = panelY + 58;
+        int searchY = panelY + 48;
+        this.busqueda = new EditBox(this.font, listX, searchY, listW, 18,
+                Component.translatable("jobsmenu.interfaz.idioma.buscar"));
+        this.busqueda.setHint(Component.translatable("jobsmenu.interfaz.idioma.buscar"));
+        this.busqueda.setResponder(s -> {
+            if (this.lista != null) this.lista.recargar(s);
+        });
+        this.addRenderableWidget(this.busqueda);
+
+        int listY = panelY + 70;
         int listW = panelW - 40;
         int footerY = panelY + panelH - 31;
         int listH = Math.max(70, footerY - listY - 12);
@@ -59,27 +71,16 @@ public final class PantallaIdiomaJobs extends Screen {
         int gap = 8;
         int bw = Math.max(100, (panelW - 48 - gap) / 2);
         int x0 = panelX + 20;
-        this.unicode = this.addRenderableWidget(new BotonExpediente(
-                x0, footerY, bw, 22, Component.empty(), this::alternarUnicode));
-        actualizarUnicode();
+        this.unicode = this.addRenderableWidget(new ToggleExpediente(
+                x0, footerY, bw, 22, Component.translatable("options.forceUnicodeFont"),
+                () -> this.opciones.forceUnicodeFont().get(), v -> {
+                    this.opciones.forceUnicodeFont().set(v);
+                    this.opciones.save();
+                }));
         this.addRenderableWidget(new BotonExpediente(
                 x0 + bw + gap, footerY, bw, 22,
                 Component.translatable("jobsmenu.interfaz.aplicar_cerrar"),
                 BotonExpediente.Tipo.PRINCIPAL, this::aplicarYCerrar));
-    }
-
-    private void alternarUnicode() {
-        boolean nuevo = !this.opciones.forceUnicodeFont().get();
-        this.opciones.forceUnicodeFont().set(nuevo);
-        this.opciones.save();
-        actualizarUnicode();
-    }
-
-    private void actualizarUnicode() {
-        if (this.unicode == null) return;
-        boolean v = this.opciones.forceUnicodeFont().get();
-        this.unicode.setMessage(Component.translatable("options.forceUnicodeFont").copy()
-                .append(": ").append(CommonComponents.optionStatus(v)));
     }
 
     private void aplicarYCerrar() {
@@ -110,6 +111,13 @@ public final class PantallaIdiomaJobs extends Screen {
         // tambien producia dos scrollbars y filas que parecian salir del panel.
         super.render(g, mouseX, mouseY, partialTick);
 
+        if (this.lista != null) {
+            Component cuenta = Component.translatable("jobsmenu.interfaz.idioma.resultados",
+                    this.lista.cantidad());
+            g.drawString(this.font, cuenta, panelX + panelW - 20 - this.font.width(cuenta),
+                    panelY + 35, Paleta.conAlfa(Paleta.tintaSecundaria(), 0.68F), false);
+        }
+
         if (this.aplicando) {
             g.fill(0, 0, this.width, this.height, Paleta.conAlfa(Paleta.VANO, 0.56F));
             Component msg = Component.translatable("jobsmenu.interfaz.idioma.aplicando");
@@ -125,6 +133,21 @@ public final class PantallaIdiomaJobs extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (this.aplicando) return true;
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (Screen.hasControlDown() && keyCode == GLFW.GLFW_KEY_F && this.busqueda != null) {
+            this.setFocused(this.busqueda);
+            this.busqueda.setFocused(true);
+            return true;
+        }
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE && this.busqueda != null
+                && this.busqueda.isFocused() && !this.busqueda.getValue().isEmpty()) {
+            this.busqueda.setValue("");
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
@@ -149,8 +172,17 @@ public final class PantallaIdiomaJobs extends Screen {
             this.setRenderBackground(false);
             this.setRenderTopAndBottom(false);
             this.setRenderSelection(false);
+            recargar("");
+        }
+
+        void recargar(String filtro) {
+            this.clearEntries();
+            String aguja = filtro == null ? "" : filtro.trim().toLowerCase(java.util.Locale.ROOT);
             EntradaIdioma seleccionada = null;
             for (var e : PantallaIdiomaJobs.this.idiomas.getLanguages().entrySet()) {
+                String nombre = e.getValue().toComponent().getString().toLowerCase(java.util.Locale.ROOT);
+                String codigo = e.getKey().toLowerCase(java.util.Locale.ROOT);
+                if (!aguja.isEmpty() && !nombre.contains(aguja) && !codigo.contains(aguja)) continue;
                 EntradaIdioma entrada = new EntradaIdioma(e.getKey(), e.getValue());
                 this.addEntry(entrada);
                 if (Objects.equals(e.getKey(), PantallaIdiomaJobs.this.pendiente)) seleccionada = entrada;
@@ -158,11 +190,15 @@ public final class PantallaIdiomaJobs extends Screen {
             if (seleccionada != null) {
                 this.setSelected(seleccionada);
                 this.centerScrollOn(seleccionada);
+            } else {
+                this.setScrollAmount(0.0D);
             }
         }
 
         @Override
         public int getRowWidth() { return this.rowW; }
+
+        int cantidad() { return this.children().size(); }
 
         @Override
         protected int getScrollbarPosition() { return this.getRowLeft() + this.getRowWidth() + 4; }
@@ -194,6 +230,13 @@ public final class PantallaIdiomaJobs extends Screen {
             int ty = top + (rowHeight - PantallaIdiomaJobs.this.font.lineHeight) / 2;
             g.drawString(PantallaIdiomaJobs.this.font, label, tx, ty,
                     pending ? Paleta.tintaPrincipal() : Paleta.tintaSecundaria(), false);
+            String codigoTxt = this.codigo;
+            int cw = PantallaIdiomaJobs.this.font.width(codigoTxt);
+            if (rowWidth > 190) {
+                g.drawString(PantallaIdiomaJobs.this.font, codigoTxt,
+                        left + rowWidth - cw - 8, ty,
+                        Paleta.conAlfa(Paleta.tintaSecundaria(), 0.52F), false);
+            }
         }
 
         @Override

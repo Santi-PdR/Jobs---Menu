@@ -1,6 +1,6 @@
 # Música del menú
 
-## Estado en 0.15.0
+## Estado desde 0.15.0 (vigente en 0.16.0)
 
 Jobs incluye su pista de menú directamente en:
 

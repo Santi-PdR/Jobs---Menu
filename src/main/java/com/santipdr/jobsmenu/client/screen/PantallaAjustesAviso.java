@@ -43,6 +43,7 @@ public class PantallaAjustesAviso extends Screen {
     private int panelH;
     private boolean compacta;
     private int contentY;
+    private int tabsX, tabsY, tabW, tabH, tabGap;
 
     public PantallaAjustesAviso(Screen anterior, Options opciones) {
         this(anterior, opciones, Categoria.VISUAL);
@@ -69,6 +70,11 @@ public class PantallaAjustesAviso extends Screen {
         int tabsY = panelY + (compacta ? 48 : 53);
         int tabH = compacta ? 18 : 20;
         int tabW = Math.max(44, (anchoUtil - gap * 4) / 5);
+        this.tabsX = panelX + margen;
+        this.tabsY = tabsY;
+        this.tabW = tabW;
+        this.tabH = tabH;
+        this.tabGap = gap;
 
         int x = panelX + margen;
         for (Categoria c : Categoria.values()) {
@@ -194,6 +200,15 @@ public class PantallaAjustesAviso extends Screen {
         ChromeExpediente.seccion(g, this.font, panelX + margen, panelX + panelW - margen,
                 this.contentY - (compacta ? 6 : 9), Component.translatable(this.categoria.detalle));
 
+        int indice = this.categoria.ordinal();
+        int seleccionadoX = this.tabsX + indice * (this.tabW + this.tabGap);
+        g.fill(seleccionadoX + 5, this.tabsY + this.tabH - 2,
+                seleccionadoX + this.tabW - 5, this.tabsY + this.tabH,
+                Paleta.conAlfa(Paleta.FLUOR, 0.62F));
+        String pagina = String.format(java.util.Locale.ROOT, "%02d / %02d", indice + 1, Categoria.values().length);
+        g.drawString(this.font, pagina, panelX + panelW - margen - this.font.width(pagina),
+                this.contentY - 20, Paleta.conAlfa(Paleta.tintaSecundaria(), 0.54F), false);
+
         if (!compacta) {
             dibujarResumenCategoria(g, margen);
         }
@@ -201,6 +216,23 @@ public class PantallaAjustesAviso extends Screen {
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
         ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "JOBS-014");
         super.render(g, mouseX, mouseY, partialTick);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode >= org.lwjgl.glfw.GLFW.GLFW_KEY_1 && keyCode <= org.lwjgl.glfw.GLFW.GLFW_KEY_5) {
+            abrirCategoria(Categoria.values()[keyCode - org.lwjgl.glfw.GLFW.GLFW_KEY_1]);
+            return true;
+        }
+        if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT) {
+            abrirCategoria(Categoria.values()[Math.floorMod(this.categoria.ordinal() - 1, Categoria.values().length)]);
+            return true;
+        }
+        if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT) {
+            abrirCategoria(Categoria.values()[(this.categoria.ordinal() + 1) % Categoria.values().length]);
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     private void dibujarResumenCategoria(GuiGraphics g, int margen) {

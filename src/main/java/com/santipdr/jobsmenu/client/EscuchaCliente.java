@@ -15,6 +15,7 @@ import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import com.santipdr.jobsmenu.client.ui.ListasExpediente;
 import com.santipdr.jobsmenu.client.ui.PielVanillaJobs;
+import com.santipdr.jobsmenu.client.ui.PulidoInterfazJobs;
 import com.santipdr.jobsmenu.client.ui.TransicionInterfazJobs;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
@@ -94,6 +95,7 @@ public final class EscuchaCliente {
         }
 
         TransicionInterfazJobs.notificar(anterior, siguiente);
+        PulidoInterfazJobs.notificarApertura(siguiente);
         gesto(anterior, siguiente);
     }
 
@@ -110,6 +112,8 @@ public final class EscuchaCliente {
         String clase = pantalla.getClass().getName();
         boolean propia = clase.startsWith("com.santipdr.jobsmenu.");
         if (propia) {
+            PielVanillaJobs.dibujar(pantalla, evento.getGuiGraphics(),
+                    evento.getMouseX(), evento.getMouseY());
             ListasExpediente.renderarBarras(pantalla, evento.getGuiGraphics());
         } else if (SesionMenu.activa()) {
             if (clase.startsWith("net.minecraft.")) {
@@ -118,6 +122,10 @@ public final class EscuchaCliente {
             }
             ChromeExpediente.bandaContextual(evento.getGuiGraphics(),
                     Minecraft.getInstance().font, pantalla.width, pantalla.height);
+        }
+        if (propia) {
+            PulidoInterfazJobs.dibujar(pantalla, evento.getGuiGraphics(),
+                    evento.getMouseX(), evento.getMouseY());
         }
         TransicionInterfazJobs.dibujar(pantalla, evento.getGuiGraphics());
     }

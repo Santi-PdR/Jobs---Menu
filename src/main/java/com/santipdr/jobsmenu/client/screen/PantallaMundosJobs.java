@@ -2,7 +2,6 @@ package com.santipdr.jobsmenu.client.screen;
 
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import com.santipdr.jobsmenu.client.ui.ListasExpediente;
-import com.santipdr.jobsmenu.client.ui.PielVanillaJobs;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
@@ -18,6 +17,7 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
 
     private static final int PANEL_X = 12;
     private static final int PANEL_Y = 8;
+    private EditBox busqueda;
 
     public PantallaMundosJobs(Screen anterior) {
         super(anterior);
@@ -30,8 +30,24 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
         for (var child : this.children()) {
             if (child instanceof EditBox campo) {
                 campo.setY(PANEL_Y + 43);
+                this.busqueda = campo;
             }
         }
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (Screen.hasControlDown() && keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_F && this.busqueda != null) {
+            this.setFocused(this.busqueda);
+            this.busqueda.setFocused(true);
+            return true;
+        }
+        if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE && this.busqueda != null
+                && this.busqueda.isFocused() && !this.busqueda.getValue().isEmpty()) {
+            this.busqueda.setValue("");
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
@@ -47,8 +63,6 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
         // dejamos que vanilla pinte sus previews/lista y luego vestimos controles.
         renderBackground(g);
         super.render(g, mouseX, mouseY, partialTick);
-        PielVanillaJobs.dibujar(this, g, mouseX, mouseY);
-
         // SelectWorldScreen pinta su titulo vanilla sobre el marco. Se cubre
         // solo esa franja; el buscador queda debajo y conserva su hitbox real.
         int panelW = this.width - PANEL_X * 2;

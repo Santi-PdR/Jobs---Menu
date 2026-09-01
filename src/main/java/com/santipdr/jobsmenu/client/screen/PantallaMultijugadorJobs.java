@@ -6,12 +6,14 @@ import com.santipdr.jobsmenu.client.ui.Paleta;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.multiplayer.ServerSelectionList;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
 import net.minecraft.network.chat.Component;
+import org.lwjgl.glfw.GLFW;
 
 /**
  * Multijugador de Jobs. La lista, ping, LAN, MOTD y acciones siguen siendo las
@@ -22,7 +24,7 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
     private static final String SERVIDOR_IP = "JobsDosh.exaroton.me:56477";
 
     private Button realSelect, realDirect, realAdd, realEdit, realDelete, realRefresh, realCancel;
-    private BotonExpediente select, edit, delete;
+    private BotonExpediente select, edit, delete, refresh;
     private int panelX, panelY, panelW, panelH;
 
     public PantallaMultijugadorJobs(Screen anterior) {
@@ -110,29 +112,30 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         int xTop = this.panelX + margen;
         int xBottom = this.panelX + margen;
 
-        this.select = agregar(xTop, topY, topW, "selectServer.select",
+        this.select = agregar(xTop, topY, topW, "selectServer.select", "jobsmenu.tooltip.servidor.entrar",
                 BotonExpediente.Tipo.PRINCIPAL, this.realSelect);
-        agregar(xTop + topW + gap, topY, topW, "selectServer.direct",
+        agregar(xTop + topW + gap, topY, topW, "selectServer.direct", "jobsmenu.tooltip.servidor.directa",
                 BotonExpediente.Tipo.NORMAL, this.realDirect);
-        agregar(xTop + (topW + gap) * 2, topY, topW, "selectServer.add",
+        agregar(xTop + (topW + gap) * 2, topY, topW, "selectServer.add", "jobsmenu.tooltip.servidor.agregar",
                 BotonExpediente.Tipo.NORMAL, this.realAdd);
 
-        this.edit = agregar(xBottom, bottomY, bottomW, "selectServer.edit",
+        this.edit = agregar(xBottom, bottomY, bottomW, "selectServer.edit", "jobsmenu.tooltip.servidor.editar",
                 BotonExpediente.Tipo.NORMAL, this.realEdit);
-        this.delete = agregar(xBottom + bottomW + gap, bottomY, bottomW, "selectServer.delete",
+        this.delete = agregar(xBottom + bottomW + gap, bottomY, bottomW, "selectServer.delete", "jobsmenu.tooltip.servidor.eliminar",
                 BotonExpediente.Tipo.TERMINAL, this.realDelete);
-        agregar(xBottom + (bottomW + gap) * 2, bottomY, bottomW, "selectServer.refresh",
+        this.refresh = agregar(xBottom + (bottomW + gap) * 2, bottomY, bottomW, "selectServer.refresh", "jobsmenu.tooltip.servidor.actualizar",
                 BotonExpediente.Tipo.NORMAL, this.realRefresh);
-        agregar(xBottom + (bottomW + gap) * 3, bottomY, bottomW, "gui.cancel",
+        agregar(xBottom + (bottomW + gap) * 3, bottomY, bottomW, "gui.cancel", "jobsmenu.tooltip.volver",
                 BotonExpediente.Tipo.NORMAL, this.realCancel);
         sincronizarEstados();
     }
 
-    private BotonExpediente agregar(int x, int y, int w, String clave,
+    private BotonExpediente agregar(int x, int y, int w, String clave, String ayuda,
                                      BotonExpediente.Tipo tipo, Button real) {
         BotonExpediente b = new BotonExpediente(x, y, w, 21,
                 Component.translatable(clave), tipo, () -> pulsar(real));
         this.addRenderableWidget(b);
+        b.setTooltip(Tooltip.create(Component.translatable(ayuda)));
         return b;
     }
 
@@ -145,6 +148,16 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         if (this.select != null) this.select.active = this.realSelect != null && this.realSelect.active;
         if (this.edit != null) this.edit.active = !oficial && this.realEdit != null && this.realEdit.active;
         if (this.delete != null) this.delete.active = !oficial && this.realDelete != null && this.realDelete.active;
+        if (oficial) {
+            Component ayuda = Component.translatable("jobsmenu.tooltip.servidor.protegido");
+            if (this.edit != null) this.edit.setTooltip(Tooltip.create(ayuda));
+            if (this.delete != null) this.delete.setTooltip(Tooltip.create(ayuda));
+        } else {
+            if (this.edit != null) this.edit.setTooltip(Tooltip.create(
+                    Component.translatable("jobsmenu.tooltip.servidor.editar")));
+            if (this.delete != null) this.delete.setTooltip(Tooltip.create(
+                    Component.translatable("jobsmenu.tooltip.servidor.eliminar")));
+        }
     }
 
     private boolean servidorOficialSeleccionado() {
@@ -186,6 +199,12 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         Component oficial = Component.translatable("jobsmenu.servidor.oficial");
         g.drawString(this.font, oficial, tarjetaX + 9, tarjetaY + 5,
                 Paleta.conAlfa(Paleta.FLUOR, 0.90F), false);
+        Component fijado = Component.translatable("jobsmenu.servidor.fijado");
+        int fw = this.font.width(fijado);
+        if (tarjetaW > 250) {
+            g.drawString(this.font, fijado, tarjetaX + tarjetaW / 2 - fw / 2, tarjetaY + 5,
+                    Paleta.conAlfa(Paleta.PARED_ALTA, 0.78F), false);
+        }
         int ipW = this.font.width(SERVIDOR_IP);
         if (ipW < tarjetaW / 2) {
             g.drawString(this.font, SERVIDOR_IP, tarjetaX + tarjetaW - ipW - 8, tarjetaY + 5,
@@ -193,5 +212,14 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         }
 
         ChromeExpediente.pieArchivo(g, this.font, panelX, panelY, panelW, panelH, "ACCESS");
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == GLFW.GLFW_KEY_F5 && this.realRefresh != null && this.realRefresh.active) {
+            this.realRefresh.onPress();
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 }

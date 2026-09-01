@@ -133,6 +133,25 @@ public final class ChromeExpediente {
                 Paleta.conAlfa(Paleta.PARED, 0.54F));
     }
 
+    /** Rotulo pequeno para pantallas vanilla/Forge donde no se debe tapar la lista. */
+    public static void rotuloArchivoCompacto(GuiGraphics g, Font font, int ancho,
+                                             Component titulo, String codigo) {
+        String texto = ajustar(font, titulo == null ? "" : titulo.getString(),
+                Math.max(40, Math.min(230, ancho - 90)));
+        int tw = font.width(texto);
+        int w = Math.min(ancho - 32, Math.max(112, tw + 46));
+        int x = (ancho - w) / 2;
+        g.fill(x, 7, x + w, 28, Paleta.conAlfa(Paleta.VANO, 0.94F));
+        g.fill(x, 27, x + w, 28, Paleta.conAlfa(Paleta.PARED_ALTA, 0.46F));
+        g.fill(x + 7, 11, x + 9, 24, Paleta.conAlfa(Paleta.FLUOR, 0.54F));
+        g.drawString(font, texto, x + 15, 13, Paleta.conAlfa(Paleta.PAPEL, 0.90F), false);
+        if (codigo != null && w > 170) {
+            int cw = font.width(codigo);
+            g.drawString(font, codigo, x + w - cw - 8, 13,
+                    Paleta.conAlfa(Paleta.TECHO, 0.46F), false);
+        }
+    }
+
     /** Pie discreto para archivos oscuros. */
     public static void pieArchivo(GuiGraphics g, Font font, int x, int y, int w, int h,
                                   String formulario) {
@@ -267,7 +286,7 @@ public final class ChromeExpediente {
         g.fill(centro + reservaCentral - 4, ty + 3, centro + reservaCentral, ty + 4, marca);
     }
 
-    private static String ajustar(Font font, String texto, int maximo) {
+    public static String ajustar(Font font, String texto, int maximo) {
         if (texto == null || maximo <= 8) return "";
         if (font.width(texto) <= maximo) return texto;
         String puntos = "...";

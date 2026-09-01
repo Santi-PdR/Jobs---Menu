@@ -8,8 +8,8 @@ Documento maestro del estado **vigente** del mod. El historial de implementacion
 | Rama de entrega | `main` |
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
-| Versión actual | **0.15.0** |
-| Artefacto esperado | **`jobsmenu-0.15.0.jar`** |
+| Versión actual | **0.16.0** |
+| Artefacto esperado | **`jobsmenu-0.16.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -62,7 +62,15 @@ Todos comparten rotación de Nivel, apagón, música, camas ambientales, avisos,
 
 Sobre niveles 10–17 no se ejecutan las capas animadas de materiales, dirección artística, tratamiento, presencia, motas, eventos ni pulido de cámara. Los apagones y transiciones entre Niveles se conservan porque pertenecen al estado general del menú, no a la animación de la imagen.
 
-## 4. Interfaz 0.15.0
+## 4. Interfaz 0.16.0
+
+0.16.0 añade un sistema de pulido transversal y 64 mejoras trazables: márgenes seguros, foco por teclado, confirmación de cambios, entrada adaptable, controles con estados más claros, tooltips, búsquedas y atajos. Idioma, Ajustes de aviso, Singleplayer, Multiplayer, Mods y Resource Packs reciben un pase específico sin sustituir sus listas o acciones sensibles.
+
+El servidor oficial `JobsDosh.exaroton.me:56477` queda traducido, fijado, primero en la lista y protegido frente a edición o borrado. Los recursos audiovisuales propios forman parte del mod y no se presentan como un paquete seleccionable redundante.
+
+La lista completa y verificable está en `docs/AUDITORIA_0.16.0_64_MEJORAS.md`.
+
+### Base heredada de 0.15.0
 
 0.15.0 conserva la arquitectura autónoma y aplica un segundo pase basado en uso real: paneles compactos, marcos oscuros para archivos extensos, scroll estable, ayuda contextual y jerarquías nuevas para mundos, servidores, mods y recursos.
 
@@ -263,10 +271,11 @@ Además del CI:
 
 ## 9. Documentación vigente
 
-- `README.md`: resumen de 0.15.0.
+- `README.md`: resumen de 0.16.0.
 - `CHANGELOG.md`: historial.
 - `KNOWN_ISSUES.md`: pruebas/riesgos pendientes.
 - `docs/AUDITORIA_0.15.0_UI_POLISH.md`: auditoría del pase compacto y de archivos.
+- `docs/AUDITORIA_0.16.0_64_MEJORAS.md`: inventario del pase profesional.
 - `docs/AUDITORIA_0.14.0_UI.md`: arquitectura previa conservada como registro.
 - `docs/DESPLIEGUE.md`: instalación.
 - `docs/compatibilidad.md`: convivencia con otros mods.
