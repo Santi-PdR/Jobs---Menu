@@ -22,8 +22,6 @@ public final class PantallaOpcionesJobs extends Screen {
     private final Options opciones;
     private int panelX, panelY, panelW, panelH;
     private boolean compacta;
-    private int configY;
-    private int sistemaY;
 
     public PantallaOpcionesJobs(Screen anterior, Options opciones) {
         super(Component.translatable("jobsmenu.interfaz.opciones.titulo"));
@@ -49,15 +47,13 @@ public final class PantallaOpcionesJobs extends Screen {
         int y0 = this.panelY + (compacta ? 47 : 56);
         int paso = compacta ? 22 : 25;
 
-        this.configY = y0;
         BotonExpediente ajustesJobs = this.addRenderableWidget(new BotonExpediente(
                 x0, y0, anchoUtil, bh,
                 Component.translatable("jobsmenu.ajustes.boton"),
                 BotonExpediente.Tipo.JOBS, this::abrirAviso));
         ajustesJobs.setTooltip(Tooltip.create(Component.translatable("jobsmenu.ajustes.boton.detalle")));
 
-        this.sistemaY = y0 + bh + (compacta ? 5 : 10);
-        int sy = this.sistemaY;
+        int sy = y0 + bh + (compacta ? 5 : 10);
 
         boton(x0, sy, bw, bh, "options.skinCustomisation", "jobsmenu.tooltip.piel", this::abrirPiel);
         boton(x1, sy, bw, bh, "options.sounds", "jobsmenu.tooltip.sonido", this::abrirSonido);
@@ -106,15 +102,6 @@ public final class PantallaOpcionesJobs extends Screen {
         ChromeExpediente.panel(g, panelX, panelY, panelW, panelH);
         ChromeExpediente.cabecera(g, this.font, this.title,
                 Component.translatable("jobsmenu.interfaz.opciones.subtitulo"), panelX, panelY, panelW);
-
-        if (!this.compacta) {
-            int margen = 20;
-            ChromeExpediente.seccion(g, this.font, panelX + margen, panelX + panelW - margen,
-                    this.configY - 9, Component.translatable("jobsmenu.titulo"));
-            ChromeExpediente.seccion(g, this.font, panelX + margen, panelX + panelW - margen,
-                    this.sistemaY - 10, Component.translatable("options.title"));
-
-        }
 
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
         ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "CFG-014");

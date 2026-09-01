@@ -1,5 +1,27 @@
 # Registro de cambios
 
+## 0.16.2 — Interfaz neutra y ciclo de sesión seguro — 2026-09-01
+
+### Interfaz
+
+- Sustituida la paleta amarilla por hueso frío, grafito y gris verdoso desaturado.
+- Reemplazado el tinte sepia de pantallas vanilla/Forge por atenuación gris neutral.
+- Las cabeceras de Mundos, Multiplayer y Resource Packs se dibujan en un plano frontal opaco; los títulos vanilla dejan de mezclarse con Jobs.
+- Mods oculta su título vanilla sin agregar una segunda cabecera sobre el panel de información.
+- Idioma usa un campo de búsqueda centrado, sin sombra ni doble impresión de texto.
+- Options elimina los rótulos de sección `JOBS`/`Options` que quedaban detrás de `Notice settings`.
+
+### Servidores y sesión
+
+- Multiplayer deduplica `JobsDosh.exaroton.me:56477`, conserva una sola entrada localizada y elimina el servidor legado `Ghoul Outbreak`.
+- Salir de mundo, servidor, kick o pausa vuelve a `PantallaNivel` en vez de exponer el título vanilla.
+- Login, logout y el tick con nivel activo cortan inmediatamente música y camas del menú; no existe fundido audible dentro del juego.
+
+### Entrega
+
+- Versión y artefacto: **0.16.2** / **`jobsmenu-0.16.2.jar`**.
+- Contratos de aceptación: `docs/AUDITORIA_0.16.2_SESION_UI.md`.
+
 ## 0.16.1 — Corrección visual basada en capturas — 2026-09-01
 
 ### Fallos corregidos

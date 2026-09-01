@@ -925,6 +925,42 @@ def verificar_mezcla() -> None:
             aviso(f"Las camas del nivel {nivel} repiten cada {horas:.1f} h.")
 
 
+def verificar_ui_sesion_0162() -> None:
+    """Contratos nacidos de las capturas y la prueba de sesión 0.16.1."""
+    base = RAIZ / "src/main/java/com/santipdr/jobsmenu/client"
+    paleta = leer(base / "ui/Paleta.java")
+    chrome = leer(base / "ui/ChromeExpediente.java")
+    opciones = leer(base / "screen/PantallaOpcionesJobs.java")
+    idioma = leer(base / "screen/PantallaIdiomaJobs.java")
+    multi = leer(base / "screen/PantallaMultijugadorJobs.java")
+    escucha = leer(base / "EscuchaCliente.java")
+    sesion = leer(base / "SesionMenu.java")
+    musica = leer(base / "sound/GestorMusica.java")
+
+    invariantes = (
+        ("ARCHIVO_ACENTO = 0xFFB2BBB5", paleta, "paleta neutra de archivo"),
+        ("translate(0.0F, 0.0F, 450.0F)", chrome, "cabecera frontal sobre título vanilla"),
+        ("CampoBusquedaCentrado", idioma, "buscador de Idioma centrado"),
+        ("ghoul outbreak", multi, "migración del servidor Ghoul"),
+        ("oficialConservado", multi, "deduplicación de la IP oficial"),
+        ("ClientPlayerNetworkEvent.LoggingIn", escucha, "corte de audio al conectar"),
+        ("ClientPlayerNetworkEvent.LoggingOut", escucha, "retorno tras desconexión"),
+        ("retornoDesdeJuego", escucha, "redirección al menú Jobs"),
+        ("GestorMusica.detenerAhora()", sesion, "corte inmediato desde la sesión"),
+        ("public static void detenerAhora()", musica, "corte inmediato de música"),
+    )
+    for fragmento, fuente, descripcion in invariantes:
+        if fragmento not in fuente:
+            fallo(f"0.16.2 perdió el contrato de {descripcion}.")
+
+    if 'Component.translatable("options.title")' in opciones:
+        fallo("Options volvió a dibujar el rótulo vanilla bajo Config Jobs.")
+    for tinte in ("0.72F, 0.67F, 0.52F", "0.70F, 0.65F, 0.50F"):
+        for ruta in (base / "screen").glob("*.java"):
+            if tinte in leer(ruta):
+                fallo(f"{ruta.name} recuperó el filtro amarillo global {tinte}.")
+
+
 def main() -> int:
     props = propiedades()
     verificar_versiones(props)
@@ -946,6 +982,7 @@ def main() -> int:
     verificar_alcance_opciones()
     verificar_auditoria_fondos()
     verificar_recursos()
+    verificar_ui_sesion_0162()
 
     # Los subtitulos que declara sounds.json tambien son cadenas traducibles.
     for clave in sorted(SUBTITULOS):

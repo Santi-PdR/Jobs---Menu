@@ -6,13 +6,25 @@ La salida existe. Cuesta. Los **Executores** vuelven. El objetivo no es aplicar 
 
 | | |
 |---|---|
-| Versión | **0.16.1** |
-| Artefacto | **`jobsmenu-0.16.1.jar`** |
+| Versión | **0.16.2** |
+| Artefacto | **`jobsmenu-0.16.2.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
 | Lado | **Cliente** |
 | Niveles | **18 (0–17)** |
+
+## 0.16.2 · Corrección estructural de interfaz y sesión
+
+0.16.2 elimina el filtro amarillo global y usa una paleta neutra de hueso frío,
+grafito y gris verdoso. Las cabeceras custom se dibujan en un plano frontal
+opaco para ocultar realmente los títulos vanilla, Idioma usa un buscador
+centrado sin sombra y Options deja de imprimir rótulos residuales bajo Config.
+
+Multiplayer conserva un único registro para `JobsDosh.exaroton.me:56477`,
+deduplica su IP y elimina el acceso legado `Ghoul Outbreak`. Al entrar a un
+mundo o servidor, música y ambiente se detienen inmediatamente; al salir, el
+flujo vuelve al menú Jobs incluso tras kick, desconexión o pausa vanilla.
 
 ## 0.16.1 · Corrección visual basada en capturas reales
 
@@ -143,7 +155,7 @@ Se conserva lógica vanilla cuando aporta compatibilidad y se reimplementa la su
 Correcto:
 
 ```text
-jobsmenu-0.16.1.jar
+jobsmenu-0.16.2.jar
 ```
 
 Prohibido:
@@ -163,7 +175,7 @@ GitHub Actions ejecuta:
 3. `tools/verificar_fondos.py`.
 4. `tools/verificar.py`.
 5. `./gradlew build --stacktrace --no-daemon`.
-6. Publicación de **`jobsmenu-0.16.1.jar`** en `dev-latest` sólo desde `main`.
+6. Publicación de **`jobsmenu-0.16.2.jar`** en `dev-latest` sólo desde `main`.
 
 El PowerShell de despliegue se entrega **después** de que el PR y `main` terminen en verde. El usuario no necesita compilar localmente: el script consume el JAR ya construido por CI y lo instala únicamente en `test-1`.
 
@@ -176,6 +188,7 @@ El PowerShell de despliegue se entrega **después** de que el PR y `main` termin
 - [`docs/AUDITORIA_0.15.0_UI_POLISH.md`](docs/AUDITORIA_0.15.0_UI_POLISH.md): auditoría del pase basado en capturas.
 - [`docs/AUDITORIA_0.16.0_64_MEJORAS.md`](docs/AUDITORIA_0.16.0_64_MEJORAS.md): inventario verificable del pase profesional.
 - [`docs/AUDITORIA_0.16.1_CAPTURAS.md`](docs/AUDITORIA_0.16.1_CAPTURAS.md): correcciones derivadas de la prueba dentro del juego.
+- [`docs/AUDITORIA_0.16.2_SESION_UI.md`](docs/AUDITORIA_0.16.2_SESION_UI.md): contratos de color, retorno y audio del pase actual.
 - [`docs/AUDITORIA_0.14.1_UI_POLISH.md`](docs/AUDITORIA_0.14.1_UI_POLISH.md): pase visual anterior.
 - [`docs/AUDITORIA_0.14.0_UI.md`](docs/AUDITORIA_0.14.0_UI.md): auditoría de la arquitectura anterior.
 - [`docs/DIRECCION_ARTISTICA.md`](docs/DIRECCION_ARTISTICA.md): lenguaje visual.

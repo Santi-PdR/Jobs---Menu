@@ -176,6 +176,18 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         }
     }
 
+    /** Corte de seguridad al entrar o volver de una sesion jugable. */
+    public static void detenerAhora() {
+        GestorMusica anterior = activa;
+        activa = null;
+        reintento = 0;
+        if (anterior != null) {
+            anterior.volume = 0.0F;
+            anterior.actual = 0.0F;
+            anterior.stop();
+        }
+    }
+
     /** Invalida referencias del SoundEngine anterior tras F3+T o packs. */
     public static void recursosRecargados() {
         GestorMusica anterior = activa;

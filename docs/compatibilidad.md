@@ -1,4 +1,4 @@
-# Compatibilidad y despliegue — 0.16.1
+# Compatibilidad y despliegue — 0.16.2
 
 ## Perfil soportado
 
@@ -8,8 +8,8 @@
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente; el servidor no necesita Jobs Menu |
-| Versión del mod | **0.16.1** |
-| Artefacto | `build/libs/jobsmenu-0.16.1.jar` |
+| Versión del mod | **0.16.2** |
+| Artefacto | `build/libs/jobsmenu-0.16.2.jar` |
 
 Jobs Menu distingue entre **pantallas que controla**, **pantallas vanilla cuya lógica conserva** y **pantallas de otros mods que debe respetar**. La compatibilidad tiene prioridad sobre una reimplementación cosmética frágil.
 
@@ -135,9 +135,9 @@ Probar ES ↔ EN, Español (Uruguay), F3+T, aplicar/quitar packs y volver al men
 
 ## Multijugador
 
-`PantallaMultijugadorJobs` conserva `ServerSelectionList`, ping, MOTD, favicons, LAN, servidores guardados y las acciones vanilla de seleccionar, conexión directa, añadir, editar, borrar, refrescar y cancelar.
+`PantallaMultijugadorJobs` conserva `ServerSelectionList`, ping, MOTD, favicons, LAN y las acciones vanilla de seleccionar, conexión directa, añadir, editar, borrar, refrescar y cancelar.
 
-La cabecera **Puestos de acceso** reserva una tarjeta para `JobsDosh.exaroton.me:56477`. El servidor se guarda con nombre localizado, se mueve al primer renglón y no permite Edit/Delete desde los botones Jobs.
+La cabecera **Puestos de acceso** reserva una tarjeta para `JobsDosh.exaroton.me:56477`. El servidor se guarda con nombre localizado, se deduplica por IP, se mueve al primer renglón y no permite Edit/Delete desde los botones Jobs. La migración retira `Ghoul Outbreak` y entradas que suplanten el nombre oficial con otra IP; Jobs es el único servidor instalado automáticamente por el mod.
 
 Los diálogos auxiliares pueden recibir `PielVanillaJobs`, pero siguen usando la lógica original.
 
@@ -145,7 +145,7 @@ Los diálogos auxiliares pueden recibir `PielVanillaJobs`, pero siguen usando la
 
 `PantallaMundosJobs` conserva `SelectWorldScreen`: previews, selección y operaciones vanilla siguen siendo responsabilidad de Minecraft. Jobs lo presenta como **Archivo de turnos**, reubica el buscador y elimina bandas/fondos que rompían continuidad.
 
-`PantallaModsJobs` conserva `ModListScreen` de Forge: búsqueda, orden, logos, panel de información, Config y carpeta de mods permanecen intactos. El render blanco fijo se tiñe a sepia sin reimplementar el registro de mods.
+`PantallaModsJobs` conserva `ModListScreen` de Forge: búsqueda, orden, logos, panel de información, Config y carpeta de mods permanecen intactos. El render blanco fijo se atenúa con gris neutro sin reimplementar el registro de mods ni amarillear sus recursos.
 
 ## Audio y lifecycle
 
@@ -153,7 +153,7 @@ La visita al menú mantiene continuidad de música y camas ambientales al navega
 
 La música se distribuye dentro del JAR. `LimpiezaRecursosLegados` sólo retira el antiguo `resourcepacks/jobsmenu-musica-activa`; Jobs no crea un pack nuevo.
 
-Al entrar a un mundo o terminar la visita, las camas se cierran. Las recargas de recursos se manejan aparte para no conservar referencias al motor de sonido anterior.
+Los eventos de login/logout y el tick defensivo con nivel activo detienen inmediatamente música y camas. No hay cola ni fundido audible dentro de un mundo o servidor. Al abandonar una sesión, el primer destino vanilla de título/multijugador/Realms se reconduce a `PantallaNivel`; una pantalla de desconexión conserva antes su mensaje.
 
 ## Instancia de referencia
 
@@ -164,7 +164,7 @@ C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\
 El JAR de esta entrega debe quedar únicamente como:
 
 ```text
-C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.16.1.jar
+C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.16.2.jar
 ```
 
 No se mantiene un `.ps1` dentro del repositorio. El procedimiento está en [`DESPLIEGUE.md`](DESPLIEGUE.md).
@@ -191,7 +191,7 @@ CI certifica:
 3. PNG 10–17;
 4. recursos/idiomas/ASCII/coherencia estática;
 5. build Forge;
-6. preparación de `jobsmenu-0.16.1.jar`.
+6. preparación de `jobsmenu-0.16.2.jar`.
 
 La publicación a `dev-latest` sólo ocurre desde `main`.
 

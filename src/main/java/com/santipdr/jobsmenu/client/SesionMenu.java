@@ -29,14 +29,10 @@ public final class SesionMenu {
 
     private static boolean activa;
 
-    /** Permite volver una vez al titulo vanilla despues de abandonar un mundo. */
-    private static boolean salidaAlTituloPendiente;
-
     private SesionMenu() {
     }
 
     public static void abrir() {
-        salidaAlTituloPendiente = false;
         // Al volver de un mundo, Minecraft puede haber retirado todos los
         // canales del SoundEngine sin marcar como detenida nuestra instancia
         // Java. Si se conserva esa referencia, asegurar() cree que el tema
@@ -52,36 +48,10 @@ public final class SesionMenu {
     }
 
     public static void cerrar() {
-        if (!activa) {
-            return;
-        }
         activa = false;
-        // El tema baja solo hasta detenerse (ver GestorMusica.tick); detenerlo
-        // aca lo cortaria en seco y soltar la referencia permitiria crear una
-        // copia mientras la anterior todavia se oye. Las camas del recinto, en
-        // cambio, se detienen ahora mismo: la visita termino (mundo, apagado
-        // del menu o salida al titulo) y no tienen que seguir sonando en la
-        // nada.
+        // Fuera del menu no puede sobrevivir ni un tick de musica o ambiente.
+        GestorMusica.detenerAhora();
         GestorAmbiente.cerrar();
-    }
-
-    /**
-     * Prepara la salida real del mundo. El siguiente TitleScreen debe quedar
-     * vanilla aunque el menu propio siga habilitado para la proxima visita.
-     */
-    public static void prepararSalidaAlTitulo() {
-        activa = false;
-        salidaAlTituloPendiente = true;
-        // Se abandona el mundo: el recinto no debe seguir sonando detras del
-        // "Guardando..." ni del titulo vanilla.
-        GestorAmbiente.cerrar();
-    }
-
-    /** Consume el permiso de mostrar una vez el titulo vanilla. */
-    public static boolean consumirSalidaAlTitulo() {
-        boolean salida = salidaAlTituloPendiente;
-        salidaAlTituloPendiente = false;
-        return salida;
     }
 
     /**

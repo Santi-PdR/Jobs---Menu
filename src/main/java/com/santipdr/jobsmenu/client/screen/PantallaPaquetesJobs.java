@@ -43,7 +43,7 @@ public final class PantallaPaquetesJobs extends PackSelectionScreen {
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        RenderSystem.setShaderColor(0.72F, 0.67F, 0.52F, 1.0F);
+        RenderSystem.setShaderColor(0.72F, 0.72F, 0.72F, 1.0F);
         super.render(g, mouseX, mouseY, partialTick);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         ChromeExpediente.reemplazarRotuloArchivo(g, this.font,

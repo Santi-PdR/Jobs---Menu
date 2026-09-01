@@ -163,11 +163,9 @@ public class PantallaEstancia extends Screen {
         boolean local = this.minecraft.isLocalServer();
         boolean realms = this.minecraft.isConnectedToRealms();
 
-        // El TitleScreen siguiente debe ser el de vanilla. Sin esta marca,
-        // EscuchaCliente lo volveria a transformar en PantallaNivel porque el
-        // menu propio sigue habilitado para la proxima visita, atrapando al
-        // jugador en el aviso despues de abandonar el mundo.
-        SesionMenu.prepararSalidaAlTitulo();
+        // Al abandonar el mundo se corta inmediatamente todo audio del menu.
+        // EscuchaCliente reconduce el destino vanilla al menu Jobs.
+        SesionMenu.cerrar();
 
         if (this.minecraft.level != null) {
             this.minecraft.level.disconnect();

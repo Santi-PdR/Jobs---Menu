@@ -31,8 +31,8 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
         for (var child : this.children()) {
             if (child instanceof EditBox campo) {
                 campo.setY(PANEL_Y + 43);
-                campo.setTextColor(com.santipdr.jobsmenu.client.ui.Paleta.PARED_ALTA);
-                campo.setTextColorUneditable(com.santipdr.jobsmenu.client.ui.Paleta.PARED);
+                campo.setTextColor(com.santipdr.jobsmenu.client.ui.Paleta.ARCHIVO_TEXTO);
+                campo.setTextColorUneditable(com.santipdr.jobsmenu.client.ui.Paleta.ARCHIVO_TEXTO_TENUE);
                 this.busqueda = campo;
             }
         }
@@ -65,7 +65,7 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
         // SelectWorldScreen no necesita conocer nada del mod: preparamos la hoja,
         // dejamos que vanilla pinte sus previews/lista y luego vestimos controles.
         renderBackground(g);
-        RenderSystem.setShaderColor(0.72F, 0.67F, 0.52F, 1.0F);
+        RenderSystem.setShaderColor(0.72F, 0.72F, 0.72F, 1.0F);
         super.render(g, mouseX, mouseY, partialTick);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         int panelW = this.width - PANEL_X * 2;

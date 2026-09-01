@@ -119,18 +119,18 @@ public final class ChromeExpediente {
         int tw = font.width(tituloVisible);
         int ty = panelY + 12;
         g.drawString(font, tituloVisible, centro - tw / 2, ty,
-                Paleta.conAlfa(Paleta.PARED_ALTA, 0.92F), false);
+                Paleta.conAlfa(Paleta.ARCHIVO_TEXTO, 0.92F), false);
 
         if (subtitulo != null) {
             String texto = ajustar(font, subtitulo.getString(), Math.max(20, panelW - 52));
             int sw = font.width(texto);
             g.drawString(font, texto, centro - sw / 2, ty + 13,
-                    Paleta.conAlfa(Paleta.PARED, 0.76F), false);
+                    Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.82F), false);
         }
-        int linea = Paleta.conAlfa(Paleta.PARED_ALTA, 0.34F);
+        int linea = Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.34F);
         g.fill(panelX + 18, panelY + 41, panelX + panelW - 18, panelY + 42, linea);
         g.fill(centro - 12, panelY + 40, centro + 12, panelY + 43,
-                Paleta.conAlfa(Paleta.PARED, 0.54F));
+                Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.54F));
     }
 
     /**
@@ -141,20 +141,26 @@ public final class ChromeExpediente {
     public static void reemplazarCabeceraArchivo(GuiGraphics g, Font font,
                                                  Component titulo, Component subtitulo,
                                                  int panelX, int panelY, int panelW) {
+        g.pose().pushPose();
+        g.pose().translate(0.0F, 0.0F, 450.0F);
         g.fill(panelX + 1, panelY + 1, panelX + panelW - 1, panelY + 43, Paleta.VANO);
         cabeceraArchivo(g, font, titulo, subtitulo, panelX, panelY, panelW);
+        g.pose().popPose();
     }
 
     /** Cabecera de una sola linea que deja intactos los rotulos de listas vanilla. */
     public static void reemplazarRotuloArchivo(GuiGraphics g, Font font, Component titulo,
                                                int panelX, int panelY, int panelW) {
+        g.pose().pushPose();
+        g.pose().translate(0.0F, 0.0F, 450.0F);
         g.fill(panelX + 1, panelY + 1, panelX + panelW - 1, panelY + 35, Paleta.VANO);
         String texto = ajustar(font, titulo == null ? "" : titulo.getString(), panelW - 70);
         int tw = font.width(texto);
         g.drawString(font, texto, panelX + (panelW - tw) / 2, panelY + 12,
-                Paleta.conAlfa(Paleta.PARED_ALTA, 0.92F), false);
+                Paleta.conAlfa(Paleta.ARCHIVO_TEXTO, 0.92F), false);
         g.fill(panelX + 18, panelY + 31, panelX + panelW - 18, panelY + 32,
-                Paleta.conAlfa(Paleta.PARED_ALTA, 0.30F));
+                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.30F));
+        g.pose().popPose();
     }
 
     /** Rotulo pequeno para pantallas vanilla/Forge donde no se debe tapar la lista. */
