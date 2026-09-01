@@ -2,6 +2,7 @@ package com.santipdr.jobsmenu.client.screen;
 
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import com.santipdr.jobsmenu.client.ui.ListasExpediente;
+import com.santipdr.jobsmenu.client.ui.PielVanillaJobs;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.packs.PackSelectionScreen;
@@ -29,8 +30,21 @@ public final class PantallaPaquetesJobs extends PackSelectionScreen {
     public void renderBackground(GuiGraphics g) {
         ChromeExpediente.fondo(g, this.width, this.height);
         ChromeExpediente.panel(g, 8, 6, this.width - 16, this.height - 12);
-        ChromeExpediente.marcoSubpantalla(g, this.font, this.width, this.height,
-                8, 6, this.width - 16, this.height - 12,
-                Component.translatable("jobsmenu.interfaz.paquetes.subtitulo"), "ARC-012");
+    }
+
+    @Override
+    public void renderDirtBackground(GuiGraphics g) {
+        // PackSelectionScreen llama este camino directamente en 1.20.1. Si no
+        // se intercepta, el dirt vanilla vuelve a tapar la hoja Jobs.
+        renderBackground(g);
+    }
+
+    @Override
+    public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        super.render(g, mouseX, mouseY, partialTick);
+        PielVanillaJobs.dibujar(this, g, mouseX, mouseY);
+        ChromeExpediente.esquinas(g, 8, 6, this.width - 16, this.height - 12);
+        ChromeExpediente.pie(g, this.font, 8, 6,
+                this.width - 16, this.height - 12, "ARC-014");
     }
 }
