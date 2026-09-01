@@ -1,67 +1,89 @@
 # Jobs · Aviso a los ocupantes
 
-Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1 que reemplaza los menús por la interfaz del servidor **Jobs**: un aviso administrativo pegado a la pared de un recinto que cambia con el tiempo.
+Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1 que reemplaza el flujo de menús por la interfaz del servidor **Jobs**: expedientes, avisos administrativos y recintos que siguen vivos detrás de la interfaz.
 
-La salida existe. Cuesta. Los **Executores** vuelven. El menú no es una pantalla separada del mundo: intenta sentirse como otro lugar del servidor antes de entrar a jugar.
+La salida existe. Cuesta. Los **Executores** vuelven. El menú no intenta parecer una skin puesta encima de Minecraft: intenta sentirse como otra parte de la instalación.
 
 | | |
 |---|---|
-| Versión | **0.11.0** |
+| Versión | **0.12.0** |
+| Artefacto | **`jobsmenu-0.12.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
 | Lado | **Cliente** |
 | Niveles | **18 (0–17)** |
 
-## Estado actual
+## 0.12.0 · Interfaces administrativas
+
+Esta versión amplía el lenguaje visual del mod más allá del Title/Pause. La referencia arquitectónica fue el proyecto `GripeVerde`: se reutilizó la idea de mantener la lógica vanilla cuando conviene y construir una familia visual coherente alrededor de ella. **No se reutiliza su tema victoriano/cuarentena.** Jobs conserva papel fotocopiado, tinta seca, archivo administrativo, fluorescentes, instalación y lenguaje burocrático.
+
+### Pantallas propias
+
+- **Condiciones de estancia / Opciones:** hub Jobs en dos columnas, FOV propio, navegación jerarquizada y acceso directo a los ajustes del aviso.
+- **Multijugador:** conserva lista de servidores, ping, MOTD, LAN y acciones de Minecraft, pero reemplaza la superficie de botones y el marco por el registro de cuadrillas de Jobs.
+- **Controles:** hub propio para mouse, teclas y hábitos de control.
+- **Idioma:** archivo de idiomas propio, selección pendiente, doble clic para aplicar y recarga segura de recursos.
+- **Personalización de piel:** ficha de ocupante para partes visibles y mano principal.
+
+### Vanilla preservado, presentación Jobs
+
+Estas pantallas conservan internamente las opciones/clases de Minecraft para mantener compatibilidad, pero usan recinto vivo, papel, marcas de archivo, pie de formulario y navegación Jobs:
+
+- Sonido
+- Video
+- Chat
+- Accesibilidad
+- Mouse
+- Teclas
+- Opciones online
+- Paquetes de recursos
+- Ajustes propios del aviso
+
+Las pantallas menores o de terceros abiertas durante la visita no se sustituyen a la fuerza: reciben una **banda contextual de expediente**. Las sustituciones automáticas se hacen por **clase exacta**, para no barrer interfaces custom de otros mods.
+
+### Nuevo lenguaje visual compartido
+
+- `ChromeExpediente`: recinto vigente + papel administrativo + bordes de carpeta + sellos de formulario + nivel + versión real instalada.
+- `BotonExpediente`: botones sin skin vanilla, con tinta/papel, foco de teclado, respuesta suave y sonidos propios del edificio.
+- `SliderExpediente`: slider de tinta para valores como FOV.
+- `ToggleExpediente`: interruptores de expediente con estado real, sin duplicar configuración.
+- `TransicionInterfazJobs`: paso corto entre expedientes, sin flash blanco y respetando movimiento reducido.
+- `ListasExpediente`: integración defensiva para quitar fondos dirt de listas vanilla sin reimplementar su lógica.
+
+## Escena y atmósfera
 
 La rotación contiene diez recintos procedurales (0–9) y ocho fondos suministrados (10–17). Todos participan del mismo sistema de luz, apagones, transición, ambiente, música, avisos, ronda de Executores y accesibilidad.
 
-Los fondos de imagen 10–17 se validan antes de compilar: firma PNG, CRC, flujo IDAT, descompresión y dimensiones. En runtime `PlantaImagen` vuelve a comprobar el recurso con `NativeImage`, el mismo decodificador que usa Minecraft. Un recurso inválido cae a una escena procedural segura en lugar de dejar la textura morado/negro.
+Los fondos de imagen 10–17 se validan antes de compilar: firma PNG, CRC, flujo IDAT, descompresión y dimensiones. En runtime `PlantaImagen` vuelve a comprobar el recurso con `NativeImage`. Un recurso inválido cae a una escena procedural segura en vez de dejar la textura morado/negro.
 
-## Qué cambia en 0.11.0
+Los fondos de imagen mantienen zoom/paneo lento y tratamientos por escena. El sistema global añade profundidad, exposición, halo y apagones con masa visual; `movimiento_reducido`, `destellos_reducidos` y `bajo_consumo` tienen prioridad sobre cualquier efecto decorativo.
 
-- **Política de versión obligatoria.** Todo JAR publicado lleva versión en el nombre. El CI falla si vuelve a aparecer un artefacto genérico sin versión.
-- **Release versionada.** `dev-latest` continúa siendo la release rodante, pero el asset es `jobsmenu-0.11.0.jar` (y en futuras versiones cambia junto con `mod_version`).
-- **Pulido cinematográfico común.** Los 18 niveles reciben halo residual de fluorescente, barrido de exposición sutil y una transición con masa visual en vez de depender únicamente del cambio de brillo.
-- **Transiciones reforzadas.** Durante el traslado la oscuridad entra desde los bordes y la recuperación eléctrica deja una banda de luz breve antes de estabilizarse. La Suspensión conserva su lenguaje propio y no añade flashes.
-- **Fondos animados.** Los niveles 10–17 mantienen zoom/paneo lento, vignette y efectos propios por escena; movimiento reducido y bajo consumo siguen teniendo prioridad.
-- **Ambiente menos repetitivo.** Las camas BASE y CARÁCTER incorporan una microderiva tonal de ciclo largo, suficientemente pequeña para no cambiar el material del sonido. ACTIVIDAD permanece estable para no deformar objetos reconocibles.
-- **Papel más físico.** El aviso comparte una sombra en dos planos, degradado de luz, marcas de fotocopia deterministas, desgaste mínimo de borde y cinta con volumen visual. `papel_limpio` continúa eliminando ese ruido decorativo.
-- **Pipeline endurecido.** Se verifican versión, fondos, recursos, idiomas y build Forge/Java 17 antes de publicar.
+## Audio
 
-## Sistemas principales
-
-- Rotación automática de 18 niveles con salto manual de diagnóstico/recorrido.
-- Transición diegética por apagado/encendido sincronizada con audio.
-- Evento raro **La Suspensión**.
-- Cuenta regresiva ambiental de rondas de Executores.
-- Presencia rara de fondo sin jumpscare.
-- Tres camas ambientales por nivel: BASE, CARÁCTER y ACTIVIDAD.
-- Eventos ambientales ponderados, con silencios largos deliberados.
-- Música de menú independiente de la cama ambiental y con ducking contextual.
-- Avisos rotativos y notas específicas por nivel.
-- Pantalla principal y pausa tematizadas.
-- Ajustes integrados dentro de Opciones de Minecraft.
-- Alto contraste, texto grande, papel limpio, guía de lectura, movimiento reducido, destellos reducidos y bajo consumo.
+- Tres camas ambientales por recinto: BASE, CARÁCTER y ACTIVIDAD.
+- Eventos ocasionales con silencios deliberados.
+- Música de menú independiente y mezcla contextual.
+- Gestos propios para foco, selección, alternancia, confirmación, apertura, cierre y rechazo.
+- BASE/CARÁCTER usan microvariación tonal de ciclo largo; ACTIVIDAD se mantiene estable para no deformar materiales reconocibles.
 
 ## Regla obligatoria de versión
 
-**El mod debe tener siempre una versión en el nombre del JAR entregado.**
+**Todo JAR entregado debe incluir la versión en el nombre.**
 
-Ejemplo correcto:
+Correcto:
 
 ```text
-jobsmenu-0.11.0.jar
+jobsmenu-0.12.0.jar
 ```
 
-Ejemplo prohibido:
+Prohibido:
 
 ```text
 jobsmenu-latest.jar
 ```
 
-`gradle.properties` es la fuente de verdad (`mod_version`). `tools/verificar_version.py` y GitHub Actions hacen cumplir esta regla.
+`gradle.properties` es la fuente de verdad. `tools/verificar_version.py` y GitHub Actions hacen cumplir la regla y limpian assets obsoletos de `dev-latest`.
 
 ## Build y entrega
 
@@ -72,43 +94,17 @@ GitHub Actions ejecuta:
 3. `tools/verificar_fondos.py`.
 4. `tools/verificar.py`.
 5. `./gradlew build --stacktrace --no-daemon`.
-6. Publicación del JAR **versionado** en `dev-latest` si el commit está en `main`.
-
-El JAR local de Gradle queda en:
-
-```text
-build/libs/jobsmenu-0.11.0.jar
-```
-
-## Despliegue de prueba
-
-La única instancia de prueba documentada es:
-
-```text
-C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods
-```
-
-No hace falta compilar localmente para una prueba normal. El PowerShell canónico consulta `dev-latest`, localiza el asset `jobsmenu-<version>.jar`, lo descarga y lo valida antes de sustituir la instalación anterior. Ver [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md).
-
-## Herramientas
-
-```powershell
-python tools\verificar_version.py
-python tools\verificar_fondos.py
-python tools\verificar.py
-python tools\vista_previa.py
-python tools\sonidos.py
-```
+6. Publicación de `jobsmenu-0.12.0.jar` en `dev-latest` sólo desde `main`.
 
 ## Documentación
 
-- [`CONTEXTO.md`](CONTEXTO.md): documento maestro y reglas duras del proyecto.
-- [`CHANGELOG.md`](CHANGELOG.md): cambios por versión/evolución.
-- [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): pruebas reales y riesgos pendientes.
-- [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): flujo de instalación en `test-1`.
-- [`docs/AUDITORIA_0.11.0.md`](docs/AUDITORIA_0.11.0.md): revisión completa de esta pasada.
+- [`CONTEXTO.md`](CONTEXTO.md): contrato vigente del proyecto.
+- [`CHANGELOG.md`](CHANGELOG.md): historial de cambios.
+- [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos/pruebas reales pendientes.
+- [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalación del build versionado.
+- [`docs/AUDITORIA_0.12.0_INTERFACES.md`](docs/AUDITORIA_0.12.0_INTERFACES.md): matriz de interfaces 0.12.0.
 - [`docs/DIRECCION_ARTISTICA.md`](docs/DIRECCION_ARTISTICA.md): lenguaje visual.
 - [`docs/compatibilidad.md`](docs/compatibilidad.md): convivencia con otros mods.
 - [`docs/checklist-manual.md`](docs/checklist-manual.md): prueba dentro de Minecraft.
 
-El historial largo de auditorías y evoluciones anteriores se conserva en `docs/` como referencia, pero README y CONTEXTO describen siempre el estado vigente.
+El historial largo de evoluciones anteriores sigue en `docs/`; README y CONTEXTO describen siempre el estado vigente.
