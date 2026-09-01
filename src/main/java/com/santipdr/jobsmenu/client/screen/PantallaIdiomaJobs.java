@@ -52,6 +52,7 @@ public final class PantallaIdiomaJobs extends Screen {
         this.panelY = Math.max(6, (this.height - panelH) / 2);
 
         int listX = panelX + 20;
+        int listW = panelW - 40;
         int searchY = panelY + 48;
         this.busqueda = new EditBox(this.font, listX, searchY, listW, 18,
                 Component.translatable("jobsmenu.interfaz.idioma.buscar"));
@@ -62,7 +63,6 @@ public final class PantallaIdiomaJobs extends Screen {
         this.addRenderableWidget(this.busqueda);
 
         int listY = panelY + 70;
-        int listW = panelW - 40;
         int footerY = panelY + panelH - 31;
         int listH = Math.max(70, footerY - listY - 12);
         this.lista = new ListaIdiomas(this.minecraft, listX, listY, listW, listH);
