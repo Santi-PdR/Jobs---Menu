@@ -23,6 +23,7 @@ public final class SliderExpediente extends AbstractSliderButton {
     private int ultimoAplicado;
     private long ultimoSonido;
     private float focoSuave;
+    private boolean hoverPrevio;
 
     public SliderExpediente(int x, int y, int ancho, int alto,
                             int minimo, int maximo, int inicial,
@@ -56,6 +57,7 @@ public final class SliderExpediente extends AbstractSliderButton {
         if (valor == this.ultimoAplicado) return;
         this.ultimoAplicado = valor;
         if (this.fijar != null) this.fijar.accept(valor);
+        PulidoInterfazJobs.confirmarCambio();
         long ahora = System.nanoTime();
         if (ahora - this.ultimoSonido > 110_000_000L) {
             this.ultimoSonido = ahora;
@@ -70,6 +72,8 @@ public final class SliderExpediente extends AbstractSliderButton {
         int w = this.width;
         int h = this.height;
         boolean foco = this.active && this.isHoveredOrFocused();
+        if (foco && !this.hoverPrevio) MezclaAudio.gesto(SonidosNivel.UI_PASAR, 0.18F);
+        this.hoverPrevio = foco;
         float destino = foco ? 1.0F : 0.0F;
         if (ConfigTurno.movimientoReducido()) this.focoSuave = destino;
         else this.focoSuave += (destino - this.focoSuave) * 0.24F;

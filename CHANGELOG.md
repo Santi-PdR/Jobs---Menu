@@ -1,5 +1,27 @@
 # Registro de cambios
 
+## 0.16.0 — Interfaz profesional y respuesta inmediata — 2026-09-01
+
+### Sistema visual compartido
+
+- Nuevo pulido global con márgenes seguros, foco inequívoco de ratón/teclado, entrada corta y confirmación no modal al cambiar opciones.
+- Botones, toggles, sliders, campos vanilla y barras de lista reciben jerarquía, estados claros y respuesta visual consistente sin alterar sus hitboxes.
+- Las transiciones y microanimaciones respetan movimiento reducido y bajo consumo.
+
+### Navegación y pantallas
+
+- Idioma incorpora búsqueda por nombre/código, contador, códigos visibles, `Ctrl+F`, limpieza con `Esc` y toggle Unicode real; conserva una sola lista y una sola barra.
+- Ajustes de aviso identifica categoría, subraya la activa, muestra página y permite navegar con `1`–`5` o flechas.
+- Multiplayer fija y protege `JobsDosh.exaroton.me:56477`, lo traduce, marca como fijado, añade ayuda a cada acción y refresca con `F5`.
+- Singleplayer enfoca la búsqueda con `Ctrl+F` y la limpia con `Esc` sin perder la lógica vanilla.
+- Mods y Resource Packs usan archivo oscuro, rótulos compactos y tipografía entintada; los recursos propios ya no aparecen como un pack redundante.
+
+### Entrega
+
+- Paridad completa `es_es` / `en_us` para todos los textos y ayudas nuevos.
+- Auditoría trazable de 64 mejoras en `docs/AUDITORIA_0.16.0_64_MEJORAS.md`.
+- Versión y artefacto: **0.16.0** / **`jobsmenu-0.16.0.jar`**.
+
 ## 0.15.0 — Archivos compactos y navegación profesional — 2026-09-01
 
 ### Interfaz

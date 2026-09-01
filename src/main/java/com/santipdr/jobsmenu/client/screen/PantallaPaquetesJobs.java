@@ -2,7 +2,6 @@ package com.santipdr.jobsmenu.client.screen;
 
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import com.santipdr.jobsmenu.client.ui.ListasExpediente;
-import com.santipdr.jobsmenu.client.ui.PielVanillaJobs;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.packs.PackSelectionScreen;
@@ -44,7 +43,8 @@ public final class PantallaPaquetesJobs extends PackSelectionScreen {
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
-        PielVanillaJobs.dibujar(this, g, mouseX, mouseY);
+        ChromeExpediente.rotuloArchivoCompacto(g, this.font, this.width,
+                Component.translatable("jobsmenu.interfaz.recursos.titulo"), "PACKS");
         ChromeExpediente.pieArchivo(g, this.font, 12, 8,
                 this.width - 24, this.height - 16, "RESOURCES");
     }

@@ -59,15 +59,15 @@ public final class PantallaOpcionesJobs extends Screen {
         this.sistemaY = y0 + bh + (compacta ? 5 : 10);
         int sy = this.sistemaY;
 
-        boton(x0, sy, bw, bh, "options.skinCustomisation", this::abrirPiel);
-        boton(x1, sy, bw, bh, "options.sounds", this::abrirSonido);
-        boton(x0, sy + paso, bw, bh, "options.video", this::abrirVideo);
-        boton(x1, sy + paso, bw, bh, "controls.title", this::abrirControles);
-        boton(x0, sy + paso * 2, bw, bh, "options.language", this::abrirIdioma);
-        boton(x1, sy + paso * 2, bw, bh, "options.chat.title", this::abrirChat);
-        boton(x0, sy + paso * 3, bw, bh, "resourcePack.title", this::abrirPaquetes);
-        boton(x1, sy + paso * 3, bw, bh, "options.accessibility.title", this::abrirAccesibilidad);
-        boton(x0, sy + paso * 4, bw, bh, "options.online.title", this::abrirOnline);
+        boton(x0, sy, bw, bh, "options.skinCustomisation", "jobsmenu.tooltip.piel", this::abrirPiel);
+        boton(x1, sy, bw, bh, "options.sounds", "jobsmenu.tooltip.sonido", this::abrirSonido);
+        boton(x0, sy + paso, bw, bh, "options.video", "jobsmenu.tooltip.video", this::abrirVideo);
+        boton(x1, sy + paso, bw, bh, "controls.title", "jobsmenu.tooltip.controles", this::abrirControles);
+        boton(x0, sy + paso * 2, bw, bh, "options.language", "jobsmenu.tooltip.idioma", this::abrirIdioma);
+        boton(x1, sy + paso * 2, bw, bh, "options.chat.title", "jobsmenu.tooltip.chat", this::abrirChat);
+        boton(x0, sy + paso * 3, bw, bh, "resourcePack.title", "jobsmenu.tooltip.recursos", this::abrirPaquetes);
+        boton(x1, sy + paso * 3, bw, bh, "options.accessibility.title", "jobsmenu.tooltip.accesibilidad", this::abrirAccesibilidad);
+        boton(x0, sy + paso * 4, bw, bh, "options.online.title", "jobsmenu.tooltip.online", this::abrirOnline);
 
         int volverH = compacta ? 19 : 22;
         int volverY = this.panelY + this.panelH - volverH - 8;
@@ -76,7 +76,7 @@ public final class PantallaOpcionesJobs extends Screen {
         int fovY = sy + paso * 4;
         if (fovY + bh <= volverY - 5) {
             int fov = this.opciones.fov().get();
-            this.addRenderableWidget(new SliderExpediente(
+            SliderExpediente fovSlider = this.addRenderableWidget(new SliderExpediente(
                     x1, fovY, bw, bh, 30, 110, fov,
                     v -> Component.translatable("jobsmenu.interfaz.fov",
                             Component.translatable("options.fov"), v),
@@ -84,17 +84,20 @@ public final class PantallaOpcionesJobs extends Screen {
                         this.opciones.fov().set(v);
                         this.opciones.save();
                     }));
+            fovSlider.setTooltip(Tooltip.create(Component.translatable("jobsmenu.tooltip.fov")));
         }
 
-        this.addRenderableWidget(new BotonExpediente(
+        BotonExpediente volver = this.addRenderableWidget(new BotonExpediente(
                 this.width / 2 - volverW / 2, volverY, volverW, volverH,
                 Component.translatable("jobsmenu.interfaz.volver"),
                 BotonExpediente.Tipo.PRINCIPAL, this::onClose));
+        volver.setTooltip(Tooltip.create(Component.translatable("jobsmenu.tooltip.volver")));
     }
 
-    private void boton(int x, int y, int w, int h, String clave, Runnable accion) {
-        this.addRenderableWidget(new BotonExpediente(
+    private void boton(int x, int y, int w, int h, String clave, String ayuda, Runnable accion) {
+        BotonExpediente boton = this.addRenderableWidget(new BotonExpediente(
                 x, y, w, h, Component.translatable(clave), BotonExpediente.Tipo.NORMAL, accion));
+        boton.setTooltip(Tooltip.create(Component.translatable(ayuda)));
     }
 
     @Override

@@ -1,4 +1,4 @@
-# Compatibilidad y despliegue — 0.15.0
+# Compatibilidad y despliegue — 0.16.0
 
 ## Perfil soportado
 
@@ -8,8 +8,8 @@
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente; el servidor no necesita Jobs Menu |
-| Versión del mod | **0.15.0** |
-| Artefacto | `build/libs/jobsmenu-0.15.0.jar` |
+| Versión del mod | **0.16.0** |
+| Artefacto | `build/libs/jobsmenu-0.16.0.jar` |
 
 Jobs Menu distingue entre **pantallas que controla**, **pantallas vanilla cuya lógica conserva** y **pantallas de otros mods que debe respetar**. La compatibilidad tiene prioridad sobre una reimplementación cosmética frágil.
 
@@ -164,7 +164,7 @@ C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\
 El JAR de esta entrega debe quedar únicamente como:
 
 ```text
-C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.15.0.jar
+C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.16.0.jar
 ```
 
 No se mantiene un `.ps1` dentro del repositorio. El procedimiento está en [`DESPLIEGUE.md`](DESPLIEGUE.md).
@@ -191,7 +191,7 @@ CI certifica:
 3. PNG 10–17;
 4. recursos/idiomas/ASCII/coherencia estática;
 5. build Forge;
-6. preparación de `jobsmenu-0.15.0.jar`.
+6. preparación de `jobsmenu-0.16.0.jar`.
 
 La publicación a `dev-latest` sólo ocurre desde `main`.
 

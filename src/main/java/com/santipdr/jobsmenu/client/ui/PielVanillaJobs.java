@@ -22,11 +22,34 @@ public final class PielVanillaJobs {
         Font font = Minecraft.getInstance().font;
 
         for (var child : pantalla.children()) {
+            if (child.getClass().getName().startsWith("com.santipdr.jobsmenu.")) continue;
             if (child instanceof AbstractButton boton && !(child instanceof AbstractSliderButton)) {
                 dibujarBoton(g, font, boton, mouseX, mouseY);
+            } else if (child instanceof AbstractSliderButton slider) {
+                dibujarSlider(g, slider, mouseX, mouseY);
             } else if (child instanceof EditBox campo) {
                 dibujarCampo(g, campo);
             }
+        }
+    }
+
+    private static void dibujarSlider(GuiGraphics g, AbstractSliderButton slider,
+                                      int mouseX, int mouseY) {
+        if (!slider.visible) return;
+        int x = slider.getX();
+        int y = slider.getY();
+        int w = slider.getWidth();
+        int h = slider.getHeight();
+        boolean foco = slider.active && (slider.isMouseOver(mouseX, mouseY) || slider.isFocused());
+        int c = Paleta.conAlfa(Paleta.tintaSecundaria(), foco ? 0.72F : 0.36F);
+        marco(g, x, y, w, h, c);
+        int by = y + h - 4;
+        g.fill(x + 7, by, x + w - 7, by + 1,
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.34F));
+        for (int i = 0; i <= 4; i++) {
+            int tx = x + 7 + Math.round((w - 14) * (i / 4.0F));
+            g.fill(tx, by - 2, tx + 1, by + 2,
+                    Paleta.conAlfa(Paleta.tintaPrincipal(), foco ? 0.42F : 0.22F));
         }
     }
 

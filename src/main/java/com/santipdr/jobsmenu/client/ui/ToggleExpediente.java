@@ -66,6 +66,7 @@ public final class ToggleExpediente extends AbstractButton {
         boolean nuevo = !valor();
         if (this.fijar != null) this.fijar.accept(nuevo);
         sincronizarMensaje(true);
+        PulidoInterfazJobs.confirmarCambio();
     }
 
     @Override

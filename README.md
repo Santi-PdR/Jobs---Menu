@@ -6,17 +6,17 @@ La salida existe. Cuesta. Los **Executores** vuelven. El objetivo no es aplicar 
 
 | | |
 |---|---|
-| Versión | **0.15.0** |
-| Artefacto | **`jobsmenu-0.15.0.jar`** |
+| Versión | **0.16.0** |
+| Artefacto | **`jobsmenu-0.16.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
 | Lado | **Cliente** |
 | Niveles | **18 (0–17)** |
 
-## 0.15.0 · Archivos compactos y navegación profesional
+## 0.16.0 · Interfaz profesional y respuesta inmediata
 
-0.15.0 responde al pase visual realizado dentro del juego: reduce paneles vacíos, separa papel y archivo oscuro según el tipo de contenido, corrige definitivamente el scroll de Idioma y eleva Singleplayer, Multiplayer, Mods y Resource Packs sin sustituir su lógica sensible.
+0.16.0 reúne más de 60 mejoras comprobables de composición, jerarquía, navegación, accesibilidad y respuesta. Mantiene paneles compactos con margen de escena, separa papel y archivo oscuro según el contenido, corrige el selector de idioma, fija el servidor oficial y eleva Singleplayer, Multiplayer, Mods y Resource Packs sin sustituir su lógica sensible.
 
 ### Correcciones del pase visual
 
@@ -143,7 +143,7 @@ Se conserva lógica vanilla cuando aporta compatibilidad y se reimplementa la su
 Correcto:
 
 ```text
-jobsmenu-0.15.0.jar
+jobsmenu-0.16.0.jar
 ```
 
 Prohibido:
@@ -163,7 +163,7 @@ GitHub Actions ejecuta:
 3. `tools/verificar_fondos.py`.
 4. `tools/verificar.py`.
 5. `./gradlew build --stacktrace --no-daemon`.
-6. Publicación de **`jobsmenu-0.15.0.jar`** en `dev-latest` sólo desde `main`.
+6. Publicación de **`jobsmenu-0.16.0.jar`** en `dev-latest` sólo desde `main`.
 
 El PowerShell de despliegue se entrega **después** de que el PR y `main` terminen en verde. El usuario no necesita compilar localmente: el script consume el JAR ya construido por CI y lo instala únicamente en `test-1`.
 
@@ -174,6 +174,7 @@ El PowerShell de despliegue se entrega **después** de que el PR y `main` termin
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y pruebas pendientes.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalación del build versionado.
 - [`docs/AUDITORIA_0.15.0_UI_POLISH.md`](docs/AUDITORIA_0.15.0_UI_POLISH.md): auditoría del pase basado en capturas.
+- [`docs/AUDITORIA_0.16.0_64_MEJORAS.md`](docs/AUDITORIA_0.16.0_64_MEJORAS.md): inventario verificable del pase profesional.
 - [`docs/AUDITORIA_0.14.1_UI_POLISH.md`](docs/AUDITORIA_0.14.1_UI_POLISH.md): pase visual anterior.
 - [`docs/AUDITORIA_0.14.0_UI.md`](docs/AUDITORIA_0.14.0_UI.md): auditoría de la arquitectura anterior.
 - [`docs/DIRECCION_ARTISTICA.md`](docs/DIRECCION_ARTISTICA.md): lenguaje visual.
