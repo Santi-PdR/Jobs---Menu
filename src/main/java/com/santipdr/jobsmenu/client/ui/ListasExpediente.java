@@ -26,7 +26,7 @@ public final class ListasExpediente {
             y0 = ObfuscationReflectionHelper.findField(AbstractSelectionList.class, "f_93390_");
             barra = ObfuscationReflectionHelper.findMethod(AbstractSelectionList.class, "m_5756_");
         } catch (Throwable ignored) {
-            // El fallback conserva la scrollbar vanilla.
+            // En mappings/implementaciones distintas usamos geometria publica.
         }
         CAMPO_Y0 = y0;
         METODO_SCROLLBAR_X = barra;
@@ -59,17 +59,15 @@ public final class ListasExpediente {
      * en el mismo hitbox. Rueda, click y drag siguen siendo de Minecraft.
      */
     public static void renderarBarras(Screen pantalla, GuiGraphics g) {
-        if (pantalla == null || g == null || CAMPO_Y0 == null || METODO_SCROLLBAR_X == null) {
-            return;
-        }
+        if (pantalla == null || g == null) return;
 
         for (AbstractSelectionList<?> lista : encontrarListas(pantalla)) {
             try {
                 int maxScroll = lista.getMaxScroll();
                 if (maxScroll <= 0) continue;
 
-                int x = (int) METODO_SCROLLBAR_X.invoke(lista);
-                int y0 = CAMPO_Y0.getInt(lista);
+                int x = resolverScrollbarX(lista);
+                int y0 = resolverY0(lista);
                 int y1 = lista.getScrollBottom();
                 int alto = y1 - y0;
                 if (alto < 24) continue;
@@ -123,6 +121,30 @@ public final class ListasExpediente {
                 // Fallo visual no debe impedir usar una pantalla de opciones.
             }
         }
+    }
+
+    private static int resolverScrollbarX(AbstractSelectionList<?> lista) {
+        if (METODO_SCROLLBAR_X != null) {
+            try {
+                return (int) METODO_SCROLLBAR_X.invoke(lista);
+            } catch (Throwable ignored) {
+            }
+        }
+        // getRowRight es publico en 1.20.1 y coincide con la referencia usada
+        // por las listas vanilla para situar el scrollbar (+4), incluida Idioma.
+        return lista.getRowRight() + 4;
+    }
+
+    private static int resolverY0(AbstractSelectionList<?> lista) {
+        if (CAMPO_Y0 != null) {
+            try {
+                return CAMPO_Y0.getInt(lista);
+            } catch (Throwable ignored) {
+            }
+        }
+        // y0 no tiene getter publico en 1.20.1. Este camino solo se usa si un
+        // mapping externo rompe la reflexion; 0 es preferible a abortar la UI.
+        return 0;
     }
 
     private static List<AbstractSelectionList<?>> encontrarListas(Screen pantalla) {

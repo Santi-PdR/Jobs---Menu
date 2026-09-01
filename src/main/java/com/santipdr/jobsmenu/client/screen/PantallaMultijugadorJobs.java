@@ -2,6 +2,7 @@ package com.santipdr.jobsmenu.client.screen;
 
 import com.santipdr.jobsmenu.client.ui.BotonExpediente;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
+import com.santipdr.jobsmenu.client.ui.Paleta;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -45,7 +46,9 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
             if (child instanceof ServerSelectionList lista) {
                 lista.setRenderBackground(false);
                 lista.setRenderTopAndBottom(false);
-                int top = Math.max(42, panelY + 48);
+                // La lista empieza debajo de titulo, subtitulo y nota. En 0.14.0
+                // esos tres textos compartian la misma franja y se montaban.
+                int top = Math.max(64, panelY + 58);
                 int bottom = Math.max(top + 40, this.height - 78);
                 lista.updateSize(this.width, this.height, top, bottom);
             }
@@ -118,15 +121,29 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         sincronizarEstados();
         super.render(g, mouseX, mouseY, partialTick);
-        ChromeExpediente.marcoSubpantalla(g, this.font, this.width, this.height,
-                panelX, panelY, panelW, panelH,
-                Component.translatable("jobsmenu.interfaz.multijugador.subtitulo"), "CREW-012");
+
+        // JoinMultiplayerScreen dibuja su titulo despues del fondo. Cubrimos solo
+        // la franja de cabecera, nunca la lista, y reconstruimos una unica jerarquia.
+        int headerBottom = Math.min(this.height - 80, this.panelY + 58);
+        g.fill(this.panelX + 6, this.panelY + 6,
+                this.panelX + this.panelW - 6, headerBottom,
+                Paleta.papelAviso());
+        ChromeExpediente.cabecera(g, this.font, this.title,
+                Component.translatable("jobsmenu.interfaz.multijugador.subtitulo"),
+                panelX, panelY, panelW);
+
         Component nota = Component.translatable("jobsmenu.interfaz.multijugador.nota");
-        int nw = this.font.width(nota);
-        if (nw < this.width - 40) {
-            g.drawString(this.font, nota, this.width / 2 - nw / 2, 31,
-                    com.santipdr.jobsmenu.client.ui.Paleta.conAlfa(
-                            com.santipdr.jobsmenu.client.ui.Paleta.tintaSecundaria(), 0.62F), false);
+        String texto = nota.getString();
+        int max = Math.max(40, this.panelW - 52);
+        if (this.font.width(texto) > max) {
+            texto = this.font.plainSubstrByWidth(texto,
+                    Math.max(0, max - this.font.width("..."))) + "...";
         }
+        int nw = this.font.width(texto);
+        g.drawString(this.font, texto, this.width / 2 - nw / 2, this.panelY + 47,
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.58F), false);
+
+        ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
+        ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "CREW-014");
     }
 }

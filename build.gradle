@@ -70,6 +70,22 @@ tasks.named('processResources', ProcessResources).configure {
     filesMatching(['META-INF/mods.toml']) {
         expand replaceProperties
     }
+
+    // Minecraft no hereda automaticamente es_uy/es_mx/etc. desde es_es: si el
+    // jugador selecciona Español (Uruguay), las claves propias que no existen
+    // en es_uy caen hasta en_us. Eso producia pantallas mitad español y mitad
+    // ingles ("Close file", "Notice settings", subtitulos ingleses...).
+    //
+    // Jobs usa una unica traduccion española neutral. La duplicamos solo en la
+    // salida del build para mantener una fuente de verdad y cubrir las variantes
+    // oficiales que aparecen en el selector de Minecraft.
+    ['es_ar', 'es_cl', 'es_ec', 'es_mx', 'es_uy', 'es_ve'].each { codigo ->
+        from('src/main/resources/assets/jobsmenu/lang/es_es.json') {
+            into 'assets/jobsmenu/lang'
+            rename { "${codigo}.json" }
+        }
+    }
+
     // NOTA SOBRE LA MUSICA
     //
     // La pista de fabrica es el archivo original y versionado
