@@ -107,17 +107,27 @@ public final class ChromeExpediente {
     }
 
     /**
-     * Pie dividido en dos extremos. Antes todo el texto se alineaba a la derecha
-     * en la misma franja del boton Volver y podia montarse encima en GUI scale
-     * alto. Ahora el centro queda siempre libre para navegacion.
+     * Pie seguro para pantallas estrechas y expresivo en paneles anchos. En
+     * anchos normales se divide a los extremos y deja el centro libre para
+     * navegacion; en superficies muy anchas puede usar la cadena localizada
+     * completa sin acercarse al boton central.
      */
     public static void pie(GuiGraphics g, Font font, int x, int y, int w, int h, String formulario) {
         int nivel = RotacionNiveles.capturar().indice();
         String version = version();
         int ty = y + h - 15;
         int color = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.54F);
+        String nivelTexto = String.format(java.util.Locale.ROOT, "%02d", nivel);
 
-        String codigo = formulario + " - N" + String.format(java.util.Locale.ROOT, "%02d", nivel);
+        if (w >= 560) {
+            Component completo = Component.translatable("jobsmenu.interfaz.formulario",
+                    formulario, nivelTexto, version);
+            int tw = font.width(completo);
+            g.drawString(font, completo, x + w - 13 - tw, ty, color, false);
+            return;
+        }
+
+        String codigo = formulario + " - N" + nivelTexto;
         String revision = "v" + version;
 
         int margen = 13;
