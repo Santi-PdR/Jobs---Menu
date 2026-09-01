@@ -26,7 +26,7 @@ public final class ListasExpediente {
             y0 = ObfuscationReflectionHelper.findField(AbstractSelectionList.class, "f_93390_");
             barra = ObfuscationReflectionHelper.findMethod(AbstractSelectionList.class, "m_5756_");
         } catch (Throwable ignored) {
-            // En mappings/implementaciones distintas usamos coordenadas publicas.
+            // En mappings/implementaciones distintas usamos geometria publica.
         }
         CAMPO_Y0 = y0;
         METODO_SCROLLBAR_X = barra;
@@ -130,9 +130,9 @@ public final class ListasExpediente {
             } catch (Throwable ignored) {
             }
         }
-        // AbstractWidget expone la caja real. Este fallback coincide con la
-        // posicion vanilla y, sobre todo, evita dejar una columna negra gigante.
-        return lista.getX() + lista.getWidth() - 6;
+        // getRowRight es publico en 1.20.1 y coincide con la referencia usada
+        // por las listas vanilla para situar el scrollbar (+4), incluida Idioma.
+        return lista.getRowRight() + 4;
     }
 
     private static int resolverY0(AbstractSelectionList<?> lista) {
@@ -142,7 +142,9 @@ public final class ListasExpediente {
             } catch (Throwable ignored) {
             }
         }
-        return lista.getY();
+        // y0 no tiene getter publico en 1.20.1. Este camino solo se usa si un
+        // mapping externo rompe la reflexion; 0 es preferible a abortar la UI.
+        return 0;
     }
 
     private static List<AbstractSelectionList<?>> encontrarListas(Screen pantalla) {
