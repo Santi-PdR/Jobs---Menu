@@ -14,7 +14,7 @@ No se mantienen rutas alternativas. El usuario tampoco tiene que compilar localm
 
 Todo JAR instalado o publicado debe incluir la versión en el nombre. Para esta entrega:
 
-`jobsmenu-0.13.0.jar`
+`jobsmenu-0.14.0.jar`
 
 El nombre genérico `jobsmenu-latest.jar` queda prohibido. La release sigue usando el tag rodante `dev-latest`, pero su único asset cambia de nombre con `mod_version`.
 
