@@ -26,7 +26,7 @@ public final class ListasExpediente {
             y0 = ObfuscationReflectionHelper.findField(AbstractSelectionList.class, "f_93390_");
             barra = ObfuscationReflectionHelper.findMethod(AbstractSelectionList.class, "m_5756_");
         } catch (Throwable ignored) {
-            // El fallback conserva la scrollbar vanilla.
+            // En mappings/implementaciones distintas usamos coordenadas publicas.
         }
         CAMPO_Y0 = y0;
         METODO_SCROLLBAR_X = barra;
@@ -59,17 +59,15 @@ public final class ListasExpediente {
      * en el mismo hitbox. Rueda, click y drag siguen siendo de Minecraft.
      */
     public static void renderarBarras(Screen pantalla, GuiGraphics g) {
-        if (pantalla == null || g == null || CAMPO_Y0 == null || METODO_SCROLLBAR_X == null) {
-            return;
-        }
+        if (pantalla == null || g == null) return;
 
         for (AbstractSelectionList<?> lista : encontrarListas(pantalla)) {
             try {
                 int maxScroll = lista.getMaxScroll();
                 if (maxScroll <= 0) continue;
 
-                int x = (int) METODO_SCROLLBAR_X.invoke(lista);
-                int y0 = CAMPO_Y0.getInt(lista);
+                int x = resolverScrollbarX(lista);
+                int y0 = resolverY0(lista);
                 int y1 = lista.getScrollBottom();
                 int alto = y1 - y0;
                 if (alto < 24) continue;
@@ -123,6 +121,28 @@ public final class ListasExpediente {
                 // Fallo visual no debe impedir usar una pantalla de opciones.
             }
         }
+    }
+
+    private static int resolverScrollbarX(AbstractSelectionList<?> lista) {
+        if (METODO_SCROLLBAR_X != null) {
+            try {
+                return (int) METODO_SCROLLBAR_X.invoke(lista);
+            } catch (Throwable ignored) {
+            }
+        }
+        // AbstractWidget expone la caja real. Este fallback coincide con la
+        // posicion vanilla y, sobre todo, evita dejar una columna negra gigante.
+        return lista.getX() + lista.getWidth() - 6;
+    }
+
+    private static int resolverY0(AbstractSelectionList<?> lista) {
+        if (CAMPO_Y0 != null) {
+            try {
+                return CAMPO_Y0.getInt(lista);
+            } catch (Throwable ignored) {
+            }
+        }
+        return lista.getY();
     }
 
     private static List<AbstractSelectionList<?>> encontrarListas(Screen pantalla) {
