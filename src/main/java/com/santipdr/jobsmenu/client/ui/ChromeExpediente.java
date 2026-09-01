@@ -63,6 +63,18 @@ public final class ChromeExpediente {
             g.fill(x + 8, py, x + 9, py + 1, Paleta.conAlfa(Paleta.PAPEL, 0.32F));
         }
 
+        // El papel ya no queda como un rectangulo vacio: unas reglas casi
+        // imperceptibles aportan estructura sin competir con widgets o texto.
+        if (!ConfigTurno.papelLimpio() && h > 120 && w > 180) {
+            int regla = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.035F);
+            for (int ry = y + 58; ry < y + h - 28; ry += 44) {
+                g.fill(x + 18, ry, x + w - 18, ry + 1, regla);
+            }
+            int pliegue = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.022F);
+            int cx = x + w / 2;
+            g.fill(cx, y + 50, cx + 1, y + h - 24, pliegue);
+        }
+
         // Pequena pestana de archivador, sin texto duro en Java.
         int tabW = Math.min(54, Math.max(28, w / 7));
         g.fill(x + w - tabW - 16, y + 1, x + w - 16, y + 4,
@@ -152,43 +164,37 @@ public final class ChromeExpediente {
         g.fill(x + w - m - 1, y + h - m - l, x + w - m, y + h - m, c);
     }
 
-    /** Pie seguro para pantallas estrechas y expresivo en paneles anchos. */
+    /** Pie seguro: reserva la esquina derecha para badges/overlays de otros mods. */
     public static void pie(GuiGraphics g, Font font, int x, int y, int w, int h, String formulario) {
         int nivel = RotacionNiveles.capturar().indice();
         String version = version();
         int ty = y + h - 15;
         int color = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.54F);
         String nivelTexto = String.format(java.util.Locale.ROOT, "%02d", nivel);
-
-        if (w >= 560) {
-            Component completo = Component.translatable("jobsmenu.interfaz.formulario",
-                    formulario, nivelTexto, version);
-            int tw = font.width(completo);
-            g.drawString(font, completo, x + w - 13 - tw, ty, color, false);
-            return;
-        }
+        int margen = 13;
+        int reservaDerecha = w >= 420 ? 42 : 24;
 
         String codigo = formulario + " - N" + nivelTexto;
         String revision = "v" + version;
-        int margen = 13;
-        int mitad = x + w / 2;
-        int reservaCentral = Math.min(94, Math.max(54, w / 5));
-        int maxLado = Math.max(0, w / 2 - reservaCentral - margen - 4);
-
-        String codigoVisible = ajustar(font, codigo, maxLado);
-        String revisionVisible = ajustar(font, revision, maxLado);
+        int rw = font.width(revision);
+        int maxCodigo = Math.max(0, w - margen * 2 - reservaDerecha - rw - 18);
+        String codigoVisible = ajustar(font, codigo, maxCodigo);
+        String revisionVisible = ajustar(font, revision, Math.max(24, w / 5));
 
         if (!codigoVisible.isEmpty()) {
             g.drawString(font, codigoVisible, x + margen, ty, color, false);
         }
         if (!revisionVisible.isEmpty()) {
-            int rw = font.width(revisionVisible);
-            g.drawString(font, revisionVisible, x + w - margen - rw, ty, color, false);
+            int vrw = font.width(revisionVisible);
+            int rx = Math.max(x + margen, x + w - margen - reservaDerecha - vrw);
+            g.drawString(font, revisionVisible, rx, ty, color, false);
         }
 
+        int centro = x + w / 2;
+        int reservaCentral = Math.min(94, Math.max(54, w / 5));
         int marca = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.16F);
-        g.fill(mitad - reservaCentral, ty + 3, mitad - reservaCentral + 4, ty + 4, marca);
-        g.fill(mitad + reservaCentral - 4, ty + 3, mitad + reservaCentral, ty + 4, marca);
+        g.fill(centro - reservaCentral, ty + 3, centro - reservaCentral + 4, ty + 4, marca);
+        g.fill(centro + reservaCentral - 4, ty + 3, centro + reservaCentral, ty + 4, marca);
     }
 
     private static String ajustar(Font font, String texto, int maximo) {
