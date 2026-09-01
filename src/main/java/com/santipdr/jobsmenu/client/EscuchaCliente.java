@@ -19,14 +19,12 @@ import com.santipdr.jobsmenu.client.ui.TransicionInterfazJobs;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
@@ -97,24 +95,6 @@ public final class EscuchaCliente {
 
         TransicionInterfazJobs.notificar(anterior, siguiente);
         gesto(anterior, siguiente);
-    }
-
-    /** Oculta los Done vanilla duplicados dentro de pantallas propias. */
-    @SubscribeEvent
-    public static void alInicializarPantalla(ScreenEvent.Init.Post evento) {
-        Screen pantalla = evento.getScreen();
-        if (pantalla == null
-                || !pantalla.getClass().getName().startsWith("com.santipdr.jobsmenu.")) {
-            return;
-        }
-
-        for (var child : pantalla.children()) {
-            if (child instanceof Button boton
-                    && boton.getMessage().equals(CommonComponents.GUI_DONE)) {
-                boton.visible = false;
-                boton.active = false;
-            }
-        }
     }
 
     /**
