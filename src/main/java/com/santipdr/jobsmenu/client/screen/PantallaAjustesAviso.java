@@ -18,16 +18,18 @@ import net.minecraft.network.chat.Component;
 public class PantallaAjustesAviso extends Screen {
 
     private enum Categoria {
-        VISUAL("options.video", "jobsmenu.ajustes.escena.detalle"),
-        NIVEL("jobsmenu.ajustes.nivelfijo", "jobsmenu.ajustes.nivelfijo.detalle"),
-        AUDIO("soundCategory.music", "jobsmenu.ajustes.volambiente.detalle"),
-        ACCESIBILIDAD("options.accessibility.title", "jobsmenu.ajustes.perfil.detalle"),
-        SISTEMA("options.title", "jobsmenu.ajustes.menu.detalle");
+        VISUAL("jobsmenu.ajustes.categoria.visual", "options.video", "jobsmenu.ajustes.escena.detalle"),
+        NIVEL("jobsmenu.ajustes.categoria.nivel", "jobsmenu.ajustes.nivelfijo", "jobsmenu.ajustes.nivelfijo.detalle"),
+        AUDIO("jobsmenu.ajustes.categoria.audio", "soundCategory.music", "jobsmenu.ajustes.volambiente.detalle"),
+        ACCESIBILIDAD("jobsmenu.ajustes.categoria.accesibilidad", "options.accessibility.title", "jobsmenu.ajustes.perfil.detalle"),
+        SISTEMA("jobsmenu.ajustes.categoria.sistema", "jobsmenu.ajustes.categoria.sistema", "jobsmenu.ajustes.menu.detalle");
 
+        private final String pestana;
         private final String titulo;
         private final String detalle;
 
-        Categoria(String titulo, String detalle) {
+        Categoria(String pestana, String titulo, String detalle) {
+            this.pestana = pestana;
             this.titulo = titulo;
             this.detalle = detalle;
         }
@@ -80,7 +82,7 @@ public class PantallaAjustesAviso extends Screen {
         for (Categoria c : Categoria.values()) {
             BotonExpediente boton = new BotonExpediente(
                     x, tabsY, tabW, tabH,
-                    Component.translatable(c.titulo),
+                    Component.translatable(c.pestana),
                     c == this.categoria ? BotonExpediente.Tipo.JOBS : BotonExpediente.Tipo.NORMAL,
                     () -> abrirCategoria(c));
             boton.setTooltip(Tooltip.create(Component.translatable(c.detalle)));
@@ -198,7 +200,7 @@ public class PantallaAjustesAviso extends Screen {
 
         int margen = compacta ? 14 : 20;
         ChromeExpediente.seccion(g, this.font, panelX + margen, panelX + panelW - margen,
-                this.contentY - (compacta ? 6 : 9), Component.translatable(this.categoria.detalle));
+                this.contentY - (compacta ? 6 : 9), Component.translatable(this.categoria.titulo));
 
         int indice = this.categoria.ordinal();
         int seleccionadoX = this.tabsX + indice * (this.tabW + this.tabGap);
@@ -206,15 +208,16 @@ public class PantallaAjustesAviso extends Screen {
                 seleccionadoX + this.tabW - 5, this.tabsY + this.tabH,
                 Paleta.conAlfa(Paleta.FLUOR, 0.62F));
         String pagina = String.format(java.util.Locale.ROOT, "%02d / %02d", indice + 1, Categoria.values().length);
-        g.drawString(this.font, pagina, panelX + panelW - margen - this.font.width(pagina),
-                this.contentY - 20, Paleta.conAlfa(Paleta.tintaSecundaria(), 0.54F), false);
-
-        if (!compacta) {
-            dibujarResumenCategoria(g, margen);
-        }
+        int paginaW = this.font.width(pagina) + 10;
+        int paginaX = panelX + panelW - margen - paginaW;
+        int paginaY = panelY + 12;
+        g.fill(paginaX, paginaY, paginaX + paginaW, paginaY + 14,
+                Paleta.conAlfa(Paleta.PARED_ALTA, 0.10F));
+        g.drawString(this.font, pagina, paginaX + 5, paginaY + 3,
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.62F), false);
 
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
-        ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "JOBS-014");
+        ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "JOBS-0161");
         super.render(g, mouseX, mouseY, partialTick);
     }
 
@@ -233,35 +236,6 @@ public class PantallaAjustesAviso extends Screen {
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
-    }
-
-    private void dibujarResumenCategoria(GuiGraphics g, int margen) {
-        int x = panelX + margen;
-        int w = panelW - margen * 2;
-        int h = 29;
-        int y = panelY + panelH - 72;
-        int fondo = Paleta.conAlfa(Paleta.PARED_ALTA, 0.055F);
-        int borde = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.16F);
-        int marca = Paleta.conAlfa(Paleta.tintaPrincipal(), 0.44F);
-
-        g.fill(x, y, x + w, y + h, fondo);
-        g.fill(x, y, x + w, y + 1, borde);
-        g.fill(x, y + h - 1, x + w, y + h, borde);
-        g.fill(x, y, x + 1, y + h, borde);
-        g.fill(x + w - 1, y, x + w, y + h, borde);
-        g.fill(x + 7, y + 6, x + 9, y + h - 6, marca);
-
-        Component titulo = Component.translatable(this.categoria.titulo);
-        g.drawString(this.font, titulo, x + 15, y + 5, Paleta.tintaPrincipal(), false);
-
-        String detalle = Component.translatable(this.categoria.detalle).getString();
-        int max = Math.max(20, w - 30);
-        if (this.font.width(detalle) > max) {
-            detalle = this.font.plainSubstrByWidth(detalle,
-                    Math.max(0, max - this.font.width("..."))) + "...";
-        }
-        g.drawString(this.font, detalle, x + 15, y + 16,
-                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.58F), false);
     }
 
     @Override

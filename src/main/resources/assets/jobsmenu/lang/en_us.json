@@ -294,9 +294,9 @@
   "jobsmenu.nivel17.nota1": "Do not confuse a still silhouette with an empty silhouette.",
   "jobsmenu.nivel17.nota2": "The blue light reaches the far end. That does not mean the far end stops there.",
   "jobsmenu.interfaz.cambio_guardado": "Change saved",
+  "jobsmenu.interfaz.idioma.titulo": "LANGUAGE ARCHIVE",
   "jobsmenu.interfaz.idioma.buscar": "Search language or code...",
-  "jobsmenu.interfaz.idioma.resultados": "%s languages",
-  "jobsmenu.interfaz.mods.titulo": "Modifications archive",
+  "jobsmenu.interfaz.mods.buscar": "Search modifications",
   "jobsmenu.interfaz.recursos.titulo": "Resource packs",
   "jobsmenu.servidor.fijado": "PINNED",
   "jobsmenu.tooltip.piel": "Change your model, arm and visible skin layers.",
@@ -316,5 +316,10 @@
   "jobsmenu.tooltip.servidor.editar": "Change the selected server name or address.",
   "jobsmenu.tooltip.servidor.eliminar": "Remove the selected server from your list.",
   "jobsmenu.tooltip.servidor.actualizar": "Refresh status and latency. Shortcut: F5.",
-  "jobsmenu.tooltip.servidor.protegido": "The official server is pinned and cannot be edited or removed."
+  "jobsmenu.tooltip.servidor.protegido": "The official server is pinned and cannot be edited or removed.",
+  "jobsmenu.ajustes.categoria.visual": "Visual",
+  "jobsmenu.ajustes.categoria.nivel": "Level",
+  "jobsmenu.ajustes.categoria.audio": "Audio",
+  "jobsmenu.ajustes.categoria.accesibilidad": "Access",
+  "jobsmenu.ajustes.categoria.sistema": "System"
 }

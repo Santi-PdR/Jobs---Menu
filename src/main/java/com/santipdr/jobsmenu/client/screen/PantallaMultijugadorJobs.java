@@ -3,6 +3,7 @@ package com.santipdr.jobsmenu.client.screen;
 import com.santipdr.jobsmenu.client.ui.BotonExpediente;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import com.santipdr.jobsmenu.client.ui.Paleta;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -176,15 +177,13 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         sincronizarEstados();
+        RenderSystem.setShaderColor(0.72F, 0.67F, 0.52F, 1.0F);
         super.render(g, mouseX, mouseY, partialTick);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         // JoinMultiplayerScreen dibuja su titulo despues del fondo. Cubrimos solo
         // la franja de cabecera, nunca la lista, y reconstruimos una unica jerarquia.
-        int headerBottom = Math.min(this.height - 82, this.panelY + 70);
-        g.fill(this.panelX + 6, this.panelY + 6,
-                this.panelX + this.panelW - 6, headerBottom,
-                Paleta.conAlfa(Paleta.VANO, 0.96F));
-        ChromeExpediente.cabeceraArchivo(g, this.font,
+        ChromeExpediente.reemplazarCabeceraArchivo(g, this.font,
                 Component.translatable("jobsmenu.interfaz.multijugador.titulo"),
                 Component.translatable("jobsmenu.interfaz.multijugador.subtitulo"),
                 panelX, panelY, panelW);
@@ -210,8 +209,6 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
             g.drawString(this.font, SERVIDOR_IP, tarjetaX + tarjetaW - ipW - 8, tarjetaY + 5,
                     Paleta.conAlfa(Paleta.TECHO, 0.62F), false);
         }
-
-        ChromeExpediente.pieArchivo(g, this.font, panelX, panelY, panelW, panelH, "ACCESS");
     }
 
     @Override

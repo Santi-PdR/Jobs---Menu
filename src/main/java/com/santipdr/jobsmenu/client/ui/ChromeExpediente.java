@@ -119,18 +119,42 @@ public final class ChromeExpediente {
         int tw = font.width(tituloVisible);
         int ty = panelY + 12;
         g.drawString(font, tituloVisible, centro - tw / 2, ty,
-                Paleta.conAlfa(Paleta.FLUOR, 0.94F), false);
+                Paleta.conAlfa(Paleta.PARED_ALTA, 0.92F), false);
 
         if (subtitulo != null) {
             String texto = ajustar(font, subtitulo.getString(), Math.max(20, panelW - 52));
             int sw = font.width(texto);
             g.drawString(font, texto, centro - sw / 2, ty + 13,
-                    Paleta.conAlfa(Paleta.TECHO, 0.72F), false);
+                    Paleta.conAlfa(Paleta.PARED, 0.76F), false);
         }
         int linea = Paleta.conAlfa(Paleta.PARED_ALTA, 0.34F);
         g.fill(panelX + 18, panelY + 41, panelX + panelW - 18, panelY + 42, linea);
         g.fill(centro - 12, panelY + 40, centro + 12, panelY + 43,
                 Paleta.conAlfa(Paleta.PARED, 0.54F));
+    }
+
+    /**
+     * Borra de forma opaca la cabecera vanilla y dibuja una sola cabecera Jobs.
+     * La opacidad es intencional: un velo translucido dejaba sangrar glifos
+     * blancos y producia los titulos dobles vistos dentro del juego.
+     */
+    public static void reemplazarCabeceraArchivo(GuiGraphics g, Font font,
+                                                 Component titulo, Component subtitulo,
+                                                 int panelX, int panelY, int panelW) {
+        g.fill(panelX + 1, panelY + 1, panelX + panelW - 1, panelY + 43, Paleta.VANO);
+        cabeceraArchivo(g, font, titulo, subtitulo, panelX, panelY, panelW);
+    }
+
+    /** Cabecera de una sola linea que deja intactos los rotulos de listas vanilla. */
+    public static void reemplazarRotuloArchivo(GuiGraphics g, Font font, Component titulo,
+                                               int panelX, int panelY, int panelW) {
+        g.fill(panelX + 1, panelY + 1, panelX + panelW - 1, panelY + 35, Paleta.VANO);
+        String texto = ajustar(font, titulo == null ? "" : titulo.getString(), panelW - 70);
+        int tw = font.width(texto);
+        g.drawString(font, texto, panelX + (panelW - tw) / 2, panelY + 12,
+                Paleta.conAlfa(Paleta.PARED_ALTA, 0.92F), false);
+        g.fill(panelX + 18, panelY + 31, panelX + panelW - 18, panelY + 32,
+                Paleta.conAlfa(Paleta.PARED_ALTA, 0.30F));
     }
 
     /** Rotulo pequeno para pantallas vanilla/Forge donde no se debe tapar la lista. */
@@ -141,10 +165,10 @@ public final class ChromeExpediente {
         int tw = font.width(texto);
         int w = Math.min(ancho - 32, Math.max(112, tw + 46));
         int x = (ancho - w) / 2;
-        g.fill(x, 7, x + w, 28, Paleta.conAlfa(Paleta.VANO, 0.94F));
+        g.fill(x, 7, x + w, 28, Paleta.VANO);
         g.fill(x, 27, x + w, 28, Paleta.conAlfa(Paleta.PARED_ALTA, 0.46F));
         g.fill(x + 7, 11, x + 9, 24, Paleta.conAlfa(Paleta.FLUOR, 0.54F));
-        g.drawString(font, texto, x + 15, 13, Paleta.conAlfa(Paleta.PAPEL, 0.90F), false);
+        g.drawString(font, texto, x + 15, 13, Paleta.conAlfa(Paleta.PARED_ALTA, 0.92F), false);
         if (codigo != null && w > 170) {
             int cw = font.width(codigo);
             g.drawString(font, codigo, x + w - cw - 8, 13,
