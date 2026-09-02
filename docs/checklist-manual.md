@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.20.0
+# Checklist manual de aceptación — 0.22.1
 
 Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código, recursos y build; **no certifica estética, hitboxes, audio ni compatibilidad visual dentro de Minecraft**.
 
@@ -6,24 +6,12 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.20.0.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.22.1.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Matriz mínima de layout
 
-Probar como mínimo:
-
-- [ ] 854×480.
-- [ ] 1280×720.
-- [ ] 1920×1080.
-- [ ] ventana estrecha.
-- [ ] poca altura.
-- [ ] GUI Scale 2.
-- [ ] GUI Scale 3.
-- [ ] GUI Scale 4.
-- [ ] español.
-- [ ] inglés.
-- [ ] Español (Uruguay).
+Probar como mínimo 854×480, 1280×720, 1920×1080, ventana estrecha, poca altura, GUI Scale 2/3/4, español, inglés y Español (Uruguay).
 
 En todos:
 
@@ -35,21 +23,30 @@ En todos:
 - [ ] no aparece título vanilla por debajo de Jobs;
 - [ ] no hay hitboxes invisibles capturando click/foco.
 
-## Título y sesión
+## Main screen 0.22.1
 
 - [ ] `TitleScreen` entra a Jobs, no al título vanilla.
-- [ ] Los renglones principales responden dentro de su hitbox.
-- [ ] Renunciar conserva confirmación.
+- [ ] Los cuatro renglones principales responden dentro de su hitbox.
+- [ ] Renunciar conserva segunda confirmación.
+- [ ] El HUD lateral aparece sólo cuando hay ancho suficiente.
+- [ ] El HUD lateral no pisa hoja, reloj, crédito ni rótulo de Nivel.
+- [ ] El HUD muestra nivel/estado correctos.
+- [ ] Las marcas técnicas siguen la luz del Nivel sin volverse ilegibles.
+- [ ] F cambia de Nivel sólo cuando la rotación está habilitada.
+- [ ] M alterna silencio.
 - [ ] Música/ambiente continúan al entrar a subpantallas.
 - [ ] Entrar a mundo/servidor corta música y ambiente desde gameplay.
 - [ ] Salir de mundo/servidor/kick vuelve a Jobs.
 
-## Pausa 0.20.0
+## Pausa 0.22.1
 
 - [ ] El mundo real sigue visible detrás de la hoja.
-- [ ] El nuevo oscurecido por capas no tapa completamente el contexto.
+- [ ] El oscurecido por capas no tapa completamente el contexto.
 - [ ] La sombra de la hoja no invade renglones ni hitboxes.
 - [ ] Las guías laterales se mantienen fuera de los controles.
+- [ ] En viewports amplios aparece el panel contextual superior izquierdo.
+- [ ] El panel contextual distingue LOCAL/SERVER correctamente.
+- [ ] El código de expediente no invade controles.
 - [ ] Escape reanuda.
 - [ ] Condiciones abre `PantallaOpcionesJobs`.
 - [ ] Volver desde Options regresa a pausa.
@@ -57,13 +54,23 @@ En todos:
 - [ ] Salir de mundo local muestra guardado y vuelve a Jobs.
 - [ ] Salir de servidor desconecta sin reproducir audio de menú dentro del mundo.
 
+## Transiciones y atmósfera
+
+- [ ] La transición entre expedientes se siente suave y no bloquea input.
+- [ ] Movimiento reducido simplifica la transición a fade.
+- [ ] Bajo consumo elimina barridos decorativos continuos.
+- [ ] Los rails globales no invaden controles.
+- [ ] Los barridos horizontales/verticales son sutiles y no mueven el background.
+- [ ] Cambiar rápidamente entre pantallas no deja overlays congelados.
+
 ## Options / Config Jobs
 
 - [ ] Config Jobs aparece como acción principal.
 - [ ] Piel, Sonido, Video, Controles, Idioma, Chat, Recursos, Accesibilidad y Online abren la pantalla correcta.
 - [ ] FOV aparece sólo cuando cabe.
 - [ ] Ventana pequeña reduce contenido antes de solapar.
-- [ ] Las cinco categorías de Config funcionan y conservan valores.
+- [ ] Las seis categorías de Config funcionan y conservan valores.
+- [ ] Perfiles Equilibrado/Inmersivo/Rendimiento/Accesible/Mínimo aplican valores reales.
 - [ ] Tabs, toggles y sliders muestran tooltip localizado.
 
 ## Widgets Jobs
@@ -97,7 +104,7 @@ En todos:
 - [ ] F5 refresca.
 - [ ] Scrollbar Jobs coincide con el scroll real.
 
-## Mods / Forge — rediseño avanzado
+## Mods / Forge
 
 - [ ] Lista completa de mods.
 - [ ] A–Z / Z–A funciona.
@@ -111,7 +118,7 @@ En todos:
 - [ ] Scrollbar Jobs funciona y coincide con Forge.
 - [ ] No aparece título Forge duplicado.
 
-## Resource Packs — doble archivador
+## Resource Packs
 
 - [ ] Las dos listas están visualmente separadas.
 - [ ] No reaparece dirt vanilla.
@@ -120,7 +127,7 @@ En todos:
 - [ ] Scrollbar Jobs no se dibuja fuera de su lista.
 - [ ] No aparece `jobsmenu-musica-activa` legado.
 
-## Idioma — responsive avanzado
+## Idioma
 
 - [ ] Lista completa hace scroll.
 - [ ] Buscador conserva teclado, selección y portapapeles.
@@ -135,38 +142,12 @@ En todos:
 - [ ] ES ↔ EN funciona.
 - [ ] Español (Uruguay) conserva textos Jobs en español.
 
-## Sonido — 0.20.0
+## Sonido y Video
 
-- [ ] Todas las opciones vanilla esperadas siguen presentes.
-- [ ] Lista llega hasta el final.
+- [ ] Sonido conserva todas las opciones vanilla esperadas y scrollbar Jobs.
 - [ ] La bandeja interior no tapa sliders.
-- [ ] Raíles laterales no invaden controles.
-- [ ] Scrollbar Jobs funciona.
-- [ ] Cerrar expediente vuelve al padre.
-- [ ] El nuevo marco no cambia hitboxes de sliders.
-
-## Video — 0.20.0
-
-Sin Embeddium:
-
-- [ ] Abre `PantallaVideoJobs`.
-- [ ] Marco de calibración no tapa opciones.
-- [ ] Marcas de escala quedan fuera de los hitboxes.
-- [ ] Scrollbar Jobs funciona.
-- [ ] Cerrar expediente vuelve al padre.
-
-Con Embeddium:
-
-- [ ] Se abre la pantalla real de Embeddium.
-- [ ] Jobs no reconstruye tabs/opciones de Embeddium.
-- [ ] No aparecen controles Jobs superpuestos incorrectamente.
-
-## Otras pantallas
-
-- [ ] Chat, Mouse, Teclas, Online y Accesibilidad conservan todas las opciones vanilla esperadas.
-- [ ] Agacharse/Correr conservan Mantener/Alternar.
-- [ ] Reasignación y conflictos de teclas funcionan.
-- [ ] La Guía de accesibilidad vanilla no se superpone a Cerrar expediente.
+- [ ] Sin Embeddium abre `PantallaVideoJobs` y su marco no tapa opciones.
+- [ ] Con Embeddium se abre la pantalla real de Embeddium sin reconstrucción Jobs incorrecta.
 
 ## Audio y recarga
 
@@ -174,19 +155,22 @@ Con Embeddium:
 - [ ] Title → Options → Mods → Recursos → volver no reinicia ni duplica música.
 - [ ] F3+T no crea instancias fantasma.
 - [ ] Alt+Tab no duplica audio.
-- [ ] Ducking funciona en transición/Suspensión/presencia.
+- [ ] Ducking funciona en transición/Suspensión/presencia donde corresponde.
 - [ ] Desde el primer tick jugable no queda audio de menú.
 
 ## Fondos 10–17
 
 - [ ] Los ocho PNG cargan sin morado/negro.
+- [ ] Se ven suavizados por filtrado lineal al escalar.
 - [ ] No zoom.
 - [ ] No paneo.
 - [ ] No parallax.
-- [ ] No flicker.
-- [ ] No scanlines animadas.
-- [ ] No niebla móvil.
+- [ ] No flicker propio.
+- [ ] No scanlines animadas sobre el PNG.
+- [ ] No niebla móvil propia.
 - [ ] No motas/presencia sobre el PNG.
+- [ ] Fades/apagones globales funcionan sin mover la imagen.
+- [ ] Transición de expediente puede pasar por encima sin deformar la imagen.
 
 ## Cierre de prueba
 
@@ -194,5 +178,5 @@ Si todo pasa:
 
 - [ ] conservar el SHA-256 del JAR probado;
 - [ ] anotar resolución/GUI Scale usados;
-- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.20.0.jar`;
+- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.22.1.jar`;
 - [ ] reportar cualquier defecto visual con captura y `latest.log` si afecta recursos/audio/crash.
