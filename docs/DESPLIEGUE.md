@@ -28,7 +28,7 @@ El bloque no compila el proyecto. Descarga el artefacto ya certificado por GitHu
 
 Todo JAR instalado o publicado debe incluir la versión en el nombre. Para esta entrega:
 
-`jobsmenu-0.16.2.jar`
+`jobsmenu-0.19.0.jar`
 
 El nombre genérico `jobsmenu-latest.jar` queda prohibido. La release sigue usando el tag rodante `dev-latest`, pero su único asset cambia de nombre con `mod_version`.
 
@@ -76,7 +76,6 @@ if ($bytes.Length -lt 100000 -or $bytes[0] -ne 0x50 -or $bytes[1] -ne 0x4B) {
 $sha = (Get-FileHash $temp -Algorithm SHA256).Hash.ToLower()
 Write-Host "JAR validado: $sha" -ForegroundColor Green
 
-# El JAR nuevo ya existe y fue validado. Recién ahora se quitan versiones previas.
 Get-ChildItem $mods -File -ErrorAction SilentlyContinue |
     Where-Object { $_.Name -match '^jobsmenu.*\.jar$' } |
     Remove-Item -Force
@@ -99,11 +98,12 @@ Write-Host "SHA-256: $sha"
 4. `tools/verificar_version.py`;
 5. `tools/verificar_fondos.py`;
 6. `tools/verificar.py`;
-7. build Forge;
-8. preparación del JAR versionado;
-9. artifact de workflow;
-10. limpieza de JARs obsoletos de `dev-latest`;
-11. actualización de `dev-latest` sólo desde `main`.
+7. `tools/verificar_ui_musica.py`;
+8. build Forge;
+9. preparación del JAR versionado;
+10. artifact de workflow;
+11. limpieza de JARs obsoletos de `dev-latest`;
+12. actualización de `dev-latest` sólo desde `main`.
 
 Si falla cualquier paso, la release no se actualiza y el PowerShell no se entrega todavía.
 
