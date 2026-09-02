@@ -8,28 +8,30 @@ package com.santipdr.jobsmenu.config;
 public final class PerfilesJobs {
 
     public enum Perfil {
-        EQUILIBRADO("equilibrado"),
-        INMERSIVO("inmersivo"),
-        RENDIMIENTO("rendimiento"),
-        ACCESIBLE("accesible"),
-        MINIMO("minimo");
-
-        private final String id;
-
-        Perfil(String id) {
-            this.id = id;
-        }
-
-        public String id() {
-            return this.id;
-        }
+        EQUILIBRADO,
+        INMERSIVO,
+        RENDIMIENTO,
+        ACCESIBLE,
+        MINIMO;
 
         public String claveNombre() {
-            return "jobsmenu.perfil." + this.id;
+            return switch (this) {
+                case EQUILIBRADO -> "jobsmenu.ajustes.categoria.visual";
+                case INMERSIVO -> "jobsmenu.ajustes.escena";
+                case RENDIMIENTO -> "jobsmenu.ajustes.bajoconsumo";
+                case ACCESIBLE -> "jobsmenu.ajustes.perfil";
+                case MINIMO -> "jobsmenu.ajustes.interfaz";
+            };
         }
 
         public String claveDetalle() {
-            return claveNombre() + ".detalle";
+            return switch (this) {
+                case EQUILIBRADO -> "jobsmenu.ajustes.escena.detalle";
+                case INMERSIVO -> "jobsmenu.ajustes.eventos.detalle";
+                case RENDIMIENTO -> "jobsmenu.ajustes.bajoconsumo.detalle";
+                case ACCESIBLE -> "jobsmenu.ajustes.perfil.detalle";
+                case MINIMO -> "jobsmenu.ajustes.interfaz.detalle";
+            };
         }
     }
 
@@ -38,9 +40,6 @@ public final class PerfilesJobs {
 
     public static void aplicar(Perfil perfil) {
         if (perfil == null) return;
-
-        // Salir primero del perfil compuesto evita que sus valores calculados
-        // interfieran mientras se escribe un perfil distinto.
         ConfigTurno.fijarPerfilAccesible(false);
 
         switch (perfil) {
