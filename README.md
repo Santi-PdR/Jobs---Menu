@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 
 | | |
 |---|---|
-| Versión | **0.21.0** |
-| Artefacto | **`jobsmenu-0.21.0.jar`** |
+| Versión | **0.22.0** |
+| Artefacto | **`jobsmenu-0.22.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,24 +13,24 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 | Rama entregable | **`main`** |
 | Niveles | **18 (0–17)** |
 
-## 0.21.0 · Profesionalización transversal
+## 0.22.0 · Main screen, pausa, atmósfera y secretos
 
-0.21.0 mejora el sistema visual compartido en vez de sumar adornos aislados. El resultado se propaga al menú principal, Options, Config Jobs, Idioma, Controles, Piel, Sonido, Video vanilla, Chat, Accesibilidad, Online, Mouse, Teclas, Pausa y varias pantallas con listas compatibles.
+0.22.0 concentra la mejora en lo que más se ve al usar el mod: menú principal, pausa, composición global y pequeños detalles de sesión.
 
 Cambios principales:
 
-- **Botones** con jerarquías NORMAL/PRINCIPAL/JOBS/TERMINAL más distintas, mejor foco, confirmación posterior al click, sombras y estados deshabilitados más legibles.
-- **Toggles** con transición ON/OFF, casilla física, cápsula de estado, rail inferior y foco de teclado reforzado.
-- **Sliders** con tirador interpolado, porcentaje en cápsula, escala mejorada, valores mínimo/máximo, mira de teclado y confirmación de cambio.
-- **Renglones principales** con placa de orden, banda de lectura, casilla más expresiva, indicador direccional y tratamiento terminal reforzado.
-- **Pulido global** con puntos de registro, rails, marcas laterales, mejor lectura de foco y aviso de cambio guardado con barra temporal.
-- **Transiciones** con más masa de expediente, lomo central, perforaciones, cola de sombra y variante mínima para movimiento reducido.
-- **Scrollbars Jobs** con nueve marcas, indicador de posición, tirador más físico y mejor jerarquía sin alterar rueda/click/drag reales.
-- **90 mejoras visibles/perceptibles** auditadas una por una en `docs/AUDITORIA_0.21.0_90_MEJORAS.md`.
+- **Main screen** con nueva composición alrededor del expediente: rail lateral, marcas de registro, bloque técnico contextual, mejor lectura de nivel y reglas secundarias.
+- **Pausa Jobs** con doble profundidad, rails laterales, estado `LOCAL/SERVER`, pista `M=MUTE` y mejor sensación de turno suspendido.
+- **Atmósfera compartida** para pantallas Jobs con rails globales y barridos extremadamente sutiles; se desactiva con Movimiento reducido o Bajo consumo.
+- **Easter eggs discretos** de sesión y una intervención localizada a las 03:33, sin red, gameplay ni recompensas.
+- **Fondos PNG 10–17 intactos**: no se reemplazan, no se deforman y no reciben movimiento propio. Sí pueden participar de fades/apagones/transiciones globales que pertenecen al menú, no a la imagen.
+- Auditoría específica en `docs/AUDITORIA_VISUAL_0.22.0.md`.
 
 ## Fondos 10–17
 
-Los PNG **no fueron reemplazados ni editados**. Se conserva únicamente la corrección de nitidez del pase anterior: filtrado lineal al escalarlos para evitar pixelado. Continúan estáticos y sin zoom, paneo, parallax, flicker, scanlines animadas o niebla móvil.
+Los PNG **no fueron reemplazados ni editados**. Mantienen filtrado lineal al escalarse para evitar pixelado. No reciben zoom, paneo, parallax, motas, foreground dinámico, flicker ni deformación. Los fades y apagones globales de transición sí están permitidos porque no modifican la geometría o el contenido del PNG.
+
+Si en el futuro se agregan niveles 18–19 como PNG, deben heredar este mismo contrato.
 
 ## Estado de prueba
 
@@ -51,7 +51,7 @@ Contratos permanentes:
 - rojo reservado a Executores;
 - escena y UI usan paletas separadas;
 - movimiento reducido y Bajo consumo tienen prioridad sobre decoración;
-- los PNG 10–17 permanecen estáticos;
+- los PNG 10–17 no reciben movimiento propio;
 - las pantallas externas complejas no se reconstruyen por estética.
 
 ## Servidor oficial
@@ -94,7 +94,7 @@ GitHub Actions ejecuta:
 4. auditoría estática;
 5. contratos UI/música;
 6. `./gradlew build --stacktrace --no-daemon`;
-7. publicación de **`jobsmenu-0.21.0.jar`** en `dev-latest` sólo desde `main`.
+7. publicación de **`jobsmenu-0.22.0.jar`** en `dev-latest` sólo desde `main`.
 
 La release rodante conserva un único JAR versionado. `jobsmenu-latest.jar` está prohibido.
 
@@ -109,7 +109,8 @@ La prueba normal no compila localmente. El PowerShell canónico de `docs/DESPLIE
 - [`CONTEXTO.md`](CONTEXTO.md): contrato maestro actual.
 - [`CHANGELOG.md`](CHANGELOG.md): cambios por versión.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y pruebas manuales pendientes.
-- [`docs/AUDITORIA_0.21.0_90_MEJORAS.md`](docs/AUDITORIA_0.21.0_90_MEJORAS.md): 90 mejoras visibles/perceptibles de esta entrega.
+- [`docs/AUDITORIA_VISUAL_0.22.0.md`](docs/AUDITORIA_VISUAL_0.22.0.md): pase visual de esta entrega.
+- [`docs/AUDITORIA_0.21.0_90_MEJORAS.md`](docs/AUDITORIA_0.21.0_90_MEJORAS.md): pase transversal anterior.
 - [`docs/checklist-manual.md`](docs/checklist-manual.md): prueba dentro de Minecraft.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalación certificada en `test-1`.
 - [`docs/musica.md`](docs/musica.md): catálogo y lifecycle musical.
