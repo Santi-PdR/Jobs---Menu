@@ -16,7 +16,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/** Interruptor de expediente que conserva un setter real, no estado duplicado. */
+/** Interruptor Jobs con lectura clara de estado, foco y accion. */
 public final class ToggleExpediente extends AbstractButton {
 
     private final Component etiqueta;
@@ -62,7 +62,7 @@ public final class ToggleExpediente extends AbstractButton {
 
     @Override
     public void onPress() {
-        this.presionadoHasta = System.currentTimeMillis() + 110L;
+        this.presionadoHasta = System.currentTimeMillis() + 125L;
         boolean nuevo = !valor();
         if (this.fijar != null) this.fijar.accept(nuevo);
         sincronizarMensaje(true);
@@ -76,13 +76,15 @@ public final class ToggleExpediente extends AbstractButton {
 
     @Override
     protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        boolean hover = this.active && this.isHoveredOrFocused();
+        boolean raton = this.active && this.isMouseOver(mouseX, mouseY);
+        boolean teclado = this.active && this.isFocused() && !raton;
+        boolean hover = raton || teclado;
         if (hover && !this.hoverPrevio) MezclaAudio.gesto(SonidosNivel.UI_PASAR, 0.22F);
         this.hoverPrevio = hover;
 
         float destino = hover ? 1.0F : 0.0F;
         if (ConfigTurno.movimientoReducido() || ConfigTurno.bajoConsumo()) this.focoSuave = destino;
-        else this.focoSuave += (destino - this.focoSuave) * 0.24F;
+        else this.focoSuave += (destino - this.focoSuave) * 0.26F;
 
         int x = getX();
         int y = getY();
@@ -92,30 +94,36 @@ public final class ToggleExpediente extends AbstractButton {
         boolean pulsado = this.active && System.currentTimeMillis() < this.presionadoHasta;
 
         int fondo = Paleta.mezclar(Paleta.papelAviso(), Paleta.UI_PAPEL_FOCO,
-                0.12F + 0.62F * this.focoSuave);
+                0.14F + 0.62F * this.focoSuave);
+        if (!this.active) fondo = Paleta.mezclar(Paleta.VANO, fondo, 0.18F);
         g.fill(x, y, x + w, y + h, fondo);
-        if (pulsado) {
-            g.fill(x + 2, y + 2, x + w - 2, y + h - 2,
-                    Paleta.conAlfa(Paleta.UI_ACENTO, 0.14F));
-        }
-        int borde = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.34F + 0.30F * this.focoSuave);
+        if (pulsado) g.fill(x + 2, y + 2, x + w - 2, y + h - 2,
+                Paleta.conAlfa(Paleta.UI_ACENTO, 0.17F));
+
+        int borde = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.36F + 0.34F * this.focoSuave);
         g.fill(x, y, x + w, y + 1, borde);
         g.fill(x, y + h - 1, x + w, y + h, borde);
-        g.fill(x, y, x + 1, y + h, Paleta.conAlfa(Paleta.tintaSecundaria(), 0.22F));
-        g.fill(x + w - 1, y, x + w, y + h, Paleta.conAlfa(Paleta.tintaSecundaria(), 0.22F));
+        g.fill(x, y, x + 1, y + h, Paleta.conAlfa(Paleta.tintaSecundaria(), 0.24F));
+        g.fill(x + w - 1, y, x + w, y + h, Paleta.conAlfa(Paleta.tintaSecundaria(), 0.24F));
+        g.fill(x + 3, y + 3, x + w - 3, y + 4, Paleta.conAlfa(Paleta.UI_PAPEL_FOCO, 0.28F));
 
-        int caja = Math.min(10, h - 6);
-        int cx = x + 6;
+        int caja = Math.min(11, h - 6);
+        int cx = x + 7;
         int cy = y + (h - caja) / 2;
-        int tinta = Paleta.conAlfa(Paleta.tintaPrincipal(), v ? 0.88F : 0.40F);
+        int tinta = Paleta.conAlfa(Paleta.tintaPrincipal(), v ? 0.92F : 0.44F);
         g.fill(cx, cy, cx + caja, cy + 1, tinta);
         g.fill(cx, cy + caja - 1, cx + caja, cy + caja, tinta);
         g.fill(cx, cy, cx + 1, cy + caja, tinta);
         g.fill(cx + caja - 1, cy, cx + caja, cy + caja, tinta);
+        g.fill(cx + 2, cy + 2, cx + caja - 2, cy + caja - 2,
+                Paleta.conAlfa(v ? Paleta.UI_ACENTO : Paleta.VANO, v ? 0.18F : 0.05F));
         if (v) {
             g.fill(cx + 2, cy + caja / 2, cx + 4, cy + caja - 2, tinta);
             g.fill(cx + 4, cy + caja - 4, cx + caja - 2, cy + caja - 2, tinta);
             g.fill(cx + caja - 3, cy + 2, cx + caja - 1, cy + caja - 2, tinta);
+        } else {
+            g.fill(cx + 3, cy + caja / 2, cx + caja - 3, cy + caja / 2 + 1,
+                    Paleta.conAlfa(Paleta.tintaSecundaria(), 0.42F));
         }
 
         sincronizarMensaje(false);
@@ -123,28 +131,30 @@ public final class ToggleExpediente extends AbstractButton {
         String etiquetaTxt = this.etiqueta.getString();
         String valorTxt = this.textoValor.apply(v).getString();
 
-        int pillPad = 6;
-        int pillW = Math.min(Math.max(30, font.width(valorTxt) + pillPad * 2), Math.max(30, w / 3));
-        int pillX = x + w - pillW - 5;
+        int pillPad = 7;
+        int pillW = Math.min(Math.max(34, font.width(valorTxt) + pillPad * 2), Math.max(34, w / 3));
+        int pillX = x + w - pillW - 6;
         int pillY = y + 4;
         int pillH = Math.max(10, h - 8);
         int pillBg = v
-                ? Paleta.conAlfa(Paleta.UI_ACENTO, 0.20F + 0.12F * this.focoSuave)
-                : Paleta.conAlfa(Paleta.VANO, 0.08F);
+                ? Paleta.conAlfa(Paleta.UI_ACENTO, 0.24F + 0.14F * this.focoSuave)
+                : Paleta.conAlfa(Paleta.VANO, 0.09F);
         g.fill(pillX, pillY, pillX + pillW, pillY + pillH, pillBg);
         g.fill(pillX, pillY, pillX + pillW, pillY + 1,
-                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.28F));
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.32F));
         g.fill(pillX, pillY + pillH - 1, pillX + pillW, pillY + pillH,
-                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.28F));
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.32F));
+        g.fill(pillX - 4, y + 5, pillX - 3, y + h - 5,
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.14F));
 
-        int tx = cx + caja + 7;
-        int maxEtiqueta = Math.max(8, pillX - tx - 6);
+        int tx = cx + caja + 8;
+        int maxEtiqueta = Math.max(8, pillX - tx - 7);
         if (font.width(etiquetaTxt) > maxEtiqueta) {
             etiquetaTxt = font.plainSubstrByWidth(etiquetaTxt,
                     Math.max(0, maxEtiqueta - font.width("..."))) + "...";
         }
         g.drawString(font, etiquetaTxt, tx, y + (h - font.lineHeight) / 2,
-                this.active ? Paleta.tintaPrincipal() : Paleta.conAlfa(Paleta.tintaSecundaria(), 0.55F), false);
+                this.active ? Paleta.tintaPrincipal() : Paleta.conAlfa(Paleta.tintaSecundaria(), 0.50F), false);
 
         int maxValor = Math.max(8, pillW - pillPad * 2);
         if (font.width(valorTxt) > maxValor) {
@@ -154,16 +164,19 @@ public final class ToggleExpediente extends AbstractButton {
         int vw = font.width(valorTxt);
         g.drawString(font, valorTxt, pillX + (pillW - vw) / 2,
                 y + (h - font.lineHeight) / 2,
-                Paleta.conAlfa(Paleta.tintaPrincipal(), v ? 0.90F : 0.68F), false);
+                Paleta.conAlfa(Paleta.tintaPrincipal(), v ? 0.94F : 0.68F), false);
 
         if (hover) {
-            g.fill(x + 2, y + 2, x + 3, y + h - 2,
-                    Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.52F));
+            int c = Paleta.conAlfa(teclado ? Paleta.UI_ACENTO_FUERTE : Paleta.UI_ACENTO,
+                    teclado ? 0.82F : 0.56F);
+            g.fill(x + 2, y + 2, x + 3, y + h - 2, c);
+            g.fill(x + 5, y + h - 2, x + Math.min(w - 6, 18 + Math.round((w - 24) * this.focoSuave)), y + h - 1,
+                    Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.28F));
         }
         if (pulsado) {
             int centro = x + w / 2;
-            g.fill(centro - 8, y + h - 3, centro + 8, y + h - 2,
-                    Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.66F));
+            g.fill(centro - 10, y + h - 3, centro + 10, y + h - 2,
+                    Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.72F));
         }
     }
 
