@@ -15,8 +15,8 @@ import java.util.WeakHashMap;
 /** Microinteracciones compartidas que no cambian hitboxes ni logica de Minecraft. */
 public final class PulidoInterfazJobs {
 
-    private static final long ENTRADA_MS = 360L;
-    private static final long AVISO_MS = 1500L;
+    private static final long ENTRADA_MS = 420L;
+    private static final long AVISO_MS = 1700L;
     private static final Map<Screen, Long> APERTURAS = new WeakHashMap<>();
     private static long avisoHasta;
 
@@ -43,11 +43,18 @@ public final class PulidoInterfazJobs {
         if (w < 120 || h < 90) return;
         int m = Math.max(5, Math.min(12, Math.min(w, h) / 28));
         int l = Math.max(5, Math.min(12, m));
-        int c = Paleta.conAlfa(Paleta.UI_ACENTO, 0.22F);
+        int c = Paleta.conAlfa(Paleta.UI_ACENTO, 0.20F);
         esquina(g, m, m, l, 1, 1, c);
         esquina(g, w - m, m, l, -1, 1, c);
         esquina(g, m, h - m, l, 1, -1, c);
         esquina(g, w - m, h - m, l, -1, -1, c);
+
+        // Una linea casi imperceptible estabiliza visualmente pantallas muy vacias
+        // sin convertirlas en un panel moderno ajeno a la estetica de expediente.
+        if (w >= 260) {
+            int rail = Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.10F);
+            g.fill(m + l + 6, m, w - m - l - 6, m + 1, rail);
+        }
     }
 
     private static void esquina(GuiGraphics g, int x, int y, int l, int dx, int dy, int c) {
@@ -58,25 +65,37 @@ public final class PulidoInterfazJobs {
     }
 
     private static void foco(GuiGraphics g, Screen pantalla, int mouseX, int mouseY) {
+        long ahora = System.currentTimeMillis();
         for (var child : pantalla.children()) {
             if (!(child instanceof AbstractWidget w) || !w.visible || !w.active) continue;
             boolean raton = w.isMouseOver(mouseX, mouseY);
             boolean teclado = w.isFocused() && !raton;
             if (!raton && !teclado) continue;
+
             int x = w.getX();
             int y = w.getY();
             int ancho = w.getWidth();
             int alto = w.getHeight();
+            float pulso = 1.0F;
+            if (teclado && !ConfigTurno.movimientoReducido() && !ConfigTurno.bajoConsumo()) {
+                pulso = 0.78F + 0.22F * (float) ((Math.sin(ahora / 260.0D) + 1.0D) * 0.5D);
+            }
             int c = Paleta.conAlfa(teclado ? Paleta.UI_ACENTO_FUERTE : Paleta.UI_ACENTO,
-                    teclado ? 0.82F : 0.38F);
-            int l = Math.min(7, Math.max(3, alto / 3));
+                    (teclado ? 0.78F : 0.34F) * pulso);
+            int l = Math.min(8, Math.max(3, alto / 3));
             g.fill(x - 2, y - 2, x + l, y - 1, c);
             g.fill(x - 2, y - 2, x - 1, y + l, c);
             g.fill(x + ancho - l, y + alto + 1, x + ancho + 2, y + alto + 2, c);
             g.fill(x + ancho + 1, y + alto - l, x + ancho + 2, y + alto + 2, c);
-            if (teclado && !ConfigTurno.movimientoReducido()) {
+
+            if (teclado) {
                 g.fill(x + 3, y + alto + 2, x + ancho - 3, y + alto + 3,
-                        Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.30F));
+                        Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.24F * pulso));
+            } else if (raton && ancho > 28) {
+                // Marca de lectura: da respuesta al hover sin pintar cajas gruesas.
+                int marca = Math.min(16, Math.max(6, ancho / 8));
+                g.fill(x + 4, y + alto + 1, x + 4 + marca, y + alto + 2,
+                        Paleta.conAlfa(Paleta.UI_ACENTO, 0.20F));
             }
         }
     }
@@ -90,11 +109,15 @@ public final class PulidoInterfazJobs {
         float restante = 1.0F - t;
         if (ConfigTurno.movimientoReducido() || ConfigTurno.bajoConsumo()) {
             g.fill(0, 0, pantalla.width, pantalla.height,
-                    Paleta.conAlfa(Paleta.VANO, restante * 0.12F));
+                    Paleta.conAlfa(Paleta.VANO, restante * 0.10F));
             return;
         }
-        int borde = Math.max(1, Math.round(restante * Math.min(22, pantalla.width / 12.0F)));
-        int c = Paleta.conAlfa(Paleta.VANO, restante * 0.36F);
+
+        // Curva suave: la interfaz aparece como una carpeta que termina de asentarse,
+        // no como un wipe llamativo de videojuego.
+        float suave = restante * restante;
+        int borde = Math.max(1, Math.round(suave * Math.min(24, pantalla.width / 11.0F)));
+        int c = Paleta.conAlfa(Paleta.VANO, suave * 0.34F);
         g.fill(0, 0, pantalla.width, borde, c);
         g.fill(0, pantalla.height - borde, pantalla.width, pantalla.height, c);
         g.fill(0, borde, Math.max(1, borde / 2), pantalla.height - borde, c);
@@ -108,13 +131,16 @@ public final class PulidoInterfazJobs {
         Font font = Minecraft.getInstance().font;
         Component texto = Component.translatable("jobsmenu.interfaz.cambio_guardado");
         int tw = font.width(texto);
-        int w = Math.min(pantalla.width - 16, tw + 22);
+        int w = Math.min(pantalla.width - 16, tw + 24);
         int x = pantalla.width - w - 8;
         int y = 8;
-        float a = Math.min(1.0F, restante / 220.0F);
-        g.fill(x, y, x + w, y + 22, Paleta.conAlfa(Paleta.ARCHIVO_FONDO, 0.86F * a));
-        g.fill(x, y, x + 2, y + 22, Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.82F * a));
-        g.drawString(font, ChromeExpediente.ajustar(font, texto.getString(), w - 12),
-                x + 8, y + 7, Paleta.conAlfa(Paleta.ARCHIVO_TEXTO, 0.94F * a), false);
+        float salida = Math.min(1.0F, restante / 260.0F);
+        float entrada = Math.min(1.0F, (AVISO_MS - restante) / 170.0F);
+        float a = Math.min(entrada, salida);
+        g.fill(x, y, x + w, y + 23, Paleta.conAlfa(Paleta.ARCHIVO_FONDO, 0.88F * a));
+        g.fill(x, y, x + 2, y + 23, Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.84F * a));
+        g.fill(x + 2, y + 22, x + w, y + 23, Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.16F * a));
+        g.drawString(font, ChromeExpediente.ajustar(font, texto.getString(), w - 14),
+                x + 9, y + 7, Paleta.conAlfa(Paleta.ARCHIVO_TEXTO, 0.95F * a), false);
     }
 }
