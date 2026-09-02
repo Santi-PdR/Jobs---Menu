@@ -31,8 +31,8 @@ public final class EscenaNivel {
         boolean viva = ConfigTurno.escenaViva();
         boolean destellos = viva && !fondoImagen && !ConfigTurno.destellosReducidos()
                 && !estado.enSuspension();
-        // Los PNG 10-17 son una excepcion deliberada desde 0.13.0: se mantienen
-        // estaticos aunque el resto de recintos siga usando escena viva.
+        // Los PNG 10-17 actuales, y cualquier PNG alto futuro, son material
+        // fotografico estatico: escena viva nunca mueve ni pulsa su contenido.
         boolean movimiento = viva && !fondoImagen && !ConfigTurno.movimientoReducido();
         boolean bajoConsumo = viva && ConfigTurno.bajoConsumo();
         boolean respiracion = movimiento && ConfigTurno.respiracionCamara()
@@ -41,7 +41,9 @@ public final class EscenaNivel {
 
         float tiempo = movimiento ? (estado.ahora() % 600_000L) / 1000.0F : 3.0F;
         long restanteRonda = RelojAparicion.restanteMs(estado.ahora());
-        float penumbra = RelojAparicion.penumbra(restanteRonda);
+        // En fondos de imagen la ronda no oscurece ni anima la vignette. Solo
+        // queda estado.luz(), que pertenece al cambio completo entre niveles.
+        float penumbra = fondoImagen ? 0.0F : RelojAparicion.penumbra(restanteRonda);
 
         float luz = brilloFluorescente(tiempo, destellos)
                 * (1.0F - 0.55F * penumbra)
@@ -66,9 +68,9 @@ public final class EscenaNivel {
 
         planta.dibujar(grafico, marco, nivel, luz, tiempo);
 
-        // Las capas siguientes existen para dar vida a los recintos procedurales.
-        // Sobre un PNG del usuario alterarian o animarian la imagen, asi que no se
-        // aplican a los niveles 10-17.
+        // Todas estas capas pertenecen exclusivamente a recintos procedurales.
+        // Un PNG no recibe materiales, tratamiento, foreground, motas, presencia,
+        // eventos, respiracion, flicker ni pulido animado.
         if (!fondoImagen) {
             MaterialesEscena.dibujar(grafico, ancho, alto, nivel, luz, tiempo, movimiento);
             TratamientoEscena.dibujar(grafico, ancho, alto, nivel, luz, tiempo, movimiento);
@@ -91,8 +93,8 @@ public final class EscenaNivel {
                     movimiento, bajoConsumo);
         }
 
-        // Vignette y apagones pertenecen a la composicion/transicion del menu,
-        // no a una animacion del PNG en si.
+        // En PNG penumbra es cero, de modo que esta vignette es totalmente
+        // estatica. Solo separa los bordes del aviso del fondo fotografico.
         vineta(grafico, ancho, alto, penumbra);
     }
 

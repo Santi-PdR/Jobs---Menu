@@ -3,9 +3,11 @@ package com.santipdr.jobsmenu.client.screen;
 import com.santipdr.jobsmenu.client.ui.BotonExpediente;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import com.santipdr.jobsmenu.client.ui.Paleta;
+import com.santipdr.jobsmenu.client.ui.PulidoInterfazJobs;
 import com.santipdr.jobsmenu.client.ui.SliderExpediente;
 import com.santipdr.jobsmenu.client.ui.ToggleExpediente;
 import com.santipdr.jobsmenu.config.ConfigTurno;
+import com.santipdr.jobsmenu.config.PerfilesJobs;
 
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.GuiGraphics;
@@ -22,7 +24,8 @@ public class PantallaAjustesAviso extends Screen {
         NIVEL("jobsmenu.ajustes.categoria.nivel", "jobsmenu.ajustes.nivelfijo", "jobsmenu.ajustes.nivelfijo.detalle"),
         AUDIO("jobsmenu.ajustes.categoria.audio", "soundCategory.music", "jobsmenu.ajustes.volambiente.detalle"),
         ACCESIBILIDAD("jobsmenu.ajustes.categoria.accesibilidad", "options.accessibility.title", "jobsmenu.ajustes.perfil.detalle"),
-        SISTEMA("jobsmenu.ajustes.categoria.sistema", "jobsmenu.ajustes.categoria.sistema", "jobsmenu.ajustes.menu.detalle");
+        SISTEMA("jobsmenu.ajustes.categoria.sistema", "jobsmenu.ajustes.categoria.sistema", "jobsmenu.ajustes.menu.detalle"),
+        PERFILES("jobsmenu.ajustes.perfil", "jobsmenu.ajustes.perfil", "jobsmenu.ajustes.perfil.detalle");
 
         private final String pestana;
         private final String titulo;
@@ -60,18 +63,19 @@ public class PantallaAjustesAviso extends Screen {
 
     @Override
     protected void init() {
-        this.panelW = Math.max(1, Math.min(480, this.width - 18));
-        this.panelH = Math.max(1, Math.min(300, this.height - 16));
+        this.panelW = Math.max(1, Math.min(500, this.width - 18));
+        this.panelH = Math.max(1, Math.min(312, this.height - 16));
         this.panelX = (this.width - this.panelW) / 2;
         this.panelY = Math.max(4, (this.height - this.panelH) / 2);
-        this.compacta = this.panelW < 430 || this.panelH < 296;
+        this.compacta = this.panelW < 448 || this.panelH < 304;
 
-        int margen = compacta ? 14 : 20;
-        int gap = compacta ? 5 : 7;
+        int margen = compacta ? 12 : 18;
+        int gap = compacta ? 4 : 6;
         int anchoUtil = Math.max(1, panelW - margen * 2);
-        int tabsY = panelY + (compacta ? 48 : 53);
+        int tabsY = panelY + (compacta ? 47 : 52);
         int tabH = compacta ? 18 : 20;
-        int tabW = Math.max(44, (anchoUtil - gap * 4) / 5);
+        int cantidadTabs = Categoria.values().length;
+        int tabW = Math.max(42, (anchoUtil - gap * (cantidadTabs - 1)) / cantidadTabs);
         this.tabsX = panelX + margen;
         this.tabsY = tabsY;
         this.tabW = tabW;
@@ -90,13 +94,14 @@ public class PantallaAjustesAviso extends Screen {
             x += tabW + gap;
         }
 
-        this.contentY = tabsY + tabH + (compacta ? 9 : 16);
+        this.contentY = tabsY + tabH + (compacta ? 9 : 15);
         switch (this.categoria) {
             case VISUAL -> construirVisual(margen, gap);
             case NIVEL -> construirNivel(margen, gap);
             case AUDIO -> construirAudio(margen, gap);
             case ACCESIBILIDAD -> construirAccesibilidad(margen, gap);
             case SISTEMA -> construirSistema(margen, gap);
+            case PERFILES -> construirPerfiles(margen, gap);
         }
 
         int volverH = compacta ? 19 : 21;
@@ -185,6 +190,25 @@ public class PantallaAjustesAviso extends Screen {
         grid.toggleCompleto("jobsmenu.ajustes.rotacioncalma", ConfigTurno::rotacionCalma, ConfigTurno::fijarRotacionCalma);
     }
 
+    private void construirPerfiles(int margen, int gap) {
+        Grid grid = new Grid(margen, gap);
+        PerfilesJobs.Perfil actual = PerfilesJobs.actual();
+        PerfilesJobs.Perfil[] perfiles = PerfilesJobs.Perfil.values();
+        for (int i = 0; i < perfiles.length; i += 2) {
+            PerfilesJobs.Perfil a = perfiles[i];
+            PerfilesJobs.Perfil b = i + 1 < perfiles.length ? perfiles[i + 1] : null;
+            grid.botonPerfiles(a, b, actual);
+        }
+    }
+
+    private void aplicarPerfil(PerfilesJobs.Perfil perfil) {
+        PerfilesJobs.aplicar(perfil);
+        PulidoInterfazJobs.confirmarCambio();
+        if (this.minecraft != null) {
+            this.minecraft.setScreen(new PantallaAjustesAviso(this.anterior, this.opciones, Categoria.PERFILES));
+        }
+    }
+
     private void abrirCategoria(Categoria nueva) {
         if (nueva == this.categoria) return;
         ConfigTurno.guardarPendiente();
@@ -198,15 +222,18 @@ public class PantallaAjustesAviso extends Screen {
         ChromeExpediente.cabecera(g, this.font, this.title,
                 Component.translatable("jobsmenu.interfaz.aviso.subtitulo"), panelX, panelY, panelW);
 
-        int margen = compacta ? 14 : 20;
+        int margen = compacta ? 12 : 18;
         ChromeExpediente.seccion(g, this.font, panelX + margen, panelX + panelW - margen,
                 this.contentY - (compacta ? 6 : 9), Component.translatable(this.categoria.titulo));
 
         int indice = this.categoria.ordinal();
         int seleccionadoX = this.tabsX + indice * (this.tabW + this.tabGap);
-        g.fill(seleccionadoX + 5, this.tabsY + this.tabH - 2,
-                seleccionadoX + this.tabW - 5, this.tabsY + this.tabH,
-                Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.72F));
+        g.fill(seleccionadoX + 4, this.tabsY + this.tabH - 2,
+                seleccionadoX + this.tabW - 4, this.tabsY + this.tabH,
+                Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.76F));
+        g.fill(seleccionadoX + 1, this.tabsY + 3, seleccionadoX + 2, this.tabsY + this.tabH - 3,
+                Paleta.conAlfa(Paleta.UI_ACENTO, 0.34F));
+
         String pagina = String.format(java.util.Locale.ROOT, "%02d / %02d", indice + 1, Categoria.values().length);
         int paginaW = this.font.width(pagina) + 10;
         int paginaX = panelX + panelW - margen - paginaW;
@@ -214,25 +241,61 @@ public class PantallaAjustesAviso extends Screen {
         g.fill(paginaX, paginaY, paginaX + paginaW, paginaY + 14,
                 Paleta.conAlfa(Paleta.UI_ACENTO, 0.14F));
         g.drawString(this.font, pagina, paginaX + 5, paginaY + 3,
-                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.62F), false);
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.66F), false);
+
+        dibujarEstadoGlobal(g, margen);
+        if (this.categoria == Categoria.PERFILES) dibujarAyudaPerfiles(g, margen);
 
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
         ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "JOBS-CONFIG");
         super.render(g, mouseX, mouseY, partialTick);
     }
 
+    private void dibujarEstadoGlobal(GuiGraphics g, int margen) {
+        PerfilesJobs.Perfil actual = PerfilesJobs.actual();
+        if (actual == null) return;
+        String estado = Component.translatable(actual.claveNombre()).getString();
+        estado = ChromeExpediente.ajustar(this.font, estado, Math.max(48, panelW / 4));
+        int w = Math.min(panelW / 3, this.font.width(estado) + 12);
+        int x = panelX + margen;
+        int y = panelY + 12;
+        g.fill(x, y, x + w, y + 14, Paleta.conAlfa(Paleta.UI_ACENTO, 0.10F));
+        g.fill(x, y, x + 2, y + 14, Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.44F));
+        g.drawString(this.font, ChromeExpediente.ajustar(this.font, estado, w - 8), x + 6, y + 3,
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.68F), false);
+    }
+
+    private void dibujarAyudaPerfiles(GuiGraphics g, int margen) {
+        int y = panelY + panelH - (compacta ? 41 : 44);
+        int x0 = panelX + margen;
+        int x1 = panelX + panelW - margen;
+        g.fill(x0, y, x1, y + 1, Paleta.conAlfa(Paleta.tintaSecundaria(), 0.13F));
+        String ayuda = "F1 - F5";
+        int tw = this.font.width(ayuda);
+        g.drawString(this.font, ayuda, x0 + (x1 - x0 - tw) / 2, y + 5,
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.54F), false);
+    }
+
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode >= org.lwjgl.glfw.GLFW.GLFW_KEY_1 && keyCode <= org.lwjgl.glfw.GLFW.GLFW_KEY_5) {
+        int max = Categoria.values().length;
+        if (keyCode >= org.lwjgl.glfw.GLFW.GLFW_KEY_1
+                && keyCode < org.lwjgl.glfw.GLFW.GLFW_KEY_1 + max) {
             abrirCategoria(Categoria.values()[keyCode - org.lwjgl.glfw.GLFW.GLFW_KEY_1]);
             return true;
         }
         if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT) {
-            abrirCategoria(Categoria.values()[Math.floorMod(this.categoria.ordinal() - 1, Categoria.values().length)]);
+            abrirCategoria(Categoria.values()[Math.floorMod(this.categoria.ordinal() - 1, max)]);
             return true;
         }
         if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT) {
-            abrirCategoria(Categoria.values()[(this.categoria.ordinal() + 1) % Categoria.values().length]);
+            abrirCategoria(Categoria.values()[(this.categoria.ordinal() + 1) % max]);
+            return true;
+        }
+        if (this.categoria == Categoria.PERFILES
+                && keyCode >= org.lwjgl.glfw.GLFW.GLFW_KEY_F1
+                && keyCode <= org.lwjgl.glfw.GLFW.GLFW_KEY_F5) {
+            aplicarPerfil(PerfilesJobs.Perfil.values()[keyCode - org.lwjgl.glfw.GLFW.GLFW_KEY_F1]);
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
@@ -301,6 +364,23 @@ public class PantallaAjustesAviso extends Screen {
             registrarAyuda(addRenderableWidget(new SliderExpediente(x0, y, colW * 2 + gap, alto,
                     min, max, valor, rotulo, fijar)), detalle);
             fila++;
+        }
+
+        void botonPerfiles(PerfilesJobs.Perfil a, PerfilesJobs.Perfil b, PerfilesJobs.Perfil actual) {
+            int y = contentY + fila * paso;
+            botonPerfil(x0, y, colW, a, actual);
+            if (b != null) botonPerfil(x1, y, colW, b, actual);
+            fila++;
+        }
+
+        private void botonPerfil(int x, int y, int w, PerfilesJobs.Perfil perfil, PerfilesJobs.Perfil actual) {
+            BotonExpediente.Tipo tipo = perfil == actual
+                    ? BotonExpediente.Tipo.JOBS : BotonExpediente.Tipo.NORMAL;
+            BotonExpediente boton = new BotonExpediente(x, y, w, alto,
+                    Component.translatable(perfil.claveNombre()), tipo,
+                    () -> aplicarPerfil(perfil));
+            boton.setTooltip(Tooltip.create(Component.translatable(perfil.claveDetalle())));
+            addRenderableWidget(boton);
         }
     }
 
