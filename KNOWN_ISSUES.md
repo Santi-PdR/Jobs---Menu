@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.20.0
+# Riesgos y pruebas pendientes — 0.22.1
 
 Este documento contiene únicamente riesgos vigentes. El historial vive en `CHANGELOG.md` y en auditorías de `docs/`.
 
@@ -13,25 +13,26 @@ Antes de publicar una entrega, GitHub Actions comprueba:
 - separación de paleta entre escena e interfaz en componentes compartidos;
 - contratos del reproductor musical y hard stop de gameplay;
 - build Forge 1.20.1;
-- creación de `jobsmenu-0.20.0.jar`;
+- creación de `jobsmenu-0.22.1.jar`;
 - publicación en `dev-latest` únicamente desde `main`.
 
 Un build que no termina en verde no debe actualizar la release.
 
 ## Importante: qué queda sin certificar
 
-CI **no ejecuta Minecraft con una ventana real**. Por lo tanto, las modificaciones visuales más recientes se consideran compiladas/certificadas, pero necesitan prueba manual en `test-1` para confirmar estética, hitboxes, scrolling y convivencia con otros mods.
+CI **no ejecuta Minecraft con una ventana real**. Por lo tanto, las modificaciones visuales se consideran compiladas/certificadas, pero necesitan prueba manual en `test-1` para confirmar estética, hitboxes, scrolling y convivencia con otros mods.
 
-Las pantallas prioritarias de 0.20.0 son:
+Las pantallas prioritarias de 0.22.1 son:
 
-1. Mods / Forge.
-2. Resource Packs.
-3. Idioma.
-4. Sonido.
-5. Video vanilla y Embeddium.
-6. Pausa.
-7. Mundos.
-8. Multiplayer.
+1. Main screen en Niveles 0–17.
+2. PNG 10–17 durante fades y cambios de Nivel.
+3. Pausa en singleplayer y multiplayer.
+4. Transiciones entre pantallas Jobs.
+5. Mods / Forge.
+6. Resource Packs.
+7. Idioma.
+8. Sonido y Video.
+9. Mundos y Multiplayer.
 
 El procedimiento completo está en `docs/checklist-manual.md`.
 
@@ -43,7 +44,8 @@ El procedimiento completo está en `docs/checklist-manual.md`.
 - `ListasExpediente` depende de datos internos de `AbstractSelectionList` 1.20.1 para dibujar la scrollbar Jobs. Existe reflection defensiva y fallback.
 - Mods, Resource Packs, Mundos y Multiplayer conservan listas reales; una sustitución total por otro mod puede no recibir el mismo acabado Jobs.
 - Fuentes con métricas extremas pueden forzar elipsis o alterar layout.
-- GUI Scale 4 y ventanas extremadamente pequeñas son el principal caso de estrés para Idioma y paneles compactos.
+- GUI Scale 4 y ventanas extremadamente pequeñas son el principal caso de estrés para paneles compactos.
+- El HUD contextual del main se oculta automáticamente en viewports pequeños para evitar solapes; su composición final requiere verificación manual en resoluciones ultrawide.
 
 ### Video
 
@@ -58,11 +60,15 @@ El procedimiento completo está en `docs/checklist-manual.md`.
 ### Fondos
 
 - PNG 10–17 son rasterizados; la calidad máxima depende de la fuente original.
-- No se permite animarlos internamente. Cualquier efecto visual nuevo debe mantenerse fuera del PNG y respetar la regla de estático.
+- El filtrado lineal reduce pixelado al escalar, pero no inventa detalle ausente en el archivo fuente.
+- No se permite mover, deformar ni animar internamente el PNG.
+- Sí se permiten fades, apagones, transición de expediente y overlays globales que no cambien geometría ni contenido de la imagen.
+- Si se agregan 18–19 como PNG, heredan el mismo contrato.
 
 ### Rendimiento
 
 - No existe profiler GPU automático. Bajo consumo reduce trabajo decorativo, pero el coste final depende de GPU, resolución, GUI Scale, shaders y otros mods.
+- Barridos globales y microanimaciones se omiten con Movimiento reducido o Bajo consumo.
 
 ### Release
 
@@ -70,7 +76,7 @@ El procedimiento completo está en `docs/checklist-manual.md`.
 
 ## Mitigaciones vigentes
 
-- PNG 10–17 aislados de capas animadas.
+- PNG 10–17 aislados de movimiento interno y efectos procedurales.
 - Paleta UI separada de la escena y verificada en CI.
 - Config Jobs conectada directamente a `ConfigTurno`.
 - Redirecciones sensibles por clase exacta.
