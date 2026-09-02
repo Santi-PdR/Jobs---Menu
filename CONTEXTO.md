@@ -7,8 +7,8 @@ Documento maestro del estado **vigente**. El historial vive en `CHANGELOG.md` y 
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Versión actual | **0.17.0** |
-| Artefacto esperado | **`jobsmenu-0.17.0.jar`** |
+| Versión actual | **0.18.0** |
+| Artefacto esperado | **`jobsmenu-0.18.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -31,7 +31,8 @@ Documento maestro del estado **vigente**. El historial vive en `CHANGELOG.md` y 
 11. Pantallas de lógica compleja conservan comportamiento vanilla cuando eso protege compatibilidad.
 12. Los PNG 10–17 son estáticos: no zoom, paneo, parallax, flicker, niebla móvil, scanlines animadas, motas ni presencia sobre la imagen.
 13. El audio del menú no puede sobrevivir dentro de gameplay ni un tick audible.
-14. Una pista musical sólo se empaqueta si existe el archivo y su redistribución está autorizada/documentada. Nunca descargar audio de YouTube durante build.
+14. Una pista musical sólo se empaqueta si existe el archivo y su redistribución está autorizada/documentada.
+15. La integración de nuevas pistas se hace desde un OGG subido al repositorio; el build no descarga audio de terceros.
 
 ## 2. Identidad
 
@@ -41,9 +42,9 @@ La interfaz usa voz administrativa seca y breve. No es un HUD futurista. Su leng
 
 Grafía canónica: **Executor / Executores**.
 
-## 3. Separación escena / interfaz — 0.17
+## 3. Separación escena / interfaz
 
-La escena y la UI ya no comparten paleta por comodidad.
+La escena y la UI no comparten paleta por comodidad.
 
 ### Escena
 
@@ -61,6 +62,8 @@ Usa una familia neutral independiente:
 - `ARCHIVO_ACENTO` / textos de archivo.
 
 Los widgets y marcos administrativos no deben volver a usar `PARED`, `PARED_ALTA` o `FLUOR` como color de foco/superficie. `tools/verificar_ui_musica.py` protege este contrato en CI para los componentes compartidos principales.
+
+En 0.18.0 el pulido global añade foco/hover y transiciones más sobrias sin modificar hitboxes. Movimiento reducido y bajo consumo desactivan la respiración de foco y sustituyen las transiciones por atenuación breve.
 
 ### Superficies
 
@@ -98,18 +101,22 @@ Contrato:
 
 La lista, ping, LAN, MOTD y conexión siguen siendo de Minecraft.
 
-## 6. Música — 0.17
+## 6. Música — 0.18
 
 `GestorMusica` es un reproductor de sesión con catálogo.
 
 Pista incluida actual:
 
-- **Absurdism** → `assets/jobsmenu/sounds/musica/defecto.ogg` mediante el evento legado `musica.tema`.
+- **Absurdism** → `assets/jobsmenu/sounds/musica/defecto.ogg` mediante `musica.tema`.
 
-Segunda pista solicitada:
+Segunda pista preparada:
 
-- referencia `https://www.youtube.com/watch?v=t9KaSaGEwvI`;
-- queda pendiente de un OGG autorizado; no se extrae desde YouTube ni se inventan metadatos.
+- identificador interno `upon_the_hill_v2`;
+- archivo de entrada esperado: `music/menu_nueva.ogg`;
+- recurso final generado: `assets/jobsmenu/sounds/musica/tema_nuevo.ogg`;
+- integración automática mediante `.github/workflows/integrar_ogg_subido.yml`.
+
+La única acción manual para completar esa integración es subir `music/menu_nueva.ogg` a `main`. El workflow valida Vorbis, normaliza loudness/true peak, registra el evento, añade la pista al catálogo, ejecuta las verificaciones y compila Java 17. Si falla cualquier etapa, no publica los cambios generados.
 
 Comportamiento obligatorio:
 
@@ -175,15 +182,16 @@ Además del CI:
 - F3+T y Alt+Tab con audio;
 - entrada/salida de mundo y servidor sin audio Jobs dentro de gameplay;
 - Absurdism con fade-in sin duplicación;
-- cuando exista una segunda pista autorizada, probar crossfade;
+- cuando exista `menu_nueva.ogg`, comprobar crossfade y nivel percibido entre pistas;
 - niveles 10–17 inmóviles.
 
 ## 10. Documentación vigente
 
-- `README.md`: resumen de **0.17.0**.
+- `README.md`: resumen de **0.18.0**.
 - `CONTEXTO.md`: este contrato.
-- `docs/AUDITORIA_0.17.0_UI_MUSICA.md`: auditoría del pase.
+- `docs/AUDITORIA_0.18.0_PROFESIONAL.md`: auditoría del pase.
 - `docs/musica.md`: sistema musical y política de pistas.
+- `music/LEEME.txt`: regla de una sola subida para la próxima pista.
 - `KNOWN_ISSUES.md`: riesgos que requieren Minecraft real.
 - `CHANGELOG.md`: historial.
 - `docs/DESPLIEGUE.md`: instalación.
