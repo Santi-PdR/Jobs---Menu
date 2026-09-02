@@ -25,7 +25,7 @@ public class PantallaAjustesAviso extends Screen {
         AUDIO("jobsmenu.ajustes.categoria.audio", "soundCategory.music", "jobsmenu.ajustes.volambiente.detalle"),
         ACCESIBILIDAD("jobsmenu.ajustes.categoria.accesibilidad", "options.accessibility.title", "jobsmenu.ajustes.perfil.detalle"),
         SISTEMA("jobsmenu.ajustes.categoria.sistema", "jobsmenu.ajustes.categoria.sistema", "jobsmenu.ajustes.menu.detalle"),
-        PERFILES("jobsmenu.ajustes.categoria.perfiles", "jobsmenu.ajustes.perfiles.titulo", "jobsmenu.ajustes.perfiles.detalle");
+        PERFILES("jobsmenu.ajustes.perfil", "jobsmenu.ajustes.perfil", "jobsmenu.ajustes.perfil.detalle");
 
         private final String pestana;
         private final String titulo;
@@ -49,8 +49,6 @@ public class PantallaAjustesAviso extends Screen {
     private boolean compacta;
     private int contentY;
     private int tabsX, tabsY, tabW, tabH, tabGap;
-    private PerfilesJobs.Perfil perfilAplicado;
-    private long perfilAplicadoHasta;
 
     public PantallaAjustesAviso(Screen anterior, Options opciones) {
         this(anterior, opciones, Categoria.VISUAL);
@@ -205,8 +203,6 @@ public class PantallaAjustesAviso extends Screen {
 
     private void aplicarPerfil(PerfilesJobs.Perfil perfil) {
         PerfilesJobs.aplicar(perfil);
-        this.perfilAplicado = perfil;
-        this.perfilAplicadoHasta = System.currentTimeMillis() + 1800L;
         PulidoInterfazJobs.confirmarCambio();
         if (this.minecraft != null) {
             this.minecraft.setScreen(new PantallaAjustesAviso(this.anterior, this.opciones, Categoria.PERFILES));
@@ -257,18 +253,15 @@ public class PantallaAjustesAviso extends Screen {
 
     private void dibujarEstadoGlobal(GuiGraphics g, int margen) {
         PerfilesJobs.Perfil actual = PerfilesJobs.actual();
-        String estado = actual == null
-                ? Component.translatable("jobsmenu.perfil.personalizado").getString()
-                : Component.translatable(actual.claveNombre()).getString();
+        if (actual == null) return;
+        String estado = Component.translatable(actual.claveNombre()).getString();
         estado = ChromeExpediente.ajustar(this.font, estado, Math.max(48, panelW / 4));
-        String prefijo = Component.translatable("jobsmenu.perfil.activo").getString();
-        String texto = prefijo + ": " + estado;
-        int w = Math.min(panelW / 2, this.font.width(texto) + 12);
+        int w = Math.min(panelW / 3, this.font.width(estado) + 12);
         int x = panelX + margen;
         int y = panelY + 12;
         g.fill(x, y, x + w, y + 14, Paleta.conAlfa(Paleta.UI_ACENTO, 0.10F));
         g.fill(x, y, x + 2, y + 14, Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.44F));
-        g.drawString(this.font, ChromeExpediente.ajustar(this.font, texto, w - 8), x + 6, y + 3,
+        g.drawString(this.font, ChromeExpediente.ajustar(this.font, estado, w - 8), x + 6, y + 3,
                 Paleta.conAlfa(Paleta.tintaSecundaria(), 0.68F), false);
     }
 
@@ -277,8 +270,7 @@ public class PantallaAjustesAviso extends Screen {
         int x0 = panelX + margen;
         int x1 = panelX + panelW - margen;
         g.fill(x0, y, x1, y + 1, Paleta.conAlfa(Paleta.tintaSecundaria(), 0.13F));
-        String ayuda = Component.translatable("jobsmenu.ajustes.perfiles.ayuda").getString();
-        ayuda = ChromeExpediente.ajustar(this.font, ayuda, Math.max(20, x1 - x0 - 8));
+        String ayuda = "F1 - F5";
         int tw = this.font.width(ayuda);
         g.drawString(this.font, ayuda, x0 + (x1 - x0 - tw) / 2, y + 5,
                 Paleta.conAlfa(Paleta.tintaSecundaria(), 0.54F), false);
