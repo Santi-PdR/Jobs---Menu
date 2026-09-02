@@ -28,7 +28,7 @@ El bloque no compila el proyecto. Descarga el artefacto ya certificado por GitHu
 
 Todo JAR instalado o publicado debe incluir la versión en el nombre. Para esta entrega:
 
-`jobsmenu-0.21.0.jar`
+`jobsmenu-0.22.1.jar`
 
 El nombre genérico `jobsmenu-latest.jar` queda prohibido. La release sigue usando el tag rodante `dev-latest`, pero su único asset cambia de nombre con `mod_version`.
 
@@ -109,6 +109,15 @@ Si falla cualquier paso, la release no se actualiza y el PowerShell no se entreg
 
 ## Qué NO certifica el CI
 
-El pipeline no puede confirmar cómo se ve o se siente la interfaz dentro de Minecraft real. Después del despliegue de `jobsmenu-0.21.0.jar` se debe ejecutar `docs/checklist-manual.md`. Para esta versión conviene revisar especialmente botones, toggles, sliders, renglones principales, foco de teclado, transiciones, scrollbars y el aviso de cambio guardado en varias resoluciones y escalas de GUI.
+El pipeline no puede confirmar cómo se ve o se siente la interfaz dentro de Minecraft real. Después del despliegue de `jobsmenu-0.22.1.jar` se debe ejecutar `docs/checklist-manual.md`.
 
-Los fondos 10–17 deben comprobarse únicamente por nitidez y encuadre. Sus PNG no fueron sustituidos ni editados en 0.21.0; siguen estáticos y usan filtrado lineal al escalarse.
+Para esta versión conviene revisar especialmente:
+
+- HUD contextual del main screen;
+- pausa LOCAL/SERVER;
+- transición de expediente entre pantallas;
+- barridos globales con y sin Movimiento reducido/Bajo consumo;
+- Mods, Resource Packs e Idioma acumulados de tandas previas;
+- fondos 10–17 durante fade/apagón/transición.
+
+Los PNG 10–17 no fueron sustituidos ni editados. Siguen sin movimiento propio y usan filtrado lineal al escalarse; los overlays globales están permitidos mientras no deformen ni desplacen la imagen.
