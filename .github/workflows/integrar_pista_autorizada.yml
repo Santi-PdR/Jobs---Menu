@@ -7,17 +7,17 @@ on:
     paths:
       - tools/integrar_pista.trigger
 
+permissions:
+  contents: write
+
 concurrency:
   group: jobsmenu-integrar-pista
   cancel-in-progress: false
 
-permissions:
-  contents: write
-
 jobs:
   integrar:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
       - name: Checkout completo
         uses: actions/checkout@v4
@@ -29,23 +29,100 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Instalar descargador y proveedor PO Token
+      - name: Reconstruir integrador temporal
         shell: bash
         run: |
+          set -euo pipefail
+          cat tools/.integrar_chunks/part-* | base64 --decode > tools/integrar_pista_autorizada.py
+          chmod +x tools/integrar_pista_autorizada.py
+          python -m py_compile tools/integrar_pista_autorizada.py
+
+      - name: Instalar yt-dlp y proveedor PO Token
+        shell: bash
+        run: |
+          set -euo pipefail
           python -m pip install --disable-pip-version-check --no-cache-dir --upgrade 'yt-dlp[default]' bgutil-ytdlp-pot-provider
           docker run --name bgutil-provider -d --init -p 4416:4416 brainicism/bgutil-ytdlp-pot-provider:latest
-          for i in {1..30}; do
-            if curl --silent --fail http://127.0.0.1:4416/ping >/dev/null 2>&1 || curl --silent --fail http://127.0.0.1:4416/ >/dev/null 2>&1; then
-              break
-            fi
-            sleep 1
-          done
+          sleep 5
           docker ps --filter name=bgutil-provider
+          docker logs --tail 30 bgutil-provider || true
 
-      - name: Preparar integrador temporal
+      - name: Obtener metadatos y audio autorizado
         shell: bash
         run: |
-          python - <<'PY'
-          import base64, gzip
-          from pathlib import Path
-          payload = '''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²È="24ÔÅØÉ!”ÀÑÍaYÍ	PáÙµ1­™½á‰åå•EÔÕµÄÉ•Á½%%]Õa…Q½åQ-X­A),½½	IEÅ,Ñ%­©­©i¨àÙ)ÕÅ%ÝØá=DåDÀ½9dÍ±ie¹)±U\É<ÍA­håàÑåUÀÍÍÁU¡@½1Ñ!EÁ©IÙe½=¡¡=95]ÝáIQ¹5]˜ÁLÑ™ÑÍ¹Ù1Ña9	Á°áè¬àáAI¥ie­e<ÙÙ	-áÉ5•œ½Y]TÁQU¥µ-Y,ÄÁ™I-‰%éÝ¡äÅÉhÕÕÍ‰5­ŒÙÑI@É‘%aAááÑÍÅ‰ÕiÕ9YÑ`ÈÁµi±ÙQYÙ…ÐäáåáäÉ™µ¡Qµi¸­¡Ùá5i==µÁ¬Å‰•ÑMM…A=	1™!UÜáUMÑ‰XÑ•%E˜åIe‘Íåe@½Å‰¼Å…!iÑµQ]Ù‰é…9±¥ÄÑ9Ña‰™½-1å4ÐÉ‰ÕDÈáåÑÉ‘µ9áaÑd­-­0ÕÌÝU¹%	½A!PÉQUÕÉ	©1HÉ­5ÅéÍEQMÑÌÅe	aITÐÍ!‘Õ,Ù-½•¡¼ÝAÅ!AÍ˜É©‘Å¡Ùéåˆå…5AÁQ9ŒÐå]•PØÕèÍäÁ¹¹Ù¹9áPÉ•¥-iMHÄÄáQ=™½4½Ìå‰!Í=iŒ­¹¹YµÅä½¹-åA±­™UáÑ¡™ÅeI©hÁ™Õ\Á!­5UÝád½¹µ]ÙIÙ¡!Ä½å=ÔÌáµÍ1	)XÁ1ØÉ%éAE¹)8½ÔáÉLàå¨ÌÍ)Q$½EXÙ‘ITå95­1‰-]©5è­ÙPÍÁÝèÉY¡…]åµ˜­=áå=ÉEÄÀÑ…ŒÙUI-ÐÍ-°ÅµÅÅÔÀÁ=éE¥!áÕ©Ù•\åU‘	Ý=½™Å$ÔåáQåYàÕÍ™äÅ5¡U1Å9)LÌÝ=¥ÐÜá™­U$È­ ÙÉÈå¹½U‘i¹iÉ­ÑIÝ½”ÈÁÙ‰¹¬ÅØÙ…±•eeœåÁHÉÝÄÙaœÝ!±!XÅ™Ñ$½àÁÑ¹Ù¹ÑåÙ	1­!i]Õ­a)iEå=Ý15=Ä­•X­I-±IA`½åÅÉ(Õˆ­åU`½±­½‰éÀÅIA1±­„½Íá¬Ù‘%‘¡ÕM‘iÕÜÙ%´ÁAá™-Í™È­DØØá˜ÉIá¡5Ä­dØ½$½Ì­ÁiQ¡…QÅM˜½åÔàá!ÅUÕéÑÙ°á… ­Q•‰á9Ù”áŒÝÅé¤É\ÌÍÝA8ÍÝdÙÕ¹Ñ¸¬É=ÕåÑáé	È½¡i‘éDÍiÝÙÝdÁ0Áµ¨åá¹Ù¡!=)‰é\½É­IÀåAYäåIÁ!©©<ÝÙ!¨­Ù,ÝÅ¡åHäÍY=PÉ]HÉ•-¨É™%Ñá-M-LÉ­dÅEÍÍM¨Õ­Ñ= ÐÅ	ÙÉÅ)Å™½!‘©åÅ‘¡¡™¥­ÅÁ…¹…½Ì­áÅÅÉEÑ)EÍèÁ­™ÅÑÔÅLÉiTÅ¡)…dÉéIÉ%Å)äÑ™=Ù$½˜Á=QDàØÕá˜Õ´á‘9´½Å)Eµ™U-QÁ¹Õ•ÔÍ	¹e9‘•QU!-QQÉ½ÁåÕQY¨Ñ ½YI…EÈÐåHå¸Ù¹Ì½¹éPÁ©IÍ	éÅei1¥•d­i™‘HÁµ„ØÝÅ­ÅYˆÙ¹ˆÀÐÑÕ0ÁÉ‰¤­ àÕÅU]AÉ4ÌÌÕEÑ¬Í¹áéÐÝÍåå0å•5¹±QéØÉ%„åQŒÅAÝÁ¹©™1QÄÁÁ9MYäÐÉÅÑ™)Áa¹áÙ¡ÉåÅ,Õ‘P½°Ñåµ8Í•Y5±)-ÑIÍY9‰™Y•TÉµ8­5IèáÑPá…ÁeÙ	Õ˜å¼¼Ý½‘‰(Å@¬¼å ÝØ¼¬É5Á‰Í±9Íå<¬­U½Ù¹!É½<Ù…UY±¡µa½E5µ±Í8É‰±Ù±éÉYY1]ÉaAÑÕ‰µPå]eQ™eiiÜÙ4á-Ì­%ÑÉé˜å¼Õ=	Ô½½©¹ÀÉ•© Ñ!á‘¸ÙÕ•ÙÀÉ”½¹dÙ!¼å!±eMAÅ¡¡éÙ¥„Ý	éÉ(áAàáÕ9MÙ¥ÔådÑ…¬­1ÍMÝAI-Q8á!E5!ˆá©dåÑå…QéÁ‰!ÅeM¡=iá1%]™‰ŒÍ”å•¥Y™AÙ]™•(ÀÅÙÕYÌååÔÍÈÐÅ8Ù	µ%ÍÁ`Ù¼ÅÍ­-Y9IiåµIÕ‰QÍ±A©)a\ÙeaUHÑieI™­½a¸å±I¥Iá”½˜¼¬ä¼å ­a¡…ÉL¬½±1¸È­!…•…i	E¥MÐÅÄÝ1ÑÉˆÙ=´Ä½„ÑÍ…ÅTÅÌåÑ‰=)©åa¬ÙÉM™dáÁiÍ!•ÄÍ„Á5ÄäÝÑ8ÁÜàÅM=ÌÕaÍiÈÝÅeÔÐ­¥„ÁÀÅ¡-´åÙ0à­˜ÌÜÄÄÉeÈÕÁŒ­aÍ1ÐÉéØÅ…¡˜ä½Ù\É¥Áµ¥Q5ÐÉQ±ÉeèÀÅ åA)AÅÑ@ÄÅåÑÕ	A5ÝDÝ­ˆ­½‘!iE¼Á-!¸á±Mµ Õ=!ÈÕµdÁÕ%µ1©]Èåi0Ü¼åé¥¤áé5¹5	©ÈÝUhÝ-\­ àÝ‘É¥½Á%9°Õ5Ié¡­‰”¼½9½˜åhá9™¹ÌÕ	!)!Q5!å”åÝ…É\ÈàÅÕ4Õ‘ÕU-%9‰Í%ØÝ˜Á©è­]å)œÍÄåÁ5$äåI=5µU`ÍÕU¡PÉI‰$Ü¼ÕÉUETÍÉI$ÙM!µ<Õ…Ý1´É!9Q-éAÙéÕ@å¤ÈÀ½á=)¥,É]©¼Ý©ei1aA™)M,Í¹‰	MàÍ±ÝÕ±ÉÙ‰¥Í¹=-éÉ„ÅY=éá¥1ÁYÌÍÍQYœÝPÈÕ™=½-½=™Ý!%1Ñ<Í	åáÅ©´½ ÅÌÈÁQ$­i=M	½±‰©ÉàÕ˜Ýé±ÉeˆÔå‘9IÉ¡%½ÉÁ±MQÅY©-e½©éA!9=ÉÍ½½Dá½iDÉ-	É¸Áá	Q•œÅ©Ñ@Ý˜Ñ%°á‘ÐàÕ•hÕÉ™M0ÝIˆ­¡9)i¹YÅa1)-±5ÕÝ9ÍÝQ9MÙUå]µ-Ñ‰©É=EhÐÁÉœÄ½)½e$ØÌÑ¡YIéá¡éMáQ5Y½M%ÍILÑµ8ÈÙØÍ™DáQ±á$åUYYÕ‰‘EÅ1Á©E1¥	ÁM-±ÁœÝ­¡­éT½aÅÍ¡-™½Ý¥Mµ%MÕÁI©©=­­ÁÑP­(Ñ¡,Ùe\Ù-QhÝÁ©ÁQ¡-ÍÍéáµ)Ma©Å9iIÁ•Ñ°Øá½Ñ1½dÝ”áÈÅ©‘UéTØÑá(ÁM¹¥UDÑ)É­aQ54Ù©)M		á¨åYÑ	1Ñå)á¡Í-0Ì½¤½eåé½Ñ½ÑaåMÉ(Ý	aá­aåÐÕM=¡±1‘°Õ8á]a¥ˆÙ©™1a]%‘aPÙU±-MÄÁI±%	Y¡¹ÅÍ¥Q1ˆÈ­a%„ÅÕåá„å¹9 áÅá‘)e	±I¡‰)!¡­`ÙY	I‰¸Ý¡]±¹1Œá­¡IÍŒ¼ÅUµ¥)Á±¥Q¤å©¹5ÝhÑ-Ðá‰ÐÕ©µå……•ÕY­TÁA­AÈ­½eTÕQeÜÉ])EéIåá]ÅÁ•-•‘‰½µå©™Qa9-‘å½ÝÑÙÐ¼á(åÍÉÁÉQ•…­éÙ5ÍdÑ)™‰¥¡M•œ½äÅ1é­aµ½5TåaÅÁ™<Ñå©­Ý4É%YeÝ•Á©1åQ$¼Ù<åQ5UÅ)I%9!Õ1¹Ø¼áå‘Í±Ñ9½Q±­!ØÝÝ…©A™	9¥iÙhÍ9A)Ù5]µáIØá­!%]¬½èÉaååÍLÕ…PÙe=e-µ0Áéå¡`­dÝåÑÍ$ÙÁQÀÅ5ÝÑ1AM™½™¤Á¹½½,Å‰YMeIU-…ŒÍ1åME‘AÑ%„­9YÅÕEdÍÕ½µ5Åa­LÑ-ÙÍµ½ÈÅe¼å=5UÙÑ0ÌåµIPÙ-EM)XÝ<Åe]éœ­!­´ÕUY¥MIMŒÕåaÁa9ååé	Yµ	%½•äÉa1M)A]-AÕ0äÜ­E­Í½¡1	ÍäÑå½a ÙYM]é‰MÈÑÕIÙ1ÑMa)\ØåÑ¥%!•á½% ÉÙ-UeÝÝ)MQé‘ å	ŒáTÜ¼Ý!aˆÍ½5Ý=Üá™YØÀÌÙMM	!Õ5Å!Ñà¼Í…1-aÅQ1ÝU¡h­]Õ‰Éµ]IÍAÉ•aˆåPÕéÑ‰ÌåAÕÜ½!àÜÅ©åMä½É™-5É!ÌÙé¤¼áDÔ½1°¼­µåÁEÁeµQÍ] ÕˆÅ•è½ie¹ÁÄáŒ­¥ÉèÝ-ÙÑQ­å”å(äåÔä¼ÙäÍ‘ÙŒØåÅé…ehÙ…	ÉÙ‰„ÍY=¥Í­E\Ù<ÔÑ½-TÉáaåÙ=…¡]TÍà½á¤É9ÝI­I-‘É¹Y]‘)5±A1Q9YQåÁ¥e)%½YUPÕÐá™É=‰™EiéÑ(á)©AÅ‰ÐÅÑÕÝaU=ŒÕ%	É¥••ae$ÑYÁÅ)9i­IÅ5-]‘Ù´ÔÝ½™%)Ù%éM]9å½‰0Á	àÕY½™…©UÅ­­9T­¼ÀáQÅ©ÁÔå1AIi©!9)©…	ÁÁDÙ=	¨­½‰½ÌÔà½]Y™ÁÝ…MÍIih­å!]-¡™I5ÍÉeEÅ±I)™i5E=Á¥5á¥ÉÍÍMQU5ÝU]Ù´É‘½¥¥(Áéé¨Ù¥™1ÐÙ9-%”ÅÙÙÈÜ½9©¸Ì­é9ÜÝÄÉéA%ÈÑÕ ÝáÌ½ÔÑ]eÌÍe¸­Á4ÍÅYµ4½%Í¬ÐÁÁ%iYXå±¥1M=M¡ÑYQ@Õi`ÕÕ5-œÅ…¬ÜÁA1)¡ŒÑÜÁÝ Å½-<ÁÝáá%œÉèØÔ½èÉ%-Q±DÍ­=¥AÐÍØ½Ô­M!…=Õé…ÝÁÙÍ°ÕÙ©½IÉÍŒäÕ<åá©ÈÍ½!=)i	,½Ùe±ÁÕ=QeaÍeMY‘aÑTÄÐÅ©‘äÕ¸ÄÕ±­àÄáè½EÍ¥ÙÍ¹éÅQÙ)ÁÕ!Eåá©½51Å4ÝÕ©Ý1èäáÈà½åå98ÅàÙPÝ1MÍœÍå™˜á‰Ô½Ý=•©¡­1½5ôôœœœ(€€€€€€€€€Ñ…É•Ð€ôA…Ñ  Ñ½½±Ì½¥¹Ñ•É…É}Á¥ÍÑ…}…ÕÑ½É¥é…‘„¹Áäœ¤(€€€€€€€€€Ñ…É•Ð¹ÝÉ¥Ñ•}‰åÑ•Ì¡é¥À¹‘•½µÁÉ•ÍÌ¡‰…Í”ØÐ¹ˆØÑ‘•½‘”¡Á…å±½…¤¤¤(€€€€€€€€€Ñ…É•Ð¹¡µ½ Á¼ÜÔÔ¤(€€€€€€€€€Ad((€€€€€€´¹…µ”è=‰Ñ•¹•Èµ•Ñ…‘…Ñ½Ìä…Õ‘¥¼…ÕÑ½É¥é…‘¼(€€€€€€€Í¡•±°è‰…Í (€€€€€€€ÉÕ¸èð(€€€€€€€€€Í•Ð€µ•Õ¼Á¥Á•™…¥°(€€€€€€€€€UI0ô¡ÑÑÁÌè¼½ÝÝÜ¹å½ÕÑÕ‰”¹½´½Ý…Ñ ýØõÐå-…M…ÝÙ$œ(€€€€€€€€€eQ}ILô (€€€€€€€€€€€€´µ¹¼µÁ±…å±¥ÍÐ(€€€€€€€€€€€€´µ©ÌµÉÕ¹Ñ¥µ•Ì¹½‘”(€€€€€€€€€€€€´µÉ•µ½Ñ”µ½µÁ½¹•¹ÑÌ•©Ìé¥Ñ¡Õˆ(€€€€€€€€€€€€´µ•áÑÉ…Ñ½Èµ…ÉÌ€å½ÕÑÕ‰”éÁ±…å•É}±¥•¹ÐõµÝ•ˆœ(€€€€€€€€€€¤((€€€€€€€€€ÁåÑ¡½¸€µ´åÑ}‘±À€ˆ‘íeQ}IMmuôˆp(€€€€€€€€€€€€´µ¹¼µÝ…É¹¥¹Ìp(€€€€€€€€€€€€´µ‘ÕµÀµÍ¥¹±”µ©Í½¸p(€€€€€€€€€€€€ˆ‘UI0ˆ€ø€½ÑµÀ½©½‰Íµ•¹ÔµÑÉ…¬¹©Í½¸((€€€€€€€€€ÁåÑ¡½¸€µ´åÑ}‘±À€ˆ‘íeQ}IMmuôˆp(€€€€€€€€€€€€´µÉ•ÑÉ¥•Ì€ÄÀp(€€€€€€€€€€€€´µ™É…µ•¹ÐµÉ•ÑÉ¥•Ì€ÄÀp(€€€€€€€€€€€€´µÉ•ÑÉäµÍ±••À€Èp(€€€€€€€€€€€€´µ™½Éµ…Ð€‰•ÍÑ…Õ‘¥½m•áÐõ´Ñ…t½‰•ÍÑ…Õ‘¥¼½‰•ÍÐœp(€€€€€€€€€€€€´µ½ÕÑÁÕÐ€œ½ÑµÀ½©½‰Íµ•¹ÔµÍ½ÕÉ”¸”¡•áÐ¥Ìœp(€€€€€€€€€€€€ˆ‘UI0ˆ((€€€€€€€€€M=UIôˆ¡™¥¹€½ÑµÀ€µµ…á‘•ÁÑ €Ä€µÑåÁ”˜€µ¹…µ”€©½‰Íµ•¹ÔµÍ½ÕÉ”¸¨œð¡•…€µ¸€Ä¤ˆ(€€€€€€€€€Ñ•ÍÐ€µ¸€ˆ‘M=UIˆ(€€€€€€€€€•¡¼€‰M=UIô‘M=UIˆ€øø€ˆ‘%Q!U	}9Xˆ((€€€€€€´¹…µ”è½¹Ù•ÉÑ¥È„=Y½É‰¥Ì¹½Éµ…±¥é…‘¼(€€€€€€€Í¡•±°è‰…Í (€€€€€€€ÉÕ¸èð(€€€€€€€€€Í•Ð€µ•Õ¼Á¥Á•™…¥°(€€€€€€€€€™™µÁ•œ€µ¡¥‘•}‰…¹¹•È€µ±½±•Ù•°Ý…É¹¥¹œ€µäp(€€€€€€€€€€€€µ¤€ˆ‘M=UIˆ€µÙ¸€µµ…Á}µ•Ñ…‘…Ñ„€´Äp(€€€€€€€€€€€€µ…˜€±½Õ‘¹½É´õ$ô´ÄàéQ@ô´Ä¸Ôé1IôÄÄœp(€€€€€€€€€€€€µ…Œ€Ä€µ…È€ÐÐÄÀÀ€µŒé„±¥‰Ù½É‰¥Ì€µÄé„€Ôp(€€€€€€€€€€€€½ÑµÀ½©½‰Íµ•¹Ôµ…ÕÑ½É¥é…‘„¹½œ((€€€€€€€€€½‘•Œôˆ¡™™ÁÉ½‰”€µØ•ÉÉ½È€µÍ•±•Ñ}ÍÑÉ•…µÌ„èÀ€µÍ¡½Ý}•¹ÑÉ¥•ÌÍÑÉ•…´õ½‘•}¹…µ”€µ½˜‘•™…Õ±Ðõ¹ÜôÄé¹¬ôÄ€½ÑµÀ½©½‰Íµ•¹Ôµ…ÕÑ½É¥é…‘„¹½œ¤ˆ(€€€€€€€€€¡…¹¹•±Ìôˆ¡™™ÁÉ½‰”€µØ•ÉÉ½È€µÍ•±•Ñ}ÍÑÉ•…µÌ„èÀ€µÍ¡½Ý}•¹ÑÉ¥•ÌÍÑÉ•…´õ¡…¹¹•±Ì€µ½˜‘•™…Õ±Ðõ¹ÜôÄé¹¬ôÄ€½ÑµÀ½©½‰Íµ•¹Ôµ…ÕÑ½É¥é…‘„¹½œ¤ˆ(€€€€€€€€€É…Ñ”ôˆ¡™™ÁÉ½‰”€µØ•ÉÉ½È€µÍ•±•Ñ}ÍÑÉ•…µÌ„èÀ€µÍ¡½Ý}•¹ÑÉ¥•ÌÍÑÉ•…´õÍ…µÁ±•}É…Ñ”€µ½˜‘•™…Õ±Ðõ¹ÜôÄé¹¬ôÄ€½ÑµÀ½©½‰Íµ•¹Ôµ…ÕÑ½É¥é…‘„¹½œ¤ˆ(€€€€€€€€€Ñ•ÍÐ€ˆ‘½‘•Œˆ€ô€Ù½É‰¥Ìœ(€€€€€€€€€Ñ•ÍÐ€ˆ‘¡…¹¹•±Ìˆ€ô€œÄœ(€€€€€€€€€Ñ•ÍÐ€ˆ‘É…Ñ”ˆ€ô€œÐÐÄÀÀœ(€€€€€€€€€Ñ•ÍÐ€ˆ¡ÍÑ…Ð€µŒ€œ•Ìœ€½ÑµÀ½©½‰Íµ•¹Ôµ…ÕÑ½É¥é…‘„¹½œ¤ˆ€µÐ€ÄÀÀÀÀÀ((€€€€€€´¹…µ”èÁ±¥…ÈÁ…Í”€À¸Äà¸À(€€€€€€€ÉÕ¸èÁåÑ¡½¸Ñ½½±Ì½¥¹Ñ•É…É}Á¥ÍÑ…}…ÕÑ½É¥é…‘„¹Áä€½ÑµÀ½©½‰Íµ•¹ÔµÑÉ…¬¹©Í½¸€½ÑµÀ½©½‰Íµ•¹Ôµ…ÕÑ½É¥é…‘„¹½œ((€€€€€€´¹…µ”èY•É¥™¥…ÈÉ•ÕÉÍ½Ìä½¹ÑÉ…Ñ½Ì(€€€€€€€Í¡•±°è‰…Í (€€€€€€€ÉÕ¸èð(€€€€€€€€€Í•Ð€µ•Õ¼Á¥Á•™…¥°(€€€€€€€€€ÁåÑ¡½¸Ñ½½±Ì½Ù•É¥™¥…É}Ù•ÉÍ¥½¸¹Áä(€€€€€€€€€ÁåÑ¡½¸Ñ½½±Ì½Ù•É¥™¥…É}™½¹‘½Ì¹Áä(€€€€€€€€€ÁåÑ¡½¸Ñ½½±Ì½Ù•É¥™¥…È¹Áä(€€€€€€€€€ÁåÑ¡½¸Ñ½½±Ì½Ù•É¥™¥…É}Õ¥}µÕÍ¥„¹Áä((€€€€€€´¹…µ”è½µÁ¥±…È½¸)…Ù„€ÄÜ…¹Ñ•Ì‘”ÁÕ‰±¥…È…µ‰¥½Ì(€€€€€€€ÕÍ•Ìè…Ñ¥½¹Ì½Í•ÑÕÀµ©…Ù…ØÔ(€€€€€€€Ý¥Ñ è(€€€€€€€€€‘¥ÍÑÉ¥‰ÕÑ¥½¸èÑ•µÕÉ¥¸(€€€€€€€€€©…Ù„µÙ•ÉÍ¥½¸è€œÄÜœ((€€€€€€´¹…µ”è	Õ¥±½É”(€€€€€€€Í¡•±°è‰…Í (€€€€€€€ÉÕ¸èð(€€€€€€€€€¡µ½€­àÉ…‘±•Ü(€€€€€€€€€€¸½É…‘±•Ü‰Õ¥±€´µÍÑ…­ÑÉ…”€´µ¹¼µ‘…•µ½¸((€€€€€€´¹…µ”èAÕ‰±¥…È¥¹Ñ•É…§Í¸…ÓÍµ¥„(€€€€€€€Í¡•±°è‰…Í (€€€€€€€ÉÕ¸èð(€€€€€€€€€Í•Ð€µ•Õ¼Á¥Á•™…¥°(€€€€€€€€€¥Ð½¹™¥œÕÍ•È¹¹…µ”€M…¹Ñ¤µA‘HÕ‘¥¼%¹Ñ•É…Ñ½Èœ(€€€€€€€€€¥Ð½¹™¥œÕÍ•È¹•µ…¥°€…Ñ¥½¹ÍÕÍ•ÉÌ¹¹½É•Á±ä¹¥Ñ¡Õˆ¹½´œ(€€€€€€€€€¥Ð…‘€µ(€€€€€€€€€¥Ð‘¥™˜€´µ…¡•€´µ¡•¬(€€€€€€€€€¥Ð½µµ¥Ð€µ´€ØÀ¸Äà¸Àè¥¹Ñ•É…Ñ”…ÕÑ¡½É¥é•Í½Õ¹‘ÑÉ…¬…¹ÅÕ…±¥ÑäÁ…ÍÌœp(€€€€€€€€€€€€µ´€‘Ñ¡”…ÕÑ¡½É¥é•Ðå-…M…ÝÙ$ÑÉ…¬…Ì¹½Éµ…±¥é•ÍÑÉ•…µ¥¹œ=œY½É‰¥Ì°•áÁ…¹Ñ¡”Í•ÍÍ¥½¸Á±…å•ÈÑ¼ÑÝ¼µÑÉ…¬Í¡Õ™™±”½É½ÍÍ™…‘”Ý¥Ñ ‘å¹…µ¥ŒÉ•‘¥ÑÌ…¹µ…¹Õ…°Í­¥À°¡…É‘•¸Ù•É¥™¥…Ñ¥½¸°…¹Íå¹¡É½¹¥é”ÕÉÉ•¹Ð‘½Õµ•¹Ñ…Ñ¥½¸¸œ(€€€€€€€€€¥ÐÁÕÍ ½É¥¥¸!éµ…¥¸
+          set -euo pipefail
+          URL='https://www.youtube.com/watch?v=t9KaSaGEwvI'
+          COMMON=(
+            --no-playlist
+            --js-runtimes node
+            --remote-components ejs:github
+            --extractor-args 'youtube:player_client=mweb'
+          )
+
+          python -m yt_dlp "${COMMON[@]}" --dump-single-json "$URL" > /tmp/jobsmenu-track.json
+          python -m yt_dlp "${COMMON[@]}" \
+            --retries 10 \
+            --fragment-retries 10 \
+            --retry-sleep 2 \
+            --format 'bestaudio[ext=m4a]/bestaudio/best' \
+            --output '/tmp/jobsmenu-source.%(ext)s' \
+            "$URL"
+
+          SOURCE="$(find /tmp -maxdepth 1 -type f -name 'jobsmenu-source.*' | head -n 1)"
+          test -n "$SOURCE"
+          echo "SOURCE=$SOURCE" >> "$GITHUB_ENV"
+
+      - name: Convertir a OGG Vorbis normalizado
+        shell: bash
+        run: |
+          set -euo pipefail
+          ffmpeg -hide_banner -loglevel warning -y \
+            -i "$SOURCE" -vn -map_metadata -1 \
+            -af 'loudnorm=I=-18:TP=-1.5:LRA=11' \
+            -ac 1 -ar 44100 -c:a libvorbis -q:a 5 \
+            /tmp/jobsmenu-autorizada.ogg
+
+          codec="$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=nw=1:nk=1 /tmp/jobsmenu-autorizada.ogg)"
+          channels="$(ffprobe -v error -select_streams a:0 -show_entries stream=channels -of default=nw=1:nk=1 /tmp/jobsmenu-autorizada.ogg)"
+          rate="$(ffprobe -v error -select_streams a:0 -show_entries stream=sample_rate -of default=nw=1:nk=1 /tmp/jobsmenu-autorizada.ogg)"
+          test "$codec" = 'vorbis'
+          test "$channels" = '1'
+          test "$rate" = '44100'
+          test "$(stat -c '%s' /tmp/jobsmenu-autorizada.ogg)" -gt 100000
+
+      - name: Aplicar pase 0.18.0
+        run: python tools/integrar_pista_autorizada.py /tmp/jobsmenu-track.json /tmp/jobsmenu-autorizada.ogg
+
+      - name: Verificar recursos y contratos
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/verificar_version.py
+          python tools/verificar_fondos.py
+          python tools/verificar.py
+          python tools/verificar_ui_musica.py
+
+      - name: Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build Forge
+        shell: bash
+        run: |
+          chmod +x gradlew
+          ./gradlew build --stacktrace --no-daemon
+
+      - name: Publicar integracion atomica
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf tools/.integrar_chunks
+          git config user.name 'Santi-PdR Audio Integrator'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'v0.18.0: integrate authorized soundtrack and quality pass' \
+            -m 'Add the authorized t9KaSaGEwvI track as normalized streaming Ogg Vorbis, expand the session player to two-track shuffle/crossfade with dynamic credits and manual skip, harden verification, and synchronize current documentation.'
+          git push origin HEAD:main
