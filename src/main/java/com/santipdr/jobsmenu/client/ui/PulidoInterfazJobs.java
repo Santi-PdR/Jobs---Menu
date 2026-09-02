@@ -43,7 +43,7 @@ public final class PulidoInterfazJobs {
         if (w < 120 || h < 90) return;
         int m = Math.max(5, Math.min(12, Math.min(w, h) / 28));
         int l = Math.max(5, Math.min(12, m));
-        int c = Paleta.conAlfa(Paleta.PARED_ALTA, 0.18F);
+        int c = Paleta.conAlfa(Paleta.UI_ACENTO, 0.22F);
         esquina(g, m, m, l, 1, 1, c);
         esquina(g, w - m, m, l, -1, 1, c);
         esquina(g, m, h - m, l, 1, -1, c);
@@ -67,8 +67,8 @@ public final class PulidoInterfazJobs {
             int y = w.getY();
             int ancho = w.getWidth();
             int alto = w.getHeight();
-            int c = Paleta.conAlfa(teclado ? Paleta.FLUOR : Paleta.PARED_ALTA,
-                    teclado ? 0.72F : 0.30F);
+            int c = Paleta.conAlfa(teclado ? Paleta.UI_ACENTO_FUERTE : Paleta.UI_ACENTO,
+                    teclado ? 0.82F : 0.38F);
             int l = Math.min(7, Math.max(3, alto / 3));
             g.fill(x - 2, y - 2, x + l, y - 1, c);
             g.fill(x - 2, y - 2, x - 1, y + l, c);
@@ -76,7 +76,7 @@ public final class PulidoInterfazJobs {
             g.fill(x + ancho + 1, y + alto - l, x + ancho + 2, y + alto + 2, c);
             if (teclado && !ConfigTurno.movimientoReducido()) {
                 g.fill(x + 3, y + alto + 2, x + ancho - 3, y + alto + 3,
-                        Paleta.conAlfa(Paleta.FLUOR, 0.24F));
+                        Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.30F));
             }
         }
     }
@@ -112,9 +112,9 @@ public final class PulidoInterfazJobs {
         int x = pantalla.width - w - 8;
         int y = 8;
         float a = Math.min(1.0F, restante / 220.0F);
-        g.fill(x, y, x + w, y + 22, Paleta.conAlfa(Paleta.VANO, 0.78F * a));
-        g.fill(x, y, x + 2, y + 22, Paleta.conAlfa(Paleta.FLUOR, 0.74F * a));
+        g.fill(x, y, x + w, y + 22, Paleta.conAlfa(Paleta.ARCHIVO_FONDO, 0.86F * a));
+        g.fill(x, y, x + 2, y + 22, Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.82F * a));
         g.drawString(font, ChromeExpediente.ajustar(font, texto.getString(), w - 12),
-                x + 8, y + 7, Paleta.conAlfa(Paleta.PAPEL, 0.92F * a), false);
+                x + 8, y + 7, Paleta.conAlfa(Paleta.ARCHIVO_TEXTO, 0.94F * a), false);
     }
 }

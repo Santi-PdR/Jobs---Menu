@@ -78,7 +78,8 @@ public final class SliderExpediente extends AbstractSliderButton {
         if (ConfigTurno.movimientoReducido()) this.focoSuave = destino;
         else this.focoSuave += (destino - this.focoSuave) * 0.24F;
 
-        int fondo = Paleta.mezclar(Paleta.papelAviso(), Paleta.PARED_ALTA, 0.05F + 0.12F * this.focoSuave);
+        int fondo = Paleta.mezclar(Paleta.papelAviso(), Paleta.UI_PAPEL_FOCO,
+                0.14F + 0.58F * this.focoSuave);
         g.fill(x, y, x + w, y + h, fondo);
         int borde = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.38F + 0.34F * this.focoSuave);
         marco(g, x, y, w, h, borde);
@@ -92,7 +93,6 @@ public final class SliderExpediente extends AbstractSliderButton {
         g.fill(barraX0, barraY, barraX1, barraY + 1,
                 Paleta.conAlfa(Paleta.tintaSecundaria(), 0.24F));
 
-        // Marcas de escala para que el control parezca instrumento, no slider vanilla.
         for (int i = 0; i <= 8; i++) {
             int tx = barraX0 + Math.round(largo * (i / 8.0F));
             int th = (i % 4 == 0) ? 3 : 2;
@@ -102,18 +102,18 @@ public final class SliderExpediente extends AbstractSliderButton {
 
         int knob = barraX0 + (int) Math.round(largo * this.value);
         g.fill(barraX0, barraY, knob, barraY + 2,
-                Paleta.conAlfa(Paleta.tintaPrincipal(), 0.50F + 0.22F * this.focoSuave));
+                Paleta.conAlfa(Paleta.UI_ACENTO, 0.58F + 0.24F * this.focoSuave));
 
         int knobH = Math.min(8, h - 5);
         int ky = barraY - knobH / 2;
         g.fill(knob - 2, ky, knob + 3, ky + knobH,
                 Paleta.conAlfa(Paleta.tintaPrincipal(), 0.82F));
         g.fill(knob - 1, ky + 1, knob + 2, ky + knobH - 1,
-                Paleta.conAlfa(Paleta.FLUOR, 0.78F));
+                Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.90F));
 
         if (foco) {
             g.fill(x + 4, y + 3, x + 5, y + h - 3,
-                    Paleta.conAlfa(Paleta.tintaPrincipal(), 0.42F));
+                    Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.58F));
         }
 
         Font font = Minecraft.getInstance().font;

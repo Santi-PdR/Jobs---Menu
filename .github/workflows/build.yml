@@ -10,10 +10,6 @@ on:
       - main
   workflow_dispatch:
 
-# Una rama activa puede recibir varios commits de pulido en pocos segundos.
-# Compilar snapshots ya obsoletos desperdicia minutos y retrasa justo el build
-# que interesa. Main y cada PR/rama mantienen su propio grupo; un push nuevo
-# cancela solamente la ejecucion anterior del mismo flujo lógico.
 concurrency:
   group: jobsmenu-build-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -49,6 +45,8 @@ jobs:
         run: python3 tools/verificar_fondos.py
       - name: Python verification
         run: python3 tools/verificar.py
+      - name: Verify neutral UI and music session
+        run: python3 tools/verificar_ui_musica.py
       - name: Prepare Gradle wrapper
         run: chmod +x gradlew
       - name: Build Forge mod

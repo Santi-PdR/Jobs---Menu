@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.16.2
+# Riesgos y pruebas pendientes — 0.17.0
 
 Este documento contiene únicamente riesgos vigentes. Los incidentes históricos quedan en `CHANGELOG.md` y las auditorías de `docs/`.
 
@@ -10,8 +10,10 @@ Antes de publicar una entrega, GitHub Actions comprueba:
 - nombre/versionado obligatorio del JAR;
 - integridad PNG/CRC/IDAT de fondos 10–17;
 - recursos, idiomas, ASCII Java y coherencia estática;
+- separación de paleta entre escena e interfaz en los componentes compartidos principales;
+- contrato del reproductor musical (Absurdism, fades, crossfade preparado y hard stop de gameplay);
 - build Forge 1.20.1;
-- creación de `jobsmenu-0.16.2.jar`;
+- creación de `jobsmenu-0.17.0.jar`;
 - publicación en `dev-latest` únicamente desde `main`.
 
 Un build que no termina en verde no debe actualizar la release.
@@ -19,73 +21,65 @@ Un build que no termina en verde no debe actualizar la release.
 ## Pruebas manuales prioritarias
 
 1. **Options → Config Jobs.** El botón de configuración del mod debe verse claramente como acción principal de ancho completo, separado de la sección de opciones Minecraft.
-2. **Mods → Jobs Menu → Config.** Debe abrir exactamente la misma `PantallaAjustesAviso` que Options, no una pantalla alternativa.
-3. **Cinco categorías de Config.** Visual, Nivel, Audio, Accesibilidad y Sistema deben cambiar sin perder valores ni regresar a una pantalla vanilla.
-4. **Persistencia.** Cambiar un toggle/slider, salir, volver a abrir Config y comprobar que el valor sigue aplicado.
-5. **Layout de Config.** GUI Scale 2, 3 y 4; 854×480; 1280×720; ventana estrecha. Tabs, controles, pie y Volver no pueden solaparse.
-6. **Widgets nuevos.** Botón JOBS, botones normales/principales, toggles y sliders deben responder a hover, click, Tab, Enter, Espacio y Escape sin hitboxes invisibles.
-7. **Movimiento reducido.** Debe quitar/simplificar microanimaciones de foco y convertir la transición entre expedientes en fade breve.
-8. **Diálogos vanilla auxiliares.** Direct Connect, Add Server y confirmaciones deben conservar su lógica pero mostrar botones/campos integrados con Jobs durante la sesión.
-9. **Pantallas de terceros.** Embeddium u otras interfaces externas no deben recibir `PielVanillaJobs`; sólo contexto visual mínimo cuando corresponda.
-10. **Scrollbar Jobs.** Rueda, click y drag deben coincidir con el tirador visual; probar Sonido, Chat, Accesibilidad, Teclas, Online y cualquier lista larga.
-11. **Accesibilidad vanilla.** Primera/última fila, scrollbar y `Cerrar expediente` deben quedar separados; la Guía de accesibilidad vanilla no debe reaparecer superpuesta.
-12. **Options completo.** Piel, Sonido, Video, Controles, Idioma, Chat, Resource Packs, Accesibilidad, Online y FOV deben abrir/volver correctamente.
-13. **Multijugador.** Ping, MOTD, selección, LAN, Direct Connect, Add/Edit/Delete/Refresh y Cancel deben conservar funcionamiento real.
-14. **Idioma y resource reload.** ES ↔ EN, F3+T y Resource Packs no deben duplicar música/ambiente ni romper el chrome.
-15. **Pausa → Options.** Desde un mundo, volver debe regresar a la pausa correcta y no al título.
-16. **PNG 10–17 estáticos.** Permanecer varios segundos en cada uno: ningún zoom, paneo, parallax, flicker, scanline animada, niebla móvil, motas o presencia.
-17. **Transición entre PNG.** El apagón/cambio de Nivel puede existir; una vez estabilizado, el PNG vuelve a estar completamente inmóvil.
-18. **Los 18 niveles.** Recorrer 0–17 verificando continuidad de escena/audio al navegar por interfaces.
-19. **Audio/lifecycle.** Abrir muchas pantallas, Alt+Tab, F3+T, cambiar idioma, entrar a mundo y volver sin loops duplicados ni sonidos huérfanos.
-20. **Entrega.** En `test-1\mods` debe quedar un único `jobsmenu-0.16.2.jar`.
-21. **Español (Uruguay).** Seleccionar `Español (Uruguay)` y comprobar que Jobs no mezcla `Close file`, `Notice settings` u otras cadenas inglesas.
-22. **Seleccionar mundo.** Previews, selección, crear/editar/borrar/recrear y volver deben conservar lógica vanilla mientras el marco permanece Jobs.
-23. **Mods / Forge.** Búsqueda, orden A–Z/Z–A, selección, Config, panel de información y abrir carpeta deben seguir funcionando dentro del chrome Jobs.
-24. **Resource Packs.** No debe quedar un bloque aislado de dirt/bandas vanilla; selección, orden, aplicar y abrir carpeta deben conservarse.
-25. **Retorno de juego.** Salir de mundo local, servidor, kick o pausa vanilla/custom debe volver a `PantallaNivel`, nunca al título vanilla.
-26. **Corte de audio.** Desde el primer tick con mundo/conexión activa no puede oírse música ni ambiente del menú.
-27. **Servidor oficial.** Debe existir una sola entrada para `JobsDosh.exaroton.me:56477`; `Ghoul Outbreak` no puede reaparecer.
-28. **Paleta.** Mundos, Multiplayer, Mods y Recursos no pueden usar filtro amarillo ni texto blanco puro; previews e iconos conservan matiz neutro.
+2. **Mods → Jobs Menu → Config.** Debe abrir exactamente la misma `PantallaAjustesAviso` que Options.
+3. **Cinco categorías de Config.** Visual, Nivel, Audio, Accesibilidad y Sistema deben cambiar sin perder valores.
+4. **Persistencia.** Cambiar un toggle/slider, salir, volver y comprobar el valor.
+5. **Layout.** GUI Scale 2, 3 y 4; 854×480; 1280×720; ventana estrecha. Tabs, controles, pie y Volver no pueden solaparse.
+6. **Widgets.** Botón JOBS, botones normales/principales, toggles y sliders deben responder a hover, click, Tab, Enter, Espacio y Escape sin hitboxes invisibles.
+7. **Paleta 0.17.** Botones, foco, campos, sliders y transiciones no deben heredar amarillo de pared/fluorescente. La escena sí puede conservarlo cuando corresponde al Nivel.
+8. **Archivo oscuro.** Mundos, Multiplayer, Mods y Recursos deben usar superficies grafito/gris; controles vanilla cubiertos no pueden reaparecer como papel amarillo/claro.
+9. **Idioma.** Buscador centrado, selección gris neutra, Ctrl+F y Escape para limpiar búsqueda.
+10. **Movimiento reducido.** Debe simplificar microanimaciones y transición entre expedientes.
+11. **Diálogos vanilla auxiliares.** Direct Connect, Add Server y confirmaciones conservan lógica original con presentación Jobs.
+12. **Pantallas de terceros.** Embeddium u otras interfaces externas no reciben `PielVanillaJobs` indiscriminadamente.
+13. **Scrollbar Jobs.** Rueda, click y drag deben coincidir con el tirador visual.
+14. **Accesibilidad vanilla.** Primera/última fila, scrollbar y `Cerrar expediente` separados; la Guía vanilla no debe superponerse.
+15. **Multijugador.** Ping, MOTD, selección, LAN, Direct Connect, Add/Edit/Delete/Refresh y Cancel funcionan realmente.
+16. **Servidor oficial.** Una sola entrada para `JobsDosh.exaroton.me:56477`; `Ghoul Outbreak` no reaparece.
+17. **Mundos.** Previews, selección, crear/editar/borrar/recrear y volver conservan lógica vanilla.
+18. **Mods / Forge.** Búsqueda, orden, selección, Config, información y abrir carpeta.
+19. **Resource Packs.** Sin bloque aislado de dirt; selección, orden, aplicar y carpeta intactos.
+20. **ES/EN/Uruguay.** No mezclar `Close file`, `Notice settings` u otras cadenas inglesas.
+21. **Absurdism.** En arranque limpio debe entrar con fade-in y volumen perceptible sin golpe inicial.
+22. **Continuidad musical.** Title → Options → Mods → Recursos → volver no reinicia ni duplica la pista.
+23. **F3+T / Alt+Tab.** No crear instancias fantasma ni duplicadas.
+24. **Ducking.** Transición de Nivel, Suspensión y presencia bajan música sin corte digital.
+25. **Entrada a gameplay.** Desde el primer tick jugable no se oye música ni ambiente del menú.
+26. **Retorno.** Salir de mundo/servidor/kick vuelve a `PantallaNivel` y crea una visita musical nueva.
+27. **Segunda pista futura.** Cuando exista el OGG autorizado de la referencia `t9KaSaGEwvI`, probar crossfade continuo y sin pico de mezcla.
+28. **PNG 10–17.** Ningún zoom, paneo, parallax, flicker, scanline animada, niebla móvil, motas o presencia.
+29. **18 niveles.** Recorrer 0–17 verificando continuidad de escena/audio.
+30. **Entrega.** En `test-1\mods` debe quedar un único `jobsmenu-0.17.0.jar`.
 
 ## Riesgos conocidos
 
-- `PielVanillaJobs` es deliberadamente una capa visual posterior al render. Conserva el comportamiento vanilla, pero un resource pack o mod que cambie radicalmente dimensiones/orden de render puede requerir compatibilidad específica.
-- La scrollbar Jobs depende de datos internos de `AbstractSelectionList` 1.20.1. Hay reflection defensiva y fallback; una lista profundamente reemplazada puede conservar aspecto vanilla.
-- Las envolturas de Sonido/Video/Chat/Accesibilidad/Mouse/Teclas/Online dependen de estructuras de Minecraft 1.20.1. Mods que las sustituyan completamente pueden necesitar integración dedicada.
-- Embeddium se respeta como pantalla externa. No se intenta reconstruir su interfaz por reflection profunda.
-- Resource packs con fuentes de métricas extremas pueden forzar elipsis o alterar el equilibrio del layout.
-- Los aliases de español se generan desde `es_es` durante el procesado de recursos; una variante futura de Minecraft no incluida explícitamente requerirá añadir su alias.
-- Los PNG suministrados son rasterizados; su calidad máxima depende de la imagen fuente.
-- No existe profiler GPU automático. Bajo consumo reduce capas, pero el coste final depende de resolución, GUI Scale y GPU.
-- verificar que la migración retire `resourcepacks/jobsmenu-musica-activa` y conserve intactos los demás paquetes del usuario.
-- `dev-latest` es rodante; el asset lleva versión, pero el tag no es una release histórica inmutable.
+- `PielVanillaJobs` es una capa visual posterior al render. Un mod/resource pack que cambie radicalmente geometría u orden puede requerir compatibilidad específica.
+- La scrollbar Jobs depende de datos internos de `AbstractSelectionList` 1.20.1; existe reflection defensiva y fallback.
+- Las envolturas de pantallas vanilla dependen de estructuras de Minecraft 1.20.1; reemplazos totales de terceros pueden necesitar integración dedicada.
+- Embeddium se respeta como pantalla externa y no se reconstruye por reflection profunda.
+- Fuentes con métricas extremas pueden forzar elipsis o alterar el layout.
+- Los PNG suministrados son rasterizados; la calidad máxima depende de la fuente.
+- No existe profiler GPU automático; bajo consumo reduce capas pero el coste depende del equipo.
+- La segunda pista solicitada no está empaquetada mientras no exista un OGG autorizado; la URL por sí sola no es un recurso de build.
+- `dev-latest` es rodante; el asset lleva versión pero el tag no es una release histórica inmutable.
 
 ## Mitigaciones vigentes
 
-- PNG 10–17 aislados de todas las capas animadas del renderer.
-- Config Jobs propia conectada directamente a `ConfigTurno`.
-- Sustituciones importantes por clase exacta.
-- Pantallas de terceros no reciben skin de controles vanilla.
-- Botones vanilla duplicados se desactivan además de ocultarse.
-- Footer con zona central y esquina derecha reservadas para navegación/overlays.
-- Scrollbar visual conserva el comportamiento real de Minecraft y tiene fallback seguro.
-- `NativeImage` vuelve a validar fondos en runtime y existe fallback procedural.
+- PNG 10–17 aislados de capas animadas.
+- Paleta UI separada de la escena y verificada en CI.
+- Config Jobs conectada directamente a `ConfigTurno`.
+- Redirecciones sensibles por clase exacta.
+- Pantallas de terceros no reciben skin de controles indiscriminadamente.
+- Botones vanilla duplicados se desactivan además de ocultarse cuando corresponde.
+- Scrollbar visual conserva comportamiento real y tiene fallback.
+- `NativeImage` valida fondos en runtime y existe fallback procedural.
+- Reproductor musical ligado a sesión con watchdog de SoundEngine.
+- Hard stop de audio al entrar en gameplay.
 - JAR versionado y verificado por CI.
-- Movimiento reducido, destellos reducidos y bajo consumo tienen prioridad sobre decoración.
-- Audio gestionado por visita, no por instancia individual de pantalla.
-- El deploy valida el JAR nuevo antes de borrar la versión instalada.
+- Movimiento reducido, destellos reducidos y bajo consumo tienen prioridad.
 
 ## Regla de reporte
 
-Un problema observado en Minecraft debe incluir:
+Un problema observado en Minecraft debe incluir versión exacta del JAR, pantalla/Nivel, ruta usada, resolución/GUI Scale, mods que sustituyan UI/video, opciones de accesibilidad, si ocurrió durante transición/Suspensión y `latest.log` cuando afecte crash/recursos/audio.
 
-- versión exacta del JAR;
-- pantalla/Nivel;
-- ruta usada para llegar a ella;
-- resolución y GUI Scale;
-- mods que sustituyan UI/video;
-- opciones de accesibilidad/bajo consumo activas;
-- si ocurrió durante transición/Suspensión;
-- `latest.log` para crashes, recursos o audio.
-
-Un fallo visual no se considera corregido sólo porque el proyecto compile.
+Un fallo visual o sonoro no se considera corregido sólo porque el proyecto compile.

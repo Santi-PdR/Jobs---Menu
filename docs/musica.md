@@ -1,48 +1,69 @@
 # Música del menú
 
-## Estado desde 0.15.0 (vigente en 0.16.0)
+## Estado vigente — 0.17.0
 
-Jobs incluye su pista de menú directamente en:
+Jobs usa un reproductor de **sesión**, no música ligada a una pantalla concreta. La visita al menú conserva la posición y la mezcla al abrir Opciones, Mods, Mundos, Multijugador, Idioma o Resource Packs; entrar a un mundo/servidor corta el audio inmediatamente.
 
-```text
-src/main/resources/assets/jobsmenu/sounds/musica/defecto.ogg
-```
+### Catálogo
 
-El JAR registra el recurso mediante `sounds.json`. Instalar el mod es suficiente: no hace falta crear, activar ni mantener ningún resource pack musical.
+1. **Absurdism** — pista incluida actualmente en `assets/jobsmenu/sounds/musica/defecto.ogg` y registrada mediante `musica.tema`.
+2. **Segunda pista solicitada** — fuente de referencia: `https://www.youtube.com/watch?v=t9KaSaGEwvI`.
 
-La referencia **REQUIEM — Forsaken OST**, de Emmy Z, no se incorpora al JAR sin autorización escrita de redistribución. La carpeta `music/` documenta esa separación y no participa en `processResources`.
+La segunda pista **no se descarga ni se redistribuye desde YouTube**. El reproductor queda preparado para incorporarla como segunda entrada del catálogo cuando el proyecto disponga del archivo OGG autorizado. No se inventan título, autor ni licencia mientras esa información no esté archivada en el repositorio.
 
-## Contrato de audio
+## Reproductor 0.17
 
-- `GestorMusica` mantiene una sola instancia durante toda la visita al menú.
-- La pista no se reinicia al cambiar de Nivel, abrir Opciones, Mods o Resource Packs.
-- Usa `SoundSource.MASTER`: la gobiernan Maestro de Minecraft, volumen de música Jobs y volumen maestro del aviso.
-- No depende del deslizador Música vanilla.
-- La tecla `M` conserva el último volumen del aviso y alterna silencio.
-- Al entrar a un mundo o cerrar la visita se retiran música y camas ambientales.
-- F3+T y una reconstrucción de `SoundEngine` invalidan la instancia anterior antes de crear otra.
+`GestorMusica` mantiene hasta dos instancias durante un cambio de pista:
 
-## Migración desde versiones anteriores
+- una pista principal;
+- una pista entrante a volumen cero durante el crossfade.
 
-Versiones previas podían generar:
+Cada pista tiene ganancia propia y una envolvente de volumen independiente. El sistema incorpora:
 
-```text
-resourcepacks/jobsmenu-musica-activa/
-```
+- **fade-in** real desde silencio al empezar la visita;
+- **fade-out** al retirar una pista dentro del menú;
+- **crossfade** preparado para catálogos de dos o más pistas;
+- ducking durante apagones/transiciones de Nivel;
+- ducking más fuerte durante La Suspensión;
+- ducking contextual cuando aparece la presencia del fondo;
+- continuidad entre subpantallas de una misma visita;
+- vigilancia de instancias fantasma tras cambios de dispositivo/OpenAL;
+- reconstrucción segura tras F3+T/recarga de recursos;
+- corte inmediato al entrar en gameplay para impedir música de menú dentro de mundos/servidores.
 
-0.15.0 elimina ese sistema. `LimpiezaRecursosLegados` deselecciona y borra únicamente esa carpeta en el primer acceso al menú. No modifica otros resource packs ni la carpeta de origen que pudiera haber creado el usuario.
+El fade no sustituye al corte de seguridad: salir del menú hacia gameplay es una frontera de lifecycle y no puede dejar una cola audible varios ticks dentro del mundo.
 
-## Sustituir la pista durante el desarrollo
+## Mezcla
 
-Sólo para una pista propia o con licencia de redistribución compatible:
+La música Jobs usa `SoundSource.MASTER` de forma deliberada. La controlan:
 
-1. reemplazar `defecto.ogg` por OGG Vorbis compatible con Minecraft;
-2. conservar el evento `musica.tema` de `sounds.json`;
-3. actualizar título, autor y licencia cuando corresponda;
-4. ejecutar verificadores y build con Java 17.
+- volumen Maestro de Minecraft;
+- volumen de música Jobs;
+- volumen maestro del aviso / silencio con `M`.
 
-Un archivo externo no se convierte automáticamente en resource pack. Esta decisión evita que Jobs vuelva a aparecer como paquete independiente en la pantalla de recursos.
+No depende del slider Música vanilla. Mientras la música Jobs está habilitada durante la sesión, el `MusicManager` vanilla se detiene para evitar dos bandas sonoras simultáneas.
 
-## Pruebas
+## Recursos y licencias
 
-La validación estática comprueba presencia y registro. La aceptación manual debe confirmar reproducción, continuidad, volumen, F3+T, Alt+Tab, entrada a mundo y ausencia del pack legado.
+El JAR no genera ni activa resource packs musicales auxiliares. Los archivos empaquetados viven dentro de `assets/jobsmenu`.
+
+La carpeta histórica `music/` no participa automáticamente en `processResources`: conservar un archivo de referencia allí no implica autorización para incluirlo en el JAR.
+
+Nunca se debe:
+
+- descargar una pista desde YouTube como parte del build;
+- publicar un OGG sin autorización/licencia de redistribución archivada;
+- inventar créditos;
+- registrar en `sounds.json` una pista cuyo archivo no exista realmente.
+
+## Pruebas de aceptación
+
+1. Abrir Jobs desde arranque limpio: Absurdism entra progresivamente, sin golpe inicial.
+2. Navegar Title → Options → Mods → Resource Packs → volver: no reinicia ni duplica la pista.
+3. Cambiar volumen Jobs durante reproducción: transición suave, sin clicks.
+4. Desactivar/reactivar música del aviso: la instancia anterior se retira y puede reconstruirse sin duplicados.
+5. F3+T: no queda una instancia huérfana y la música vuelve de forma segura.
+6. Alt+Tab/pausa de cliente: no confundir pausa del motor con instancia fantasma.
+7. Entrar a mundo local/servidor: desde el primer tick jugable no se oye música del menú.
+8. Salir del mundo/servidor: una visita nueva vuelve a iniciar su fade desde cero.
+9. Cuando exista una segunda pista autorizada: verificar crossfade sin hueco ni superposición excesiva.

@@ -12,7 +12,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 
-/** Boton de expediente: papel, tinta y feedback del edificio, sin skin vanilla. */
+/** Boton de expediente: papel frio, tinta y feedback del edificio, sin skin vanilla. */
 public class BotonExpediente extends AbstractButton {
 
     public enum Tipo { NORMAL, PRINCIPAL, JOBS, TERMINAL }
@@ -69,10 +69,10 @@ public class BotonExpediente extends AbstractButton {
         int h = this.height;
 
         int papelBase = Paleta.papelAviso();
-        float mezclaFoco = this.tipo == Tipo.JOBS ? 0.26F : 0.16F;
-        int papelFoco = Paleta.mezclar(papelBase, Paleta.PARED_ALTA, mezclaFoco);
+        float mezclaFoco = this.tipo == Tipo.JOBS ? 0.72F : 0.48F;
+        int papelFoco = Paleta.mezclar(papelBase, Paleta.UI_PAPEL_FOCO, mezclaFoco);
         int fondo = Paleta.mezclar(papelBase, papelFoco, this.focoSuave);
-        if (this.tipo == Tipo.JOBS) fondo = Paleta.mezclar(fondo, Paleta.FLUOR, 0.06F);
+        if (this.tipo == Tipo.JOBS) fondo = Paleta.mezclar(fondo, Paleta.UI_ACENTO, 0.08F);
         if (!this.active) fondo = Paleta.mezclar(Paleta.VANO, papelBase, 0.68F);
         if (pulsado) fondo = Paleta.mezclar(fondo, Paleta.VANO, 0.12F);
 
@@ -91,7 +91,7 @@ public class BotonExpediente extends AbstractButton {
 
         if (this.tipo == Tipo.PRINCIPAL && this.active) {
             g.fill(x + 3, y + 3, x + w - 3, y + 4,
-                    Paleta.conAlfa(Paleta.tintaSecundaria(), 0.18F + 0.12F * this.focoSuave));
+                    Paleta.conAlfa(Paleta.UI_ACENTO, 0.18F + 0.14F * this.focoSuave));
         } else if (this.tipo == Tipo.TERMINAL && this.active) {
             g.fill(x + 1, y + 1, x + 4, y + h - 1,
                     Paleta.conAlfa(Paleta.tintaPrincipal(), 0.64F));
@@ -100,7 +100,7 @@ public class BotonExpediente extends AbstractButton {
         }
 
         if (this.isFocused() && !this.isMouseOver(mouseX, mouseY) && this.active) {
-            int c = Paleta.conAlfa(Paleta.PARED_ALTA, 0.80F);
+            int c = Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.86F);
             marco(g, x - 1, y - 1, w + 2, h + 2, c);
         }
 
@@ -124,13 +124,13 @@ public class BotonExpediente extends AbstractButton {
             int uy = ty + font.lineHeight;
             int largo = Math.max(4, Math.round(tw * this.focoSuave));
             g.fill(tx, uy, tx + largo, uy + 1,
-                    Paleta.conAlfa(Paleta.tintaSecundaria(), 0.28F + 0.40F * this.focoSuave));
+                    Paleta.conAlfa(Paleta.UI_ACENTO, 0.30F + 0.42F * this.focoSuave));
         }
     }
 
     private void dibujarMarcaJobs(GuiGraphics g, int x, int y, int w, int h) {
         int tinta = Paleta.conAlfa(Paleta.tintaPrincipal(), 0.72F);
-        int suave = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.20F + 0.18F * this.focoSuave);
+        int suave = Paleta.conAlfa(Paleta.UI_ACENTO, 0.24F + 0.22F * this.focoSuave);
         int bx = x + 7;
         int cy = y + h / 2;
 

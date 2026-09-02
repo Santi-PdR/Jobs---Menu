@@ -24,10 +24,11 @@ public final class ChromeExpediente {
         g.fill(0, 0, ancho, alto, Paleta.conAlfa(Paleta.VANO,
                 ConfigTurno.altoContraste() ? 0.58F : 0.46F));
 
-        // El ruido de monitor pertenece a la interfaz, no anima los PNG.
+        // El ruido de monitor pertenece a la interfaz, no anima los PNG. Usa
+        // acento UI neutro: el fluorescente fisico nunca tinta el expediente.
         if (!ConfigTurno.bajoConsumo() && !ConfigTurno.papelLimpio()) {
             for (int y = 1; y < alto; y += 5) {
-                g.fill(0, y, ancho, y + 1, Paleta.conAlfa(Paleta.FLUOR, 0.010F));
+                g.fill(0, y, ancho, y + 1, Paleta.conAlfa(Paleta.UI_ACENTO, 0.010F));
             }
         }
 
@@ -60,7 +61,7 @@ public final class ChromeExpediente {
         for (int i = 0; i < 3; i++) {
             int py = y + h / 4 + i * h / 4;
             g.fill(x + 7, py - 1, x + 10, py + 1, agujero);
-            g.fill(x + 8, py, x + 9, py + 1, Paleta.conAlfa(Paleta.PAPEL, 0.32F));
+            g.fill(x + 8, py, x + 9, py + 1, Paleta.conAlfa(Paleta.UI_PAPEL, 0.32F));
         }
 
         // El papel ya no queda como un rectangulo vacio: unas reglas casi
@@ -89,10 +90,11 @@ public final class ChromeExpediente {
         int sombra = Paleta.conAlfa(Paleta.VANO, 0.48F);
         g.fill(x + 4, y + 5, x + w + 5, y + h + 6, sombra);
         g.fill(x, y, x + w, y + h,
-                Paleta.conAlfa(Paleta.VANO, ConfigTurno.altoContraste() ? 0.90F : 0.78F));
+                Paleta.conAlfa(Paleta.ARCHIVO_FONDO,
+                        ConfigTurno.altoContraste() ? 0.96F : 0.90F));
 
-        int borde = Paleta.conAlfa(Paleta.PARED_ALTA, 0.42F);
-        int bordeFino = Paleta.conAlfa(Paleta.PAPEL, 0.12F);
+        int borde = Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.46F);
+        int bordeFino = Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.16F);
         g.fill(x, y, x + w, y + 1, borde);
         g.fill(x, y + h - 1, x + w, y + h, borde);
         g.fill(x, y, x + 1, y + h, borde);
@@ -100,14 +102,14 @@ public final class ChromeExpediente {
         g.fill(x + 5, y + 5, x + w - 5, y + 6, bordeFino);
         g.fill(x + 5, y + h - 6, x + w - 5, y + h - 5, bordeFino);
 
-        // Marcas de inventario, mas cercanas a metal pintado que a papel.
-        int marca = Paleta.conAlfa(Paleta.PARED_ALTA, 0.28F);
+        // Marcas de inventario: metal pintado neutro, no color de pared.
+        int marca = Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.30F);
         for (int i = 0; i < 3; i++) {
             int py = y + h / 4 + i * h / 4;
             g.fill(x + 7, py - 2, x + 9, py + 2, marca);
         }
         g.fill(x + w - 48, y + 1, x + w - 14, y + 4,
-                Paleta.conAlfa(Paleta.PARED, 0.44F));
+                Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.34F));
     }
 
     /** Cabecera clara para el marco oscuro de archivo. */
@@ -143,7 +145,7 @@ public final class ChromeExpediente {
                                                  int panelX, int panelY, int panelW) {
         g.pose().pushPose();
         g.pose().translate(0.0F, 0.0F, 450.0F);
-        g.fill(panelX + 1, panelY + 1, panelX + panelW - 1, panelY + 43, Paleta.VANO);
+        g.fill(panelX + 1, panelY + 1, panelX + panelW - 1, panelY + 43, Paleta.ARCHIVO_FONDO);
         cabeceraArchivo(g, font, titulo, subtitulo, panelX, panelY, panelW);
         g.pose().popPose();
     }
@@ -153,7 +155,7 @@ public final class ChromeExpediente {
                                                int panelX, int panelY, int panelW) {
         g.pose().pushPose();
         g.pose().translate(0.0F, 0.0F, 450.0F);
-        g.fill(panelX + 1, panelY + 1, panelX + panelW - 1, panelY + 35, Paleta.VANO);
+        g.fill(panelX + 1, panelY + 1, panelX + panelW - 1, panelY + 35, Paleta.ARCHIVO_FONDO);
         String texto = ajustar(font, titulo == null ? "" : titulo.getString(), panelW - 70);
         int tw = font.width(texto);
         g.drawString(font, texto, panelX + (panelW - tw) / 2, panelY + 12,
@@ -171,14 +173,14 @@ public final class ChromeExpediente {
         int tw = font.width(texto);
         int w = Math.min(ancho - 32, Math.max(112, tw + 46));
         int x = (ancho - w) / 2;
-        g.fill(x, 7, x + w, 28, Paleta.VANO);
-        g.fill(x, 27, x + w, 28, Paleta.conAlfa(Paleta.PARED_ALTA, 0.46F));
-        g.fill(x + 7, 11, x + 9, 24, Paleta.conAlfa(Paleta.FLUOR, 0.54F));
-        g.drawString(font, texto, x + 15, 13, Paleta.conAlfa(Paleta.PARED_ALTA, 0.92F), false);
+        g.fill(x, 7, x + w, 28, Paleta.ARCHIVO_FONDO);
+        g.fill(x, 27, x + w, 28, Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.46F));
+        g.fill(x + 7, 11, x + 9, 24, Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.60F));
+        g.drawString(font, texto, x + 15, 13, Paleta.conAlfa(Paleta.ARCHIVO_TEXTO, 0.92F), false);
         if (codigo != null && w > 170) {
             int cw = font.width(codigo);
             g.drawString(font, codigo, x + w - cw - 8, 13,
-                    Paleta.conAlfa(Paleta.TECHO, 0.46F), false);
+                    Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.62F), false);
         }
     }
 
@@ -190,7 +192,7 @@ public final class ChromeExpediente {
                 + "  //  v" + version();
         texto = ajustar(font, texto, Math.max(20, w - 34));
         g.drawString(font, texto, x + 14, y + h - 15,
-                Paleta.conAlfa(Paleta.TECHO, 0.48F), false);
+                Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.58F), false);
     }
 
     /** Cabecera de una pantalla propia. */
@@ -200,7 +202,6 @@ public final class ChromeExpediente {
         int ty = panelY + 13;
         int tw = font.width(titulo);
 
-        // Dos marcas laterales hacen que el titulo se lea como encabezado de formulario.
         int linea = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.28F);
         int espacio = Math.min(48, Math.max(18, (panelW - tw) / 5));
         g.fill(panelX + 18, ty + 4, Math.max(panelX + 19, centro - tw / 2 - espacio), ty + 5, linea);
@@ -326,10 +327,10 @@ public final class ChromeExpediente {
     /** Banda discreta para pantallas menores que siguen siendo de otra clase. */
     public static void bandaContextual(GuiGraphics g, Font font, int ancho, int alto) {
         int altoBanda = 19;
-        g.fill(0, 0, ancho, altoBanda, Paleta.conAlfa(Paleta.PAPEL, 0.92F));
+        g.fill(0, 0, ancho, altoBanda, Paleta.conAlfa(Paleta.UI_PAPEL, 0.94F));
         g.fill(0, altoBanda - 2, ancho, altoBanda,
                 Paleta.conAlfa(Paleta.tintaSecundaria(), 0.38F));
-        g.fill(5, 4, 7, altoBanda - 5, Paleta.conAlfa(Paleta.tintaPrincipal(), 0.58F));
+        g.fill(5, 4, 7, altoBanda - 5, Paleta.conAlfa(Paleta.UI_ACENTO, 0.68F));
 
         Component rotulo = Component.translatable("jobsmenu.interfaz.banda");
         g.drawString(font, rotulo, 11, 5, Paleta.tintaSecundaria(), false);

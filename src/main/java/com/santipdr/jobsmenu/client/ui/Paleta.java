@@ -5,17 +5,22 @@ import com.santipdr.jobsmenu.config.ConfigTurno;
 /**
  * Paleta unica del mod. Colores en ARGB con alfa explicito.
  *
- * Paleta del recinto y del expediente. Los colores ambientales pertenecen a
- * la escena; las vistas de archivo usan constantes neutras independientes.
+ * Hay dos familias deliberadamente separadas:
  *
- *  - El rojo pertenece solo a los Executores. Nada mas puede usarlo.
- *  - La unica fuente de luz es el fluorescente del techo.
- *  - Nunca blanco puro: el techo mas limpio sigue siendo hueso viejo.
+ *  - ESCENA: paredes, techo, fluorescente, humedad y materiales del recinto.
+ *  - INTERFAZ: papel frio, grafito y gris verdoso. Nunca hereda el amarillo
+ *    ambiental de la escena.
+ *
+ * El rojo pertenece solo a los Executores.
  */
 public final class Paleta {
 
     private Paleta() {
     }
+
+    // ---------------------------------------------------------------------
+    // Escena. Estos tonos pertenecen al edificio, no a widgets ni archivos.
+    // ---------------------------------------------------------------------
 
     /** Papel mural del nivel. El color de la casa. */
     public static final int PARED = 0xFFD8C24F;
@@ -26,7 +31,7 @@ public final class Paleta {
     /** Pared cerca del zocalo, donde la luz ya no llega. */
     public static final int PARED_BAJA = 0xFF9A8630;
 
-    /** Humedad, moho, filtraciones. Tambien sirve de borde. */
+    /** Humedad, moho, filtraciones. Tambien sirve de borde de escena. */
     public static final int MOHO = 0xFF5E5222;
 
     /** Alfombra humeda. */
@@ -38,20 +43,51 @@ public final class Paleta {
     /** Placas del cielorraso. */
     public static final int TECHO = 0xFFD5CB9B;
 
-    /** El tubo fluorescente. La unica luz que existe. */
+    /** El tubo fluorescente. La unica luz fisica del recinto. */
     public static final int FLUOR = 0xFFFFF7D2;
 
-    /** Papel de los avisos pegados a la pared. */
+    /** Papel fisico de la escena; se conserva calido. */
     public static final int PAPEL = 0xFFF0E9CE;
 
-    /** Tinta principal. Todo lo que se lee. */
+    /** Tinta fisica de carteles/escena. */
     public static final int TINTA = 0xFF14120C;
 
-    /** Tinta secundaria: sellos, notas al pie, letra chica. */
+    /** Tinta fisica secundaria. */
     public static final int TINTA_TENUE = 0xFF4A422A;
 
     /** El vano que da al nivel siguiente. Nunca se aclara. */
     public static final int VANO = 0xFF0D0B07;
+
+    // ---------------------------------------------------------------------
+    // Interfaz. Neutra por contrato: no reutilizar PARED/PARED_ALTA/FLUOR.
+    // ---------------------------------------------------------------------
+
+    /** Papel frio de formularios y controles. */
+    public static final int UI_PAPEL = 0xFFE1E6E2;
+
+    /** Papel frio ligeramente elevado por foco. */
+    public static final int UI_PAPEL_FOCO = 0xFFEDF1EE;
+
+    /** Tinta principal de interfaz. */
+    public static final int UI_TINTA = 0xFF171B18;
+
+    /** Tinta secundaria de interfaz. */
+    public static final int UI_TINTA_TENUE = 0xFF56615B;
+
+    /** Acento administrativo neutro. */
+    public static final int UI_ACENTO = 0xFFAAB6AF;
+
+    /** Acento administrativo para foco de teclado y confirmaciones. */
+    public static final int UI_ACENTO_FUERTE = 0xFFC4CEC8;
+
+    /** Fondo base de los archivos oscuros. */
+    public static final int ARCHIVO_FONDO = 0xFF101411;
+
+    /** Superficie de control dentro de un archivo oscuro. */
+    public static final int ARCHIVO_SUPERFICIE = 0xFF1A211D;
+
+    /** Superficie de control enfocada dentro de un archivo oscuro. */
+    public static final int ARCHIVO_SUPERFICIE_FOCO = 0xFF27312B;
 
     /** Archivo oscuro: acento gris verdoso, nunca amarillo ni blanco puro. */
     public static final int ARCHIVO_ACENTO = 0xFFB2BBB5;
@@ -68,19 +104,19 @@ public final class Paleta {
     /** Executores, pulso de ronda inminente. */
     public static final int ALERTA_BRILLO = 0xFFC42B18;
 
-    /** Tinta legible; el modo alto contraste refuerza el negro sin usar rojo. */
+    /** Tinta legible; alto contraste refuerza el negro sin usar blanco puro. */
     public static int tintaPrincipal() {
-        return ConfigTurno.altoContraste() ? 0xFF080704 : TINTA;
+        return ConfigTurno.altoContraste() ? 0xFF080A09 : UI_TINTA;
     }
 
-    /** Tinta secundaria legible sobre papel y fondo oscuro. */
+    /** Tinta secundaria neutra y legible. */
     public static int tintaSecundaria() {
-        return ConfigTurno.altoContraste() ? 0xFF241C0D : TINTA_TENUE;
+        return ConfigTurno.altoContraste() ? 0xFF303833 : UI_TINTA_TENUE;
     }
 
-    /** Papel ligeramente mas claro en modo alto contraste. */
+    /** Papel de UI frio; alto contraste aclara sin llegar a blanco puro. */
     public static int papelAviso() {
-        return ConfigTurno.altoContraste() ? 0xFFFFFBEA : PAPEL;
+        return ConfigTurno.altoContraste() ? 0xFFF5F7F5 : UI_PAPEL;
     }
 
     /** Devuelve el mismo color con el alfa indicado (0.0 a 1.0). */

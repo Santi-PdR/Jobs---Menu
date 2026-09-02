@@ -1,9 +1,9 @@
 package com.santipdr.jobsmenu.client.sound;
 
 import com.santipdr.jobsmenu.JobsMenu;
+import com.santipdr.jobsmenu.client.SesionMenu;
 import com.santipdr.jobsmenu.client.scene.Presencia;
 import com.santipdr.jobsmenu.client.scene.RotacionNiveles;
-import com.santipdr.jobsmenu.client.SesionMenu;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
@@ -13,63 +13,53 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
+import net.minecraftforge.registries.RegistryObject;
 
 import org.lwjgl.glfw.GLFW;
 
 /**
- * El tema del menu.
+ * Reproductor de sesion del menu Jobs.
  *
- * SOBRE LA PISTA
+ * La musica pertenece a la visita completa, no a una Screen concreta. Por eso
+ * continua al abrir Opciones, Mods, Mundos o Recursos y se corta de forma
+ * defensiva antes de dejar que exista un tick audible dentro de un mundo.
  *
- * El evento musica.tema apunta a musica/defecto.ogg. La ranura de fabrica es
- * un recurso original incluido directamente en el mod. Jobs no genera ni
- * activa resource packs auxiliares para reproducir su musica.
- *
- * COMO SE COMPORTA
- *
- * Una sola instancia, viva mientras el menu este abierto. No se reinicia al
- * cambiar de nivel ni al reconstruirse la pantalla, y sigue sonando durante el
- * apagon: es lo unico que no se apaga cuando se corta la luz, porque no es un
- * sonido del pasillo sino de la escena. La ranura de fabrica contiene la pieza
- * original del mod y es la unica fuente del tema.
+ * 0.17 introduce un catalogo real de pistas. Cada pista entra y sale con su
+ * propia ganancia; cuando haya mas de una disponible el gestor hace crossfade
+ * sin reiniciar el ambiente ni pelearse con la musica vanilla. La primera pista
+ * del catalogo es Absurdism. La segunda pista solicitada queda documentada como
+ * fuente pendiente hasta que exista un archivo OGG autorizado en el proyecto.
  */
-public class GestorMusica extends AbstractTickableSoundInstance {
+public final class GestorMusica extends AbstractTickableSoundInstance {
 
-    /** Instancia unica. Si ya hay una sonando, no se crea otra. */
-    private static GestorMusica activa;
+    private static final float SUAVIZADO_SUBIDA = 0.036F;
+    private static final float SUAVIZADO_BAJADA = 0.065F;
+    private static final float SUAVIZADO_CROSSFADE = 0.030F;
+    private static final int RETARDO_INICIAL = 20;
+    private static final int CAMBIO_MIN_TICKS = 4 * 60 * 20;
+    private static final int CAMBIO_VARIACION_TICKS = 3 * 60 * 20;
 
-    /** Subida lenta: la musica tiene que entrar sin que se note que entro. */
-    private static final float SUAVIZADO_SUBIDA = 0.012F;
-
-    /** Bajada al cerrar el menu. Tampoco de golpe. */
-    private static final float SUAVIZADO_BAJADA = 0.045F;
-
-    /**
-     * Silencio de entrada: 40 ticks (2 s) entre que se pide el tema y la
-     * primera nota. Es el mismo margen que el fundido de subida, para que la
-     * musica nunca "entre" con un golpe. No es un silencio entre vueltas: el
-     * campo delay de SoundInstance solo se aplica al arranque de la instancia,
-     * no al bucle. El hueco entre repeticiones, si existe, lo lleva el propio
-     * archivo OGG.
-     */
-    private static final int RETARDO_BUCLE = 40;
-
-    /** Evita reintentar cada tick cuando el motor rechazo un recurso. */
+    private static GestorMusica principal;
+    private static GestorMusica entrante;
+    private static int indiceActual;
+    private static int ticksSesion;
+    private static int proximoCambio = CAMBIO_MIN_TICKS;
     private static int reintento;
+    private static int marcador = -1;
 
+    private final String idPista;
     private float actual;
+    private float gananciaActual;
+    private float gananciaObjetivo;
     private int edad;
-
-    /** Edad observada desde el tick del cliente, para detectar instancias fantasma. */
     private int ultimaEdadVista = -1;
 
-    private GestorMusica(SoundEvent evento) {
-        // MASTER evita que el deslizador Music de vanilla gobierne la pista
-        // del mod. El motor sigue aplicando el volumen maestro, y encima se
-        // aplican el deslizador propio y la mezcla del mod.
+    private GestorMusica(String idPista, SoundEvent evento, float gananciaInicial,
+                         float gananciaObjetivo, int retardo) {
         super(evento, SoundSource.MASTER, RandomSource.create());
+        this.idPista = idPista;
         this.looping = true;
-        this.delay = RETARDO_BUCLE;
+        this.delay = Math.max(0, retardo);
         this.volume = 0.0F;
         this.pitch = 1.0F;
         this.relative = true;
@@ -78,198 +68,208 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         this.y = 0.0D;
         this.z = 0.0D;
         this.actual = 0.0F;
-        this.edad = 0;
+        this.gananciaActual = Math.max(0.0F, Math.min(1.0F, gananciaInicial));
+        this.gananciaObjetivo = Math.max(0.0F, Math.min(1.0F, gananciaObjetivo));
+    }
+
+    private record Pista(String id, RegistryObject<SoundEvent> evento, String recurso) {
     }
 
     /**
-     * Pone el tema a sonar si no lo esta ya.
-     *
-     * El control de instancia unica es lo que evita el problema clasico de los
-     * menus con musica: la pantalla se reconstruye cada vez que se cambia el
-     * tamano de la ventana, y sin este control quedarian dos o tres copias de
-     * la misma pista sonando desfasadas.
+     * El evento legado musica.tema apunta actualmente al OGG que el proyecto
+     * identifica como Absurdism. La infraestructura acepta mas entradas sin
+     * volver a tocar el algoritmo de mezcla.
      */
+    private static Pista[] catalogo() {
+        return new Pista[] {
+                new Pista("absurdism", SonidosNivel.MUSICA_TEMA, "musica/defecto.ogg")
+        };
+    }
+
     public static void asegurar() {
-        if (!SesionMenu.activa() || !ConfigTurno.musicaMenu() || reintento > 0) {
-            return;
-        }
-        if (activa != null && !activa.isStopped()) {
-            return;
-        }
-        SoundEvent tema = MezclaAudio.resolver(SonidosNivel.MUSICA_TEMA, SoundEvents.MUSIC_MENU.value());
-        activa = new GestorMusica(tema);
-        Minecraft.getInstance().getSoundManager().play(activa);
-        // Un rastro en el log: si la musica no se oye, esto dice si al menos se
-        // mando a reproducir. Un SoundManager que descarta el sonido lo hace en
-        // silencio, y sin este aviso no hay forma de saber si el problema es el
-        // archivo, la mezcla o que nunca se llamo aca.
-        JobsMenu.LOG.info(
-                "[jobsmenu] Musica del menu enviada a reproducir (musica/defecto.ogg).");
+        if (!SesionMenu.activa() || !ConfigTurno.musicaMenu() || reintento > 0) return;
+        if (viva(principal) || viva(entrante)) return;
+
+        Pista[] pistas = catalogo();
+        if (pistas.length == 0) return;
+        indiceActual = Math.floorMod(indiceActual, pistas.length);
+        principal = crear(pistas[indiceActual], 0.0F, 1.0F, RETARDO_INICIAL);
+        Minecraft.getInstance().getSoundManager().play(principal);
+        JobsMenu.LOG.info("[jobsmenu] Pista de menu iniciada: {} ({}).",
+                pistas[indiceActual].id(), pistas[indiceActual].recurso());
+    }
+
+    private static GestorMusica crear(Pista pista, float desde, float hasta, int retardo) {
+        return new GestorMusica(pista.id(), resolverPista(pista), desde, hasta, retardo);
     }
 
     /**
-     * Coordinacion por tick, independiente de la Screen visible. Asi la pista
-     * continua en Opciones/Mods/Recursos y se detiene al entrar a un mundo.
-     *
-     * VIGILANCIA DE INSTANCIA FANTASMA
-     *
-     * Si el SoundEngine se reconstruye por una via que no pasa por nuestro
-     * listener de recarga (cambio de dispositivo, cierre de OpenAL), puede
-     * retirar la instancia sin marcarla como detenida. El sintoma es que
-     * isStopped() sigue devolviendo false pero la pista no se oye y, sobre
-     * todo, el motor deja de llamar a tick(): la edad de la instancia se
-     * congela. Este tick del cliente la observa: si no avanzo entre dos ticks
-     * seguidos con la visita activa, la instancia es un fantasma y se invalida
-     * para que asegurar() cree una nueva.
+     * Mantiene explicitamente el camino de la pista actual por el guard comun.
+     * El segundo branch permite que futuras pistas nominales usen el mismo
+     * mecanismo sin accesos directos a RegistryObject.get().
      */
+    private static SoundEvent resolverPista(Pista pista) {
+        if (pista.evento() == SonidosNivel.MUSICA_TEMA) {
+            return MezclaAudio.resolver(SonidosNivel.MUSICA_TEMA, SoundEvents.MUSIC_MENU.value());
+        }
+        return MezclaAudio.resolver(pista.evento(), SoundEvents.MUSIC_MENU.value());
+    }
+
     public static void atender() {
-        if (reintento > 0) {
-            reintento--;
-        }
+        if (reintento > 0) reintento--;
+
         Minecraft cliente = Minecraft.getInstance();
-        if (SesionMenu.activa() && ConfigTurno.musicaMenu()) {
-            GestorMusica viva = activa;
-            // La vigilancia solo corre cuando el cliente esta de verdad en marcha:
-            // pausado o sin foco, el motor deja de tickear las instancias por
-            // diseno (SoundManager.tick(boolean) y SoundManager.pause()), y la
-            // edad congelada entonces es normal, no un fantasma. Fuera de ese
-            // estado se desarma el vigia: al volver, el primer tick compara
-            // contra -1 y solo rearma, sin confundir la pausa con un fantasma.
-            // Window no expone isFocused() en 1.20.1; se consulta el atributo
-            // GLFW directamente, igual que AtajoOverworld con glfwGetKey.
-            boolean clienteTicando = !cliente.isPaused() && GLFW.glfwGetWindowAttrib(
-                    cliente.getWindow().getWindow(), GLFW.GLFW_FOCUSED) == GLFW.GLFW_TRUE;
-            if (viva != null && !viva.isStopped()) {
-                if (clienteTicando) {
-                    if (viva.ultimaEdadVista >= 0 && viva.edad == viva.ultimaEdadVista) {
-                        JobsMenu.LOG.warn(
-                                "[jobsmenu] La instancia de musica no recibe ticks del motor; "
-                                        + "se invalida y se crea una nueva.");
-                        nuevaVisita();
-                    } else {
-                        viva.ultimaEdadVista = viva.edad;
-                    }
-                } else {
-                    viva.ultimaEdadVista = -1;
-                }
-            }
-            cliente.getMusicManager().stopPlaying();
-            asegurar();
+        boolean sesionMusical = SesionMenu.activa() && ConfigTurno.musicaMenu();
+        if (!sesionMusical) return;
+
+        cliente.getMusicManager().stopPlaying();
+        asegurar();
+        ticksSesion++;
+
+        boolean clienteTicando = !cliente.isPaused() && GLFW.glfwGetWindowAttrib(
+                cliente.getWindow().getWindow(), GLFW.GLFW_FOCUSED) == GLFW.GLFW_TRUE;
+        if (clienteTicando && (fantasma(principal) || fantasma(entrante))) {
+            JobsMenu.LOG.warn("[jobsmenu] Una pista dejo de recibir ticks del motor; "
+                    + "se reconstruye la sesion musical.");
+            reiniciarMotor();
+            return;
         }
+        if (!clienteTicando) {
+            if (principal != null) principal.ultimaEdadVista = -1;
+            if (entrante != null) entrante.ultimaEdadVista = -1;
+        }
+
+        atenderCrossfade();
+    }
+
+    private static boolean fantasma(GestorMusica pista) {
+        if (!viva(pista)) return false;
+        if (pista.ultimaEdadVista >= 0 && pista.edad == pista.ultimaEdadVista) return true;
+        pista.ultimaEdadVista = pista.edad;
+        return false;
     }
 
     /**
-     * Descarta cualquier referencia superviviente de la visita anterior.
-     *
-     * Al entrar a un mundo el motor puede vaciar sus canales sin llamar a
-     * {@link #tick()} otra vez. En ese caso isStopped() sigue devolviendo false
-     * aunque el sonido ya no exista en OpenAL. Una visita nueva debe crear una
-     * instancia nueva; una pantalla hija de la misma visita no llama a este
-     * metodo y conserva la posicion de la pista.
+     * Con una sola pista no hace nada. Con dos o mas, abre la siguiente a cero,
+     * sube su ganancia y retira la anterior en paralelo.
      */
+    private static void atenderCrossfade() {
+        if (!viva(principal) && viva(entrante)) {
+            principal = entrante;
+            entrante = null;
+        }
+
+        Pista[] pistas = catalogo();
+        if (pistas.length <= 1) return;
+
+        if (entrante == null && ticksSesion >= proximoCambio && viva(principal)) {
+            int siguiente = (indiceActual + 1) % pistas.length;
+            entrante = crear(pistas[siguiente], 0.0F, 1.0F, 0);
+            principal.gananciaObjetivo = 0.0F;
+            Minecraft.getInstance().getSoundManager().play(entrante);
+            indiceActual = siguiente;
+            ticksSesion = 0;
+            proximoCambio = CAMBIO_MIN_TICKS
+                    + (int) (Math.random() * CAMBIO_VARIACION_TICKS);
+            JobsMenu.LOG.info("[jobsmenu] Crossfade hacia pista: {}.", pistas[siguiente].id());
+        }
+
+        if (entrante != null && principal != null
+                && principal.gananciaActual <= 0.004F && principal.actual <= 0.004F) {
+            principal.stop();
+            principal = entrante;
+            entrante = null;
+        }
+    }
+
     public static void nuevaVisita() {
-        GestorMusica anterior = activa;
-        activa = null;
+        detenerInstancias(true);
         reintento = 0;
-        if (anterior != null) {
-            anterior.stop();
-        }
+        marcador = -1;
+        ticksSesion = 0;
+        proximoCambio = CAMBIO_MIN_TICKS
+                + (int) (Math.random() * CAMBIO_VARIACION_TICKS);
     }
 
-    /** Corte de seguridad al entrar o volver de una sesion jugable. */
+    /**
+     * Gameplay es frontera dura: no se hace fade aqui porque una cola bonita
+     * seria precisamente el bug de musica de menu dentro del mundo.
+     */
     public static void detenerAhora() {
-        GestorMusica anterior = activa;
-        activa = null;
+        detenerInstancias(true);
         reintento = 0;
-        if (anterior != null) {
-            anterior.volume = 0.0F;
-            anterior.actual = 0.0F;
-            anterior.stop();
-        }
+        ticksSesion = 0;
     }
 
-    /** Invalida referencias del SoundEngine anterior tras F3+T o packs. */
     public static void recursosRecargados() {
-        GestorMusica anterior = activa;
-        activa = null;
+        detenerInstancias(true);
         marcador = -1;
         reintento = 20;
-        if (anterior != null) {
-            anterior.stop();
+        ticksSesion = 0;
+    }
+
+    private static void reiniciarMotor() {
+        detenerInstancias(true);
+        reintento = 2;
+        ticksSesion = 0;
+    }
+
+    private static void detenerInstancias(boolean inmediato) {
+        GestorMusica a = principal;
+        GestorMusica b = entrante;
+        principal = null;
+        entrante = null;
+        if (a != null) a.detener(immediato);
+        if (b != null && b != a) b.detener(immediato);
+    }
+
+    private void detener(boolean inmediato) {
+        if (inmediato) {
+            this.actual = 0.0F;
+            this.gananciaActual = 0.0F;
+            this.gananciaObjetivo = 0.0F;
+            this.volume = 0.0F;
+            this.stop();
+        } else {
+            this.gananciaObjetivo = 0.0F;
         }
     }
 
-    /** Si el tema esta sonando ahora mismo. */
-    public static boolean sonando() {
-        return activa != null && !activa.isStopped();
+    private static boolean viva(GestorMusica pista) {
+        return pista != null && !pista.isStopped();
     }
 
-    /** Contador de reintento tras recarga, para el diagnostico interno oculto. */
+    public static boolean sonando() {
+        return viva(principal) || viva(entrante);
+    }
+
     public static int reintentoParaDiagnostico() {
         return reintento;
     }
 
-    /**
-     * Cuanto se ve el credito de la pista ahora mismo, de 0 a 1.
-     *
-     * El credito -titulo y autor de la pista- se muestra UNA sola vez, al
-     * empezar a sonar el tema, arriba a la derecha. La cuenta sale de la edad
-     * de la instancia de musica, que nace con el menu y no se reinicia al
-     * cambiar de pantalla: por eso el credito no vuelve a aparecer cada vez que
-     * el jugador entra y sale de las opciones, solo la primera vez de la sesion.
-     *
-     * La envolvente es trapezoidal y en ticks (20 por segundo): entra a los 2 s,
-     * se sostiene hasta los 15 s y se va del todo a los 18. Da tiempo de sobra a
-     * leer dos lineas cortas sin quedarse en pantalla molestando despues.
-     */
-    public static float creditoAlfa() {
-        GestorMusica m = activa;
-        if (m == null || m.isStopped()
-                || !ConfigTurno.musicaMenu() || !ConfigTurno.creditoMusica()
-                || !hayPistaCreditada()) {
-            return 0.0F;
+    public static String pistaParaDiagnostico() {
+        if (viva(entrante) && entrante.gananciaActual > (principal == null ? 0.0F : principal.gananciaActual)) {
+            return entrante.idPista;
         }
-        int edad = m.edad;
+        return principal == null ? "-" : principal.idPista;
+    }
+
+    public static float creditoAlfa() {
+        GestorMusica m = viva(entrante) && entrante.gananciaActual > 0.55F ? entrante : principal;
+        if (!viva(m) || !ConfigTurno.musicaMenu() || !ConfigTurno.creditoMusica()
+                || !marcadorHorneado()) return 0.0F;
+
+        int e = m.edad;
         final int entra0 = 40;
         final int entra1 = 90;
         final int sale0 = 300;
         final int sale1 = 360;
-        if (edad <= entra0 || edad >= sale1) {
-            return 0.0F;
-        }
-        if (edad < entra1) {
-            return (edad - entra0) / (float) (entra1 - entra0);
-        }
-        if (edad <= sale0) {
-            return 1.0F;
-        }
-        return 1.0F - (edad - sale0) / (float) (sale1 - sale0);
+        if (e <= entra0 || e >= sale1) return 0.0F;
+        if (e < entra1) return (e - entra0) / (float) (entra1 - entra0);
+        if (e <= sale0) return 1.0F;
+        return 1.0F - (e - sale0) / (float) (sale1 - sale0);
     }
 
-    /**
-     * Si la pista que suena tiene un autor al que acreditar.
-     *
-     * Solo se cumple cuando el JAR trae una pista empaquetada con un marcador
-     * de credito. La pieza original que viene de fabrica no se acredita a nadie:
-     * es del mod. Una pista local puede sustituirla, pero no activa por error las
-     * cadenas de otra pista del idioma: el mod no conoce su autoria y no inventa
-     * atribuciones.
-     */
-    private static boolean hayPistaCreditada() {
-        // Una pista local no modifica este marcador: las cadenas por defecto
-        // podrian pertenecer a otra obra y no deben mostrarse automaticamente.
-        // Solo el recurso empaquetado con permiso trae la senal inequivoca.
-        return marcadorHorneado();
-    }
-
-    /** Estado del marcador de pista horneada, -1 sin calcular, 0 no, 1 si. */
-    private static int marcador = -1;
-
-    /**
-     * Si el JAR trae la marca de pista con credito. Se consulta el gestor de
-     * recursos una sola vez por sesion y se cachea: el contenido del JAR no
-     * cambia en caliente, y mirar el disco cada fotograma no tiene sentido.
-     */
     private static boolean marcadorHorneado() {
         if (marcador < 0) {
             boolean hay = Minecraft.getInstance().getResourceManager()
@@ -279,15 +279,6 @@ public class GestorMusica extends AbstractTickableSoundInstance {
         return marcador == 1;
     }
 
-    /**
-     * Autoriza a nacer en silencio.
-     *
-     * El tema entra con veinte segundos de subida desde cero, y el motor de
-     * sonido descarta al instante toda instancia que arranque muda. Sin esto
-     * la musica quedaba registrada, empaquetada dentro del jar y correctamente
-     * mezclada, pero no se escuchaba una sola nota: el motor la tiraba antes
-     * de que la subida empezara.
-     */
     @Override
     public boolean canStartSilent() {
         return true;
@@ -297,59 +288,40 @@ public class GestorMusica extends AbstractTickableSoundInstance {
     public void tick() {
         this.edad++;
 
-        Minecraft cliente = Minecraft.getInstance();
         boolean permitido = SesionMenu.activa() && ConfigTurno.musicaMenu();
+        if (!permitido) this.gananciaObjetivo = 0.0F;
 
-        // El canal de musica lo arbitra GestorMusica.atender() una sola vez
-        // por tick: mientras el aviso esta abierto se le deja el canal MUSIC
-        // al tema del mod y no se pelea con el gestor de vanilla. Aca ya no se
-        // repite la llamada (antes sonaba dos veces por tick).
-        // La pista del mod suena por SoundSource.MASTER: la gobiernan el
-        // deslizador Maestro del juego, el volumen propio del aviso y el volumen maestro
-        // del aviso (tecla M), nunca el deslizador Musica de vanilla.
+        float pasoGanancia = this.gananciaObjetivo > this.gananciaActual
+                ? SUAVIZADO_CROSSFADE : Math.max(SUAVIZADO_CROSSFADE, SUAVIZADO_BAJADA);
+        this.gananciaActual += (this.gananciaObjetivo - this.gananciaActual) * pasoGanancia;
+        if (Math.abs(this.gananciaActual - this.gananciaObjetivo) < 0.0005F) {
+            this.gananciaActual = this.gananciaObjetivo;
+        }
 
-        RotacionNiveles.Estado estado = RotacionNiveles.capturar();
         float objetivo = 0.0F;
         if (permitido) {
-            // Volumen maestro del aviso: la tecla M silencia toda la mezcla.
             objetivo = ConfigTurno.volumenMusica() * MezclaAudio.MUSICA
                     * ConfigTurno.volumenAviso();
 
-            // Entrada suave pero no eterna: unos seis segundos hasta el volumen
-            // pleno (antes eran veinte, y con la curva al cuadrado el tema no se
-            // oia hasta pasado medio minuto; quien entraba un momento al menu se
-            // iba sin escuchar nada). Sigue siendo un fundido, no un golpe.
-            float entrada = Math.min(1.0F, this.edad / 120.0F);
-            objetivo *= entrada * entrada;
-
-            // Durante el apagon la musica se sostiene, pero cede un poco de
-            // lugar para que el corte electrico tenga el frente para el solo.
-            if (estado.enTransicion()) {
-                objetivo *= 0.78F;
-            }
-            if (estado.enSuspension()) {
-                // La musica no se corta, pero deja el frente al suspiro y al
-                // silencio del edificio. Volvera con el suavizado normal.
-                objetivo *= 0.18F;
-            }
-
-            // Con la presencia al fondo, tambien se retira.
+            RotacionNiveles.Estado estado = RotacionNiveles.capturar();
+            if (estado.enTransicion()) objetivo *= 0.78F;
+            if (estado.enSuspension()) objetivo *= 0.18F;
             objetivo *= 1.0F - (1.0F - MezclaAudio.AGACHE_FIGURA)
                     * 0.5F * Presencia.visibilidad(estado.ahora());
+            objetivo *= this.gananciaActual;
         }
 
         float paso = objetivo > this.actual ? SUAVIZADO_SUBIDA : SUAVIZADO_BAJADA;
         this.actual += (objetivo - this.actual) * paso;
-        if (this.actual < 0.0006F) {
-            this.actual = 0.0F;
-        }
+        if (Math.abs(this.actual - objetivo) < 0.0005F) this.actual = objetivo;
+        if (this.actual < 0.0005F) this.actual = 0.0F;
         this.volume = this.actual;
 
-        if (!permitido && this.actual <= 0.0F) {
+        if ((!permitido || this.gananciaObjetivo <= 0.0F)
+                && this.gananciaActual <= 0.004F && this.actual <= 0.004F) {
             this.stop();
-            if (activa == this) {
-                activa = null;
-            }
+            if (principal == this) principal = null;
+            if (entrante == this) entrante = null;
         }
     }
 }

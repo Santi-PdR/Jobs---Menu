@@ -174,10 +174,11 @@ public final class PantallaIdiomaJobs extends Screen {
             int y = this.getY();
             int w = this.getWidth();
             int h = this.getHeight();
-            int borde = Paleta.conAlfa(Paleta.tintaSecundaria(), this.isFocused() ? 0.68F : 0.38F);
+            int borde = Paleta.conAlfa(Paleta.UI_TINTA_TENUE, this.isFocused() ? 0.72F : 0.40F);
             g.fill(x - 1, y - 1, x + w + 1, y + h + 1, borde);
             g.fill(x, y, x + w, y + h,
-                    Paleta.mezclar(Paleta.papelAviso(), Paleta.PARED_ALTA, 0.035F));
+                    Paleta.mezclar(Paleta.papelAviso(), Paleta.UI_PAPEL_FOCO,
+                            this.isFocused() ? 0.68F : 0.22F));
 
             boolean vacio = this.getValue().isEmpty();
             String texto = vacio ? this.pista.getString() : this.getValue();
@@ -189,14 +190,14 @@ public final class PantallaIdiomaJobs extends Screen {
             int tx = x + Math.max(8, (w - tw) / 2);
             int ty = y + (h - this.fuente.lineHeight) / 2;
             int color = vacio
-                    ? Paleta.conAlfa(Paleta.tintaSecundaria(), 0.70F)
-                    : Paleta.tintaSecundaria();
+                    ? Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.72F)
+                    : Paleta.UI_TINTA_TENUE;
             g.drawString(this.fuente, texto, tx, ty, color, false);
 
             if (!vacio && this.isFocused() && (System.currentTimeMillis() / 500L) % 2L == 0L) {
                 int cx = Math.min(x + w - 7, tx + tw + 1);
                 g.fill(cx, ty - 1, cx + 1, ty + this.fuente.lineHeight + 1,
-                        Paleta.conAlfa(Paleta.tintaPrincipal(), 0.72F));
+                        Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.88F));
             }
         }
     }
@@ -258,7 +259,7 @@ public final class PantallaIdiomaJobs extends Screen {
             boolean active = Objects.equals(PantallaIdiomaJobs.this.aplicado, this.codigo);
             if (pending || hovered) {
                 g.fill(left + 2, top + 1, left + rowWidth - 2, top + rowHeight - 2,
-                        Paleta.conAlfa(Paleta.PARED, pending ? 0.24F : 0.12F));
+                        Paleta.conAlfa(Paleta.UI_ACENTO, pending ? 0.24F : 0.11F));
             }
             String prefijo = pending ? "> " : active ? "- " : "";
             String nombre = this.info.toComponent().getString();
