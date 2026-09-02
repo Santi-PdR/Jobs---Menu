@@ -206,18 +206,18 @@ public class PantallaAjustesAviso extends Screen {
         int seleccionadoX = this.tabsX + indice * (this.tabW + this.tabGap);
         g.fill(seleccionadoX + 5, this.tabsY + this.tabH - 2,
                 seleccionadoX + this.tabW - 5, this.tabsY + this.tabH,
-                Paleta.conAlfa(Paleta.FLUOR, 0.62F));
+                Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.72F));
         String pagina = String.format(java.util.Locale.ROOT, "%02d / %02d", indice + 1, Categoria.values().length);
         int paginaW = this.font.width(pagina) + 10;
         int paginaX = panelX + panelW - margen - paginaW;
         int paginaY = panelY + 12;
         g.fill(paginaX, paginaY, paginaX + paginaW, paginaY + 14,
-                Paleta.conAlfa(Paleta.PARED_ALTA, 0.10F));
+                Paleta.conAlfa(Paleta.UI_ACENTO, 0.14F));
         g.drawString(this.font, pagina, paginaX + 5, paginaY + 3,
                 Paleta.conAlfa(Paleta.tintaSecundaria(), 0.62F), false);
 
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
-        ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "JOBS-0161");
+        ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "JOBS-CONFIG");
         super.render(g, mouseX, mouseY, partialTick);
     }
 

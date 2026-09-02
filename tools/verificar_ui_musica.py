@@ -36,8 +36,6 @@ def verify_neutral_ui() -> None:
         if name not in palette:
             fail(f"Paleta.java perdio la constante neutral {name}.")
 
-    # Estas superficies son UI pura. Ninguna puede volver a tomar el amarillo
-    # fisico de pared/fluorescente como color de widget o foco.
     files = (
         JAVA / "client/ui/ChromeExpediente.java",
         JAVA / "client/ui/PielVanillaJobs.java",
@@ -47,6 +45,7 @@ def verify_neutral_ui() -> None:
         JAVA / "client/ui/PulidoInterfazJobs.java",
         JAVA / "client/ui/TransicionInterfazJobs.java",
         JAVA / "client/screen/PantallaIdiomaJobs.java",
+        JAVA / "client/screen/PantallaAjustesAviso.java",
     )
     forbidden = ("Paleta.PARED_ALTA", "Paleta.PARED", "Paleta.FLUOR")
     for path in files:
@@ -59,6 +58,12 @@ def verify_neutral_ui() -> None:
     for token in ("ARCHIVO_SUPERFICIE", "ARCHIVO_SUPERFICIE_FOCO", "esArchivoOscuro"):
         if token not in skin:
             fail(f"PielVanillaJobs perdio el contrato de superficie oscura: {token}")
+
+    config_ui = read(JAVA / "client/screen/PantallaAjustesAviso.java")
+    if "JOBS-0161" in config_ui:
+        fail("PantallaAjustesAviso conserva el formulario duro JOBS-0161.")
+    if "JOBS-CONFIG" not in config_ui:
+        fail("PantallaAjustesAviso perdio el identificador estable JOBS-CONFIG.")
 
 
 def verify_music_session() -> None:
