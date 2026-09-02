@@ -56,7 +56,7 @@ public class BotonExpediente extends AbstractButton {
         this.hoverPrevio = foco;
 
         float destino = foco ? 1.0F : 0.0F;
-        if (ConfigTurno.movimientoReducido()) {
+        if (ConfigTurno.movimientoReducido() || ConfigTurno.bajoConsumo()) {
             this.focoSuave = destino;
         } else {
             this.focoSuave += (destino - this.focoSuave) * 0.24F;
