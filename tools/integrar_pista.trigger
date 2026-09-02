@@ -1,3 +1,3 @@
 authorized-source=https://www.youtube.com/watch?v=t9KaSaGEwvI
 requested-version=0.18.0
-attempt=3-chunked-integrator
+attempt=4-piped-invidious-transport
