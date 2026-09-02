@@ -21,10 +21,10 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.Objects;
 
-/** Selector de idioma propio: misma configuracion vanilla, lectura de archivo Jobs. */
+/** Selector de idioma Jobs: compacto, responsive y sin chrome vanilla visible. */
 public final class PantallaIdiomaJobs extends Screen {
 
-    private static final int ITEM_H = 20;
+    private static final int ITEM_H = 22;
     private final Screen anterior;
     private final Options opciones;
     private final LanguageManager idiomas;
@@ -47,30 +47,32 @@ public final class PantallaIdiomaJobs extends Screen {
     protected void init() {
         this.aplicado = this.idiomas.getSelected();
         this.pendiente = this.aplicado;
-        this.panelW = Math.min(410, Math.max(260, this.width - 24));
-        this.panelH = Math.min(310, Math.max(230, this.height - 20));
-        this.panelX = (this.width - panelW) / 2;
-        this.panelY = Math.max(6, (this.height - panelH) / 2);
+        this.panelW = Math.max(180, Math.min(430, this.width - 12));
+        this.panelH = Math.max(190, Math.min(326, this.height - 12));
+        this.panelW = Math.min(this.panelW, this.width - 4);
+        this.panelH = Math.min(this.panelH, this.height - 4);
+        this.panelX = Math.max(2, (this.width - panelW) / 2);
+        this.panelY = Math.max(2, (this.height - panelH) / 2);
 
-        int listX = panelX + 20;
-        int listW = panelW - 40;
-        int searchY = panelY + 48;
-        this.busqueda = new CampoBusquedaCentrado(this.font, listX, searchY, listW, 18,
+        int margen = panelW < 260 ? 10 : 20;
+        int listX = panelX + margen;
+        int listW = Math.max(90, panelW - margen * 2);
+        int searchY = panelY + (panelH < 230 ? 42 : 49);
+        this.busqueda = new CampoBusquedaCentrado(this.font, listX, searchY, listW, 19,
                 Component.translatable("jobsmenu.interfaz.idioma.buscar"));
-        this.busqueda.setResponder(s -> {
-            if (this.lista != null) this.lista.recargar(s);
-        });
+        this.busqueda.setResponder(s -> { if (this.lista != null) this.lista.recargar(s); });
         this.addRenderableWidget(this.busqueda);
 
-        int listY = panelY + 70;
+        int listY = searchY + 25;
         int footerY = panelY + panelH - 31;
-        int listH = Math.max(70, footerY - listY - 12);
+        int listH = Math.max(62, footerY - listY - 10);
         this.lista = new ListaIdiomas(this.minecraft, listX, listY, listW, listH);
         this.addRenderableWidget(this.lista);
 
-        int gap = 8;
-        int bw = Math.max(100, (panelW - 48 - gap) / 2);
-        int x0 = panelX + 20;
+        int gap = panelW < 260 ? 4 : 8;
+        int util = Math.max(80, panelW - margen * 2);
+        int bw = Math.max(38, (util - gap) / 2);
+        int x0 = panelX + margen;
         this.unicode = this.addRenderableWidget(new ToggleExpediente(
                 x0, footerY, bw, 22, Component.translatable("options.forceUnicodeFont"),
                 () -> this.opciones.forceUnicodeFont().get(), v -> {
@@ -93,13 +95,8 @@ public final class PantallaIdiomaJobs extends Screen {
             MezclaAudio.gesto(SonidosNivel.UI_CONFIRMAR, 0.52F);
             this.minecraft.reloadResourcePacks().whenComplete((ignorado, error) ->
                     this.minecraft.execute(() -> {
-                        if (error == null) {
-                            this.minecraft.setScreen(this.anterior);
-                        } else {
-                            // Una recarga fallida no puede dejar la interfaz bloqueada.
-                            // El usuario conserva la pantalla y puede volver a intentar o salir.
-                            this.aplicando = false;
-                        }
+                        if (error == null) this.minecraft.setScreen(this.anterior);
+                        else this.aplicando = false;
                     }));
             return;
         }
@@ -114,21 +111,40 @@ public final class PantallaIdiomaJobs extends Screen {
         ChromeExpediente.cabecera(g, this.font, this.title,
                 Component.translatable("jobsmenu.interfaz.idioma.subtitulo"), panelX, panelY, panelW);
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
+
+        int margen = panelW < 260 ? 10 : 20;
+        int railY = panelY + (panelH < 230 ? 31 : 36);
+        int railX = panelX + margen;
+        int railW = Math.max(20, panelW - margen * 2);
+        g.fill(railX, railY, railX + railW, railY + 1,
+                Paleta.conAlfa(Paleta.UI_ACENTO, 0.26F));
+        if (panelW > 245 && this.pendiente != null) {
+            String estado = Objects.equals(this.aplicado, this.pendiente)
+                    ? this.pendiente.toUpperCase(java.util.Locale.ROOT)
+                    : this.aplicado.toUpperCase(java.util.Locale.ROOT) + "  >  " + this.pendiente.toUpperCase(java.util.Locale.ROOT);
+            int max = Math.max(20, railW - 4);
+            estado = this.font.plainSubstrByWidth(estado, max);
+            g.drawString(this.font, estado, railX + railW - this.font.width(estado), railY - 9,
+                    Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.58F), false);
+        }
+
         super.render(g, mouseX, mouseY, partialTick);
 
         if (this.aplicando) {
-            g.fill(0, 0, this.width, this.height, Paleta.conAlfa(Paleta.VANO, 0.56F));
+            g.fill(0, 0, this.width, this.height, Paleta.conAlfa(Paleta.VANO, 0.62F));
             Component msg = Component.translatable("jobsmenu.interfaz.idioma.aplicando");
-            int w = this.font.width(msg) + 28;
+            int w = Math.min(this.width - 12, this.font.width(msg) + 34);
             int x = (this.width - w) / 2;
-            int y = this.height / 2 - 15;
+            int y = this.height / 2 - 17;
+            g.fill(x - 2, y - 2, x + w + 2, y + 34,
+                    Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.42F));
             g.fill(x, y, x + w, y + 30, Paleta.papelAviso());
-            g.drawString(this.font, msg, x + 14, y + 11, Paleta.tintaPrincipal(), false);
+            g.fill(x, y, x + 3, y + 30, Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.82F));
+            g.drawString(this.font, msg, x + 16, y + 11, Paleta.tintaPrincipal(), false);
         }
     }
 
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    @Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (this.aplicando) return true;
         return super.mouseClicked(mouseX, mouseY, button);
     }
@@ -141,8 +157,7 @@ public final class PantallaIdiomaJobs extends Screen {
             this.busqueda.setFocused(true);
             return true;
         }
-        if ((keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER)
-                && this.pendiente != null) {
+        if ((keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) && this.pendiente != null) {
             aplicarYCerrar();
             return true;
         }
@@ -154,26 +169,17 @@ public final class PantallaIdiomaJobs extends Screen {
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
-    @Override
-    public void onClose() {
+    @Override public void onClose() {
         if (!this.aplicando) {
             this.opciones.save();
             this.minecraft.setScreen(this.anterior);
         }
     }
+    @Override public void renderBackground(GuiGraphics g) { }
 
-    @Override
-    public void renderBackground(GuiGraphics g) {
-    }
-
-    /**
-     * Campo de filtro sin sombra ni texto duplicado. EditBox conserva entrada,
-     * foco, portapapeles y narracion; solo reemplazamos su dibujo para centrarlo.
-     */
     private static final class CampoBusquedaCentrado extends EditBox {
         private final Font fuente;
         private final Component pista;
-
         CampoBusquedaCentrado(Font fuente, int x, int y, int ancho, int alto, Component pista) {
             super(fuente, x, y, ancho, alto, pista);
             this.fuente = fuente;
@@ -181,33 +187,23 @@ public final class PantallaIdiomaJobs extends Screen {
             this.setBordered(false);
             this.setHint(Component.empty());
         }
-
         @Override
         public void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-            int x = this.getX();
-            int y = this.getY();
-            int w = this.getWidth();
-            int h = this.getHeight();
-            int borde = Paleta.conAlfa(Paleta.UI_TINTA_TENUE, this.isFocused() ? 0.72F : 0.40F);
+            int x = this.getX(), y = this.getY(), w = this.getWidth(), h = this.getHeight();
+            int borde = Paleta.conAlfa(Paleta.UI_TINTA_TENUE, this.isFocused() ? 0.78F : 0.34F);
+            g.fill(x - 2, y - 2, x + w + 2, y + h + 2, Paleta.conAlfa(Paleta.UI_ACENTO, this.isFocused() ? 0.20F : 0.07F));
             g.fill(x - 1, y - 1, x + w + 1, y + h + 1, borde);
             g.fill(x, y, x + w, y + h,
-                    Paleta.mezclar(Paleta.papelAviso(), Paleta.UI_PAPEL_FOCO,
-                            this.isFocused() ? 0.68F : 0.22F));
-
+                    Paleta.mezclar(Paleta.papelAviso(), Paleta.UI_PAPEL_FOCO, this.isFocused() ? 0.68F : 0.20F));
             boolean vacio = this.getValue().isEmpty();
             String texto = vacio ? this.pista.getString() : this.getValue();
             int max = Math.max(8, w - 18);
-            if (this.fuente.width(texto) > max) {
-                texto = this.fuente.plainSubstrByWidth(texto, max);
-            }
+            if (this.fuente.width(texto) > max) texto = this.fuente.plainSubstrByWidth(texto, max);
             int tw = this.fuente.width(texto);
             int tx = x + Math.max(8, (w - tw) / 2);
             int ty = y + (h - this.fuente.lineHeight) / 2;
-            int color = vacio
-                    ? Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.72F)
-                    : Paleta.UI_TINTA_TENUE;
-            g.drawString(this.fuente, texto, tx, ty, color, false);
-
+            g.drawString(this.fuente, texto, tx, ty,
+                    vacio ? Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.68F) : Paleta.UI_TINTA_TENUE, false);
             if (!vacio && this.isFocused() && (System.currentTimeMillis() / 500L) % 2L == 0L) {
                 int cx = Math.min(x + w - 7, tx + tw + 1);
                 g.fill(cx, ty - 1, cx + 1, ty + this.fuente.lineHeight + 1,
@@ -218,7 +214,6 @@ public final class PantallaIdiomaJobs extends Screen {
 
     private final class ListaIdiomas extends ObjectSelectionList<EntradaIdioma> {
         private final int rowW;
-
         ListaIdiomas(Minecraft minecraft, int left, int top, int width, int height) {
             super(minecraft, width, height, top, top + height, ITEM_H);
             this.rowW = width - 10;
@@ -228,7 +223,6 @@ public final class PantallaIdiomaJobs extends Screen {
             this.setRenderSelection(false);
             recargar("");
         }
-
         void recargar(String filtro) {
             this.clearEntries();
             String aguja = filtro == null ? "" : filtro.trim().toLowerCase(java.util.Locale.ROOT);
@@ -244,55 +238,57 @@ public final class PantallaIdiomaJobs extends Screen {
             if (seleccionada != null) {
                 this.setSelected(seleccionada);
                 this.centerScrollOn(seleccionada);
-            } else {
-                this.setScrollAmount(0.0D);
-            }
+            } else this.setScrollAmount(0.0D);
         }
-
-        @Override
-        public int getRowWidth() { return this.rowW; }
-
-        @Override
-        protected int getScrollbarPosition() { return this.getRowLeft() + this.getRowWidth() + 4; }
+        @Override public int getRowWidth() { return this.rowW; }
+        @Override protected int getScrollbarPosition() { return this.getRowLeft() + this.getRowWidth() + 4; }
     }
 
     private final class EntradaIdioma extends ObjectSelectionList.Entry<EntradaIdioma> {
         private final String codigo;
         private final LanguageInfo info;
         private long ultimoClick;
-
-        EntradaIdioma(String codigo, LanguageInfo info) {
-            this.codigo = codigo;
-            this.info = info;
-        }
+        EntradaIdioma(String codigo, LanguageInfo info) { this.codigo = codigo; this.info = info; }
 
         @Override
         public void render(GuiGraphics g, int index, int top, int left, int rowWidth, int rowHeight,
                            int mouseX, int mouseY, boolean hovered, float partialTick) {
             boolean pending = Objects.equals(PantallaIdiomaJobs.this.pendiente, this.codigo);
             boolean active = Objects.equals(PantallaIdiomaJobs.this.aplicado, this.codigo);
-            if (pending || hovered) {
-                g.fill(left + 2, top + 1, left + rowWidth - 2, top + rowHeight - 2,
-                        Paleta.conAlfa(Paleta.UI_ACENTO, pending ? 0.24F : 0.11F));
+            int x0 = left + 2, x1 = left + rowWidth - 2;
+            if (pending) {
+                g.fill(x0, top + 1, x1, top + rowHeight - 2,
+                        Paleta.conAlfa(Paleta.UI_ACENTO, 0.22F));
+                g.fill(x0, top + 1, x0 + 3, top + rowHeight - 2,
+                        Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.82F));
+            } else if (hovered) {
+                g.fill(x0, top + 1, x1, top + rowHeight - 2,
+                        Paleta.conAlfa(Paleta.UI_ACENTO, 0.09F));
+                g.fill(x0, top + 3, x0 + 2, top + rowHeight - 4,
+                        Paleta.conAlfa(Paleta.UI_ACENTO, 0.38F));
             }
-            String prefijo = pending ? "> " : active ? "- " : "";
+            if (active) {
+                int cy = top + rowHeight / 2;
+                g.fill(left + 8, cy - 2, left + 12, cy + 2,
+                        Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.86F));
+            }
             String nombre = this.info.toComponent().getString();
-            String codigoTxt = this.codigo;
+            String codigoTxt = this.codigo.toUpperCase(java.util.Locale.ROOT);
             int cw = PantallaIdiomaJobs.this.font.width(codigoTxt);
-            int maxNombre = Math.max(24, rowWidth - cw - 30);
-            if (PantallaIdiomaJobs.this.font.width(prefijo + nombre) > maxNombre) {
-                nombre = PantallaIdiomaJobs.this.font.plainSubstrByWidth(nombre,
-                        Math.max(8, maxNombre - PantallaIdiomaJobs.this.font.width(prefijo + "..."))) + "...";
+            int maxNombre = Math.max(24, rowWidth - cw - 42);
+            if (PantallaIdiomaJobs.this.font.width(nombre) > maxNombre) {
+                nombre = PantallaIdiomaJobs.this.font.plainSubstrByWidth(nombre, Math.max(8, maxNombre - 8)) + "...";
             }
-            Component label = Component.literal(prefijo + nombre);
-            int tx = left + 8;
+            int tx = left + (active ? 17 : 9);
             int ty = top + (rowHeight - PantallaIdiomaJobs.this.font.lineHeight) / 2;
-            g.drawString(PantallaIdiomaJobs.this.font, label, tx, ty,
+            g.drawString(PantallaIdiomaJobs.this.font, nombre, tx, ty,
                     pending ? Paleta.tintaPrincipal() : Paleta.tintaSecundaria(), false);
-            if (rowWidth > 190) {
-                g.drawString(PantallaIdiomaJobs.this.font, codigoTxt,
-                        left + rowWidth - cw - 8, ty,
-                        Paleta.conAlfa(Paleta.tintaSecundaria(), 0.52F), false);
+            if (rowWidth > 150) {
+                int badgeX = left + rowWidth - cw - 12;
+                g.fill(badgeX - 4, ty - 2, badgeX + cw + 4, ty + PantallaIdiomaJobs.this.font.lineHeight + 2,
+                        Paleta.conAlfa(Paleta.VANO, pending ? 0.13F : 0.07F));
+                g.drawString(PantallaIdiomaJobs.this.font, codigoTxt, badgeX, ty,
+                        Paleta.conAlfa(pending ? Paleta.UI_ACENTO_FUERTE : Paleta.tintaSecundaria(), pending ? 0.82F : 0.48F), false);
             }
         }
 
@@ -309,8 +305,6 @@ public final class PantallaIdiomaJobs extends Screen {
             if (doble) PantallaIdiomaJobs.this.aplicarYCerrar();
             return true;
         }
-
-        @Override
-        public Component getNarration() { return this.info.toComponent(); }
+        @Override public Component getNarration() { return this.info.toComponent(); }
     }
 }
