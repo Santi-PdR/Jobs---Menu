@@ -1,6 +1,7 @@
 package com.santipdr.jobsmenu.client.scene.planta;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.santipdr.jobsmenu.JobsMenu;
 import com.santipdr.jobsmenu.client.scene.Marco;
 import com.santipdr.jobsmenu.client.scene.Nivel;
@@ -20,6 +21,10 @@ import java.util.Objects;
  * paneo, scanlines, niebla animada, flicker ni desplazamientos de color. El
  * renderer solo hace un recorte cover centrado, una integracion estatica muy
  * leve y los apagones/transiciones que pertenecen al flujo general del menu.
+ *
+ * El escalado usa filtrado lineal. Estos fondos son imagenes fotograficas/render
+ * de alta resolucion y no pixel art; nearest-neighbor las convertia en bloques
+ * visibles cuando la GUI o la ventana exigian reescalado.
  */
 public final class PlantaImagen implements Planta {
 
@@ -58,8 +63,6 @@ public final class PlantaImagen implements Planta {
 
         integrarEstatico(g, w, h, nivel);
 
-        // La imagen no pulsa con el fluorescente. Solo responde al estado de
-        // energia/transicion general que llega desde EscenaNivel.
         float oscuridad = 1.0F - limitar(luz, 0.0F, 1.0F);
         if (oscuridad > 0.001F) {
             g.fill(0, 0, w, h, Paleta.conAlfa(Paleta.VANO, 0.92F * oscuridad));
@@ -103,7 +106,7 @@ public final class PlantaImagen implements Planta {
         }
     }
 
-    /** Cover centrado y estable: el mismo pixel fuente queda siempre en sitio. */
+    /** Cover centrado, estable y con interpolacion lineal para evitar pixelado. */
     private void dibujarImagen(GuiGraphics g, int w, int h) {
         float escalaPantalla = Math.max(w / (float) anchoTextura, h / (float) altoTextura);
         float visibleW = Math.min(anchoTextura, w / escalaPantalla);
@@ -113,6 +116,11 @@ public final class PlantaImagen implements Planta {
 
         int regionW = Math.max(1, Math.min(anchoTextura, Math.round(visibleW)));
         int regionH = Math.max(1, Math.min(altoTextura, Math.round(visibleH)));
+
+        // Fuerza la textura a cargarse y aplica blur lineal sin mipmaps. Se hace
+        // antes de cada blit para sobrevivir a F3+T/recargas del TextureManager.
+        RenderSystem.setShaderTexture(0, textura);
+        Minecraft.getInstance().getTextureManager().getTexture(textura).setFilter(true, false);
         g.blit(textura, 0, 0, w, h, u, v, regionW, regionH, anchoTextura, altoTextura);
     }
 
@@ -129,10 +137,7 @@ public final class PlantaImagen implements Planta {
                 cx + huecoW / 2, cy + huecoH / 2, nivel.fondo);
     }
 
-    /**
-     * Integracion fija para que el PNG no parezca una capa pegada sobre la UI.
-     * No usa tiempo y por tanto no produce ningun movimiento perceptible.
-     */
+    /** Integracion fija: sin tiempo, desplazamiento ni animacion del PNG. */
     private void integrarEstatico(GuiGraphics g, int w, int h, Nivel nivel) {
         int bordeX = Math.max(10, w / 20);
         int bordeY = Math.max(8, h / 22);
@@ -141,11 +146,8 @@ public final class PlantaImagen implements Planta {
         g.fill(w - bordeX, 0, w, h, Paleta.conAlfa(Paleta.VANO, vignette));
         g.fill(0, 0, w, bordeY, Paleta.conAlfa(Paleta.VANO, vignette * 0.70F));
         g.fill(0, h - bordeY, w, h, Paleta.conAlfa(Paleta.VANO, vignette));
-
-        // Tinte casi imperceptible y fijo, derivado de la paleta del propio nivel.
         g.fill(0, 0, w, h, Paleta.conAlfa(nivel.niebla, 0.018F));
 
-        // El modo se conserva para diagnostico/futuras reglas estaticas.
         if (modo < 10) {
             g.fill(0, 0, 1, 1, 0x00000000);
         }
