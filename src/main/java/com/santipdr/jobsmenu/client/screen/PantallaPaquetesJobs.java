@@ -71,8 +71,9 @@ public final class PantallaPaquetesJobs extends PackSelectionScreen {
         super.render(g, mouseX, mouseY, partialTick);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-        ChromeExpediente.reemplazarCabeceraArchivo(g, this.font, this.tituloJobs,
-                Component.empty(), panelX, panelY, panelW);
+        ChromeExpediente.reemplazarCabeceraArchivo(g, this.font,
+                Component.translatable("jobsmenu.interfaz.recursos.titulo"),
+                this.tituloJobs, panelX, panelY, panelW);
         ListasExpediente.renderarBarras(this, g);
 
         int railY = this.height - 27;
