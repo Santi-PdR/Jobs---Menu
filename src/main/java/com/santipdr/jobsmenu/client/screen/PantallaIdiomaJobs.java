@@ -91,8 +91,16 @@ public final class PantallaIdiomaJobs extends Screen {
             this.idiomas.setSelected(this.pendiente);
             this.opciones.save();
             MezclaAudio.gesto(SonidosNivel.UI_CONFIRMAR, 0.52F);
-            this.minecraft.reloadResourcePacks().thenRun(() ->
-                    this.minecraft.execute(() -> this.minecraft.setScreen(this.anterior)));
+            this.minecraft.reloadResourcePacks().whenComplete((ignorado, error) ->
+                    this.minecraft.execute(() -> {
+                        if (error == null) {
+                            this.minecraft.setScreen(this.anterior);
+                        } else {
+                            // Una recarga fallida no puede dejar la interfaz bloqueada.
+                            // El usuario conserva la pantalla y puede volver a intentar o salir.
+                            this.aplicando = false;
+                        }
+                    }));
             return;
         }
         this.opciones.save();
@@ -127,9 +135,15 @@ public final class PantallaIdiomaJobs extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (this.aplicando) return true;
         if (Screen.hasControlDown() && keyCode == GLFW.GLFW_KEY_F && this.busqueda != null) {
             this.setFocused(this.busqueda);
             this.busqueda.setFocused(true);
+            return true;
+        }
+        if ((keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER)
+                && this.pendiente != null) {
+            aplicarYCerrar();
             return true;
         }
         if (keyCode == GLFW.GLFW_KEY_ESCAPE && this.busqueda != null
