@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 
 | | |
 |---|---|
-| Versión | **0.22.0** |
-| Artefacto | **`jobsmenu-0.22.0.jar`** |
+| Versión | **0.22.1** |
+| Artefacto | **`jobsmenu-0.22.1.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,18 +13,19 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 | Rama entregable | **`main`** |
 | Niveles | **18 (0–17)** |
 
-## 0.22.0 · Main screen, pausa, atmósfera y secretos
+## 0.22.1 · Main screen, pausa, transiciones y secretos
 
-0.22.0 concentra la mejora en lo que más se ve al usar el mod: menú principal, pausa, composición global y pequeños detalles de sesión.
+0.22.1 refuerza el impacto visual inmediato del mod sin reemplazar ni animar los PNG de niveles altos.
 
 Cambios principales:
 
-- **Main screen** con nueva composición alrededor del expediente: rail lateral, marcas de registro, bloque técnico contextual, mejor lectura de nivel y reglas secundarias.
-- **Pausa Jobs** con doble profundidad, rails laterales, estado `LOCAL/SERVER`, pista `M=MUTE` y mejor sensación de turno suspendido.
-- **Atmósfera compartida** para pantallas Jobs con rails globales y barridos extremadamente sutiles; se desactiva con Movimiento reducido o Bajo consumo.
-- **Easter eggs discretos** de sesión y una intervención localizada a las 03:33, sin red, gameplay ni recompensas.
+- **Main screen** con HUD lateral contextual, lectura de turno/nivel/estado, atajos y mejor jerarquía alrededor del expediente.
+- **Pausa Jobs** con panel de contexto adicional, lectura LOCAL/SERVER y más profundidad visual sin ocultar el mundo real.
+- **Atmósfera compartida** con registros y barridos globales muy sutiles que nunca mueven el background.
+- **Transiciones** más suaves y con mayor lectura física de expediente.
+- **Easter eggs** ampliados con variantes de sesión muy raras, sin red, gameplay ni recompensas.
 - **Fondos PNG 10–17 intactos**: no se reemplazan, no se deforman y no reciben movimiento propio. Sí pueden participar de fades/apagones/transiciones globales que pertenecen al menú, no a la imagen.
-- Auditoría específica en `docs/AUDITORIA_VISUAL_0.22.0.md`.
+- Auditoría específica en `docs/AUDITORIA_VISUAL_0.22.1.md`.
 
 ## Fondos 10–17
 
@@ -94,7 +95,7 @@ GitHub Actions ejecuta:
 4. auditoría estática;
 5. contratos UI/música;
 6. `./gradlew build --stacktrace --no-daemon`;
-7. publicación de **`jobsmenu-0.22.0.jar`** en `dev-latest` sólo desde `main`.
+7. publicación de **`jobsmenu-0.22.1.jar`** en `dev-latest` sólo desde `main`.
 
 La release rodante conserva un único JAR versionado. `jobsmenu-latest.jar` está prohibido.
 
@@ -109,7 +110,8 @@ La prueba normal no compila localmente. El PowerShell canónico de `docs/DESPLIE
 - [`CONTEXTO.md`](CONTEXTO.md): contrato maestro actual.
 - [`CHANGELOG.md`](CHANGELOG.md): cambios por versión.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y pruebas manuales pendientes.
-- [`docs/AUDITORIA_VISUAL_0.22.0.md`](docs/AUDITORIA_VISUAL_0.22.0.md): pase visual de esta entrega.
+- [`docs/AUDITORIA_VISUAL_0.22.1.md`](docs/AUDITORIA_VISUAL_0.22.1.md): pase visual de esta entrega.
+- [`docs/AUDITORIA_VISUAL_0.22.0.md`](docs/AUDITORIA_VISUAL_0.22.0.md): pase visual anterior.
 - [`docs/AUDITORIA_0.21.0_90_MEJORAS.md`](docs/AUDITORIA_0.21.0_90_MEJORAS.md): pase transversal anterior.
 - [`docs/checklist-manual.md`](docs/checklist-manual.md): prueba dentro de Minecraft.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalación certificada en `test-1`.
