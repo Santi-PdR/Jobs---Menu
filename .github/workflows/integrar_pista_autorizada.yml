@@ -49,51 +49,76 @@ jobs:
           import pathlib
           import subprocess
           import sys
-          import urllib.parse
           import urllib.request
 
           VIDEO_ID = "t9KaSaGEwvI"
+          SOURCE_URL = f"https://www.youtube.com/watch?v={VIDEO_ID}"
           USER_AGENT = (
-              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-              "(KHTML, like Gecko) Chrome/131.0 Safari/537.36"
+              "JobsMenu-AudioIntegrator/0.18 "
+              "(+https://github.com/Santi-PdR/Jobs---Menu)"
           )
-          PIPED = [
-              "https://pipedapi.kavin.rocks",
-              "https://pipedapi.leptons.xyz",
-              "https://pipedapi.nosebs.ru",
-              "https://pipedapi-libre.kavin.rocks",
-              "https://piped-api.privacy.com.de",
-              "https://pipedapi.adminforge.de",
-              "https://api.piped.yt",
-              "https://pipedapi.drgns.space",
-              "https://pipedapi.owo.si",
-              "https://pipedapi.ducks.party",
-              "https://piped-api.codespace.cz",
-              "https://pipedapi.reallyaweso.me",
-              "https://api.piped.private.coffee",
-              "https://pipedapi.darkness.services",
-              "https://pipedapi.orangenet.cc",
-          ]
-          INVIDIOUS = [
-              "https://inv.nadeko.net",
-              "https://invidious.nerdvpn.de",
-              "https://yt.chocolatemoo53.com",
-              "https://invidious.tiekoetter.com",
+          DIRECTORY = "https://instances.cobalt.best/api/instances.json"
+          FALLBACKS = [
+              "https://cobalt-api.kwiatekmiki.com",
+              "https://cobalt-api.meowing.de",
+              "https://capi.3kh0.net",
+              "https://cobalt-backend.canine.tools",
+              "https://bergung-api.hoffnungfuerdiezukunft.net",
+              "https://apicobalt.mgytr.top",
           ]
 
-          def get_json(url: str) -> dict:
+          def request_json(
+              url: str,
+              *,
+              method: str = "GET",
+              payload: dict | None = None,
+              timeout: int = 25,
+          ) -> object:
+              body = None
+              headers = {
+                  "User-Agent": USER_AGENT,
+                  "Accept": "application/json",
+              }
+              if payload is not None:
+                  body = json.dumps(payload).encode("utf-8")
+                  headers["Content-Type"] = "application/json"
               request = urllib.request.Request(
                   url,
-                  headers={
-                      "User-Agent": USER_AGENT,
-                      "Accept": "application/json",
-                      "Accept-Language": "en-US,en;q=0.8",
-                  },
+                  data=body,
+                  method=method,
+                  headers=headers,
               )
-              with urllib.request.urlopen(request, timeout=25) as response:
-                  if response.status != 200:
+              with urllib.request.urlopen(request, timeout=timeout) as response:
+                  if response.status < 200 or response.status >= 300:
                       raise RuntimeError(f"HTTP {response.status}")
                   return json.load(response)
+
+          def normalize_api(item: dict) -> str | None:
+              api = str(item.get("api") or "").strip().rstrip("/")
+              if not api:
+                  return None
+              if api.startswith(("http://", "https://")):
+                  return api
+              protocol = str(item.get("protocol") or "https").strip() or "https"
+              return f"{protocol}://{api}"
+
+          def youtube_available(item: dict) -> bool:
+              services = item.get("services")
+              if not isinstance(services, dict):
+                  return True
+              value = services.get("youtube")
+              return value is True or value == "true"
+
+          def instance_allowed(item: dict) -> bool:
+              online = item.get("online")
+              if isinstance(online, dict):
+                  online = online.get("api")
+              if online is False:
+                  return False
+              info = item.get("info")
+              if isinstance(info, dict) and info.get("auth") is True:
+                  return False
+              return youtube_available(item)
 
           def probe_audio(path: pathlib.Path) -> bool:
               if not path.is_file() or path.stat().st_size < 100_000:
@@ -115,109 +140,114 @@ jobs:
               target.unlink(missing_ok=True)
               command = [
                   "curl", "--location", "--fail", "--silent", "--show-error",
-                  "--retry", "3", "--retry-all-errors", "--connect-timeout", "20",
-                  "--max-time", "300", "--user-agent", USER_AGENT,
-                  "--header", f"Referer: {referer}",
+                  "--retry", "3", "--retry-all-errors",
+                  "--connect-timeout", "20", "--max-time", "420",
+                  "--user-agent", USER_AGENT,
+                  "--header", f"Referer: {referer}/",
                   "--output", str(target), url,
               ]
               result = subprocess.run(command, check=False)
               return result.returncode == 0 and probe_audio(target)
 
-          def stream_score(item: dict) -> tuple[int, int, int]:
-              mime = str(item.get("mimeType") or item.get("format") or "").lower()
-              codec = str(item.get("codec") or "").lower()
-              bitrate = int(item.get("bitrate") or 0)
-              preferred = 2 if "audio/mp4" in mime or "m4a" in mime else 1
-              modern = 1 if ("opus" in codec or "mp4a" in codec) else 0
-              return preferred, modern, bitrate
+          candidates: list[str] = []
+          try:
+              directory = request_json(DIRECTORY, timeout=30)
+              if isinstance(directory, list):
+                  ranked = sorted(
+                      (item for item in directory if isinstance(item, dict)),
+                      key=lambda item: int(item.get("score") or 0),
+                      reverse=True,
+                  )
+                  for item in ranked:
+                      if not instance_allowed(item):
+                          continue
+                      api = normalize_api(item)
+                      if api and api not in candidates:
+                          candidates.append(api)
+          except Exception as exc:
+              print(f"Directorio Cobalt no disponible: {exc}", file=sys.stderr)
+
+          for api in FALLBACKS:
+              if api not in candidates:
+                  candidates.append(api)
+
+          payloads = [
+              {
+                  "url": SOURCE_URL,
+                  "downloadMode": "audio",
+                  "audioFormat": "best",
+                  "filenameStyle": "basic",
+                  "alwaysProxy": True,
+                  "disableMetadata": False,
+              },
+              {
+                  "url": SOURCE_URL,
+                  "downloadMode": "audio",
+                  "audioFormat": "ogg",
+                  "audioBitrate": "192",
+                  "filenameStyle": "basic",
+                  "alwaysProxy": True,
+                  "disableMetadata": False,
+              },
+          ]
 
           errors: list[str] = []
           source: pathlib.Path | None = None
-          metadata: dict | None = None
+          selected_api: str | None = None
+          response_metadata: dict = {}
 
-          for base in PIPED:
-              try:
-                  data = get_json(f"{base}/streams/{VIDEO_ID}")
-                  streams = [
-                      item for item in data.get("audioStreams", [])
-                      if isinstance(item, dict) and item.get("url")
-                  ]
-                  streams.sort(key=stream_score, reverse=True)
-                  if not streams:
-                      raise RuntimeError("sin audioStreams")
-                  for index, item in enumerate(streams[:6]):
-                      raw_url = str(item["url"])
-                      url = urllib.parse.urljoin(base + "/", raw_url)
-                      mime = str(item.get("mimeType") or item.get("format") or "").lower()
-                      suffix = ".m4a" if ("mp4" in mime or "m4a" in mime) else ".webm"
-                      candidate = pathlib.Path(f"/tmp/jobsmenu-source-piped-{index}{suffix}")
-                      if download(url, candidate, base + "/"):
-                          source = candidate
-                          metadata = {
-                              "id": VIDEO_ID,
-                              "title": data.get("title") or "Pista autorizada",
-                              "uploader": data.get("uploader") or data.get("uploaderName")
-                                          or "Autor autorizado",
-                              "duration": data.get("duration") or 0,
-                              "webpage_url": f"https://www.youtube.com/watch?v={VIDEO_ID}",
-                              "transport": "piped",
-                              "transport_instance": base,
-                          }
-                          print(f"Piped OK: {base} -> {candidate}")
-                          break
-                  if source:
-                      break
-                  raise RuntimeError("los flujos devueltos no se pudieron descargar/probar")
-              except Exception as exc:
-                  errors.append(f"Piped {base}: {exc}")
-                  print(errors[-1], file=sys.stderr)
-
-          if source is None:
-              for base in INVIDIOUS:
+          for api in candidates[:24]:
+              for variant, payload in enumerate(payloads):
                   try:
-                      data = get_json(f"{base}/api/v1/videos/{VIDEO_ID}")
-                      formats = [
-                          item for item in data.get("adaptiveFormats", [])
-                          if isinstance(item, dict)
-                          and str(item.get("type") or "").lower().startswith("audio/")
-                          and item.get("url")
-                      ]
-                      formats.sort(
-                          key=lambda item: int(item.get("bitrate") or 0),
-                          reverse=True,
+                      response = request_json(
+                          api + "/",
+                          method="POST",
+                          payload=payload,
+                          timeout=90,
                       )
-                      if not formats:
-                          raise RuntimeError("sin adaptiveFormats de audio")
-                      for index, item in enumerate(formats[:6]):
-                          mime = str(item.get("type") or "").lower()
-                          suffix = ".m4a" if "mp4" in mime else ".webm"
-                          candidate = pathlib.Path(
-                              f"/tmp/jobsmenu-source-invidious-{index}{suffix}"
-                          )
-                          if download(str(item["url"]), candidate, base + "/"):
-                              source = candidate
-                              metadata = {
-                                  "id": VIDEO_ID,
-                                  "title": data.get("title") or "Pista autorizada",
-                                  "uploader": data.get("author") or "Autor autorizado",
-                                  "duration": data.get("lengthSeconds") or 0,
-                                  "webpage_url": f"https://www.youtube.com/watch?v={VIDEO_ID}",
-                                  "transport": "invidious",
-                                  "transport_instance": base,
-                              }
-                              print(f"Invidious OK: {base} -> {candidate}")
-                              break
-                      if source:
-                          break
-                      raise RuntimeError("los flujos devueltos no se pudieron descargar/probar")
+                      if not isinstance(response, dict):
+                          raise RuntimeError("respuesta no JSON-objeto")
+                      status = str(response.get("status") or "")
+                      if status == "error":
+                          error = response.get("error")
+                          if isinstance(error, dict):
+                              code = error.get("code")
+                          else:
+                              code = response.get("code") or error
+                          raise RuntimeError(f"cobalt error: {code}")
+                      media_url = response.get("url")
+                      if status not in {"tunnel", "redirect"} or not media_url:
+                          raise RuntimeError(f"estado no descargable: {status}")
+                      candidate = pathlib.Path(
+                          f"/tmp/jobsmenu-source-cobalt-{variant}.bin"
+                      )
+                      if not download(str(media_url), candidate, api):
+                          raise RuntimeError("el túnel no produjo audio válido")
+                      source = candidate
+                      selected_api = api
+                      response_metadata = response
+                      print(f"Cobalt OK: {api} -> {candidate}")
+                      break
                   except Exception as exc:
-                      errors.append(f"Invidious {base}: {exc}")
-                      print(errors[-1], file=sys.stderr)
+                      message = f"Cobalt {api} variante {variant}: {exc}"
+                      errors.append(message)
+                      print(message, file=sys.stderr)
+              if source:
+                  break
 
-          if source is None or metadata is None:
-              print("\n".join(errors), file=sys.stderr)
-              raise SystemExit("Ninguna instancia pública entregó un flujo de audio válido.")
+          if source is None or selected_api is None:
+              print("\n".join(errors[-50:]), file=sys.stderr)
+              raise SystemExit("Ninguna instancia Cobalt entregó audio válido.")
 
+          metadata = {
+              "id": VIDEO_ID,
+              "title": response_metadata.get("filename") or "Pista autorizada",
+              "uploader": "Autor autorizado",
+              "duration": 0,
+              "webpage_url": SOURCE_URL,
+              "transport": "cobalt",
+              "transport_instance": selected_api,
+          }
           pathlib.Path("/tmp/jobsmenu-track.json").write_text(
               json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
               encoding="utf-8",
