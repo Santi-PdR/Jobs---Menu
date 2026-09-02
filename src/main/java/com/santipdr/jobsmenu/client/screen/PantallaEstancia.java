@@ -21,27 +21,7 @@ import java.util.List;
 import com.mojang.realmsclient.RealmsMainScreen;
 import org.lwjgl.glfw.GLFW;
 
-/**
- * Estancia en suspenso: la pausa, con la piel del aviso.
- *
- * Cuando el ocupante detiene el turno, en vez del menu gris de siempre aparece
- * una hoja pegada sobre lo que estaba haciendo: la administracion tomo nota de
- * que paro. Misma hoja, misma tinta, mismos renglones de formulario que el
- * aviso del nivel.
- *
- * QUE NO SE ROMPE
- *
- * Esta pantalla NO reimplementa el guardado. El renglon de dejar el turno
- * llama exactamente a la misma secuencia que la pausa de vanilla -desconectar
- * el nivel, vaciarlo mostrando "Guardando", y volver al titulo o al
- * multijugador segun corresponda-, verificada contra el codigo de la version.
- * Por eso los mods que aceleran o respaldan el guardado en segundo plano siguen
- * funcionando igual: enganchan esa secuencia por debajo, no este boton.
- *
- * A diferencia del aviso del nivel, aca NO se dibuja la escena viva de fondo:
- * detras esta el mundo real del jugador, congelado, y taparlo con el pasillo
- * seria mentir sobre donde esta. Solo se oscurece un poco y se apoya la hoja.
- */
+/** Pausa propia de Jobs, conservando el mundo real detras de la hoja. */
 public class PantallaEstancia extends Screen {
 
     private static final int ANCHO_HOJA = 214;
@@ -73,9 +53,6 @@ public class PantallaEstancia extends Screen {
 
     @Override
     protected void init() {
-        // La pausa tambien debe sobrevivir a una ventana estrecha. El ancho de
-        // los renglones se deriva de la hoja real, no de la constante nominal;
-        // asi la hitbox y el texto siguen coincidiendo despues de un resize.
         int margenPantalla = this.width < 270 ? 6 : MARGEN_PANTALLA;
         this.anchoHoja = Math.max(1, Math.min(ANCHO_HOJA,
                 this.width - 2 * margenPantalla));
@@ -101,19 +78,15 @@ public class PantallaEstancia extends Screen {
         this.hojaX = Math.max(margenPantalla, (this.width - this.anchoHoja) / 2);
 
         int disponible = this.height - 2 * margenPantalla;
-        if (this.hojaAlto > disponible) {
-            this.hojaY = margenPantalla;
-        } else {
-            this.hojaY = Math.max(margenPantalla, (this.height - this.hojaAlto) / 2);
-        }
+        this.hojaY = this.hojaAlto > disponible
+                ? margenPantalla
+                : Math.max(margenPantalla, (this.height - this.hojaAlto) / 2);
 
         int x = this.hojaX + this.margenHoja;
         int y = this.hojaY + this.margenHoja + this.altoCabecera + AIRE_CABECERA;
 
         agregar(x, y, ancho, "01", "jobsmenu.pausa.reanudar", this::reanudar, false);
         agregar(x, y + salto, ancho, "02", "jobsmenu.pausa.condiciones", this::abrirCondiciones, false);
-        // Dejar el turno queda apartado por el hueco, como renunciar en el
-        // aviso: es lo que saca del mundo, y no se pulsa por inercia.
         agregar(x, y + 2 * salto + Math.round(HUECO_APARTE * this.escalaTipografia), ancho, "03",
                 rotuloSalida(), this::dejarTurno, true);
     }
@@ -124,19 +97,11 @@ public class PantallaEstancia extends Screen {
                 x, y, ancho, this.altoRenglonActual, orden, Component.translatable(clave), accion, terminal));
     }
 
-    /**
-     * El texto del renglon de salida cambia con el sitio, igual que en vanilla:
-     * en un mundo propio se guarda y se sale; en un servidor solo se abandona.
-     */
     private String rotuloSalida() {
         return this.minecraft.isLocalServer()
                 ? "jobsmenu.pausa.abandonar.local"
                 : "jobsmenu.pausa.abandonar.servidor";
     }
-
-    // ----------------------------------------------------------------------
-    // Acciones
-    // ----------------------------------------------------------------------
 
     private void reanudar() {
         this.minecraft.setScreen(null);
@@ -144,27 +109,13 @@ public class PantallaEstancia extends Screen {
     }
 
     private void abrirCondiciones() {
-        // Dentro de un mundo SesionMenu.activa() es false por diseno, asi que
-        // la redireccion global de OptionsScreen no se dispara. Se abre el hub
-        // Jobs de forma explicita para que la pausa no vuelva al gris vanilla.
         this.minecraft.setScreen(new PantallaOpcionesJobs(this, this.minecraft.options));
     }
 
-    /**
-     * Dejar el turno: la MISMA secuencia que la pausa de vanilla.
-     *
-     * Verificada contra el codigo de 1.20.1: desconectar el nivel, vaciarlo
-     * -mostrando "Guardando" solo si el servidor es local, que es cuando hay
-     * algo que guardar- y volver al titulo, a Realms o al multijugador segun
-     * de donde se venga. No se toca el guardado en si, asi que los mods que lo
-     * aceleran o respaldan siguen operando por debajo.
-     */
     private void dejarTurno() {
         boolean local = this.minecraft.isLocalServer();
         boolean realms = this.minecraft.isConnectedToRealms();
 
-        // Al abandonar el mundo se corta inmediatamente todo audio del menu.
-        // EscuchaCliente reconduce el destino vanilla al menu Jobs.
         SesionMenu.cerrar();
 
         if (this.minecraft.level != null) {
@@ -187,14 +138,6 @@ public class PantallaEstancia extends Screen {
         }
     }
 
-    // ----------------------------------------------------------------------
-    // Teclado
-    // ----------------------------------------------------------------------
-
-    /**
-     * La misma tecla M que en el aviso: silencia o restaura todo el audio del
-     * mod. La pausa suele ser el momento en que se baja el volumen.
-     */
     @Override
     public boolean keyPressed(int codigo, int escaneo, int modificadores) {
         if (codigo == GLFW.GLFW_KEY_M) {
@@ -204,19 +147,43 @@ public class PantallaEstancia extends Screen {
         return super.keyPressed(codigo, escaneo, modificadores);
     }
 
-    // ----------------------------------------------------------------------
-    // Dibujo
-    // ----------------------------------------------------------------------
-
     @Override
     public void render(GuiGraphics grafico, int ratonX, int ratonY, float parcial) {
-        // Detras esta el mundo congelado del jugador: se oscurece apenas, no se
-        // tapa con el pasillo. La hoja se apoya sobre lo que estaba pasando.
         this.renderBackground(grafico);
-        grafico.fill(0, 0, this.width, this.height, Paleta.conAlfa(Paleta.VANO, 0.42F));
+
+        // Oscurecido por capas: el centro mantiene contexto y los laterales
+        // caen un poco mas para empujar visualmente la mirada hacia la hoja.
+        grafico.fill(0, 0, this.width, this.height, Paleta.conAlfa(Paleta.VANO, 0.34F));
+        int banda = Math.max(12, (this.width - this.anchoHoja) / 2);
+        grafico.fill(0, 0, banda, this.height, Paleta.conAlfa(Paleta.VANO, 0.16F));
+        grafico.fill(this.width - banda, 0, this.width, this.height, Paleta.conAlfa(Paleta.VANO, 0.16F));
+
+        // Guias de suspension alrededor de la hoja. Son estaticas y no tocan hitboxes.
+        int rail = Paleta.conAlfa(Paleta.UI_ACENTO, 0.22F);
+        int railFino = Paleta.conAlfa(Paleta.UI_ACENTO, 0.10F);
+        int izquierda = Math.max(3, this.hojaX - 8);
+        int derecha = Math.min(this.width - 4, this.hojaX + this.anchoHoja + 7);
+        grafico.fill(izquierda, this.hojaY + 8, izquierda + 1, this.hojaY + this.hojaAlto - 8, rail);
+        grafico.fill(derecha, this.hojaY + 8, derecha + 1, this.hojaY + this.hojaAlto - 8, rail);
+        grafico.fill(izquierda - 3, this.hojaY + 18, izquierda, this.hojaY + 19, railFino);
+        grafico.fill(derecha + 1, this.hojaY + this.hojaAlto - 19,
+                derecha + 4, this.hojaY + this.hojaAlto - 18, railFino);
+
+        // Sombra mecanica mas profunda que separa la hoja del mundo pausado.
+        grafico.fill(this.hojaX + 4, this.hojaY + 5,
+                this.hojaX + this.anchoHoja + 5, this.hojaY + this.hojaAlto + 5,
+                Paleta.conAlfa(Paleta.VANO, 0.24F));
 
         HojaPapel.dibujar(grafico, this.hojaX, this.hojaY,
                 this.hojaX + this.anchoHoja, this.hojaY + this.hojaAlto, true, 1.0F);
+
+        // Marcas de registro sobre la hoja: arriba y abajo, como expediente suspendido.
+        int marca = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.18F);
+        int centro = this.hojaX + this.anchoHoja / 2;
+        grafico.fill(centro - 8, this.hojaY + 5, centro + 9, this.hojaY + 6, marca);
+        grafico.fill(centro, this.hojaY + 3, centro + 1, this.hojaY + 8, marca);
+        grafico.fill(centro - 5, this.hojaY + this.hojaAlto - 6,
+                centro + 6, this.hojaY + this.hojaAlto - 5, marca);
 
         cabecera(grafico);
         super.render(grafico, ratonX, ratonY, parcial);
@@ -226,8 +193,6 @@ public class PantallaEstancia extends Screen {
         int x = this.hojaX + this.margenHoja;
         int ancho = Math.max(1, this.anchoHoja - 2 * this.margenHoja);
         int y = this.hojaY + this.margenHoja;
-        // La hoja de pausa no depende de la luz del pasillo -no hay pasillo
-        // detras- asi que su tinta es plena y estable.
         float tinta = 1.0F;
 
         grafico.pose().pushPose();
@@ -246,6 +211,8 @@ public class PantallaEstancia extends Screen {
         y += Math.round(AIRE_REGLA * this.escalaTipografia);
         grafico.fill(x, y, x + ancho, y + 1,
                 Paleta.conAlfa(Paleta.tintaSecundaria(), 0.45F * tinta));
+        grafico.fill(x, y + 2, x + Math.max(14, ancho / 5), y + 3,
+                Paleta.conAlfa(Paleta.UI_ACENTO, 0.28F));
     }
 
     private void dibujarLinea(GuiGraphics grafico, FormattedCharSequence linea,
@@ -261,7 +228,6 @@ public class PantallaEstancia extends Screen {
         grafico.pose().popPose();
     }
 
-    /** Escape reanuda el turno, como en la pausa de vanilla. */
     @Override
     public void onClose() {
         reanudar();
