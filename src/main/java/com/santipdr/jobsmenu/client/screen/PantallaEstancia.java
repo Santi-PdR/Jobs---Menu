@@ -5,6 +5,7 @@ import com.santipdr.jobsmenu.client.sound.MezclaAudio;
 import com.santipdr.jobsmenu.client.ui.HojaPapel;
 import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.santipdr.jobsmenu.client.ui.RenglonTablon;
+import com.santipdr.jobsmenu.client.ui.SecretosJobs;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.gui.GuiGraphics;
@@ -151,14 +152,11 @@ public class PantallaEstancia extends Screen {
     public void render(GuiGraphics grafico, int ratonX, int ratonY, float parcial) {
         this.renderBackground(grafico);
 
-        // Oscurecido por capas: el centro mantiene contexto y los laterales
-        // caen un poco mas para empujar visualmente la mirada hacia la hoja.
         grafico.fill(0, 0, this.width, this.height, Paleta.conAlfa(Paleta.VANO, 0.34F));
         int banda = Math.max(12, (this.width - this.anchoHoja) / 2);
         grafico.fill(0, 0, banda, this.height, Paleta.conAlfa(Paleta.VANO, 0.16F));
         grafico.fill(this.width - banda, 0, this.width, this.height, Paleta.conAlfa(Paleta.VANO, 0.16F));
 
-        // Guias de suspension alrededor de la hoja. Son estaticas y no tocan hitboxes.
         int rail = Paleta.conAlfa(Paleta.UI_ACENTO, 0.22F);
         int railFino = Paleta.conAlfa(Paleta.UI_ACENTO, 0.10F);
         int izquierda = Math.max(3, this.hojaX - 8);
@@ -169,21 +167,50 @@ public class PantallaEstancia extends Screen {
         grafico.fill(derecha + 1, this.hojaY + this.hojaAlto - 19,
                 derecha + 4, this.hojaY + this.hojaAlto - 18, railFino);
 
-        // Sombra mecanica mas profunda que separa la hoja del mundo pausado.
+        // Dos railes laterales adicionales hacen que la pausa se lea como
+        // suspension de turno y no como un simple overlay generico.
+        if (this.width >= 360) {
+            int largo = Math.max(24, this.height / 5);
+            int y0 = Math.max(12, this.height / 2 - largo / 2);
+            grafico.fill(14, y0, 15, y0 + largo,
+                    Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.08F));
+            grafico.fill(this.width - 15, y0 + 8, this.width - 14, y0 + largo - 8,
+                    Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.06F));
+            grafico.fill(11, y0 + largo / 2, 18, y0 + largo / 2 + 1,
+                    Paleta.conAlfa(Paleta.UI_ACENTO, 0.10F));
+        }
+
         grafico.fill(this.hojaX + 4, this.hojaY + 5,
                 this.hojaX + this.anchoHoja + 5, this.hojaY + this.hojaAlto + 5,
                 Paleta.conAlfa(Paleta.VANO, 0.24F));
+        grafico.fill(this.hojaX + 2, this.hojaY + 3,
+                this.hojaX + this.anchoHoja + 3, this.hojaY + this.hojaAlto + 3,
+                Paleta.conAlfa(Paleta.VANO, 0.10F));
 
         HojaPapel.dibujar(grafico, this.hojaX, this.hojaY,
                 this.hojaX + this.anchoHoja, this.hojaY + this.hojaAlto, true, 1.0F);
 
-        // Marcas de registro sobre la hoja: arriba y abajo, como expediente suspendido.
         int marca = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.18F);
         int centro = this.hojaX + this.anchoHoja / 2;
         grafico.fill(centro - 8, this.hojaY + 5, centro + 9, this.hojaY + 6, marca);
         grafico.fill(centro, this.hojaY + 3, centro + 1, this.hojaY + 8, marca);
         grafico.fill(centro - 5, this.hojaY + this.hojaAlto - 6,
                 centro + 6, this.hojaY + this.hojaAlto - 5, marca);
+
+        // Estado de sesion discreto en la esquina inferior: contexto util sin
+        // convertir la pausa en dashboard.
+        String contexto = this.minecraft.isLocalServer() ? "LOCAL" : "SERVER";
+        String estado = "JOBS / " + contexto + " / M=MUTE";
+        int estadoW = this.font.width(estado);
+        grafico.drawString(this.font, estado,
+                Math.max(8, this.width - estadoW - 10), this.height - 13,
+                Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.54F), false);
+
+        if (SecretosJobs.expedienteRaro() && this.width >= 300 && this.height >= 180) {
+            String secreto = SecretosJobs.codigoExpediente();
+            grafico.drawString(this.font, secreto, 10, this.height - 13,
+                    Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.26F), false);
+        }
 
         cabecera(grafico);
         super.render(grafico, ratonX, ratonY, parcial);

@@ -7,8 +7,8 @@ Documento maestro del estado vigente. El historial vive en `CHANGELOG.md` y audi
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Version actual | **0.21.0** |
-| Artefacto esperado | **`jobsmenu-0.21.0.jar`** |
+| Version actual | **0.22.0** |
+| Artefacto esperado | **`jobsmenu-0.22.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -29,7 +29,7 @@ Documento maestro del estado vigente. El historial vive en `CHANGELOG.md` y audi
 9. Accesibilidad, movimiento reducido y Bajo consumo tienen prioridad sobre decoracion.
 10. Ningun control visible puede tener un hitbox vanilla invisible superpuesto.
 11. Pantallas de logica compleja conservan comportamiento vanilla/Forge cuando eso protege compatibilidad.
-12. PNG 10-17 son estaticos.
+12. PNG 10-17 no reciben movimiento propio ni deformacion; fades/apagones/transiciones globales del menu si estan permitidos.
 13. Audio de menu no puede sobrevivir dentro de gameplay.
 14. Pistas musicales solo se empaquetan con archivo autorizado y redistribuible.
 15. Nuevas pistas se integran desde OGG subido al repo; el build no descarga audio de terceros.
@@ -50,76 +50,48 @@ Familias de superficie:
 - **Formulario claro:** Options, Config Jobs, Idioma, controles y pausa.
 - **Archivo oscuro:** Mundos, Multiplayer, Mods y Recursos.
 
-## 3. Estado 0.21.0
+## 3. Estado 0.22.0
 
-0.21.0 es un pase de profesionalizacion transversal. No depende de una pantalla concreta: mejora el sistema visual compartido que usan la mayoria de interfaces.
+0.22.0 concentra el salto visible en menu principal, pausa y composicion global, sobre el sistema transversal de 0.21.0.
 
-### Botones
+### Menu principal
 
-- jerarquia NORMAL / PRINCIPAL / JOBS / TERMINAL mas clara;
-- presion sin mover hitbox;
-- confirmacion visual posterior al click;
-- foco de raton y teclado mas facil de distinguir;
-- sombras, rails y marcas de registro segun jerarquia;
-- estados deshabilitados mas legibles;
-- truncado con continuidad visual.
+- expediente con rail vertical lateral y marcas de registro;
+- bloque tecnico contextual cuando hay espacio libre;
+- identificador dinamico del Nivel;
+- reglas secundarias en cabecera, reloj y rotulo del nivel;
+- composicion sensible al viewport y omitida en modo compacto;
+- easter egg raro por sesion y evento discreto a las 03:33;
+- secretos sin red, recompensas ni efecto sobre gameplay.
 
-### Toggles
+### Pausa
 
-- transicion visual ON/OFF;
-- casilla y capsula de estado mas fisicas;
-- rail de estado y confirmacion de cambio;
-- foco de teclado con marcadores externos;
-- estados deshabilitados visibles;
-- elipsis segura para etiquetas largas.
+- conserva el mundo real detras;
+- doble profundidad de sombra;
+- rails laterales y marcas de suspension;
+- contexto visible `LOCAL/SERVER`;
+- pista `M=MUTE`;
+- Escape reanuda;
+- Condiciones abre Options Jobs;
+- salir conserva la secuencia real de desconexion/guardado.
 
-### Sliders
+### Atmosfera compartida
 
-- tirador visual interpolado;
-- porcentaje en capsula propia;
-- escala con marcas mayores y menores;
-- valores minimo/maximo cuando hay ancho;
-- mira de teclado sobre el valor real;
-- feedback de cambio en el pie;
-- canaleta, sombra y agarre mas claros.
+- rails globales muy tenues en pantallas Jobs;
+- barridos de registro sutiles en los bordes;
+- nunca mueve, escala ni deforma el fondo;
+- se desactiva con Movimiento reducido o Bajo consumo.
 
-### Renglones del menu principal
+### Sistema visual heredado de 0.21.0
 
-- placa para numero/orden;
-- banda de lectura mas clara;
-- foco de teclado reforzado;
-- casilla y puntos de relleno mas expresivos;
-- indicador direccional a la derecha;
-- tratamiento terminal mas contundente;
-- confirmacion posterior a la accion.
-
-### Pulido global
-
-- esquinas con puntos de registro;
-- rails superior/inferior con mira central;
-- marcas laterales de media altura;
-- lectura de widgets visibles/activos;
-- foco global con marcadores adicionales;
-- entrada de pantalla mas suave;
-- aviso de cambio guardado con barra temporal.
-
-### Transiciones
-
-- barrido de expediente con mas masa y menos golpe seco;
-- cola de sombra, rails internos y lomo central;
-- perforaciones de archivo y marcas de registro;
-- variante minima para movimiento reducido.
-
-### Scrollbars
-
-- canaleta con sombra lateral;
-- nueve marcas de recorrido;
-- marcas mayores 0/50/100;
-- indicador independiente de posicion;
-- tirador con sombra, highlight y agarres;
-- mantiene rueda, click y drag reales de Minecraft.
-
-La lista completa de cambios perceptibles esta en `docs/AUDITORIA_0.21.0_90_MEJORAS.md`.
+- botones NORMAL / PRINCIPAL / JOBS / TERMINAL;
+- toggles con transicion ON/OFF;
+- sliders con tirador interpolado, escala y capsula de valor;
+- renglones con placa de orden y tratamiento terminal;
+- foco global reforzado;
+- transiciones de expediente;
+- scrollbars Jobs;
+- perfiles Equilibrado, Inmersivo, Rendimiento, Accesible y Minimo.
 
 ## 4. Estado de pantallas grandes
 
@@ -167,27 +139,22 @@ La lista completa de cambios perceptibles esta en `docs/AUDITORIA_0.21.0_90_MEJO
 - Video vanilla usa ficha de calibracion y scrollbar Jobs;
 - Embeddium conserva su propia pantalla.
 
-### Pausa
-
-- mundo real permanece detras;
-- oscurecido por capas y profundidad lateral;
-- Escape reanuda;
-- Condiciones abre Options Jobs;
-- salir conserva la secuencia real de desconexion/guardado.
-
 ## 5. Fondos 10-17
 
-Los PNG 10-17 permanecen exactamente como archivos de imagen y siguen estaticos. La correccion vigente solo cambia el filtrado al escalarlos: se usa filtrado lineal para evitar el aspecto pixelado al ajustar una imagen de alta resolucion a la ventana.
+Los PNG 10-17 permanecen exactamente como archivos de imagen. Se usa filtrado lineal para evitar el aspecto pixelado al ajustar la imagen a la ventana.
 
-No se agrega:
+No se agrega al PNG:
 
 - zoom;
 - paneo;
 - parallax;
-- flicker;
-- scanlines animadas;
-- niebla movil;
+- motas o particulas propias;
+- foreground dinamico;
+- flicker propio;
+- deformacion;
 - alteracion del encuadre fuente.
+
+Si estan permitidos los efectos que pertenecen a la navegacion completa del menu, como fade, apagon de traslado y transicion de expediente, porque no animan la geometria interna de la imagen. Si se agregan niveles 18-19 como PNG, heredan este contrato.
 
 ## 6. Navegacion y ciclo de vida
 
@@ -260,7 +227,7 @@ CI certifica:
 - recursos, idiomas y ASCII Java;
 - contratos UI/musica;
 - Forge build 1.20.1;
-- artefacto `jobsmenu-0.21.0.jar`;
+- artefacto `jobsmenu-0.22.0.jar`;
 - publicacion a `dev-latest` desde `main`.
 
 CI no certifica estetica dentro de Minecraft. La prueba manual vigente esta en `docs/checklist-manual.md`.
