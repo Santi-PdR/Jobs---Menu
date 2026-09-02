@@ -1,5 +1,43 @@
 # Registro de cambios
 
+## 0.22.1 — Main screen, pausa, transiciones y secretos — 2026-09-02
+
+### Visible
+
+- Main screen suma HUD lateral contextual con turno, nivel, estado y atajos.
+- Composición principal gana rails, marcas y lectura técnica sin tocar hitboxes.
+- Pausa suma panel de contexto LOCAL/SERVER y código de expediente de sesión.
+- Atmósfera global incorpora registros estáticos y barridos ultra sutiles.
+- Transición entre expedientes pasa a 430 ms y gana más profundidad física.
+- Easter eggs de sesión se amplían con variantes raras sin gameplay, red ni recompensas.
+
+### Fondos PNG
+
+- Los PNG 10–17 no se reemplazan ni editan.
+- Siguen sin zoom, paneo, parallax, motas, foreground dinámico, flicker o deformación.
+- Se permiten fades, apagones y overlays globales que no muevan ni alteren la geometría de la imagen.
+- Futuros 18–19, si son PNG, heredan el mismo contrato.
+
+### Entrega
+
+- Versión: **0.22.1**.
+- Artefacto: **`jobsmenu-0.22.1.jar`**.
+- Auditoría: `docs/AUDITORIA_VISUAL_0.22.1.md`.
+
+## 0.22.0 — Main screen, pausa, atmósfera y secretos — 2026-09-02
+
+- Primera tanda específica de composición visible para menú principal y pausa.
+- `AtmosferaMenuJobs` añade rails y barridos globales discretos.
+- Easter eggs de expediente raro y 03:33.
+- Contrato explícito para PNG 10–17: sin movimiento propio, con transiciones globales permitidas.
+
+## 0.21.0 — Profesionalización transversal — 2026-09-02
+
+- Pase de 90 mejoras visibles/perceptibles sobre botones, toggles, sliders, renglones, foco, scrollbars y transiciones.
+- Centro de perfiles Jobs con Equilibrado, Inmersivo, Rendimiento, Accesible y Mínimo.
+- Perfiles escriben configuración real y siguen siendo editables.
+- Contrato PNG reforzado para fondos de imagen.
+
 ## 0.20.0 — Interfaz avanzada y cierre visual — 2026-09-02
 
 ### Pantallas

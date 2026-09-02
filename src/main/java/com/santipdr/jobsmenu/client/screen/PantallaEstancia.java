@@ -119,9 +119,7 @@ public class PantallaEstancia extends Screen {
 
         SesionMenu.cerrar();
 
-        if (this.minecraft.level != null) {
-            this.minecraft.level.disconnect();
-        }
+        if (this.minecraft.level != null) this.minecraft.level.disconnect();
         if (local) {
             this.minecraft.clearLevel(new GenericDirtMessageScreen(
                     Component.translatable("menu.savingLevel")));
@@ -130,13 +128,9 @@ public class PantallaEstancia extends Screen {
         }
 
         TitleScreen titulo = new TitleScreen();
-        if (local) {
-            this.minecraft.setScreen(titulo);
-        } else if (realms) {
-            this.minecraft.setScreen(new RealmsMainScreen(titulo));
-        } else {
-            this.minecraft.setScreen(new JoinMultiplayerScreen(titulo));
-        }
+        if (local) this.minecraft.setScreen(titulo);
+        else if (realms) this.minecraft.setScreen(new RealmsMainScreen(titulo));
+        else this.minecraft.setScreen(new JoinMultiplayerScreen(titulo));
     }
 
     @Override
@@ -167,8 +161,6 @@ public class PantallaEstancia extends Screen {
         grafico.fill(derecha + 1, this.hojaY + this.hojaAlto - 19,
                 derecha + 4, this.hojaY + this.hojaAlto - 18, railFino);
 
-        // Dos railes laterales adicionales hacen que la pausa se lea como
-        // suspension de turno y no como un simple overlay generico.
         if (this.width >= 360) {
             int largo = Math.max(24, this.height / 5);
             int y0 = Math.max(12, this.height / 2 - largo / 2);
@@ -178,6 +170,21 @@ public class PantallaEstancia extends Screen {
                     Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.06F));
             grafico.fill(11, y0 + largo / 2, 18, y0 + largo / 2 + 1,
                     Paleta.conAlfa(Paleta.UI_ACENTO, 0.10F));
+
+            int panelW = 104;
+            int px = 20;
+            int py = 18;
+            grafico.fill(px, py, px + panelW, py + 43,
+                    Paleta.conAlfa(Paleta.VANO, 0.18F));
+            grafico.fill(px, py, px + 2, py + 43,
+                    Paleta.conAlfa(Paleta.UI_ACENTO, 0.15F));
+            String contexto = this.minecraft.isLocalServer() ? "LOCAL" : "SERVER";
+            grafico.drawString(this.font, "JOBS / " + contexto, px + 8, py + 7,
+                    Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.66F), false);
+            grafico.drawString(this.font, SecretosJobs.codigoExpediente(), px + 8, py + 19,
+                    Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.32F), false);
+            grafico.fill(px + 8, py + 32, px + panelW - 8, py + 33,
+                    Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.10F));
         }
 
         grafico.fill(this.hojaX + 4, this.hojaY + 5,
@@ -197,8 +204,6 @@ public class PantallaEstancia extends Screen {
         grafico.fill(centro - 5, this.hojaY + this.hojaAlto - 6,
                 centro + 6, this.hojaY + this.hojaAlto - 5, marca);
 
-        // Estado de sesion discreto en la esquina inferior: contexto util sin
-        // convertir la pausa en dashboard.
         String contexto = this.minecraft.isLocalServer() ? "LOCAL" : "SERVER";
         String estado = "JOBS / " + contexto + " / M=MUTE";
         int estadoW = this.font.width(estado);
@@ -210,6 +215,10 @@ public class PantallaEstancia extends Screen {
             String secreto = SecretosJobs.codigoExpediente();
             grafico.drawString(this.font, secreto, 10, this.height - 13,
                     Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.26F), false);
+        } else if (SecretosJobs.archivoNegro() && this.width >= 300 && this.height >= 180) {
+            String secreto = SecretosJobs.codigoArchivoNegro();
+            grafico.drawString(this.font, secreto, 10, this.height - 13,
+                    Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.20F), false);
         }
 
         cabecera(grafico);

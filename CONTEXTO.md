@@ -7,8 +7,8 @@ Documento maestro del estado vigente. El historial vive en `CHANGELOG.md` y audi
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Version actual | **0.22.0** |
-| Artefacto esperado | **`jobsmenu-0.22.0.jar`** |
+| Version actual | **0.22.1** |
+| Artefacto esperado | **`jobsmenu-0.22.1.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -50,26 +50,28 @@ Familias de superficie:
 - **Formulario claro:** Options, Config Jobs, Idioma, controles y pausa.
 - **Archivo oscuro:** Mundos, Multiplayer, Mods y Recursos.
 
-## 3. Estado 0.22.0
+## 3. Estado 0.22.1
 
-0.22.0 concentra el salto visible en menu principal, pausa y composicion global, sobre el sistema transversal de 0.21.0.
+0.22.1 concentra el salto visible en menu principal, pausa, transiciones globales y secretos de sesion.
 
 ### Menu principal
 
-- expediente con rail vertical lateral y marcas de registro;
-- bloque tecnico contextual cuando hay espacio libre;
-- identificador dinamico del Nivel;
-- reglas secundarias en cabecera, reloj y rotulo del nivel;
-- composicion sensible al viewport y omitida en modo compacto;
-- easter egg raro por sesion y evento discreto a las 03:33;
-- secretos sin red, recompensas ni efecto sobre gameplay.
+- expediente con rails y marcas de registro;
+- HUD lateral contextual en viewports amplios;
+- lectura de turno, Nivel y estado de instalacion;
+- pista de atajos integrada sin convertir la pantalla en dashboard;
+- zona tecnica lateral con codigo de expediente;
+- reglas secundarias y jerarquia de profundidad alrededor de la hoja;
+- easter eggs de sesion discretos, sin red, recompensas ni efecto sobre gameplay.
 
 ### Pausa
 
 - conserva el mundo real detras;
 - doble profundidad de sombra;
 - rails laterales y marcas de suspension;
+- panel contextual adicional en viewports amplios;
 - contexto visible `LOCAL/SERVER`;
+- codigo de expediente de sesion;
 - pista `M=MUTE`;
 - Escape reanuda;
 - Condiciones abre Options Jobs;
@@ -78,18 +80,26 @@ Familias de superficie:
 ### Atmosfera compartida
 
 - rails globales muy tenues en pantallas Jobs;
-- barridos de registro sutiles en los bordes;
+- registros superiores, inferiores y laterales;
+- barridos horizontales y verticales ultra sutiles;
 - nunca mueve, escala ni deforma el fondo;
 - se desactiva con Movimiento reducido o Bajo consumo.
 
-### Sistema visual heredado de 0.21.0
+### Transiciones
+
+- expediente transversal de 430 ms;
+- mayor profundidad de cola y sombra;
+- marcas de registro internas;
+- modo reducido conserva fade simple;
+- no bloquea input ni cambia la Screen.
+
+### Sistema visual heredado
 
 - botones NORMAL / PRINCIPAL / JOBS / TERMINAL;
 - toggles con transicion ON/OFF;
 - sliders con tirador interpolado, escala y capsula de valor;
 - renglones con placa de orden y tratamiento terminal;
 - foco global reforzado;
-- transiciones de expediente;
 - scrollbars Jobs;
 - perfiles Equilibrado, Inmersivo, Rendimiento, Accesible y Minimo.
 
@@ -154,7 +164,7 @@ No se agrega al PNG:
 - deformacion;
 - alteracion del encuadre fuente.
 
-Si estan permitidos los efectos que pertenecen a la navegacion completa del menu, como fade, apagon de traslado y transicion de expediente, porque no animan la geometria interna de la imagen. Si se agregan niveles 18-19 como PNG, heredan este contrato.
+Si estan permitidos los efectos que pertenecen a la navegacion completa del menu, como fade, apagon de traslado, overlays de interfaz y transicion de expediente, porque no animan la geometria interna de la imagen. Si se agregan niveles 18-19 como PNG, heredan este contrato.
 
 ## 6. Navegacion y ciclo de vida
 
@@ -227,7 +237,7 @@ CI certifica:
 - recursos, idiomas y ASCII Java;
 - contratos UI/musica;
 - Forge build 1.20.1;
-- artefacto `jobsmenu-0.22.0.jar`;
+- artefacto `jobsmenu-0.22.1.jar`;
 - publicacion a `dev-latest` desde `main`.
 
 CI no certifica estetica dentro de Minecraft. La prueba manual vigente esta en `docs/checklist-manual.md`.

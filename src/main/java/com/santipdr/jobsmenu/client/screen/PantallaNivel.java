@@ -8,6 +8,7 @@ import com.santipdr.jobsmenu.client.sound.GestorAmbiente;
 import com.santipdr.jobsmenu.client.sound.GestorMusica;
 import com.santipdr.jobsmenu.client.sound.MezclaAudio;
 import com.santipdr.jobsmenu.client.sound.SonidosNivel;
+import com.santipdr.jobsmenu.client.ui.HudPrincipalJobs;
 import com.santipdr.jobsmenu.client.ui.NotaAviso;
 import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.santipdr.jobsmenu.client.ui.RelojAparicion;
@@ -225,6 +226,7 @@ public class PantallaNivel extends Screen {
         if (!ConfigTurno.interfazMinima()) hoja(grafico);
         cabecera(grafico);
         super.render(grafico, ratonX, ratonY, parcial);
+        HudPrincipalJobs.dibujar(grafico, this.width, this.height, this.estadoFrame);
         if (ConfigTurno.mostrarCuentaRegresiva()) ronda(grafico);
         if (!ConfigTurno.interfazMinima()) {
             rotuloNivel(grafico);
@@ -239,20 +241,29 @@ public class PantallaNivel extends Screen {
         int x = this.hojaX;
         int y = this.hojaY;
         int h = this.hojaAlto;
-        int acento = Paleta.conAlfa(Paleta.papelAviso(), 0.12F * this.estadoFrame.luz());
-        int tenue = Paleta.conAlfa(Paleta.papelAviso(), 0.055F * this.estadoFrame.luz());
+        float luz = this.estadoFrame.luz();
+        int acento = Paleta.conAlfa(Paleta.papelAviso(), 0.12F * luz);
+        int tenue = Paleta.conAlfa(Paleta.papelAviso(), 0.055F * luz);
         g.fill(Math.max(2, x - 10), y + 16, Math.max(3, x - 9), y + h - 16, acento);
         g.fill(Math.max(2, x - 14), y + 36, Math.max(3, x - 11), y + 37, tenue);
+        g.fill(Math.max(2, x - 18), y + h / 2, Math.max(3, x - 12), y + h / 2 + 1,
+                Paleta.conAlfa(Paleta.papelAviso(), 0.08F * luz));
+        g.fill(x + this.anchoHoja + 8, y + 12, x + this.anchoHoja + 9, y + h - 12,
+                Paleta.conAlfa(Paleta.papelAviso(), 0.045F * luz));
+
         if (this.width - (x + this.anchoHoja) > 150) {
             int rx = x + this.anchoHoja + 18;
-            int rw = Math.min(86, this.width - rx - 14);
-            if (rw > 26) {
+            int rw = Math.min(98, this.width - rx - 14);
+            if (rw > 38) {
                 g.fill(rx, y + 2, rx + rw, y + 3, tenue);
-                g.fill(rx, y + 2, rx + 1, y + 22, tenue);
-                g.fill(rx + rw - 18, y + 8, rx + rw, y + 9, Paleta.conAlfa(Paleta.papelAviso(), 0.08F));
+                g.fill(rx, y + 2, rx + 1, y + 31, tenue);
+                g.fill(rx + rw - 22, y + 8, rx + rw, y + 9, Paleta.conAlfa(Paleta.papelAviso(), 0.08F));
                 String tag = "JOBS / LEVEL " + this.estadoFrame.indice();
                 g.drawString(this.font, tag, rx, y + 8,
-                        Paleta.conAlfa(Paleta.papelAviso(), 0.36F * this.estadoFrame.luz()), false);
+                        Paleta.conAlfa(Paleta.papelAviso(), 0.36F * luz), false);
+                String file = SecretosJobs.codigoExpediente();
+                g.drawString(this.font, file, rx, y + 19,
+                        Paleta.conAlfa(Paleta.papelAviso(), 0.17F * luz), false);
             }
         }
     }
