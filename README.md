@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 
 | | |
 |---|---|
-| Versión | **0.18.0** |
-| Artefacto | **`jobsmenu-0.18.0.jar`** |
+| Versión | **0.19.0** |
+| Artefacto | **`jobsmenu-0.19.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,15 +13,15 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 | Rama entregable | **`main`** |
 | Niveles | **18 (0–17)** |
 
-## 0.18.0 · Pase profesional + integración de música por una sola subida
+## 0.19.0 · Robustez de interfaz y perfil de bajo consumo
 
-Este pase profundiza la presentación sin cambiar la identidad del mod.
+Este pase continúa el trabajo profesional de 0.18.0 sin cambiar la identidad visual del mod.
 
-La interfaz compartida recibe microinteracciones más finas: foco de teclado con respiración mínima, hover como marca de lectura, entrada de pantallas con curva más suave y confirmaciones que aparecen/desaparecen progresivamente. Movimiento reducido y bajo consumo anulan cualquier animación decorativa adicional.
+Los widgets compartidos de Jobs ahora tratan **Bajo consumo** como una frontera real para las microanimaciones de foco: botones, interruptores y sliders dejan de interpolar estados decorativos frame a frame y pasan directamente al estado final. Esto reduce trabajo visual innecesario en equipos modestos y hace que el perfil de ahorro sea coherente con las transiciones y el resto de la UI.
 
-Las transiciones entre pantallas se vuelven más sobrias: menos velo, menos sombra, ancho controlado y papel frío/gris. La intención es que parezcan carpetas/expedientes que se reemplazan, no un wipe genérico de videojuego.
+También se mantiene como contrato que cualquier mejora posterior debe preservar responsividad, hitboxes vanilla seguros, audio exclusivo del menú y superficies administrativas frías/neutras.
 
-También se simplifica por completo el flujo de la próxima pista. Ya no se descarga audio desde una fuente externa ni se reconstruyen scripts temporales. Cuando quieras añadir la nueva canción, sólo hay que subir:
+La integración de la próxima pista sigue preparada mediante una sola subida a:
 
 `music/menu_nueva.ogg`
 
@@ -43,7 +43,8 @@ Reglas vigentes:
 - los campos de búsqueda deben mantener foco, portapapeles y teclado aunque su presentación sea propia;
 - las listas conservan rueda/click/drag de Minecraft;
 - las pantallas complejas de terceros no se reconstruyen por reflection sólo por estética;
-- accesibilidad, movimiento reducido y bajo consumo tienen prioridad sobre decoración.
+- accesibilidad, movimiento reducido y bajo consumo tienen prioridad sobre decoración;
+- el perfil Bajo consumo no debe mantener tweens o pulsos decorativos innecesarios en widgets compartidos.
 
 El servidor oficial queda fijado como `JobsDosh.exaroton.me:56477`, deduplicado y protegido frente a edición/borrado desde la interfaz Jobs. El acceso legado `Ghoul Outbreak` no debe reaparecer.
 
@@ -83,9 +84,9 @@ GitHub Actions es la certificación de la entrega. El pipeline ejecuta:
 2. política de versión y JAR versionado;
 3. validación de PNG 10–17;
 4. auditoría estática general;
-5. contratos de UI neutra + música;
+5. contratos de UI neutra + música + bajo consumo;
 6. `./gradlew build --stacktrace --no-daemon`;
-7. publicación de **`jobsmenu-0.18.0.jar`** en `dev-latest` sólo desde `main`.
+7. publicación de **`jobsmenu-0.19.0.jar`** en `dev-latest` sólo desde `main`.
 
 La release rodante debe conservar un único JAR versionado. `jobsmenu-latest.jar` está prohibido.
 
@@ -98,7 +99,7 @@ El flujo previsto no requiere compilar en el PC de juego: el PowerShell de despl
 - [`CONTEXTO.md`](CONTEXTO.md): contrato maestro actual.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos/pruebas que siguen requiriendo Minecraft real.
 - [`CHANGELOG.md`](CHANGELOG.md): historial de versiones anteriores.
-- [`docs/AUDITORIA_0.18.0_PROFESIONAL.md`](docs/AUDITORIA_0.18.0_PROFESIONAL.md): auditoría de este pase.
+- [`docs/AUDITORIA_0.18.0_PROFESIONAL.md`](docs/AUDITORIA_0.18.0_PROFESIONAL.md): base del pase profesional anterior.
 - [`docs/musica.md`](docs/musica.md): catálogo y lifecycle musical.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalación del build.
 - [`docs/compatibilidad.md`](docs/compatibilidad.md): convivencia con otros mods.
