@@ -75,7 +75,7 @@ public final class SliderExpediente extends AbstractSliderButton {
         if (foco && !this.hoverPrevio) MezclaAudio.gesto(SonidosNivel.UI_PASAR, 0.18F);
         this.hoverPrevio = foco;
         float destino = foco ? 1.0F : 0.0F;
-        if (ConfigTurno.movimientoReducido()) this.focoSuave = destino;
+        if (ConfigTurno.movimientoReducido() || ConfigTurno.bajoConsumo()) this.focoSuave = destino;
         else this.focoSuave += (destino - this.focoSuave) * 0.24F;
 
         int fondo = Paleta.mezclar(Paleta.papelAviso(), Paleta.UI_PAPEL_FOCO,
