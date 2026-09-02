@@ -219,8 +219,8 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         GestorMusica b = entrante;
         principal = null;
         entrante = null;
-        if (a != null) a.detener(immediato);
-        if (b != null && b != a) b.detener(immediato);
+        if (a != null) a.detener(inmediato);
+        if (b != null && b != a) b.detener(inmediato);
     }
 
     private void detener(boolean inmediato) {
