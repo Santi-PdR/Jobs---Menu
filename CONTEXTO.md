@@ -1,14 +1,14 @@
 # CONTEXTO — Jobs · Aviso a los ocupantes
 
-Documento maestro del estado **vigente**. El historial vive en `CHANGELOG.md` y en las auditorías de `docs/`; este archivo define lo que debe seguir siendo verdad al modificar el proyecto.
+Documento maestro del estado **vigente**. El historial vive en `CHANGELOG.md` y auditorías de `docs/`; este archivo define lo que debe seguir siendo verdad al modificar el proyecto.
 
 | Campo | Valor |
 |---|---|
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Versión actual | **0.19.0** |
-| Artefacto esperado | **`jobsmenu-0.19.0.jar`** |
+| Versión actual | **0.20.0** |
+| Artefacto esperado | **`jobsmenu-0.20.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -18,74 +18,131 @@ Documento maestro del estado **vigente**. El historial vive en `CHANGELOG.md` y 
 
 ## 1. Reglas duras
 
-1. `main` es la única rama entregable. No dejar ramas de trabajo huérfanas después de integrar cambios.
-2. Todo JAR lleva versión: `jobsmenu-<mod_version>.jar`. Nunca `jobsmenu-latest.jar`.
-3. `gradle.properties` es la fuente de verdad de la versión.
+1. `main` es la única rama entregable.
+2. Todo JAR lleva versión: `jobsmenu-<mod_version>.jar`; nunca `jobsmenu-latest.jar`.
+3. `gradle.properties` es la fuente de verdad de versión.
 4. CI obligatorio: Java 17 → versión → fondos → auditoría estática → contratos UI/música → Forge build → publicación.
-5. `dev-latest` contiene un único JAR versionado y sólo se actualiza desde `main` cuando el pipeline llega a build/publicación.
-6. Java visible permanece ASCII; cadenas de usuario viven en idiomas.
+5. `dev-latest` contiene un único JAR versionado y sólo se actualiza desde `main` con pipeline verde.
+6. Java visible permanece ASCII; cadenas para usuario viven en idiomas.
 7. ES/EN conservan paridad de claves.
-8. El rojo es exclusivo de los Executores.
-9. Accesibilidad, movimiento reducido y bajo consumo tienen prioridad sobre efectos decorativos.
+8. El rojo es exclusivo de Executores.
+9. Accesibilidad, movimiento reducido y Bajo consumo tienen prioridad sobre decoración.
 10. Ningún control visible puede tener un hitbox vanilla invisible superpuesto.
-11. Pantallas de lógica compleja conservan comportamiento vanilla cuando eso protege compatibilidad.
-12. Los PNG 10–17 son estáticos: no zoom, paneo, parallax, flicker, niebla móvil, scanlines animadas, motas ni presencia sobre la imagen.
-13. El audio del menú no puede sobrevivir dentro de gameplay ni un tick audible.
-14. Una pista musical sólo se empaqueta si existe el archivo y su redistribución está autorizada/documentada.
-15. La integración de nuevas pistas se hace desde un OGG subido al repositorio; el build no descarga audio de terceros.
-16. El perfil **Bajo consumo** debe evitar interpolaciones/pulsos decorativos continuos también en widgets compartidos, no sólo en fondos y transiciones.
+11. Pantallas de lógica compleja conservan comportamiento vanilla/Forge cuando eso protege compatibilidad.
+12. PNG 10–17 son estáticos.
+13. Audio de menú no puede sobrevivir dentro de gameplay.
+14. Pistas musicales sólo se empaquetan con archivo autorizado y redistribuible.
+15. Nuevas pistas se integran desde OGG subido al repo; el build no descarga audio de terceros.
+16. Cambios visuales importantes se validan con CI y después requieren prueba manual dentro de Minecraft.
+17. Despliegue normal siempre apunta a `test-1`.
 
-## 2. Identidad
+## 2. Identidad visual
 
-Jobs es un **backrooms con peaje**: el ocupante trabaja, junta dinero y paga para pasar al siguiente Nivel. Los Executores son cíclicos, inevitables y no se presentan como enemigos derrotables.
+Jobs es un backrooms administrativo con peaje. El ocupante trabaja, junta dinero y paga para pasar al siguiente Nivel. La interfaz no es futurista: usa archivo, formulario, instalación vieja, marcas de inventario y amenaza sugerida.
 
-La interfaz usa voz administrativa seca y breve. No es un HUD futurista. Su lenguaje visual se basa en archivo, formulario, instalación vieja, marcas de inventario y amenaza sugerida.
+La escena y la UI no comparten paleta por comodidad:
 
-Grafía canónica: **Executor / Executores**.
+- escena: materiales y luz propios del Nivel;
+- UI: papel frío, grafito, gris verdoso y tinta neutra.
 
-## 3. Separación escena / interfaz
+Familias de superficie:
 
-La escena y la UI no comparten paleta por comodidad.
+- **Formulario claro:** Options, Config Jobs, Idioma, controles y pausa.
+- **Archivo oscuro:** Mundos, Multiplayer, Mods y Recursos.
 
-### Escena
+## 3. Estado 0.20.0
 
-Puede usar paredes amarillas, fluorescente cálido, humedad, alfombra y materiales propios del Nivel. Esos colores describen el lugar físico.
+La versión 0.20.0 reúne los pases visuales 0.19.x y añade un cierre avanzado sobre pantallas que seguían demasiado cercanas a vanilla.
 
-### Interfaz
+### Mundos
 
-Usa una familia neutral independiente:
+- superficie central propia;
+- búsqueda integrada;
+- scrollbar Jobs;
+- jerarquía más clara entre cabecera, lista y acciones;
+- lógica vanilla de selección, creación, edición y borrado intacta.
 
-- `UI_PAPEL` / `UI_PAPEL_FOCO`;
-- `UI_TINTA` / `UI_TINTA_TENUE`;
-- `UI_ACENTO` / `UI_ACENTO_FUERTE`;
-- `ARCHIVO_FONDO`;
-- `ARCHIVO_SUPERFICIE` / `ARCHIVO_SUPERFICIE_FOCO`;
-- `ARCHIVO_ACENTO` / textos de archivo.
+### Multijugador
 
-Los widgets y marcos administrativos no deben volver a usar `PARED`, `PARED_ALTA` o `FLUOR` como color de foco/superficie. `tools/verificar_ui_musica.py` protege este contrato en CI para los componentes compartidos principales.
+- tablero de servidores propio;
+- tarjeta reforzada del servidor oficial;
+- estado visible de selección/protección;
+- scrollbar Jobs;
+- acciones reales de Minecraft conservadas.
 
-Desde 0.18.0 el pulido global añade foco/hover y transiciones más sobrias sin modificar hitboxes. En 0.19.0 botones, toggles y sliders compartidos también respetan **Bajo consumo** sin tween de foco frame a frame.
+### Mods / Forge
 
-### Superficies
+- catálogo y panel de detalle separados visualmente;
+- buscador integrado;
+- scrollbar Jobs;
+- título Forge cubierto sin bloquear información;
+- búsqueda, orden, Config, logos, panel y carpeta de mods siguen siendo de Forge.
 
-- Formularios compactos: papel frío, tinta oscura.
-- Archivos grandes (Mundos, Multiplayer, Mods, Recursos): grafito y gris verdoso.
-- Una pantalla externa no se recolorea a ciegas si eso puede romper su render.
+### Resource Packs
 
-## 4. Navegación y ciclo de vida
+- doble archivador visual;
+- dos bandejas claramente separadas;
+- scrollbar Jobs;
+- selección, orden, aplicar y carpeta siguen siendo de Minecraft.
 
-`SesionMenu` representa una visita completa. Cambiar de `PantallaNivel` a Options, Mods, Resource Packs u otra hija no inicia otra sesión.
+### Idioma
 
-Reglas:
+- layout responsive para ancho/alto reducido y GUI Scale alto;
+- hover, seleccionado e idioma aplicado diferenciados;
+- códigos como badges;
+- estado actual → pendiente antes de aplicar;
+- buscador propio sin perder foco/teclado;
+- recarga de recursos sigue usando Minecraft.
 
-- `TitleScreen` vanilla se redirige a `PantallaNivel` cuando el menú propio está activo;
+### Sonido
+
+- bandeja interior de mezcla;
+- raíles laterales y marcas de canal;
+- scrollbar Jobs;
+- opciones reales de `SoundOptionsScreen` intactas.
+
+### Video
+
+- ficha de calibración con visor, esquinas y regla visual;
+- scrollbar Jobs en video vanilla;
+- Embeddium conserva su pantalla real cuando está presente.
+
+### Pausa
+
+- mundo real permanece detrás;
+- oscurecido por capas y profundidad lateral;
+- sombra de hoja reforzada;
+- guías y marcas administrativas estáticas;
+- Escape reanuda;
+- Condiciones abre Options Jobs;
+- salir conserva la secuencia real de desconexión/guardado.
+
+## 4. Widgets compartidos
+
+Botones, toggles, sliders y renglones mantienen el pase de 73 mejoras visibles:
+
+- marcos internos/externos;
+- jerarquía PRINCIPAL/JOBS/TERMINAL;
+- foco de ratón y teclado diferenciados;
+- señales de presión sin mover hitbox;
+- estados deshabilitados legibles;
+- sliders con escala/porcentaje;
+- toggles con ON/OFF físico;
+- renglones principales con selección y continuidad visual;
+- Bajo consumo elimina interpolaciones decorativas innecesarias.
+
+## 5. Navegación y ciclo de vida
+
+`SesionMenu` representa una visita completa.
+
+- `TitleScreen` vanilla se redirige a `PantallaNivel` cuando menú propio está activo;
 - pausa real se redirige a `PantallaEstancia`;
 - Options, Multiplayer, Mundos y Mods se tematizan sólo dentro del flujo Jobs;
-- redirecciones sensibles usan clase exacta para no capturar subclases de mods externos;
-- al entrar a mundo/servidor se cierra la sesión y se corta audio;
-- al salir de mundo/servidor/kick se recupera `PantallaNivel`, no el título vanilla.
+- redirecciones sensibles usan clase exacta;
+- entrar a mundo/servidor cierra sesión y corta audio inmediatamente;
+- salir de mundo/servidor/kick recupera `PantallaNivel`.
 
-## 5. Multiplayer
+## 6. Multiplayer
 
 Servidor fijado:
 
@@ -98,104 +155,62 @@ Contrato:
 - primera posición;
 - protegida frente a edición/borrado desde Jobs;
 - IP deduplicada;
-- `Ghoul Outbreak` legado eliminado y no recreado.
+- `Ghoul Outbreak` eliminado y no recreado.
 
-La lista, ping, LAN, MOTD y conexión siguen siendo de Minecraft.
-
-## 6. Música
-
-`GestorMusica` es un reproductor de sesión con catálogo.
+## 7. Música y ambiente
 
 Pista incluida actual:
 
-- **Absurdism** → `assets/jobsmenu/sounds/musica/defecto.ogg` mediante `musica.tema`.
+- **Absurdism** → `assets/jobsmenu/sounds/musica/defecto.ogg`.
 
 Segunda pista preparada:
 
-- identificador interno `upon_the_hill_v2`;
-- archivo de entrada esperado: `music/menu_nueva.ogg`;
-- recurso final generado: `assets/jobsmenu/sounds/musica/tema_nuevo.ogg`;
-- integración automática mediante `.github/workflows/integrar_ogg_subido.yml`.
-
-La única acción manual para completar esa integración es subir `music/menu_nueva.ogg` a `main`. El workflow valida Vorbis, normaliza loudness/true peak, registra el evento, añade la pista al catálogo, ejecuta las verificaciones y compila Java 17. Si falla cualquier etapa, no publica los cambios generados.
+- entrada: `music/menu_nueva.ogg`;
+- id interno: `upon_the_hill_v2`;
+- salida: `assets/jobsmenu/sounds/musica/tema_nuevo.ogg`;
+- workflow: `.github/workflows/integrar_ogg_subido.yml`.
 
 Comportamiento obligatorio:
 
-- fade-in desde silencio;
-- fade-out al retirar una pista dentro del menú;
-- crossfade automático cuando el catálogo tenga 2+ pistas;
-- ducking en transición de Nivel, La Suspensión y presencia;
-- una sola sesión musical aunque se reconstruyan pantallas;
-- continuidad por Options/Mods/Recursos;
+- fade-in;
+- fade-out dentro del menú;
+- crossfade cuando haya 2+ pistas;
+- ducking en transiciones/Suspensión/presencia;
+- continuidad por subpantallas;
 - watchdog de instancias fantasma;
-- recuperación tras F3+T/recarga;
+- recuperación tras recarga;
 - hard stop al entrar a gameplay.
 
-La música usa `SoundSource.MASTER`: depende de Maestro de Minecraft, volumen de música Jobs y volumen del aviso, no del slider Música vanilla.
+La música usa `SoundSource.MASTER`: Maestro + volumen Jobs + volumen del aviso; no slider Música vanilla.
 
-## 7. Ambiente
+Cada Nivel mantiene BASE + CARÁCTER + ACTIVIDAD y eventos ocasionales. PNG 10–17 no reciben animación interna.
 
-Cada Nivel procedural mantiene BASE + CARÁCTER + ACTIVIDAD y eventos ocasionales. La música no sustituye el ambiente ni viceversa.
+## 8. Compatibilidad
 
-Los niveles 10–17 usan PNG suministrados y estáticos. Sus apagones/cambios de Nivel siguen existiendo porque pertenecen al estado del menú, no a animación interna del PNG.
+- Redirecciones principales por clase exacta.
+- Listas complejas conservan lógica real.
+- `ListasExpediente` modifica presentación y conserva rueda/click/drag.
+- `PielVanillaJobs` no se aplica indiscriminadamente a pantallas externas.
+- Embeddium conserva su UI de video.
+- Mods que sustituyan totalmente pantallas pueden requerir integración específica.
 
-## 8. Pantallas cubiertas
+## 9. Prueba y entrega
 
-Familia Jobs propia o tematizada:
+CI certifica:
 
-- Title / `PantallaNivel`;
-- Pausa / `PantallaEstancia`;
-- Options;
-- Config Jobs;
-- Multijugador;
-- Mundos;
-- Mods / Forge;
-- Controles;
-- Mouse;
-- Teclas;
-- Idioma;
-- Piel;
-- Sonido;
-- Video;
-- Chat;
-- Accesibilidad;
-- Online;
-- Resource Packs.
+- Java 17;
+- política de versión;
+- PNG/CRC/IDAT;
+- recursos, idiomas y ASCII Java;
+- contratos UI/música;
+- Forge build 1.20.1;
+- artefacto `jobsmenu-0.20.0.jar`;
+- publicación a `dev-latest` desde `main`.
 
-Embeddium conserva su pantalla propia cuando está presente.
+CI **no certifica estética dentro de Minecraft**. La prueba manual vigente está en `docs/checklist-manual.md`.
 
-## 9. Pruebas mínimas
+Destino único de despliegue:
 
-Además del CI:
+`C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods`
 
-- GUI scale 2, 3 y 4;
-- 854×480 y ventanas estrechas;
-- ES, EN y Español (Uruguay);
-- Title → Options → Config → todas las categorías → volver;
-- Mods → Jobs Menu → Config;
-- teclado Tab/Enter/Espacio/Escape y Ctrl+F donde corresponde;
-- Direct Connect / Add Server / confirmaciones;
-- scrollbar: rueda, click, drag y límites reales;
-- Multiplayer: oficial único + acciones vanilla;
-- Mundos: previews + crear/editar/borrar/recrear;
-- Mods: búsqueda, orden, Config, detalles y carpeta;
-- Resource Packs: dos listas y aplicar;
-- F3+T y Alt+Tab con audio;
-- entrada/salida de mundo y servidor sin audio Jobs dentro de gameplay;
-- Absurdism con fade-in sin duplicación;
-- cuando exista `menu_nueva.ogg`, comprobar crossfade y nivel percibido entre pistas;
-- niveles 10–17 inmóviles;
-- Bajo consumo: sliders, toggles y botones cambian foco sin interpolación decorativa.
-
-## 10. Documentación vigente
-
-- `README.md`: resumen de **0.19.0**.
-- `CONTEXTO.md`: este contrato.
-- `docs/AUDITORIA_0.18.0_PROFESIONAL.md`: auditoría base del pase profesional anterior.
-- `docs/musica.md`: sistema musical y política de pistas.
-- `music/LEEME.txt`: regla de una sola subida para la próxima pista.
-- `KNOWN_ISSUES.md`: riesgos que requieren Minecraft real.
-- `CHANGELOG.md`: historial.
-- `docs/DESPLIEGUE.md`: instalación.
-- `docs/compatibilidad.md`: convivencia con otros mods.
-- `docs/checklist-manual.md`: aceptación manual.
+El PowerShell se entrega sólo después de: docs actualizados → CI de PR verde → merge → CI de main verde → `dev-latest` actualizado.

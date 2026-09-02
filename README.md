@@ -1,11 +1,11 @@
 # Jobs · Aviso a los ocupantes
 
-Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el flujo de menús por la interfaz de Jobs: expedientes administrativos, recintos, audio continuo y una navegación que conserva la lógica sensible de Minecraft cuando hacerlo mejora compatibilidad.
+Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el flujo de menús por la interfaz de Jobs: expedientes administrativos, recintos, audio continuo y navegación propia sin reimplementar la lógica sensible de Minecraft cuando conservarla mejora compatibilidad.
 
 | | |
 |---|---|
-| Versión | **0.19.0** |
-| Artefacto | **`jobsmenu-0.19.0.jar`** |
+| Versión | **0.20.0** |
+| Artefacto | **`jobsmenu-0.20.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,96 +13,101 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 | Rama entregable | **`main`** |
 | Niveles | **18 (0–17)** |
 
-## 0.19.0 · Robustez de interfaz y perfil de bajo consumo
+## 0.20.0 · Interfaz avanzada y cierre visual
 
-Este pase continúa el trabajo profesional de 0.18.0 sin cambiar la identidad visual del mod.
+0.20.0 consolida los pases visuales iniciados en 0.19.0 y eleva las pantallas que todavía se sentían demasiado vanilla.
 
-Los widgets compartidos de Jobs ahora tratan **Bajo consumo** como una frontera real para las microanimaciones de foco: botones, interruptores y sliders dejan de interpolar estados decorativos frame a frame y pasan directamente al estado final. Esto reduce trabajo visual innecesario en equipos modestos y hace que el perfil de ahorro sea coherente con las transiciones y el resto de la UI.
+Cambios principales:
 
-También se mantiene como contrato que cualquier mejora posterior debe preservar responsividad, hitboxes vanilla seguros, audio exclusivo del menú y superficies administrativas frías/neutras.
+- **Mundos** usa superficie de lista propia, scrollbar Jobs, búsqueda integrada y pie contextual.
+- **Multijugador** usa tablero central, tarjeta reforzada para el servidor oficial, estado visual de selección/protección y separación clara entre lista y acciones.
+- **Mods** deja de verse como Forge con un marco: catálogo y detalle tienen jerarquía propia, buscador integrado y scrollbar Jobs.
+- **Resource Packs** se presenta como doble archivador, conservando las dos listas reales de Minecraft.
+- **Idioma** es realmente responsive, diferencia hover/selección/idioma aplicado, muestra códigos como badges y expresa el cambio actual → pendiente antes de aplicar.
+- **Sonido** se presenta como expediente de mezcla con bandeja interior, raíles laterales y scrollbar Jobs.
+- **Video vanilla** se presenta como ficha de calibración con marco de visor, marcas de escala y scrollbar Jobs. Embeddium sigue conservando su propia pantalla cuando está presente.
+- **Pausa** gana mayor profundidad sobre el mundo real: oscurecido por capas, sombra de hoja, guías laterales y marcas de registro sin tapar el contexto del jugador.
+- Los widgets compartidos mantienen los 73 refinamientos visibles del pase anterior: foco, jerarquía, estados, profundidad, lectura y bajo consumo.
 
-La integración de la próxima pista sigue preparada mediante una sola subida a:
+## Estado de prueba
 
-`music/menu_nueva.ogg`
+GitHub Actions certifica código, recursos, políticas, Java 17 y Forge build. **No sustituye una prueba visual dentro de Minecraft**. La última entrega debe probarse manualmente en `test-1` siguiendo `docs/checklist-manual.md`.
 
-El workflow `Integrar OGG subido` valida que sea Vorbis real, normaliza loudness/true peak, genera el recurso final, registra la segunda pista, activa el catálogo de dos temas, ejecuta verificaciones y compila con Java 17. Si algo falla, no publica la integración.
+## Reglas de interfaz
 
-El identificador interno preparado para la pista es `upon_the_hill_v2` y el recurso final será `assets/jobsmenu/sounds/musica/tema_nuevo.ogg`.
+Jobs usa dos familias de superficie:
 
-## Interfaz
+- **Formulario claro:** Options, Config Jobs, Idioma, controles y pausa.
+- **Archivo oscuro:** Mundos, Multiplayer, Mods y Resource Packs.
 
-Jobs usa dos superficies principales:
-
-- **Formulario claro:** ajustes, opciones compactas, idioma y controles propios.
-- **Archivo oscuro:** mundos, servidores, Mods y Resource Packs.
-
-Reglas vigentes:
+Contratos permanentes:
 
 - ningún título vanilla puede sangrar debajo de una cabecera Jobs;
-- ningún widget visible puede tener un hitbox vanilla invisible superpuesto;
-- los campos de búsqueda deben mantener foco, portapapeles y teclado aunque su presentación sea propia;
-- las listas conservan rueda/click/drag de Minecraft;
-- las pantallas complejas de terceros no se reconstruyen por reflection sólo por estética;
-- accesibilidad, movimiento reducido y bajo consumo tienen prioridad sobre decoración;
-- el perfil Bajo consumo no debe mantener tweens o pulsos decorativos innecesarios en widgets compartidos.
+- ningún control visible puede tener un hitbox vanilla invisible superpuesto;
+- búsqueda, foco, portapapeles, rueda, click y drag deben seguir usando la lógica real de Minecraft/Forge;
+- rojo reservado a Executores;
+- escena y UI usan paletas separadas;
+- movimiento reducido y Bajo consumo tienen prioridad sobre decoración;
+- los PNG 10–17 permanecen estáticos;
+- las pantallas externas complejas no se reconstruyen por estética.
 
-El servidor oficial queda fijado como `JobsDosh.exaroton.me:56477`, deduplicado y protegido frente a edición/borrado desde la interfaz Jobs. El acceso legado `Ghoul Outbreak` no debe reaparecer.
+## Servidor oficial
 
-## Ciclo de sesión
+La única entrada fijada por el mod es:
 
-`SesionMenu` representa una visita completa al menú. Abrir una subpantalla no crea otra visita ni reinicia música/ambiente.
+`JobsDosh.exaroton.me:56477`
 
-Al entrar a un mundo o servidor:
+Se localiza como `Jobs Official Server` / `Servidor oficial de Jobs`, queda primera, se deduplica y se protege frente a edición/borrado desde Jobs. El servidor legado `Ghoul Outbreak` no debe reaparecer.
+
+## Ciclo de sesión y audio
+
+`SesionMenu` representa una visita completa al menú. Abrir Options, Mods, Recursos u otra subpantalla no crea otra sesión ni reinicia música/ambiente.
+
+Al entrar a gameplay:
 
 1. se cierra la sesión Jobs;
 2. música y camas ambientales se detienen inmediatamente;
 3. gameplay no recibe audio del menú.
 
-Al salir de un mundo, servidor, kick o desconexión, el flujo vuelve a `PantallaNivel` cuando el menú propio está habilitado, no al título vanilla.
+Al salir de mundo, servidor, kick o desconexión, el flujo vuelve a `PantallaNivel` cuando el menú propio está habilitado.
 
-## Música y ambiente
+La música Jobs usa Maestro + volumen Jobs; no depende del slider Música vanilla.
 
-- Música: reproductor de sesión con fades, ducking y catálogo preparado para crossfade.
-- Ambiente: BASE + CARÁCTER + ACTIVIDAD por Nivel, más eventos ocasionales.
-- UI: gestos propios para foco, selección, alternancia, confirmación, apertura, cierre y rechazo.
-- La música Jobs usa Maestro + volumen Jobs; no depende del slider Música vanilla.
-- Los PNG 10–17 permanecen **estáticos** por requisito del proyecto; los apagones/transiciones generales sí continúan.
+## Música futura
 
-Detalles: [`docs/musica.md`](docs/musica.md) y [`music/LEEME.txt`](music/LEEME.txt).
+La integración de una segunda pista sigue preparada mediante una sola subida a:
 
-## Compatibilidad
+`music/menu_nueva.ogg`
 
-Las redirecciones automáticas importantes usan **clase exacta** para no barrer subclases de otros mods. Cuando una pantalla vanilla aporta lógica compleja (servidores, mundos, recursos, confirmaciones), Jobs conserva esa lógica y sustituye sólo la presentación necesaria.
-
-Embeddium conserva su propia interfaz de vídeo cuando corresponde. Jobs no intenta recrear internamente una UI externa desconocida.
+El workflow `Integrar OGG subido` valida Vorbis, normaliza loudness/true peak, genera el recurso final, registra el tema, ejecuta verificaciones y compila con Java 17. Si algo falla, no publica la integración.
 
 ## Build y entrega
 
-GitHub Actions es la certificación de la entrega. El pipeline ejecuta:
+GitHub Actions ejecuta:
 
 1. Java 17;
-2. política de versión y JAR versionado;
-3. validación de PNG 10–17;
-4. auditoría estática general;
-5. contratos de UI neutra + música + bajo consumo;
+2. política de versión/JAR;
+3. validación PNG 10–17;
+4. auditoría estática;
+5. contratos UI/música;
 6. `./gradlew build --stacktrace --no-daemon`;
-7. publicación de **`jobsmenu-0.19.0.jar`** en `dev-latest` sólo desde `main`.
+7. publicación de **`jobsmenu-0.20.0.jar`** en `dev-latest` sólo desde `main`.
 
-La release rodante debe conservar un único JAR versionado. `jobsmenu-latest.jar` está prohibido.
+La release rodante conserva un único JAR versionado. `jobsmenu-latest.jar` está prohibido.
 
 ## Despliegue
 
-El flujo previsto no requiere compilar en el PC de juego: el PowerShell de despliegue consume el JAR certificado de `dev-latest`, elimina versiones anteriores de Jobs Menu en `test-1` y copia únicamente el artefacto vigente.
+La prueba normal no compila localmente. El PowerShell canónico de `docs/DESPLIEGUE.md` descarga el único JAR certificado de `dev-latest`, lo valida y reemplaza la versión previa exclusivamente en:
+
+`C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods`
 
 ## Documentación vigente
 
 - [`CONTEXTO.md`](CONTEXTO.md): contrato maestro actual.
-- [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos/pruebas que siguen requiriendo Minecraft real.
-- [`CHANGELOG.md`](CHANGELOG.md): historial de versiones anteriores.
-- [`docs/AUDITORIA_0.18.0_PROFESIONAL.md`](docs/AUDITORIA_0.18.0_PROFESIONAL.md): base del pase profesional anterior.
+- [`CHANGELOG.md`](CHANGELOG.md): cambios por versión.
+- [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y pruebas manuales pendientes.
+- [`docs/AUDITORIA_0.20.0.md`](docs/AUDITORIA_0.20.0.md): alcance y validación de esta entrega.
+- [`docs/checklist-manual.md`](docs/checklist-manual.md): prueba dentro de Minecraft.
+- [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalación certificada en `test-1`.
 - [`docs/musica.md`](docs/musica.md): catálogo y lifecycle musical.
-- [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalación del build.
 - [`docs/compatibilidad.md`](docs/compatibilidad.md): convivencia con otros mods.
-- [`docs/checklist-manual.md`](docs/checklist-manual.md): validación dentro de Minecraft.
-
-Los documentos históricos de `docs/EVOLUCION_*`, propuestas y auditorías anteriores se conservan como registro; **README y CONTEXTO describen siempre el estado vigente**.

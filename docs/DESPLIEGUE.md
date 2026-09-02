@@ -28,13 +28,13 @@ El bloque no compila el proyecto. Descarga el artefacto ya certificado por GitHu
 
 Todo JAR instalado o publicado debe incluir la versión en el nombre. Para esta entrega:
 
-`jobsmenu-0.19.0.jar`
+`jobsmenu-0.20.0.jar`
 
 El nombre genérico `jobsmenu-latest.jar` queda prohibido. La release sigue usando el tag rodante `dev-latest`, pero su único asset cambia de nombre con `mod_version`.
 
 ## PowerShell canónico
 
-El bloque consulta la API pública de la release `dev-latest`, localiza el único asset que cumpla `jobsmenu-*.jar`, descarga primero a `%TEMP%`, valida cabecera ZIP/JAR y sólo entonces reemplaza la copia instalada.
+El bloque consulta la API pública de la release `dev-latest`, localiza el único asset que cumpla `jobsmenu-*.jar`, descarga primero a `%TEMP%`, valida cabecera ZIP/JAR, calcula SHA-256 y sólo entonces reemplaza la copia instalada.
 
 ```powershell
 $ErrorActionPreference = "Stop"
@@ -88,7 +88,7 @@ Write-Host "Destino: $dest" -ForegroundColor Cyan
 Write-Host "SHA-256: $sha"
 ```
 
-## Responsabilidades del CI
+## Qué certifica el CI
 
 `.github/workflows/build.yml` debe ejecutar, en este orden:
 
@@ -107,6 +107,6 @@ Write-Host "SHA-256: $sha"
 
 Si falla cualquier paso, la release no se actualiza y el PowerShell no se entrega todavía.
 
-## Flujo de trabajo
+## Qué NO certifica el CI
 
-Los cambios grandes se preparan en una rama de trabajo. Sólo se integran en `main` después de pasar CI. El despliegue local siempre consume `dev-latest` y siempre instala en `test-1`.
+El pipeline no puede confirmar cómo se ve o se siente la interfaz dentro de Minecraft real. Después del despliegue de `jobsmenu-0.20.0.jar` se debe ejecutar `docs/checklist-manual.md`, especialmente las pantallas modificadas en esta versión: Mods, Recursos, Idioma, Sonido, Video, Pausa, Mundos y Multijugador.
