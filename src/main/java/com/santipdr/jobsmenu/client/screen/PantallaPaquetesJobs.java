@@ -17,6 +17,8 @@ import java.util.function.Consumer;
 public final class PantallaPaquetesJobs extends PackSelectionScreen {
 
     private final Component tituloJobs;
+    private int listaArriba;
+    private int listaAbajo;
 
     public PantallaPaquetesJobs(PackRepository repo, Consumer<PackRepository> callback,
                                 Path directorio, Component titulo) {
@@ -27,7 +29,9 @@ public final class PantallaPaquetesJobs extends PackSelectionScreen {
     @Override
     protected void init() {
         super.init();
-        ListasExpediente.estilizar(this);
+        this.listaArriba = 66;
+        this.listaAbajo = Math.max(this.listaArriba + 70, this.height - 56);
+        ListasExpediente.estilizar(this, this.listaArriba, this.listaAbajo);
     }
 
     @Override
@@ -49,28 +53,40 @@ public final class PantallaPaquetesJobs extends PackSelectionScreen {
         int panelW = this.width - 24;
         int panelH = this.height - 16;
         int center = this.width / 2;
-        int top = panelY + 38;
-        int bottom = panelY + panelH - 38;
+        int top = Math.max(panelY + 46, this.listaArriba - 5);
+        int bottom = Math.min(panelY + panelH - 40, this.listaAbajo + 4);
 
-        int leftX = panelX + 10;
-        int rightX = center + 4;
-        int leftW = Math.max(40, center - leftX - 6);
-        int rightW = Math.max(40, panelX + panelW - rightX - 10);
-        g.fill(leftX, top, leftX + leftW, bottom, Paleta.conAlfa(Paleta.ARCHIVO_FONDO, 0.38F));
-        g.fill(rightX, top, rightX + rightW, bottom, Paleta.conAlfa(Paleta.ARCHIVO_FONDO, 0.38F));
-        g.fill(center - 1, top + 3, center + 1, bottom - 3, Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.28F));
+        // PackSelectionScreen usa dos listas de 200 px logicos. El pase anterior
+        // pintaba columnas hasta los bordes y por eso la captura parecia vacia.
+        // Ahora el archivador coincide con el ancho real de los widgets vanilla.
+        int gap = 8;
+        int colW = Math.min(204, Math.max(120, (panelW - 44) / 2));
+        int leftX = center - gap / 2 - colW;
+        int rightX = center + gap / 2;
 
-        for (int x : new int[]{leftX, rightX}) {
-            int w = x == leftX ? leftW : rightW;
-            g.fill(x, top, x + w, top + 2, Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.34F));
-            g.fill(x, bottom - 2, x + w, bottom, Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.18F));
-            g.fill(x + 6, top - 4, x + Math.min(w - 6, 54), top, Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.30F));
+        dibujarBandeja(g, leftX, top, colW, bottom);
+        dibujarBandeja(g, rightX, top, colW, bottom);
+        g.fill(center - 1, top + 5, center + 1, bottom - 5,
+                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.34F));
+
+        // Lineas de archivo muy tenues convierten el espacio libre en una
+        // bandeja intencional sin interferir con iconos, textos ni clicks.
+        for (int y = top + 38; y < bottom - 8; y += 38) {
+            g.fill(leftX + 10, y, leftX + colW - 10, y + 1,
+                    Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.065F));
+            g.fill(rightX + 10, y, rightX + colW - 10, y + 1,
+                    Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.065F));
         }
 
-        RenderSystem.setShaderColor(0.72F, 0.72F, 0.72F, 1.0F);
+        RenderSystem.setShaderColor(0.78F, 0.78F, 0.78F, 1.0F);
         super.render(g, mouseX, mouseY, partialTick);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
+        // Una sola cabecera frontal; no dejamos texto vanilla duplicado.
+        g.pose().pushPose();
+        g.pose().translate(0.0F, 0.0F, 450.0F);
+        g.fill(panelX + 3, panelY + 1, panelX + panelW - 3, panelY + 36, Paleta.VANO);
+        g.pose().popPose();
         ChromeExpediente.reemplazarCabeceraArchivo(g, this.font,
                 Component.translatable("jobsmenu.interfaz.recursos.titulo"),
                 this.tituloJobs, panelX, panelY, panelW);
@@ -81,7 +97,20 @@ public final class PantallaPaquetesJobs extends PackSelectionScreen {
                 Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.25F));
         String sello = "JOBS / RESOURCE ARCHIVE";
         int sw = this.font.width(sello);
-        g.drawString(this.font, sello, panelX + panelW - sw - 16, railY + 6,
-                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.52F), false);
+        if (sw + 36 < panelW) {
+            g.drawString(this.font, sello, panelX + panelW - sw - 16, railY + 6,
+                    Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.52F), false);
+        }
+    }
+
+    private void dibujarBandeja(GuiGraphics g, int x, int top, int w, int bottom) {
+        g.fill(x, top, x + w, bottom, Paleta.conAlfa(Paleta.ARCHIVO_FONDO, 0.50F));
+        g.fill(x, top, x + w, top + 2, Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.36F));
+        g.fill(x, bottom - 2, x + w, bottom, Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.18F));
+        g.fill(x + 5, top + 5, x + 8, bottom - 5,
+                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.22F));
+        int tabW = Math.min(58, Math.max(28, w / 3));
+        g.fill(x + 8, top - 4, x + 8 + tabW, top,
+                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.34F));
     }
 }
