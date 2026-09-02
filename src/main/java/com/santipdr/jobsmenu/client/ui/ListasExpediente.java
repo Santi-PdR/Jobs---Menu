@@ -29,7 +29,6 @@ public final class ListasExpediente {
             y1 = ObfuscationReflectionHelper.findField(AbstractSelectionList.class, "f_93391_");
             barra = ObfuscationReflectionHelper.findMethod(AbstractSelectionList.class, "m_5756_");
         } catch (Throwable ignored) {
-            // En mappings/implementaciones distintas usamos geometria publica.
         }
         CAMPO_Y0 = y0;
         CAMPO_Y1 = y1;
@@ -43,7 +42,6 @@ public final class ListasExpediente {
         estilizar(pantalla, -1, -1);
     }
 
-    /** Retira dirt/gradientes y reserva bandas de cabecera/pie cuando es seguro. */
     public static void estilizar(Screen pantalla, int arriba, int abajo) {
         for (AbstractSelectionList<?> lista : encontrarListas(pantalla)) {
             try {
@@ -53,15 +51,10 @@ public final class ListasExpediente {
                     lista.updateSize(pantalla.width, pantalla.height, arriba, abajo);
                 }
             } catch (Throwable ignored) {
-                // Otro mod puede cambiar la implementacion; no se fuerza.
             }
         }
     }
 
-    /**
-     * Cubre la barra gris vanilla despues de su render y dibuja una barra Jobs
-     * en el mismo hitbox. Rueda, click y drag siguen siendo de Minecraft.
-     */
     public static void renderarBarras(Screen pantalla, GuiGraphics g) {
         if (pantalla == null || g == null) return;
 
@@ -84,45 +77,61 @@ public final class ListasExpediente {
                 int thumbY = y0 + (int) Math.round(recorrido * proporcion);
 
                 int papel = Paleta.papelAviso();
-                int tintaSuave = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.28F);
+                int tintaSuave = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.30F);
                 int tintaFina = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.16F);
-                int tinta = Paleta.conAlfa(Paleta.tintaPrincipal(), 0.76F);
-                int papelActivo = Paleta.mezclar(papel, Paleta.FLUOR, 0.12F);
+                int tinta = Paleta.conAlfa(Paleta.tintaPrincipal(), 0.78F);
+                int papelActivo = Paleta.mezclar(papel, Paleta.UI_ACENTO, 0.11F);
 
-                // Limpia la barra vanilla y crea una canaleta de archivador.
-                g.fill(x - 3, y0, x + 9, y1, papel);
+                g.fill(x - 4, y0, x + 10, y1, papel);
+                g.fill(x - 4, y0, x - 2, y1, Paleta.conAlfa(Paleta.VANO, 0.08F));
+                g.fill(x + 8, y0, x + 10, y1, Paleta.conAlfa(Paleta.VANO, 0.12F));
                 g.fill(x - 1, y0 + 1, x + 7, y1 - 1,
                         Paleta.conAlfa(Paleta.VANO, 0.05F));
                 g.fill(x + 2, y0 + 5, x + 4, y1 - 5, tintaSuave);
+                g.fill(x + 3, y0 + 6, x + 4, y1 - 6,
+                        Paleta.conAlfa(Paleta.UI_ACENTO, 0.08F));
 
-                // Marcas de recorrido: ayudan a leer posicion sin copiar un scrollbar web.
-                for (int i = 0; i <= 4; i++) {
-                    int my = y0 + 5 + Math.round((alto - 10) * (i / 4.0F));
-                    g.fill(x, my, x + 2, my + 1, tintaFina);
-                    g.fill(x + 4, my, x + 6, my + 1, tintaFina);
+                for (int i = 0; i <= 8; i++) {
+                    int my = y0 + 5 + Math.round((alto - 10) * (i / 8.0F));
+                    boolean mayor = i == 0 || i == 4 || i == 8;
+                    int largo = mayor ? 3 : 2;
+                    g.fill(x - 1, my, x - 1 + largo, my + 1,
+                            Paleta.conAlfa(Paleta.tintaSecundaria(), mayor ? 0.22F : 0.12F));
+                    g.fill(x + 5, my, x + 5 + largo, my + 1,
+                            Paleta.conAlfa(Paleta.tintaSecundaria(), mayor ? 0.22F : 0.12F));
                 }
 
-                // Topes mecanicos arriba y abajo.
-                g.fill(x, y0 + 2, x + 6, y0 + 3, tintaSuave);
-                g.fill(x + 1, y0 + 3, x + 5, y0 + 4, tintaFina);
-                g.fill(x, y1 - 3, x + 6, y1 - 2, tintaSuave);
-                g.fill(x + 1, y1 - 4, x + 5, y1 - 3, tintaFina);
+                g.fill(x - 1, y0 + 2, x + 7, y0 + 3, tintaSuave);
+                g.fill(x, y0 + 3, x + 6, y0 + 4, tintaFina);
+                g.fill(x - 1, y1 - 3, x + 7, y1 - 2, tintaSuave);
+                g.fill(x, y1 - 4, x + 6, y1 - 3, tintaFina);
 
-                // Tirador: papel claro dentro de marco de tinta.
+                int marcador = y0 + Math.round((alto - 2) * (float) proporcion);
+                g.fill(x - 3, marcador, x - 1, marcador + 2,
+                        Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.34F));
+
+                g.fill(x - 2, thumbY - 2, x + 8, thumbY + thumbH + 2,
+                        Paleta.conAlfa(Paleta.VANO, 0.12F));
                 g.fill(x - 1, thumbY - 1, x + 7, thumbY + thumbH + 1,
-                        Paleta.conAlfa(Paleta.VANO, 0.16F));
+                        Paleta.conAlfa(Paleta.VANO, 0.18F));
                 g.fill(x, thumbY, x + 6, thumbY + thumbH, tinta);
                 g.fill(x + 1, thumbY + 1, x + 5, thumbY + thumbH - 1, papelActivo);
+                g.fill(x + 1, thumbY + 1, x + 5, thumbY + 2,
+                        Paleta.conAlfa(Paleta.UI_PAPEL_FOCO, 0.30F));
+                g.fill(x + 1, thumbY + thumbH - 2, x + 5, thumbY + thumbH - 1,
+                        Paleta.conAlfa(Paleta.VANO, 0.10F));
 
                 int centro = thumbY + thumbH / 2;
-                for (int d = -2; d <= 2; d += 2) {
+                for (int d = -3; d <= 3; d += 2) {
                     int gy = centro + d;
                     if (gy > thumbY + 2 && gy < thumbY + thumbH - 2) {
-                        g.fill(x + 1, gy, x + 5, gy + 1, tintaSuave);
+                        g.fill(x + 1, gy, x + 5, gy + 1,
+                                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.30F));
                     }
                 }
+                g.fill(x + 2, centro - 1, x + 4, centro + 1,
+                        Paleta.conAlfa(Paleta.UI_ACENTO, 0.18F));
             } catch (Throwable ignored) {
-                // Fallo visual no debe impedir usar una pantalla de opciones.
             }
         }
     }
@@ -134,8 +143,6 @@ public final class ListasExpediente {
             } catch (Throwable ignored) {
             }
         }
-        // getRowRight es publico en 1.20.1 y coincide con la referencia usada
-        // por las listas vanilla para situar el scrollbar (+4), incluida Idioma.
         return lista.getRowRight() + 4;
     }
 
@@ -146,8 +153,6 @@ public final class ListasExpediente {
             } catch (Throwable ignored) {
             }
         }
-        // y0 no tiene getter publico en 1.20.1. Este camino solo se usa si un
-        // mapping externo rompe la reflexion; 0 es preferible a abortar la UI.
         return 0;
     }
 
@@ -158,10 +163,6 @@ public final class ListasExpediente {
             } catch (Throwable ignored) {
             }
         }
-        // getScrollBottom() no es el borde inferior visual en 1.20.1: devuelve
-        // una coordenada ligada al desplazamiento y puede ser negativa. Si un
-        // mapping externo rompe la reflexion, se omite la barra antes que
-        // dibujarla atravesando toda la pantalla.
         return resolverY0(lista);
     }
 
@@ -181,7 +182,6 @@ public final class ListasExpediente {
                         resultado.add(lista);
                     }
                 } catch (Throwable ignored) {
-                    // Una lista inaccesible se deja intacta.
                 }
             }
             tipo = tipo.getSuperclass();

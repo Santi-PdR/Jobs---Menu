@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 
 | | |
 |---|---|
-| Versión | **0.20.0** |
-| Artefacto | **`jobsmenu-0.20.0.jar`** |
+| Versión | **0.21.0** |
+| Artefacto | **`jobsmenu-0.21.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,25 +13,28 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 | Rama entregable | **`main`** |
 | Niveles | **18 (0–17)** |
 
-## 0.20.0 · Interfaz avanzada y cierre visual
+## 0.21.0 · Profesionalización transversal
 
-0.20.0 consolida los pases visuales iniciados en 0.19.0 y eleva las pantallas que todavía se sentían demasiado vanilla.
+0.21.0 mejora el sistema visual compartido en vez de sumar adornos aislados. El resultado se propaga al menú principal, Options, Config Jobs, Idioma, Controles, Piel, Sonido, Video vanilla, Chat, Accesibilidad, Online, Mouse, Teclas, Pausa y varias pantallas con listas compatibles.
 
 Cambios principales:
 
-- **Mundos** usa superficie de lista propia, scrollbar Jobs, búsqueda integrada y pie contextual.
-- **Multijugador** usa tablero central, tarjeta reforzada para el servidor oficial, estado visual de selección/protección y separación clara entre lista y acciones.
-- **Mods** deja de verse como Forge con un marco: catálogo y detalle tienen jerarquía propia, buscador integrado y scrollbar Jobs.
-- **Resource Packs** se presenta como doble archivador, conservando las dos listas reales de Minecraft.
-- **Idioma** es realmente responsive, diferencia hover/selección/idioma aplicado, muestra códigos como badges y expresa el cambio actual → pendiente antes de aplicar.
-- **Sonido** se presenta como expediente de mezcla con bandeja interior, raíles laterales y scrollbar Jobs.
-- **Video vanilla** se presenta como ficha de calibración con marco de visor, marcas de escala y scrollbar Jobs. Embeddium sigue conservando su propia pantalla cuando está presente.
-- **Pausa** gana mayor profundidad sobre el mundo real: oscurecido por capas, sombra de hoja, guías laterales y marcas de registro sin tapar el contexto del jugador.
-- Los widgets compartidos mantienen los 73 refinamientos visibles del pase anterior: foco, jerarquía, estados, profundidad, lectura y bajo consumo.
+- **Botones** con jerarquías NORMAL/PRINCIPAL/JOBS/TERMINAL más distintas, mejor foco, confirmación posterior al click, sombras y estados deshabilitados más legibles.
+- **Toggles** con transición ON/OFF, casilla física, cápsula de estado, rail inferior y foco de teclado reforzado.
+- **Sliders** con tirador interpolado, porcentaje en cápsula, escala mejorada, valores mínimo/máximo, mira de teclado y confirmación de cambio.
+- **Renglones principales** con placa de orden, banda de lectura, casilla más expresiva, indicador direccional y tratamiento terminal reforzado.
+- **Pulido global** con puntos de registro, rails, marcas laterales, mejor lectura de foco y aviso de cambio guardado con barra temporal.
+- **Transiciones** con más masa de expediente, lomo central, perforaciones, cola de sombra y variante mínima para movimiento reducido.
+- **Scrollbars Jobs** con nueve marcas, indicador de posición, tirador más físico y mejor jerarquía sin alterar rueda/click/drag reales.
+- **90 mejoras visibles/perceptibles** auditadas una por una en `docs/AUDITORIA_0.21.0_90_MEJORAS.md`.
+
+## Fondos 10–17
+
+Los PNG **no fueron reemplazados ni editados**. Se conserva únicamente la corrección de nitidez del pase anterior: filtrado lineal al escalarlos para evitar pixelado. Continúan estáticos y sin zoom, paneo, parallax, flicker, scanlines animadas o niebla móvil.
 
 ## Estado de prueba
 
-GitHub Actions certifica código, recursos, políticas, Java 17 y Forge build. **No sustituye una prueba visual dentro de Minecraft**. La última entrega debe probarse manualmente en `test-1` siguiendo `docs/checklist-manual.md`.
+GitHub Actions certifica código, recursos, políticas, Java 17 y Forge build. **No sustituye una prueba visual dentro de Minecraft**. La entrega debe probarse manualmente en `test-1` siguiendo `docs/checklist-manual.md` cuando sea posible.
 
 ## Reglas de interfaz
 
@@ -91,7 +94,7 @@ GitHub Actions ejecuta:
 4. auditoría estática;
 5. contratos UI/música;
 6. `./gradlew build --stacktrace --no-daemon`;
-7. publicación de **`jobsmenu-0.20.0.jar`** en `dev-latest` sólo desde `main`.
+7. publicación de **`jobsmenu-0.21.0.jar`** en `dev-latest` sólo desde `main`.
 
 La release rodante conserva un único JAR versionado. `jobsmenu-latest.jar` está prohibido.
 
@@ -106,7 +109,7 @@ La prueba normal no compila localmente. El PowerShell canónico de `docs/DESPLIE
 - [`CONTEXTO.md`](CONTEXTO.md): contrato maestro actual.
 - [`CHANGELOG.md`](CHANGELOG.md): cambios por versión.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y pruebas manuales pendientes.
-- [`docs/AUDITORIA_0.20.0.md`](docs/AUDITORIA_0.20.0.md): alcance y validación de esta entrega.
+- [`docs/AUDITORIA_0.21.0_90_MEJORAS.md`](docs/AUDITORIA_0.21.0_90_MEJORAS.md): 90 mejoras visibles/perceptibles de esta entrega.
 - [`docs/checklist-manual.md`](docs/checklist-manual.md): prueba dentro de Minecraft.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalación certificada en `test-1`.
 - [`docs/musica.md`](docs/musica.md): catálogo y lifecycle musical.

@@ -13,7 +13,7 @@ import net.minecraft.network.chat.Component;
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
 
-/** Slider administrativo con lectura de escala, valor y foco mas clara. */
+/** Slider administrativo con escala, lectura de valor y respuesta visual precisa. */
 public final class SliderExpediente extends AbstractSliderButton {
 
     private final int minimo;
@@ -22,7 +22,9 @@ public final class SliderExpediente extends AbstractSliderButton {
     private final IntFunction<Component> rotulo;
     private int ultimoAplicado;
     private long ultimoSonido;
+    private long cambioHasta;
     private float focoSuave;
+    private float valorVisual;
     private boolean hoverPrevio;
 
     public SliderExpediente(int x, int y, int ancho, int alto,
@@ -34,6 +36,7 @@ public final class SliderExpediente extends AbstractSliderButton {
         this.rotulo = rotulo;
         this.fijar = fijar;
         this.ultimoAplicado = valorEntero();
+        this.valorVisual = (float) this.value;
         updateMessage();
     }
 
@@ -57,6 +60,7 @@ public final class SliderExpediente extends AbstractSliderButton {
         if (valor == this.ultimoAplicado) return;
         this.ultimoAplicado = valor;
         if (this.fijar != null) this.fijar.accept(valor);
+        this.cambioHasta = System.currentTimeMillis() + 300L;
         PulidoInterfazJobs.confirmarCambio();
         long ahora = System.nanoTime();
         if (ahora - this.ultimoSonido > 110_000_000L) {
@@ -76,24 +80,68 @@ public final class SliderExpediente extends AbstractSliderButton {
         boolean foco = raton || teclado;
         if (foco && !this.hoverPrevio) MezclaAudio.gesto(SonidosNivel.UI_PASAR, 0.18F);
         this.hoverPrevio = foco;
+
         float destino = foco ? 1.0F : 0.0F;
-        if (ConfigTurno.movimientoReducido() || ConfigTurno.bajoConsumo()) this.focoSuave = destino;
-        else this.focoSuave += (destino - this.focoSuave) * 0.26F;
+        if (ConfigTurno.movimientoReducido() || ConfigTurno.bajoConsumo()) {
+            this.focoSuave = destino;
+            this.valorVisual = (float) this.value;
+        } else {
+            this.focoSuave += (destino - this.focoSuave) * 0.24F;
+            this.valorVisual += ((float) this.value - this.valorVisual) * 0.34F;
+        }
 
         int fondo = Paleta.mezclar(Paleta.papelAviso(), Paleta.UI_PAPEL_FOCO,
                 0.16F + 0.58F * this.focoSuave);
+        if (!this.active) fondo = Paleta.mezclar(Paleta.VANO, fondo, 0.20F);
         g.fill(x, y, x + w, y + h, fondo);
-        int borde = Paleta.conAlfa(Paleta.tintaSecundaria(), 0.40F + 0.34F * this.focoSuave);
+        int borde = Paleta.conAlfa(Paleta.tintaSecundaria(),
+                this.active ? 0.40F + 0.34F * this.focoSuave : 0.18F);
         marco(g, x, y, w, h, borde);
-        g.fill(x + 3, y + 3, x + w - 3, y + 4, Paleta.conAlfa(Paleta.UI_PAPEL_FOCO, 0.28F));
+        g.fill(x + 3, y + 3, x + w - 3, y + 4,
+                Paleta.conAlfa(Paleta.UI_PAPEL_FOCO, this.active ? 0.28F : 0.10F));
 
-        int margen = 9;
-        int barraY = y + h - 6;
+        if (w >= 96) {
+            int centro = x + w / 2;
+            g.fill(centro - 8, y + 1, centro + 8, y + 2,
+                    Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.08F + 0.08F * this.focoSuave));
+        }
+
+        Font font = Minecraft.getInstance().font;
+        String txt = getMessage().getString();
+        String porcentaje = Math.round(this.value * 100.0D) + "%";
+        int badgeW = w >= 118 ? Math.max(31, font.width(porcentaje) + 10) : 0;
+        int max = Math.max(8, w - 28 - badgeW);
+        if (font.width(txt) > max) {
+            txt = font.plainSubstrByWidth(txt, Math.max(0, max - font.width("..."))) + "...";
+        }
+        int tw = font.width(txt);
+        int textX = badgeW > 0 ? x + 9 : x + (w - tw) / 2;
+        int textY = y + 3;
+        g.drawString(font, txt, textX, textY,
+                this.active ? Paleta.tintaPrincipal() : Paleta.conAlfa(Paleta.tintaSecundaria(), 0.52F), false);
+
+        if (badgeW > 0) {
+            int bx = x + w - badgeW - 6;
+            int by = y + 3;
+            int bh = Math.min(11, h - 8);
+            g.fill(bx, by, bx + badgeW, by + bh,
+                    Paleta.conAlfa(Paleta.VANO, 0.07F + 0.05F * this.focoSuave));
+            g.fill(bx, by + bh - 1, bx + badgeW, by + bh,
+                    Paleta.conAlfa(Paleta.UI_ACENTO, 0.20F + 0.18F * this.focoSuave));
+            int pw = font.width(porcentaje);
+            g.drawString(font, porcentaje, bx + (badgeW - pw) / 2, by + 1,
+                    Paleta.conAlfa(Paleta.tintaPrincipal(), this.active ? 0.82F : 0.46F), false);
+        }
+
+        int margen = 10;
+        int barraY = y + h - 7;
         int barraX0 = x + margen;
         int barraX1 = x + w - margen;
         int largo = Math.max(1, barraX1 - barraX0);
+        g.fill(barraX0 - 1, barraY - 1, barraX1 + 1, barraY + 3,
+                Paleta.conAlfa(Paleta.VANO, 0.045F));
         g.fill(barraX0, barraY, barraX1, barraY + 1,
-                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.30F));
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.31F));
         g.fill(barraX0, barraY + 1, barraX1, barraY + 2,
                 Paleta.conAlfa(Paleta.VANO, 0.08F));
 
@@ -102,47 +150,82 @@ public final class SliderExpediente extends AbstractSliderButton {
             boolean mayor = i == 0 || i == 5 || i == 10;
             int th = mayor ? 4 : 2;
             g.fill(tx, barraY - th, tx + 1, barraY,
-                    Paleta.conAlfa(Paleta.tintaSecundaria(), mayor ? 0.44F : 0.20F));
+                    Paleta.conAlfa(Paleta.tintaSecundaria(), mayor ? 0.46F : 0.20F));
+            if (mayor && h >= 20) {
+                g.fill(tx - 1, barraY + 2, tx + 2, barraY + 3,
+                        Paleta.conAlfa(Paleta.tintaSecundaria(), 0.08F));
+            }
         }
 
-        int knob = barraX0 + (int) Math.round(largo * this.value);
+        int knobReal = barraX0 + (int) Math.round(largo * this.value);
+        int knob = barraX0 + Math.round(largo * this.valorVisual);
         g.fill(barraX0, barraY, knob, barraY + 2,
-                Paleta.conAlfa(Paleta.UI_ACENTO, 0.64F + 0.22F * this.focoSuave));
+                Paleta.conAlfa(Paleta.UI_ACENTO, this.active ? 0.66F + 0.20F * this.focoSuave : 0.24F));
         g.fill(barraX0, barraY - 1, knob, barraY,
-                Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.18F + 0.18F * this.focoSuave));
+                Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, this.active ? 0.18F + 0.18F * this.focoSuave : 0.08F));
 
-        int knobH = Math.min(10, h - 4);
+        if (Math.abs(knobReal - knob) >= 2 && this.active) {
+            g.fill(knobReal, barraY - 2, knobReal + 1, barraY + 3,
+                    Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.24F));
+        }
+
+        int knobH = Math.min(11, h - 4);
         int ky = barraY - knobH / 2;
+        g.fill(knob - 4, ky + 1, knob + 5, ky + knobH + 1,
+                Paleta.conAlfa(Paleta.VANO, 0.16F));
         g.fill(knob - 3, ky, knob + 4, ky + knobH,
-                Paleta.conAlfa(Paleta.tintaPrincipal(), 0.88F));
+                Paleta.conAlfa(Paleta.tintaPrincipal(), this.active ? 0.88F : 0.42F));
         g.fill(knob - 2, ky + 1, knob + 3, ky + knobH - 1,
-                Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.94F));
+                Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, this.active ? 0.94F : 0.38F));
         g.fill(knob, ky + 2, knob + 1, ky + knobH - 2,
                 Paleta.conAlfa(Paleta.tintaPrincipal(), 0.34F));
+        g.fill(knob - 1, ky + knobH / 2, knob + 2, ky + knobH / 2 + 1,
+                Paleta.conAlfa(Paleta.UI_PAPEL, 0.30F));
+
+        if (w >= 142) {
+            String minTxt = Integer.toString(this.minimo);
+            String maxTxt = Integer.toString(this.maximo);
+            g.drawString(font, minTxt, barraX0, barraY - 12,
+                    Paleta.conAlfa(Paleta.tintaSecundaria(), 0.34F), false);
+            int mw = font.width(maxTxt);
+            g.drawString(font, maxTxt, barraX1 - mw, barraY - 12,
+                    Paleta.conAlfa(Paleta.tintaSecundaria(), 0.34F), false);
+        }
 
         if (foco) {
             int c = Paleta.conAlfa(teclado ? Paleta.UI_ACENTO_FUERTE : Paleta.UI_ACENTO,
-                    teclado ? 0.82F : 0.60F);
+                    teclado ? 0.86F : 0.62F);
             g.fill(x + 3, y + 3, x + 4, y + h - 3, c);
             g.fill(x + w - 4, y + 3, x + w - 3, y + h - 3,
-                    Paleta.conAlfa(c, teclado ? 0.70F : 0.34F));
+                    Paleta.conAlfa(teclado ? Paleta.UI_ACENTO_FUERTE : Paleta.UI_ACENTO,
+                            teclado ? 0.72F : 0.34F));
             int guia = barraX0 + Math.max(1, Math.round(largo * this.focoSuave));
             g.fill(barraX0, y + h - 2, guia, y + h - 1,
-                    Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.22F));
+                    Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.24F));
+            if (teclado) {
+                g.fill(knobReal - 5, ky - 2, knobReal + 6, ky - 1,
+                        Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.48F));
+                g.fill(knobReal, ky - 4, knobReal + 1, ky - 1,
+                        Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.36F));
+            }
         }
 
-        Font font = Minecraft.getInstance().font;
-        String txt = getMessage().getString();
-        int max = Math.max(8, w - 34);
-        if (font.width(txt) > max) txt = font.plainSubstrByWidth(txt, Math.max(0, max - font.width("..."))) + "...";
-        int tw = font.width(txt);
-        g.drawString(font, txt, x + (w - tw) / 2, y + 3, Paleta.tintaPrincipal(), false);
+        long restante = this.cambioHasta - System.currentTimeMillis();
+        if (restante > 0L && this.active) {
+            float a = Math.max(0.0F, Math.min(1.0F, restante / 300.0F));
+            int cx = x + w / 2;
+            int span = Math.max(5, Math.round((w - 20) * (1.0F - a)));
+            g.fill(Math.max(x + 10, cx - span / 2), y + h - 3,
+                    Math.min(x + w - 10, cx + span / 2), y + h - 2,
+                    Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.48F * a));
+        }
 
-        String porcentaje = Math.round(this.value * 100.0D) + "%";
-        int pw = font.width(porcentaje);
-        if (w >= 110) {
-            g.drawString(font, porcentaje, x + w - pw - 7, y + 3,
-                    Paleta.conAlfa(Paleta.tintaSecundaria(), 0.54F), false);
+        if (!this.active) {
+            int cy = y + h / 2;
+            g.fill(x + 5, cy, x + 9, cy + 1,
+                    Paleta.conAlfa(Paleta.tintaSecundaria(), 0.28F));
+            g.fill(x + w - 9, cy, x + w - 5, cy + 1,
+                    Paleta.conAlfa(Paleta.tintaSecundaria(), 0.18F));
         }
     }
 
