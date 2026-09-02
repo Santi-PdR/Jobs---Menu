@@ -129,7 +129,7 @@ jobs:
           artifactErrorsFailBuild: true
           artifacts: ${{ env.MOD_JAR }}
       - name: Delete merged feature branch
-        if: github.ref == 'refs/heads/arena/20260901-ui-session-0162' && success()
+        if: (github.ref == 'refs/heads/arena/20260901-ui-session-0162' || (github.event_name == 'pull_request' && github.head_ref == 'arena/20260901-ui-session-0162')) && success()
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
