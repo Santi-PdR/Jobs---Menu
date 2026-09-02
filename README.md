@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 
 | | |
 |---|---|
-| Versión | **0.17.0** |
-| Artefacto | **`jobsmenu-0.17.0.jar`** |
+| Versión | **0.18.0** |
+| Artefacto | **`jobsmenu-0.18.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,24 +13,21 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 | Rama entregable | **`main`** |
 | Niveles | **18 (0–17)** |
 
-## 0.17.0 · Interfaz neutra + reproductor musical de sesión
+## 0.18.0 · Pase profesional + integración de música por una sola subida
 
-Este pase separa por fin dos cosas que antes compartían colores por accidente: **la escena** y **la interfaz**.
+Este pase profundiza la presentación sin cambiar la identidad del mod.
 
-La pared, el fluorescente y los materiales del Nivel pueden seguir siendo amarillos cuando el arte del recinto lo pide. Los widgets, archivos, cabeceras, foco de teclado, sliders, toggles, campos de texto y transiciones usan ahora una familia propia de papel frío, grafito y gris verdoso. Mundos, Multiplayer, Mods y Resource Packs mantienen su variante oscura sin heredar `PARED`, `PARED_ALTA` ni `FLUOR`.
+La interfaz compartida recibe microinteracciones más finas: foco de teclado con respiración mínima, hover como marca de lectura, entrada de pantallas con curva más suave y confirmaciones que aparecen/desaparecen progresivamente. Movimiento reducido y bajo consumo anulan cualquier animación decorativa adicional.
 
-También se rehace el sistema musical como un reproductor ligado a la visita completa del menú:
+Las transiciones entre pantallas se vuelven más sobrias: menos velo, menos sombra, ancho controlado y papel frío/gris. La intención es que parezcan carpetas/expedientes que se reemplazan, no un wipe genérico de videojuego.
 
-- **Absurdism** queda identificada como la pista incluida actualmente;
-- fade-in desde silencio;
-- fade-out para retirar pistas dentro del menú;
-- infraestructura de crossfade para dos o más pistas;
-- ducking durante cambios de Nivel, La Suspensión y presencia de fondo;
-- continuidad al navegar por Opciones/Mods/Recursos;
-- recuperación tras recarga del motor de sonido;
-- corte inmediato al entrar en gameplay, sin cola audible dentro de mundos o servidores.
+También se simplifica por completo el flujo de la próxima pista. Ya no se descarga audio desde una fuente externa ni se reconstruyen scripts temporales. Cuando quieras añadir la nueva canción, sólo hay que subir:
 
-La segunda pista solicitada mediante `https://www.youtube.com/watch?v=t9KaSaGEwvI` queda registrada en la documentación como **pendiente de archivo OGG autorizado**. El proyecto no descarga ni redistribuye audio desde YouTube y no inventa título/autor/licencia.
+`music/menu_nueva.ogg`
+
+El workflow `Integrar OGG subido` valida que sea Vorbis real, normaliza loudness/true peak, genera el recurso final, registra la segunda pista, activa el catálogo de dos temas, ejecuta verificaciones y compila con Java 17. Si algo falla, no publica la integración.
+
+El identificador interno preparado para la pista es `upon_the_hill_v2` y el recurso final será `assets/jobsmenu/sounds/musica/tema_nuevo.ogg`.
 
 ## Interfaz
 
@@ -70,7 +67,7 @@ Al salir de un mundo, servidor, kick o desconexión, el flujo vuelve a `Pantalla
 - La música Jobs usa Maestro + volumen Jobs; no depende del slider Música vanilla.
 - Los PNG 10–17 permanecen **estáticos** por requisito del proyecto; los apagones/transiciones generales sí continúan.
 
-Detalles: [`docs/musica.md`](docs/musica.md).
+Detalles: [`docs/musica.md`](docs/musica.md) y [`music/LEEME.txt`](music/LEEME.txt).
 
 ## Compatibilidad
 
@@ -86,9 +83,9 @@ GitHub Actions es la certificación de la entrega. El pipeline ejecuta:
 2. política de versión y JAR versionado;
 3. validación de PNG 10–17;
 4. auditoría estática general;
-5. contratos 0.17 de UI neutra + música;
+5. contratos de UI neutra + música;
 6. `./gradlew build --stacktrace --no-daemon`;
-7. publicación de **`jobsmenu-0.17.0.jar`** en `dev-latest` sólo desde `main`.
+7. publicación de **`jobsmenu-0.18.0.jar`** en `dev-latest` sólo desde `main`.
 
 La release rodante debe conservar un único JAR versionado. `jobsmenu-latest.jar` está prohibido.
 
@@ -101,7 +98,7 @@ El flujo previsto no requiere compilar en el PC de juego: el PowerShell de despl
 - [`CONTEXTO.md`](CONTEXTO.md): contrato maestro actual.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos/pruebas que siguen requiriendo Minecraft real.
 - [`CHANGELOG.md`](CHANGELOG.md): historial de versiones anteriores.
-- [`docs/AUDITORIA_0.17.0_UI_MUSICA.md`](docs/AUDITORIA_0.17.0_UI_MUSICA.md): auditoría de este pase.
+- [`docs/AUDITORIA_0.18.0_PROFESIONAL.md`](docs/AUDITORIA_0.18.0_PROFESIONAL.md): auditoría de este pase.
 - [`docs/musica.md`](docs/musica.md): catálogo y lifecycle musical.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalación del build.
 - [`docs/compatibilidad.md`](docs/compatibilidad.md): convivencia con otros mods.
