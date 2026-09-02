@@ -8,8 +8,8 @@ Documento maestro del estado **vigente** del mod. El historial de implementacion
 | Rama de entrega | `main` |
 | Mod id | `jobsmenu` |
 | Nombre visible | Jobs · Aviso a los ocupantes |
-| Versión actual | **0.16.1** |
-| Artefacto esperado | **`jobsmenu-0.16.1.jar`** |
+| Versión actual | **0.16.2** |
+| Artefacto esperado | **`jobsmenu-0.16.2.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -62,11 +62,11 @@ Todos comparten rotación de Nivel, apagón, música, camas ambientales, avisos,
 
 Sobre niveles 10–17 no se ejecutan las capas animadas de materiales, dirección artística, tratamiento, presencia, motas, eventos ni pulido de cámara. Los apagones y transiciones entre Niveles se conservan porque pertenecen al estado general del menú, no a la animación de la imagen.
 
-## 4. Interfaz 0.16.1
+## 4. Interfaz 0.16.2
 
-0.16.1 es el pase de corrección basado en capturas de aceptación: Idioma registra la lista como renderizable; las pantallas vanilla conservadas borran sus cabeceras de forma opaca antes de dibujar Jobs; las fuentes de archivos oscuros usan tinta cálida; Ajustes separa pestañas, sección e indicador; y se eliminan los nombres históricos del pack musical redundante.
+0.16.2 reemplaza el amarillo global por una paleta neutra, eleva las cabeceras custom sobre el plano de texto vanilla, centra el buscador de Idioma sin sombra y elimina los rótulos residuales de Options. El blanco fijo de Forge/Minecraft se atenúa con gris neutro, nunca con sepia.
 
-El servidor oficial `JobsDosh.exaroton.me:56477` queda traducido, fijado, primero en la lista y protegido frente a edición o borrado. Los recursos audiovisuales propios forman parte del mod y no se presentan como un paquete seleccionable redundante.
+El servidor oficial `JobsDosh.exaroton.me:56477` queda traducido, fijado, primero, deduplicado y protegido frente a edición o borrado. El acceso legado `Ghoul Outbreak` se elimina. Al entrar en cualquier mundo o servidor se corta inmediatamente el audio de menú; al salir se recupera `PantallaNivel`, no el título vanilla.
 
 La lista completa y verificable está en `docs/AUDITORIA_0.16.0_64_MEJORAS.md`.
 
@@ -186,7 +186,7 @@ El pase 0.15.0 corrige específicamente problemas que una compilación estática
 - Multijugador se titula **Puestos de acceso** y fija `JobsDosh.exaroton.me:56477` como **Servidor oficial de Jobs** / **Jobs Official Server** en el primer renglón;
 - Español (Uruguay), Argentina, Chile, Ecuador, México y Venezuela reutilizan el catálogo `es_es` para no mezclar inglés con español;
 - `PantallaMundosJobs` conserva `SelectWorldScreen`, mueve el buscador y presenta **Archivo de turnos** sin hoja gigante;
-- `PantallaModsJobs` conserva Forge Mods y tiñe el blanco duro hacia tinta sepia;
+- `PantallaModsJobs` conserva Forge Mods y atenúa el blanco duro con gris neutro;
 - Resource Packs usa archivo oscuro sin alterar sus dos listas;
 - Idioma se renderiza una sola vez y su scrollbar usa los límites reales `y0/y1`;
 - Sonido, Video, Chat, Accesibilidad, Online, Mouse y Teclas adoptan geometría compacta compartida;
@@ -271,12 +271,13 @@ Además del CI:
 
 ## 9. Documentación vigente
 
-- `README.md`: resumen de 0.16.1.
+- `README.md`: resumen de 0.16.2.
 - `CHANGELOG.md`: historial.
 - `KNOWN_ISSUES.md`: pruebas/riesgos pendientes.
 - `docs/AUDITORIA_0.15.0_UI_POLISH.md`: auditoría del pase compacto y de archivos.
 - `docs/AUDITORIA_0.16.0_64_MEJORAS.md`: inventario del pase profesional.
 - `docs/AUDITORIA_0.16.1_CAPTURAS.md`: correcciones verificadas contra capturas reales.
+- `docs/AUDITORIA_0.16.2_SESION_UI.md`: contratos actuales de paleta, títulos, retorno y audio.
 - `docs/AUDITORIA_0.14.0_UI.md`: arquitectura previa conservada como registro.
 - `docs/DESPLIEGUE.md`: instalación.
 - `docs/compatibilidad.md`: convivencia con otros mods.

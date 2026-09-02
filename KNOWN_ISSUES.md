@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.16.1
+# Riesgos y pruebas pendientes — 0.16.2
 
 Este documento contiene únicamente riesgos vigentes. Los incidentes históricos quedan en `CHANGELOG.md` y las auditorías de `docs/`.
 
@@ -11,7 +11,7 @@ Antes de publicar una entrega, GitHub Actions comprueba:
 - integridad PNG/CRC/IDAT de fondos 10–17;
 - recursos, idiomas, ASCII Java y coherencia estática;
 - build Forge 1.20.1;
-- creación de `jobsmenu-0.16.1.jar`;
+- creación de `jobsmenu-0.16.2.jar`;
 - publicación en `dev-latest` únicamente desde `main`.
 
 Un build que no termina en verde no debe actualizar la release.
@@ -37,11 +37,15 @@ Un build que no termina en verde no debe actualizar la release.
 17. **Transición entre PNG.** El apagón/cambio de Nivel puede existir; una vez estabilizado, el PNG vuelve a estar completamente inmóvil.
 18. **Los 18 niveles.** Recorrer 0–17 verificando continuidad de escena/audio al navegar por interfaces.
 19. **Audio/lifecycle.** Abrir muchas pantallas, Alt+Tab, F3+T, cambiar idioma, entrar a mundo y volver sin loops duplicados ni sonidos huérfanos.
-20. **Entrega.** En `test-1\mods` debe quedar un único `jobsmenu-0.16.1.jar`.
+20. **Entrega.** En `test-1\mods` debe quedar un único `jobsmenu-0.16.2.jar`.
 21. **Español (Uruguay).** Seleccionar `Español (Uruguay)` y comprobar que Jobs no mezcla `Close file`, `Notice settings` u otras cadenas inglesas.
 22. **Seleccionar mundo.** Previews, selección, crear/editar/borrar/recrear y volver deben conservar lógica vanilla mientras el marco permanece Jobs.
 23. **Mods / Forge.** Búsqueda, orden A–Z/Z–A, selección, Config, panel de información y abrir carpeta deben seguir funcionando dentro del chrome Jobs.
 24. **Resource Packs.** No debe quedar un bloque aislado de dirt/bandas vanilla; selección, orden, aplicar y abrir carpeta deben conservarse.
+25. **Retorno de juego.** Salir de mundo local, servidor, kick o pausa vanilla/custom debe volver a `PantallaNivel`, nunca al título vanilla.
+26. **Corte de audio.** Desde el primer tick con mundo/conexión activa no puede oírse música ni ambiente del menú.
+27. **Servidor oficial.** Debe existir una sola entrada para `JobsDosh.exaroton.me:56477`; `Ghoul Outbreak` no puede reaparecer.
+28. **Paleta.** Mundos, Multiplayer, Mods y Recursos no pueden usar filtro amarillo ni texto blanco puro; previews e iconos conservan matiz neutro.
 
 ## Riesgos conocidos
 

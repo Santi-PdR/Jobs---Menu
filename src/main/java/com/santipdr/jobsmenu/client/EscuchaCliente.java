@@ -28,6 +28,7 @@ import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.client.gui.ModListScreen;
 import net.minecraftforge.event.TickEvent;
@@ -43,6 +44,7 @@ public final class EscuchaCliente {
     }
 
     private static boolean presentado;
+    private static boolean retornoDesdeJuego;
 
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void alAbrirPantalla(ScreenEvent.Opening evento) {
@@ -51,18 +53,23 @@ public final class EscuchaCliente {
 
         ConfigTurno.guardarPendiente();
 
-        boolean salidaAlTitulo = siguiente != null
-                && siguiente.getClass() == TitleScreen.class
-                && SesionMenu.consumirSalidaAlTitulo();
+        boolean destinoRetorno = siguiente != null && (
+                siguiente.getClass() == TitleScreen.class
+                        || siguiente instanceof JoinMultiplayerScreen
+                        || siguiente.getClass().getName().equals(
+                                "net.minecraft.client.gui.screens.realms.RealmsMainScreen"));
         boolean flujoAdministrativo = SesionMenu.activa()
                 || anterior instanceof PantallaNivel
                 || anterior instanceof PantallaEstancia
                 || anterior instanceof PantallaOpcionesJobs;
 
-        if (ConfigTurno.menuPropio()
+        if (ConfigTurno.menuPropio() && retornoDesdeJuego && destinoRetorno) {
+            retornoDesdeJuego = false;
+            siguiente = new PantallaNivel();
+            evento.setNewScreen(siguiente);
+        } else if (ConfigTurno.menuPropio()
                 && siguiente != null
                 && siguiente.getClass() == TitleScreen.class
-                && !salidaAlTitulo
                 && !(siguiente instanceof PantallaNivel)) {
             LimpiezaRecursosLegados.ejecutar();
             siguiente = new PantallaNivel();
@@ -89,8 +96,9 @@ public final class EscuchaCliente {
         }
 
         if (siguiente instanceof PantallaNivel) {
+            retornoDesdeJuego = false;
             SesionMenu.abrir();
-        } else if (salidaAlTitulo || siguiente == null || !ConfigTurno.menuPropio()) {
+        } else if (siguiente == null || !ConfigTurno.menuPropio()) {
             SesionMenu.cerrar();
         }
 
@@ -133,6 +141,18 @@ public final class EscuchaCliente {
     @SubscribeEvent
     public static void alCerrarPantalla(ScreenEvent.Closing evento) {
         ConfigTurno.guardarPendiente();
+    }
+
+    @SubscribeEvent
+    public static void alEntrarJuego(ClientPlayerNetworkEvent.LoggingIn evento) {
+        retornoDesdeJuego = false;
+        SesionMenu.cerrar();
+    }
+
+    @SubscribeEvent
+    public static void alSalirJuego(ClientPlayerNetworkEvent.LoggingOut evento) {
+        retornoDesdeJuego = true;
+        SesionMenu.cerrar();
     }
 
     @SubscribeEvent

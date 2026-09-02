@@ -5,8 +5,8 @@ import com.santipdr.jobsmenu.config.ConfigTurno;
 /**
  * Paleta unica del mod. Colores en ARGB con alfa explicito.
  *
- * El menu es luminoso a proposito: el terror de este servidor no es la
- * oscuridad, es el amarillo que nunca se apaga. Reglas de la paleta:
+ * Paleta del recinto y del expediente. Los colores ambientales pertenecen a
+ * la escena; las vistas de archivo usan constantes neutras independientes.
  *
  *  - El rojo pertenece solo a los Executores. Nada mas puede usarlo.
  *  - La unica fuente de luz es el fluorescente del techo.
@@ -52,6 +52,15 @@ public final class Paleta {
 
     /** El vano que da al nivel siguiente. Nunca se aclara. */
     public static final int VANO = 0xFF0D0B07;
+
+    /** Archivo oscuro: acento gris verdoso, nunca amarillo ni blanco puro. */
+    public static final int ARCHIVO_ACENTO = 0xFFB2BBB5;
+
+    /** Texto principal de archivo oscuro. */
+    public static final int ARCHIVO_TEXTO = 0xFFD0D5D1;
+
+    /** Texto secundario de archivo oscuro. */
+    public static final int ARCHIVO_TEXTO_TENUE = 0xFF8D9791;
 
     /** Executores. Exclusivo. */
     public static final int ALERTA = 0xFF8E1B12;

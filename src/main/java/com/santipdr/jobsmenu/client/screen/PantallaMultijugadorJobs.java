@@ -16,6 +16,8 @@ import net.minecraft.client.multiplayer.ServerList;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.Locale;
+
 /**
  * Multijugador de Jobs. La lista, ping, LAN, MOTD y acciones siguen siendo las
  * de Minecraft; solo se cambia el marco y la superficie de interaccion.
@@ -65,12 +67,29 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         crearBotones();
     }
 
-    /** Mantiene el acceso oficial guardado, traducido y en el primer renglon. */
+    /** Mantiene Jobs como unico acceso instalado por el mod y elimina el legado Ghoul. */
     private void asegurarServidorOficial() {
         ServerList servidores = this.getServers();
         if (servidores == null) return;
 
         String nombre = Component.translatable("jobsmenu.servidor.oficial").getString();
+        boolean oficialConservado = false;
+        for (int i = servidores.size() - 1; i >= 0; i--) {
+            ServerData dato = servidores.get(i);
+            String nombreGuardado = dato.name == null ? "" : dato.name.toLowerCase(Locale.ROOT);
+            boolean oficial = SERVIDOR_IP.equalsIgnoreCase(dato.ip);
+            boolean ghoulLegado = nombreGuardado.contains("ghoul outbreak");
+            boolean jobsFalso = !oficial
+                    && (nombreGuardado.equals("jobs official server")
+                    || nombreGuardado.equals("servidor oficial de jobs"));
+            if (oficial && !oficialConservado) {
+                dato.name = nombre;
+                oficialConservado = true;
+            } else if (oficial || ghoulLegado || jobsFalso) {
+                servidores.remove(dato);
+            }
+        }
+
         int indice = -1;
         for (int i = 0; i < servidores.size(); i++) {
             ServerData dato = servidores.get(i);
@@ -177,7 +196,7 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         sincronizarEstados();
-        RenderSystem.setShaderColor(0.72F, 0.67F, 0.52F, 1.0F);
+        RenderSystem.setShaderColor(0.72F, 0.72F, 0.72F, 1.0F);
         super.render(g, mouseX, mouseY, partialTick);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
@@ -192,22 +211,22 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         int tarjetaY = panelY + 47;
         int tarjetaW = panelW - 40;
         g.fill(tarjetaX, tarjetaY, tarjetaX + tarjetaW, tarjetaY + 18,
-                Paleta.conAlfa(Paleta.PARED, 0.12F));
+                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.12F));
         g.fill(tarjetaX, tarjetaY, tarjetaX + 3, tarjetaY + 18,
-                Paleta.conAlfa(Paleta.PARED_ALTA, 0.72F));
+                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.72F));
         Component oficial = Component.translatable("jobsmenu.servidor.oficial");
         g.drawString(this.font, oficial, tarjetaX + 9, tarjetaY + 5,
-                Paleta.conAlfa(Paleta.FLUOR, 0.90F), false);
+                Paleta.conAlfa(Paleta.ARCHIVO_TEXTO, 0.88F), false);
         Component fijado = Component.translatable("jobsmenu.servidor.fijado");
         int fw = this.font.width(fijado);
         if (tarjetaW > 250) {
             g.drawString(this.font, fijado, tarjetaX + tarjetaW / 2 - fw / 2, tarjetaY + 5,
-                    Paleta.conAlfa(Paleta.PARED_ALTA, 0.78F), false);
+                    Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.78F), false);
         }
         int ipW = this.font.width(SERVIDOR_IP);
         if (ipW < tarjetaW / 2) {
             g.drawString(this.font, SERVIDOR_IP, tarjetaX + tarjetaW - ipW - 8, tarjetaY + 5,
-                    Paleta.conAlfa(Paleta.TECHO, 0.62F), false);
+                    Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.72F), false);
         }
     }
 

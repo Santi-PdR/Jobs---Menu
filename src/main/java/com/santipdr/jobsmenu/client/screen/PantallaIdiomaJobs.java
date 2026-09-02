@@ -9,6 +9,7 @@ import com.santipdr.jobsmenu.client.ui.ToggleExpediente;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.components.EditBox;
@@ -29,7 +30,7 @@ public final class PantallaIdiomaJobs extends Screen {
     private final LanguageManager idiomas;
     private ListaIdiomas lista;
     private ToggleExpediente unicode;
-    private EditBox busqueda;
+    private CampoBusquedaCentrado busqueda;
     private String aplicado;
     private String pendiente;
     private int panelX, panelY, panelW, panelH;
@@ -54,13 +55,8 @@ public final class PantallaIdiomaJobs extends Screen {
         int listX = panelX + 20;
         int listW = panelW - 40;
         int searchY = panelY + 48;
-        this.busqueda = new EditBox(this.font, listX, searchY, listW, 18,
+        this.busqueda = new CampoBusquedaCentrado(this.font, listX, searchY, listW, 18,
                 Component.translatable("jobsmenu.interfaz.idioma.buscar"));
-        this.busqueda.setBordered(false);
-        this.busqueda.setTextColor(Paleta.tintaPrincipal());
-        this.busqueda.setTextColorUneditable(Paleta.tintaSecundaria());
-        this.busqueda.setHint(Component.translatable("jobsmenu.interfaz.idioma.buscar")
-                .withStyle(s -> s.withColor(Paleta.tintaSecundaria())));
         this.busqueda.setResponder(s -> {
             if (this.lista != null) this.lista.recargar(s);
         });
@@ -110,14 +106,6 @@ public final class PantallaIdiomaJobs extends Screen {
         ChromeExpediente.cabecera(g, this.font, this.title,
                 Component.translatable("jobsmenu.interfaz.idioma.subtitulo"), panelX, panelY, panelW);
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
-        int sx = this.busqueda.getX();
-        int sy = this.busqueda.getY();
-        int sw = this.busqueda.getWidth();
-        int sh = this.busqueda.getHeight();
-        g.fill(sx - 1, sy - 1, sx + sw + 1, sy + sh + 1,
-                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.42F));
-        g.fill(sx, sy, sx + sw, sy + sh,
-                Paleta.mezclar(Paleta.papelAviso(), Paleta.PARED_ALTA, 0.06F));
         super.render(g, mouseX, mouseY, partialTick);
 
         if (this.aplicando) {
@@ -162,6 +150,55 @@ public final class PantallaIdiomaJobs extends Screen {
 
     @Override
     public void renderBackground(GuiGraphics g) {
+    }
+
+    /**
+     * Campo de filtro sin sombra ni texto duplicado. EditBox conserva entrada,
+     * foco, portapapeles y narracion; solo reemplazamos su dibujo para centrarlo.
+     */
+    private static final class CampoBusquedaCentrado extends EditBox {
+        private final Font fuente;
+        private final Component pista;
+
+        CampoBusquedaCentrado(Font fuente, int x, int y, int ancho, int alto, Component pista) {
+            super(fuente, x, y, ancho, alto, pista);
+            this.fuente = fuente;
+            this.pista = pista;
+            this.setBordered(false);
+            this.setHint(Component.empty());
+        }
+
+        @Override
+        public void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+            int x = this.getX();
+            int y = this.getY();
+            int w = this.getWidth();
+            int h = this.getHeight();
+            int borde = Paleta.conAlfa(Paleta.tintaSecundaria(), this.isFocused() ? 0.68F : 0.38F);
+            g.fill(x - 1, y - 1, x + w + 1, y + h + 1, borde);
+            g.fill(x, y, x + w, y + h,
+                    Paleta.mezclar(Paleta.papelAviso(), Paleta.PARED_ALTA, 0.035F));
+
+            boolean vacio = this.getValue().isEmpty();
+            String texto = vacio ? this.pista.getString() : this.getValue();
+            int max = Math.max(8, w - 18);
+            if (this.fuente.width(texto) > max) {
+                texto = this.fuente.plainSubstrByWidth(texto, max);
+            }
+            int tw = this.fuente.width(texto);
+            int tx = x + Math.max(8, (w - tw) / 2);
+            int ty = y + (h - this.fuente.lineHeight) / 2;
+            int color = vacio
+                    ? Paleta.conAlfa(Paleta.tintaSecundaria(), 0.70F)
+                    : Paleta.tintaSecundaria();
+            g.drawString(this.fuente, texto, tx, ty, color, false);
+
+            if (!vacio && this.isFocused() && (System.currentTimeMillis() / 500L) % 2L == 0L) {
+                int cx = Math.min(x + w - 7, tx + tw + 1);
+                g.fill(cx, ty - 1, cx + 1, ty + this.fuente.lineHeight + 1,
+                        Paleta.conAlfa(Paleta.tintaPrincipal(), 0.72F));
+            }
+        }
     }
 
     private final class ListaIdiomas extends ObjectSelectionList<EntradaIdioma> {

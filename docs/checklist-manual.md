@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.16.1
+# Checklist manual de aceptación — 0.16.2
 
 Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código/recursos/build; no certifica estética, hitboxes, audio ni compatibilidad visual.
 
@@ -6,7 +6,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.16.1.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.16.2.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Título y pausa
@@ -166,6 +166,8 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 - [ ] Los estados activos de botones Jobs coinciden con las acciones reales.
 - [ ] La cabecera **Puestos de acceso** no se solapa con la lista.
 - [ ] `JobsDosh.exaroton.me:56477` aparece primero como servidor oficial en el idioma seleccionado.
+- [ ] Existe una sola entrada con esa IP, incluso si `servers.dat` tenía duplicados.
+- [ ] `Ghoul Outbreak` se elimina y no reaparece al reabrir Multiplayer.
 - [ ] Con el servidor oficial seleccionado, Edit/Delete quedan desactivados y Seleccionar sigue funcionando.
 
 ## Seleccionar mundo
@@ -177,6 +179,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 - [ ] Cancelar vuelve al padre correcto.
 - [ ] No aparece una banda central de dirt que rompa el chrome Jobs.
 - [ ] El título visible es **Archivo de turnos** / **Shift archive** y el buscador conserva su hitbox.
+- [ ] No queda ningún glifo del título vanilla detrás o encima de la cabecera Jobs.
 
 ## Mods / Forge
 
@@ -186,7 +189,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 - [ ] Config sólo se activa cuando el mod seleccionado expone configuración.
 - [ ] Open mods folder conserva la acción real.
 - [ ] Logos y panel de información siguen renderizando.
-- [ ] El texto de Forge se ve en tinta sepia, no blanco puro.
+- [ ] El texto de Forge se ve gris neutro, sin blanco puro ni filtro amarillo.
 - [ ] El marco Jobs no tapa el contenido de Forge.
 
 ## Layout y escalado
@@ -233,7 +236,8 @@ En todos:
 - [ ] Transición entre expedientes se percibe como papel/carpeta, no wipe digital genérico.
 - [ ] Movimiento reducido la convierte en fade breve.
 - [ ] Abrir interfaces no reinicia Nivel, música ni camas ambientales.
-- [ ] Entrar a un mundo detiene el ambiente del menú.
+- [ ] Entrar a un mundo o servidor corta música y ambiente del menú inmediatamente.
+- [ ] Salir de mundo local, servidor o kick vuelve al menú Jobs, no al título vanilla.
 - [ ] Alt+Tab, F3+T y recargas no duplican audio.
 - [ ] La Suspensión no rompe una pantalla hija y recupera el estado correctamente.
 
@@ -243,8 +247,8 @@ En todos:
 - [ ] `tools/verificar_fondos.py` sin fallos.
 - [ ] `tools/verificar.py` sin fallos ni avisos nuevos.
 - [ ] GitHub Actions compila con Java 17.
-- [ ] Artefacto exacto: `jobsmenu-0.16.1.jar`.
-- [ ] PR 0.16.1 verde antes de mergear.
+- [ ] Artefacto exacto: `jobsmenu-0.16.2.jar`.
+- [ ] PR 0.16.2 verde antes de mergear.
 - [ ] `main` verde después del merge.
 - [ ] `dev-latest` contiene únicamente el JAR versionado actual.
 - [ ] El PowerShell se pasa sólo después de completar los puntos anteriores.

@@ -32,8 +32,8 @@ public final class PantallaModsJobs extends ModListScreen {
         for (var child : this.children()) {
             if (child instanceof EditBox campo) {
                 this.busqueda = campo;
-                campo.setTextColor(com.santipdr.jobsmenu.client.ui.Paleta.PARED_ALTA);
-                campo.setTextColorUneditable(com.santipdr.jobsmenu.client.ui.Paleta.PARED);
+                campo.setTextColor(com.santipdr.jobsmenu.client.ui.Paleta.ARCHIVO_TEXTO);
+                campo.setTextColorUneditable(com.santipdr.jobsmenu.client.ui.Paleta.ARCHIVO_TEXTO_TENUE);
             }
         }
     }
@@ -48,12 +48,18 @@ public final class PantallaModsJobs extends ModListScreen {
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         renderBackground(g);
-        // Forge fija blanco puro para toda la lista y el panel de informacion.
-        // El tinte global lo convierte en tinta sepia sin tocar hitboxes,
-        // enlaces, logos, busqueda ni compatibilidad con pantallas de Config.
-        RenderSystem.setShaderColor(0.70F, 0.65F, 0.50F, 1.0F);
+        // Forge fija blanco puro en la lista y el panel de informacion. Un
+        // matiz gris neutro reduce la saturacion sin amarillear logos o textos.
+        RenderSystem.setShaderColor(0.72F, 0.72F, 0.72F, 1.0F);
         super.render(g, mouseX, mouseY, partialTick);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        // El titulo de Forge no se puede ocultar desde su constructor. Se tapa
+        // al frente, sin agregar otro titulo que invada el panel de detalles.
+        g.pose().pushPose();
+        g.pose().translate(0.0F, 0.0F, 450.0F);
+        g.fill(this.width / 2 - 96, PANEL_Y, this.width / 2 + 96, PANEL_Y + 20,
+                com.santipdr.jobsmenu.client.ui.Paleta.VANO);
+        g.pose().popPose();
         if (this.busqueda != null) {
             int x = this.busqueda.getX();
             int y = this.busqueda.getY();
@@ -62,7 +68,7 @@ public final class PantallaModsJobs extends ModListScreen {
                     com.santipdr.jobsmenu.client.ui.Paleta.VANO);
             Component rotulo = Component.translatable("jobsmenu.interfaz.mods.buscar");
             g.drawString(this.font, rotulo, x + (w - this.font.width(rotulo)) / 2, y - 10,
-                    com.santipdr.jobsmenu.client.ui.Paleta.PARED, false);
+                    com.santipdr.jobsmenu.client.ui.Paleta.ARCHIVO_TEXTO_TENUE, false);
         }
     }
 }
