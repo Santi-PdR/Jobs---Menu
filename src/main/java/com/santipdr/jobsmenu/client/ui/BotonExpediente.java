@@ -12,7 +12,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 
-/** Boton Jobs con jerarquia fisica, foco inequívoco y respuesta contenida. */
+/** Boton Jobs con jerarquia fisica, foco inequivoco y respuesta contenida. */
 public class BotonExpediente extends AbstractButton {
 
     public enum Tipo { NORMAL, PRINCIPAL, JOBS, TERMINAL }
