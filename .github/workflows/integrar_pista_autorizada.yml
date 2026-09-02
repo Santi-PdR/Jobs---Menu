@@ -1,0 +1,123 @@
+name: Integrar pista autorizada
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - tools/integrar_pista.trigger
+
+concurrency:
+  group: jobsmenu-integrar-pista
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  integrar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout completo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Python 3
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Instalar descargador
+        run: python -m pip install --disable-pip-version-check --no-cache-dir --upgrade yt-dlp
+
+      - name: Preparar integrador temporal
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64, gzip
+          from pathlib import Path
+          payload = '''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'''
+          target = Path('tools/integrar_pista_autorizada.py')
+          target.write_bytes(gzip.decompress(base64.b64decode(payload)))
+          target.chmod(0o755)
+          PY
+
+      - name: Obtener metadatos y audio autorizado
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://www.youtube.com/watch?v=t9KaSaGEwvI'
+          python -m yt_dlp \
+            --no-playlist \
+            --no-warnings \
+            --dump-single-json \
+            "$URL" > /tmp/jobsmenu-track.json
+
+          python -m yt_dlp \
+            --no-playlist \
+            --retries 10 \
+            --fragment-retries 10 \
+            --retry-sleep 2 \
+            --format 'bestaudio[ext=m4a]/bestaudio/best' \
+            --output '/tmp/jobsmenu-source.%(ext)s' \
+            "$URL"
+
+          SOURCE="$(find /tmp -maxdepth 1 -type f -name 'jobsmenu-source.*' | head -n 1)"
+          test -n "$SOURCE"
+          echo "SOURCE=$SOURCE" >> "$GITHUB_ENV"
+
+      - name: Convertir a OGG Vorbis normalizado
+        shell: bash
+        run: |
+          set -euo pipefail
+          ffmpeg -hide_banner -loglevel warning -y \
+            -i "$SOURCE" -vn -map_metadata -1 \
+            -af 'loudnorm=I=-18:TP=-1.5:LRA=11' \
+            -ac 1 -ar 44100 -c:a libvorbis -q:a 5 \
+            /tmp/jobsmenu-autorizada.ogg
+
+          codec="$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=nw=1:nk=1 /tmp/jobsmenu-autorizada.ogg)"
+          channels="$(ffprobe -v error -select_streams a:0 -show_entries stream=channels -of default=nw=1:nk=1 /tmp/jobsmenu-autorizada.ogg)"
+          rate="$(ffprobe -v error -select_streams a:0 -show_entries stream=sample_rate -of default=nw=1:nk=1 /tmp/jobsmenu-autorizada.ogg)"
+          test "$codec" = 'vorbis'
+          test "$channels" = '1'
+          test "$rate" = '44100'
+          test "$(stat -c '%s' /tmp/jobsmenu-autorizada.ogg)" -gt 100000
+
+      - name: Aplicar pase 0.18.0
+        run: python tools/integrar_pista_autorizada.py /tmp/jobsmenu-track.json /tmp/jobsmenu-autorizada.ogg
+
+      - name: Verificar recursos y contratos
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/verificar_version.py
+          python tools/verificar_fondos.py
+          python tools/verificar.py
+          python tools/verificar_ui_musica.py
+
+      - name: Compilar con Java 17 antes de publicar cambios
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build Forge
+        shell: bash
+        run: |
+          chmod +x gradlew
+          ./gradlew build --stacktrace --no-daemon
+
+      - name: Publicar integración atómica
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Santi-PdR Audio Integrator'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'v0.18.0: integrate authorized soundtrack and quality pass' \
+            -m 'Add the authorized t9KaSaGEwvI track as normalized streaming Ogg Vorbis, expand the session player to two-track shuffle/crossfade with dynamic credits and manual skip, harden verification, and synchronize current documentation.'
+          git push origin HEAD:main
