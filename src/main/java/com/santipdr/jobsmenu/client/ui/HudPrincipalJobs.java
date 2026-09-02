@@ -35,12 +35,12 @@ public final class HudPrincipalJobs {
                 Paleta.conAlfa(Paleta.papelAviso(), 0.10F * luz));
 
         Minecraft mc = Minecraft.getInstance();
-        String titulo = Component.translatable("jobsmenu.hud.turno").getString();
-        String nivel = Component.translatable("jobsmenu.hud.nivel", estado.indice()).getString();
+        String titulo = "JOBS / SHIFT";
+        String nivel = Component.translatable("jobsmenu.nivel.actual", estado.indice()).getString();
         String estadoTxt = estado.enTransicion()
                 ? Component.translatable("jobsmenu.estado.transicion").getString()
                 : Component.translatable("jobsmenu.estado.normal").getString();
-        String ayuda = Component.translatable("jobsmenu.hud.atajos").getString();
+        String ayuda = "F / M";
 
         g.drawString(mc.font, ChromeExpediente.ajustar(mc.font, titulo, panelW - 20),
                 x + 9, y + 6, Paleta.conAlfa(Paleta.papelAviso(), 0.72F * luz), false);
