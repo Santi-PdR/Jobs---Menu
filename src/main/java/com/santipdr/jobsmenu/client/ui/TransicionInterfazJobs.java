@@ -8,7 +8,7 @@ import net.minecraft.client.gui.screens.Screen;
 /** Transicion corta entre expedientes. Nunca bloquea input ni cambia la Screen. */
 public final class TransicionInterfazJobs {
 
-    private static final long DURACION_MS = 390L;
+    private static final long DURACION_MS = 430L;
     private static long inicio;
     private static int sentido = 1;
 
@@ -47,13 +47,13 @@ public final class TransicionInterfazJobs {
         int x0 = centro - banda;
         int x1 = centro + banda;
 
-        int cola0 = sentido > 0 ? x0 - 24 : x1 + 5;
-        int cola1 = sentido > 0 ? x0 - 5 : x1 + 24;
+        int cola0 = sentido > 0 ? x0 - 30 : x1 + 5;
+        int cola1 = sentido > 0 ? x0 - 5 : x1 + 30;
         g.fill(Math.min(cola0, cola1), 0, Math.max(cola0, cola1), pantalla.height,
                 Paleta.conAlfa(Paleta.VANO, 0.12F * (1.0F - t)));
 
-        int sombra0 = sentido > 0 ? x0 - 15 : x1 - 2;
-        int sombra1 = sentido > 0 ? x0 + 2 : x1 + 15;
+        int sombra0 = sentido > 0 ? x0 - 17 : x1 - 2;
+        int sombra1 = sentido > 0 ? x0 + 2 : x1 + 17;
         g.fill(Math.min(sombra0, sombra1), 0, Math.max(sombra0, sombra1), pantalla.height,
                 Paleta.conAlfa(Paleta.VANO, 0.25F * (1.0F - t * 0.35F)));
 
@@ -86,6 +86,15 @@ public final class TransicionInterfazJobs {
         g.fill(centro, 1, centro + 1, 7, registro);
         g.fill(centro - 8, pantalla.height - 4, centro + 8, pantalla.height - 3,
                 Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.12F * (1.0F - t)));
+
+        if (pantalla.width > 280) {
+            int labelY = Math.max(10, pantalla.height / 2 - 18);
+            int labelX = sentido > 0 ? x0 + 12 : x1 - 42;
+            g.fill(labelX, labelY, labelX + 30, labelY + 1,
+                    Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.10F * (1.0F - t)));
+            g.fill(labelX, labelY + 5, labelX + 20, labelY + 6,
+                    Paleta.conAlfa(Paleta.UI_ACENTO, 0.075F * (1.0F - t)));
+        }
 
         float velo = t < 0.40F ? (0.40F - t) / 0.40F * 0.11F : 0.0F;
         if (velo > 0.0F) {
