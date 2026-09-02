@@ -11,7 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraftforge.client.gui.ModListScreen;
 import org.lwjgl.glfw.GLFW;
 
-/** Forge Mods convertido visualmente en un archivo técnico Jobs, sin reemplazar su lógica. */
+/** Forge Mods convertido visualmente en un archivo tecnico Jobs, sin reemplazar su logica. */
 public final class PantallaModsJobs extends ModListScreen {
     private static final int PANEL_X = 12;
     private static final int PANEL_Y = 8;
