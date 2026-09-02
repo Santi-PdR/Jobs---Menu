@@ -1,35 +1,58 @@
-MUSICA LOCAL DE JOBS MENU
-==========================
+MUSICA DE JOBS MENU
+====================
 
-La pista de fabrica del mod esta en:
+PISTA INCLUIDA
+
+La pista de fabrica del mod vive en:
 
   src/main/resources/assets/jobsmenu/sounds/musica/defecto.ogg
 
-Este directorio `music/` no se copia al JAR. La referencia REQUIEM — Forsaken
-OST, de Emmy Z, no debe redistribuirse sin permiso escrito para la distribucion
-concreta. No pongas aqui una grabacion de terceros esperando que el build la
-incluya.
+NUEVA PISTA: FLUJO DE UNA SOLA SUBIDA
 
-Para usar una pista propia o autorizada sin recompilar, deja un archivo en la
-raiz de la instancia, dentro de:
+Para integrar la nueva cancion NO edites Java, sounds.json ni Gradle.
+Solo sube tu OGG con exactamente este nombre y ruta al branch main:
+
+  music/menu_nueva.ogg
+
+El workflow `.github/workflows/integrar_ogg_subido.yml` se encarga de:
+
+  1. verificar que sea OGG Vorbis real;
+  2. comprobar que no sea un archivo vacio o demasiado corto;
+  3. normalizar loudness y true peak para que no salte el volumen entre pistas;
+  4. convertirlo a 48 kHz estereo Vorbis;
+  5. copiar la version final al recurso del mod;
+  6. registrar automaticamente `musica.tema_nuevo`;
+  7. ampliar el catalogo de GestorMusica a dos pistas;
+  8. ejecutar verificaciones estaticas;
+  9. compilar con Java 17;
+  10. publicar la integracion en main solamente si todo lo anterior termina bien.
+
+En otras palabras: cuando quieras terminar la integracion, tu unica accion manual
+es subir `music/menu_nueva.ogg`.
+
+El nombre interno preparado para esta pista es:
+
+  upon_the_hill_v2
+
+El archivo integrado terminara en:
+
+  src/main/resources/assets/jobsmenu/sounds/musica/tema_nuevo.ogg
+
+MUSICA LOCAL DE PRUEBA
+
+Si quieres probar una pista sin empaquetarla en el JAR, el mod mantiene su flujo
+local en la raiz de la instancia:
 
   jobsmenu-musica/
 
-Por ejemplo, en la instancia SKLauncher documentada:
+Por ejemplo:
 
   C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\jobsmenu-musica\
 
-El mod crea la carpeta y este archivo de instrucciones si no existen. El nombre
-de la pista puede ser cualquiera; si hay varias, se alternan en cada arranque.
-No hace falta renombrar el archivo ni activar un paquete desde Opciones.
+REQUISITOS GENERALES
 
-REQUISITOS
-
-  - OGG Vorbis real, con extension .ogg; renombrar un MP3 no lo convierte.
-  - Un solo canal (mono), para que Minecraft lo decodifique de forma consistente.
-  - La pista local permanece en la maquina del usuario y no entra en el JAR.
-
-Si no hay pista local, el mod usa su pista original. Una pista local no activa
-por error el credito de la obra de fabrica: el mod no conoce su autoria y no
-inventa atribuciones. El credito sólo se habilita para una pista empaquetada
-con permiso y con sus cadenas de idioma configuradas.
+  - Debe ser OGG Vorbis real; renombrar un MP3 no lo convierte.
+  - Para la integracion de GitHub el workflow normaliza canales, frecuencia y nivel.
+  - No se debe atribuir una obra ni inventar permisos desde el codigo.
+  - El credito visible solo debe activarse cuando los metadatos y la autorizacion
+    correspondiente esten documentados para la pista empaquetada.
