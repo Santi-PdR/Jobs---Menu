@@ -81,7 +81,7 @@ public final class ToggleExpediente extends AbstractButton {
         this.hoverPrevio = hover;
 
         float destino = hover ? 1.0F : 0.0F;
-        if (ConfigTurno.movimientoReducido()) this.focoSuave = destino;
+        if (ConfigTurno.movimientoReducido() || ConfigTurno.bajoConsumo()) this.focoSuave = destino;
         else this.focoSuave += (destino - this.focoSuave) * 0.24F;
 
         int x = getX();
