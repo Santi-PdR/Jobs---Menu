@@ -2,6 +2,7 @@ package com.santipdr.jobsmenu.client.screen;
 
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import com.santipdr.jobsmenu.client.ui.ListasExpediente;
+import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.gui.GuiGraphics;
@@ -9,11 +10,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 
-/**
- * Selector de mundos vanilla conservado, pero presentado sobre el expediente
- * Jobs. No reemplaza la lista ni sus acciones: solo elimina el bloque de dirt
- * aislado que rompia la continuidad visual del menu.
- */
+/** Selector de mundos vanilla presentado como archivo operativo de Jobs. */
 public final class PantallaMundosJobs extends SelectWorldScreen {
 
     private static final int PANEL_X = 12;
@@ -27,12 +24,16 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
     @Override
     protected void init() {
         super.init();
-        ListasExpediente.estilizar(this, 70, this.height - 66);
+        int top = Math.max(72, PANEL_Y + 64);
+        int bottom = Math.max(top + 44, this.height - 68);
+        ListasExpediente.estilizar(this, top, bottom);
         for (var child : this.children()) {
             if (child instanceof EditBox campo) {
                 campo.setY(PANEL_Y + 43);
-                campo.setTextColor(com.santipdr.jobsmenu.client.ui.Paleta.ARCHIVO_TEXTO);
-                campo.setTextColorUneditable(com.santipdr.jobsmenu.client.ui.Paleta.ARCHIVO_TEXTO_TENUE);
+                campo.setWidth(Math.min(campo.getWidth(), Math.max(80, this.width - 86)));
+                campo.setTextColor(Paleta.ARCHIVO_TEXTO);
+                campo.setTextColorUneditable(Paleta.ARCHIVO_TEXTO_TENUE);
+                campo.setBordered(false);
                 this.busqueda = campo;
             }
         }
@@ -58,20 +59,55 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
         ChromeExpediente.fondo(g, this.width, this.height);
         ChromeExpediente.panelArchivo(g, PANEL_X, PANEL_Y,
                 this.width - PANEL_X * 2, this.height - PANEL_Y * 2);
+
+        int x0 = PANEL_X + 16;
+        int x1 = this.width - PANEL_X - 16;
+        int y0 = Math.max(70, PANEL_Y + 62);
+        int y1 = Math.max(y0 + 40, this.height - 66);
+        g.fill(x0, y0, x1, y1, Paleta.conAlfa(Paleta.ARCHIVO_SUPERFICIE, 0.52F));
+        g.fill(x0, y0, x1, y0 + 1, Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.18F));
+        g.fill(x0, y1 - 1, x1, y1, Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.12F));
+        g.fill(x0, y0, x0 + 2, y1, Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.28F));
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        // SelectWorldScreen no necesita conocer nada del mod: preparamos la hoja,
-        // dejamos que vanilla pinte sus previews/lista y luego vestimos controles.
         renderBackground(g);
-        RenderSystem.setShaderColor(0.72F, 0.72F, 0.72F, 1.0F);
+        RenderSystem.setShaderColor(0.76F, 0.76F, 0.76F, 1.0F);
         super.render(g, mouseX, mouseY, partialTick);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
+        ListasExpediente.renderarBarras(this, g);
+
         int panelW = this.width - PANEL_X * 2;
         ChromeExpediente.reemplazarCabeceraArchivo(g, this.font,
                 net.minecraft.network.chat.Component.translatable("jobsmenu.interfaz.mundos.titulo"),
                 net.minecraft.network.chat.Component.translatable("jobsmenu.interfaz.mundos.subtitulo"),
                 PANEL_X, PANEL_Y, panelW);
+
+        if (this.busqueda != null && this.width > 180) {
+            int x = this.busqueda.getX();
+            int y = this.busqueda.getY();
+            int w = this.busqueda.getWidth();
+            int h = this.busqueda.getHeight();
+            int borde = Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, this.busqueda.isFocused() ? 0.62F : 0.28F);
+            g.fill(x - 3, y - 2, x + w + 3, y + h + 2, Paleta.ARCHIVO_SUPERFICIE);
+            g.fill(x - 3, y - 2, x + w + 3, y - 1, borde);
+            g.fill(x - 3, y + h + 1, x + w + 3, y + h + 2,
+                    Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.16F));
+            g.fill(x - 3, y - 2, x - 1, y + h + 2, borde);
+            g.fill(x + 7, y + h + 2, x + Math.min(w - 4, 34), y + h + 3,
+                    Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, this.busqueda.isFocused() ? 0.70F : 0.20F));
+        }
+
+        int footerY = this.height - PANEL_Y - 20;
+        g.fill(PANEL_X + 18, footerY, this.width - PANEL_X - 18, footerY + 1,
+                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.16F));
+        String ayuda = "CTRL+F  //  ESC";
+        int aw = this.font.width(ayuda);
+        if (this.width > aw + 70) {
+            g.drawString(this.font, ayuda, this.width - PANEL_X - aw - 22, footerY + 5,
+                    Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.50F), false);
+        }
     }
 }

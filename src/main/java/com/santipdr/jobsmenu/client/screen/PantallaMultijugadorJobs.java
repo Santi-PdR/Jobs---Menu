@@ -2,6 +2,7 @@ package com.santipdr.jobsmenu.client.screen;
 
 import com.santipdr.jobsmenu.client.ui.BotonExpediente;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
+import com.santipdr.jobsmenu.client.ui.ListasExpediente;
 import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -18,10 +19,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.Locale;
 
-/**
- * Multijugador de Jobs. La lista, ping, LAN, MOTD y acciones siguen siendo las
- * de Minecraft; solo se cambia el marco y la superficie de interaccion.
- */
+/** Multijugador de Jobs: lista vanilla dentro de un tablero de operaciones propio. */
 public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
 
     private static final String SERVIDOR_IP = "JobsDosh.exaroton.me:56477";
@@ -57,7 +55,7 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
             if (child instanceof ServerSelectionList lista) {
                 lista.setRenderBackground(false);
                 lista.setRenderTopAndBottom(false);
-                int top = Math.max(78, panelY + 70);
+                int top = Math.max(88, panelY + 78);
                 int bottom = Math.max(top + 40, this.height - 80);
                 lista.updateSize(this.width, this.height, top, bottom);
             }
@@ -65,7 +63,6 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         crearBotones();
     }
 
-    /** Mantiene Jobs como unico acceso instalado por el mod y elimina el legado Ghoul. */
     private void asegurarServidorOficial() {
         ServerList servidores = this.getServers();
         if (servidores == null) return;
@@ -106,9 +103,7 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
             indice--;
         }
         servidores.save();
-        if (this.serverSelectionList != null) {
-            this.serverSelectionList.updateOnlineServers(servidores);
-        }
+        if (this.serverSelectionList != null) this.serverSelectionList.updateOnlineServers(servidores);
     }
 
     private Button buscar(String clave) {
@@ -171,10 +166,8 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
             if (this.edit != null) this.edit.setTooltip(Tooltip.create(ayuda));
             if (this.delete != null) this.delete.setTooltip(Tooltip.create(ayuda));
         } else {
-            if (this.edit != null) this.edit.setTooltip(Tooltip.create(
-                    Component.translatable("jobsmenu.tooltip.servidor.editar")));
-            if (this.delete != null) this.delete.setTooltip(Tooltip.create(
-                    Component.translatable("jobsmenu.tooltip.servidor.eliminar")));
+            if (this.edit != null) this.edit.setTooltip(Tooltip.create(Component.translatable("jobsmenu.tooltip.servidor.editar")));
+            if (this.delete != null) this.delete.setTooltip(Tooltip.create(Component.translatable("jobsmenu.tooltip.servidor.eliminar")));
         }
     }
 
@@ -189,45 +182,80 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
     public void renderBackground(GuiGraphics g) {
         ChromeExpediente.fondo(g, this.width, this.height);
         ChromeExpediente.panelArchivo(g, panelX, panelY, panelW, panelH);
+
+        int listX = panelX + 16;
+        int listY = Math.max(86, panelY + 76);
+        int listW = Math.max(1, panelW - 32);
+        int listBottom = Math.max(listY + 38, this.height - 78);
+        g.fill(listX, listY, listX + listW, listBottom,
+                Paleta.conAlfa(Paleta.ARCHIVO_SUPERFICIE, 0.48F));
+        g.fill(listX, listY, listX + 2, listBottom,
+                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.24F));
+        g.fill(listX, listY, listX + listW, listY + 1,
+                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.16F));
+        g.fill(listX, listBottom - 1, listX + listW, listBottom,
+                Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.10F));
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         sincronizarEstados();
-        RenderSystem.setShaderColor(0.72F, 0.72F, 0.72F, 1.0F);
+        RenderSystem.setShaderColor(0.76F, 0.76F, 0.76F, 1.0F);
         super.render(g, mouseX, mouseY, partialTick);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
+        ListasExpediente.renderarBarras(this, g);
         ChromeExpediente.reemplazarCabeceraArchivo(g, this.font,
                 Component.translatable("jobsmenu.interfaz.multijugador.titulo"),
                 Component.translatable("jobsmenu.interfaz.multijugador.subtitulo"),
                 panelX, panelY, panelW);
 
-        int tarjetaX = panelX + 20;
+        int tarjetaX = panelX + 18;
         int tarjetaY = panelY + 47;
-        int tarjetaW = Math.max(1, panelW - 40);
-        g.fill(tarjetaX, tarjetaY, tarjetaX + tarjetaW, tarjetaY + 18,
-                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.12F));
-        g.fill(tarjetaX, tarjetaY, tarjetaX + Math.min(3, tarjetaW), tarjetaY + 18,
-                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.72F));
+        int tarjetaW = Math.max(1, panelW - 36);
+        int tarjetaH = 24;
+        boolean seleccionOficial = servidorOficialSeleccionado();
+        int fondo = Paleta.mezclar(Paleta.ARCHIVO_SUPERFICIE,
+                Paleta.ARCHIVO_SUPERFICIE_FOCO, seleccionOficial ? 0.72F : 0.20F);
+        g.fill(tarjetaX, tarjetaY, tarjetaX + tarjetaW, tarjetaY + tarjetaH, fondo);
+        g.fill(tarjetaX, tarjetaY, tarjetaX + Math.min(3, tarjetaW), tarjetaY + tarjetaH,
+                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, seleccionOficial ? 0.92F : 0.62F));
+        g.fill(tarjetaX + 6, tarjetaY + 5, tarjetaX + 12, tarjetaY + 11,
+                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.68F));
+        g.fill(tarjetaX + 8, tarjetaY + 11, tarjetaX + 10, tarjetaY + 17,
+                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.44F));
 
         String oficialTxt = Component.translatable("jobsmenu.servidor.oficial").getString();
+        int reservado = tarjetaW > 340 ? 150 : 30;
         String oficialVisible = ChromeExpediente.ajustar(this.font, oficialTxt,
-                Math.max(8, tarjetaW - 18));
-        g.drawString(this.font, oficialVisible, tarjetaX + 9, tarjetaY + 5,
-                Paleta.conAlfa(Paleta.ARCHIVO_TEXTO, 0.88F), false);
+                Math.max(8, tarjetaW - reservado));
+        g.drawString(this.font, oficialVisible, tarjetaX + 18, tarjetaY + 5,
+                Paleta.conAlfa(Paleta.ARCHIVO_TEXTO, 0.94F), false);
+
+        if (tarjetaW > 220) {
+            String ipVisible = ChromeExpediente.ajustar(this.font, SERVIDOR_IP, Math.max(40, tarjetaW - 70));
+            g.drawString(this.font, ipVisible, tarjetaX + 18, tarjetaY + 14,
+                    Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.62F), false);
+        }
 
         Component fijado = Component.translatable("jobsmenu.servidor.fijado");
         int fw = this.font.width(fijado);
-        int ipW = this.font.width(SERVIDOR_IP);
-        if (tarjetaW > 430 && fw + ipW + 36 < tarjetaW) {
-            g.drawString(this.font, fijado, tarjetaX + tarjetaW / 2 - fw / 2, tarjetaY + 5,
-                    Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.78F), false);
-            g.drawString(this.font, SERVIDOR_IP, tarjetaX + tarjetaW - ipW - 8, tarjetaY + 5,
-                    Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.72F), false);
-        } else if (tarjetaW > 300 && ipW + 24 < tarjetaW / 2) {
-            g.drawString(this.font, SERVIDOR_IP, tarjetaX + tarjetaW - ipW - 8, tarjetaY + 5,
-                    Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.72F), false);
+        if (tarjetaW > fw + 170) {
+            int fx = tarjetaX + tarjetaW - fw - 10;
+            g.fill(fx - 6, tarjetaY + 5, tarjetaX + tarjetaW - 5, tarjetaY + 17,
+                    Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, seleccionOficial ? 0.18F : 0.10F));
+            g.drawString(this.font, fijado, fx, tarjetaY + 7,
+                    Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.82F), false);
+        }
+
+        int ruleY = this.height - 74;
+        g.fill(panelX + 18, ruleY, panelX + panelW - 18, ruleY + 1,
+                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.16F));
+        String ayuda = "F5  //  " + (seleccionOficial ? "JOBS" : "SERVER");
+        int aw = this.font.width(ayuda);
+        if (panelW > aw + 80) {
+            g.drawString(this.font, ayuda, panelX + panelW - aw - 22, ruleY + 4,
+                    Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.52F), false);
         }
     }
 
