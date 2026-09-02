@@ -39,8 +39,8 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         super.init();
         this.panelX = 12;
         this.panelY = 8;
-        this.panelW = this.width - 24;
-        this.panelH = this.height - 16;
+        this.panelW = Math.max(120, this.width - 24);
+        this.panelH = Math.max(100, this.height - 16);
 
         asegurarServidorOficial();
 
@@ -57,8 +57,6 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
             if (child instanceof ServerSelectionList lista) {
                 lista.setRenderBackground(false);
                 lista.setRenderTopAndBottom(false);
-                // La lista empieza debajo de titulo, subtitulo y nota. En 0.14.0
-                // esos tres textos compartian la misma franja y se montaban.
                 int top = Math.max(78, panelY + 70);
                 int bottom = Math.max(top + 40, this.height - 80);
                 lista.updateSize(this.width, this.height, top, bottom);
@@ -122,11 +120,11 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
     }
 
     private void crearBotones() {
-        int gap = 5;
-        int margen = 18;
-        int util = Math.max(240, this.panelW - margen * 2);
-        int topW = Math.max(72, (util - gap * 2) / 3);
-        int bottomW = Math.max(60, (util - gap * 3) / 4);
+        int gap = this.panelW < 300 ? 3 : 5;
+        int margen = this.panelW < 300 ? 10 : 18;
+        int util = Math.max(1, this.panelW - margen * 2);
+        int topW = Math.max(1, (util - gap * 2) / 3);
+        int bottomW = Math.max(1, (util - gap * 3) / 4);
         int topY = this.height - 68;
         int bottomY = this.height - 42;
         int xTop = this.panelX + margen;
@@ -200,8 +198,6 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         super.render(g, mouseX, mouseY, partialTick);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-        // JoinMultiplayerScreen dibuja su titulo despues del fondo. Cubrimos solo
-        // la franja de cabecera, nunca la lista, y reconstruimos una unica jerarquia.
         ChromeExpediente.reemplazarCabeceraArchivo(g, this.font,
                 Component.translatable("jobsmenu.interfaz.multijugador.titulo"),
                 Component.translatable("jobsmenu.interfaz.multijugador.subtitulo"),
@@ -209,22 +205,27 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
 
         int tarjetaX = panelX + 20;
         int tarjetaY = panelY + 47;
-        int tarjetaW = panelW - 40;
+        int tarjetaW = Math.max(1, panelW - 40);
         g.fill(tarjetaX, tarjetaY, tarjetaX + tarjetaW, tarjetaY + 18,
                 Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.12F));
-        g.fill(tarjetaX, tarjetaY, tarjetaX + 3, tarjetaY + 18,
+        g.fill(tarjetaX, tarjetaY, tarjetaX + Math.min(3, tarjetaW), tarjetaY + 18,
                 Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.72F));
-        Component oficial = Component.translatable("jobsmenu.servidor.oficial");
-        g.drawString(this.font, oficial, tarjetaX + 9, tarjetaY + 5,
+
+        String oficialTxt = Component.translatable("jobsmenu.servidor.oficial").getString();
+        String oficialVisible = ChromeExpediente.ajustar(this.font, oficialTxt,
+                Math.max(8, tarjetaW - 18));
+        g.drawString(this.font, oficialVisible, tarjetaX + 9, tarjetaY + 5,
                 Paleta.conAlfa(Paleta.ARCHIVO_TEXTO, 0.88F), false);
+
         Component fijado = Component.translatable("jobsmenu.servidor.fijado");
         int fw = this.font.width(fijado);
-        if (tarjetaW > 250) {
+        int ipW = this.font.width(SERVIDOR_IP);
+        if (tarjetaW > 430 && fw + ipW + 36 < tarjetaW) {
             g.drawString(this.font, fijado, tarjetaX + tarjetaW / 2 - fw / 2, tarjetaY + 5,
                     Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.78F), false);
-        }
-        int ipW = this.font.width(SERVIDOR_IP);
-        if (ipW < tarjetaW / 2) {
+            g.drawString(this.font, SERVIDOR_IP, tarjetaX + tarjetaW - ipW - 8, tarjetaY + 5,
+                    Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.72F), false);
+        } else if (tarjetaW > 300 && ipW + 24 < tarjetaW / 2) {
             g.drawString(this.font, SERVIDOR_IP, tarjetaX + tarjetaW - ipW - 8, tarjetaY + 5,
                     Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.72F), false);
         }

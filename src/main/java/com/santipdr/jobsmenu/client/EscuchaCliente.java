@@ -160,7 +160,10 @@ public final class EscuchaCliente {
         if (evento.phase != TickEvent.Phase.END) return;
         Minecraft cliente = Minecraft.getInstance();
         if (cliente.level != null || !ConfigTurno.menuPropio()) {
+            // Gameplay es frontera dura. Corta inmediatamente y no ejecuta
+            // mantenimiento de audio del menu durante el resto de este tick.
             SesionMenu.cerrar();
+            return;
         }
         GestorMusica.atender();
         GestorAmbiente.mantenerCamas();

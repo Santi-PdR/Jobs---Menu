@@ -7,8 +7,8 @@ Documento maestro del estado **vigente**. El historial vive en `CHANGELOG.md` y 
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Versión actual | **0.18.0** |
-| Artefacto esperado | **`jobsmenu-0.18.0.jar`** |
+| Versión actual | **0.19.0** |
+| Artefacto esperado | **`jobsmenu-0.19.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -33,6 +33,7 @@ Documento maestro del estado **vigente**. El historial vive en `CHANGELOG.md` y 
 13. El audio del menú no puede sobrevivir dentro de gameplay ni un tick audible.
 14. Una pista musical sólo se empaqueta si existe el archivo y su redistribución está autorizada/documentada.
 15. La integración de nuevas pistas se hace desde un OGG subido al repositorio; el build no descarga audio de terceros.
+16. El perfil **Bajo consumo** debe evitar interpolaciones/pulsos decorativos continuos también en widgets compartidos, no sólo en fondos y transiciones.
 
 ## 2. Identidad
 
@@ -63,7 +64,7 @@ Usa una familia neutral independiente:
 
 Los widgets y marcos administrativos no deben volver a usar `PARED`, `PARED_ALTA` o `FLUOR` como color de foco/superficie. `tools/verificar_ui_musica.py` protege este contrato en CI para los componentes compartidos principales.
 
-En 0.18.0 el pulido global añade foco/hover y transiciones más sobrias sin modificar hitboxes. Movimiento reducido y bajo consumo desactivan la respiración de foco y sustituyen las transiciones por atenuación breve.
+Desde 0.18.0 el pulido global añade foco/hover y transiciones más sobrias sin modificar hitboxes. En 0.19.0 botones, toggles y sliders compartidos también respetan **Bajo consumo** sin tween de foco frame a frame.
 
 ### Superficies
 
@@ -101,7 +102,7 @@ Contrato:
 
 La lista, ping, LAN, MOTD y conexión siguen siendo de Minecraft.
 
-## 6. Música — 0.18
+## 6. Música
 
 `GestorMusica` es un reproductor de sesión con catálogo.
 
@@ -183,13 +184,14 @@ Además del CI:
 - entrada/salida de mundo y servidor sin audio Jobs dentro de gameplay;
 - Absurdism con fade-in sin duplicación;
 - cuando exista `menu_nueva.ogg`, comprobar crossfade y nivel percibido entre pistas;
-- niveles 10–17 inmóviles.
+- niveles 10–17 inmóviles;
+- Bajo consumo: sliders, toggles y botones cambian foco sin interpolación decorativa.
 
 ## 10. Documentación vigente
 
-- `README.md`: resumen de **0.18.0**.
+- `README.md`: resumen de **0.19.0**.
 - `CONTEXTO.md`: este contrato.
-- `docs/AUDITORIA_0.18.0_PROFESIONAL.md`: auditoría del pase.
+- `docs/AUDITORIA_0.18.0_PROFESIONAL.md`: auditoría base del pase profesional anterior.
 - `docs/musica.md`: sistema musical y política de pistas.
 - `music/LEEME.txt`: regla de una sola subida para la próxima pista.
 - `KNOWN_ISSUES.md`: riesgos que requieren Minecraft real.
