@@ -1,0 +1,34 @@
+name: Integrar fondos 0.27 temporal
+
+on:
+  push:
+    branches:
+      - arena/01a07900-backgrounds-0270
+    paths:
+      - .github/workflows/integrar_fondos_027_temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  integrar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: arena/01a07900-backgrounds-0270
+          fetch-depth: 0
+
+      - name: Integrar niveles 18-31
+        run: python3 tools/integrar_fondos_027_temp.py
+
+      - name: Verificar fondos
+        run: python3 tools/verificar_fondos.py
+
+      - name: Commit integracion
+        run: |
+          git config user.name "Santi.pdr"
+          git config user.email "santiagopereiraxd029@gmail.com"
+          git add -A
+          git commit -m "0.27.0: integrar niveles 18-31" || exit 0
+          git push origin HEAD:arena/01a07900-backgrounds-0270
