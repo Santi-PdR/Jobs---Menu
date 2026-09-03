@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.22.1
+# Riesgos y pruebas pendientes — 0.23.0
 
 Este documento contiene únicamente riesgos vigentes. El historial vive en `CHANGELOG.md` y en auditorías de `docs/`.
 
@@ -13,7 +13,7 @@ Antes de publicar una entrega, GitHub Actions comprueba:
 - separación de paleta entre escena e interfaz en componentes compartidos;
 - contratos del reproductor musical y hard stop de gameplay;
 - build Forge 1.20.1;
-- creación de `jobsmenu-0.22.1.jar`;
+- creación de `jobsmenu-0.23.0.jar`;
 - publicación en `dev-latest` únicamente desde `main`.
 
 Un build que no termina en verde no debe actualizar la release.
@@ -22,17 +22,17 @@ Un build que no termina en verde no debe actualizar la release.
 
 CI **no ejecuta Minecraft con una ventana real**. Por lo tanto, las modificaciones visuales se consideran compiladas/certificadas, pero necesitan prueba manual en `test-1` para confirmar estética, hitboxes, scrolling y convivencia con otros mods.
 
-Las pantallas prioritarias de 0.22.1 son:
+Las pantallas prioritarias de 0.23.0 son:
 
-1. Main screen en Niveles 0–17.
-2. PNG 10–17 durante fades y cambios de Nivel.
+1. Main screen con HUD de turno y progreso.
+2. PNG 10–17 durante fades, overlays y cambios de Nivel.
 3. Pausa en singleplayer y multiplayer.
-4. Transiciones entre pantallas Jobs.
-5. Mods / Forge.
-6. Resource Packs.
-7. Idioma.
-8. Sonido y Video.
-9. Mundos y Multiplayer.
+4. Options y Config Jobs con la nueva capa profesional.
+5. Mods / Forge y Resource Packs para comprobar que rails y foco no pisan listas.
+6. Idioma y buscadores.
+7. Sonido y Video.
+8. Mundos y Multiplayer.
+9. Movimiento reducido, Bajo consumo y Alto contraste.
 
 El procedimiento completo está en `docs/checklist-manual.md`.
 
@@ -40,11 +40,11 @@ El procedimiento completo está en `docs/checklist-manual.md`.
 
 ### Interfaces y listas
 
-- `PielVanillaJobs` es una capa visual posterior al render. Un mod/resource pack que cambie radicalmente geometría u orden puede requerir compatibilidad específica.
+- `PielVanillaJobs` y `CapaProfesionalJobs` son capas visuales posteriores al render. Un mod/resource pack que cambie radicalmente geometría u orden puede requerir compatibilidad específica.
+- La nueva capa no captura input ni modifica hitboxes, pero su posición final debe revisarse en GUI Scale 4, ultrawide y ventanas extremadamente pequeñas.
 - `ListasExpediente` depende de datos internos de `AbstractSelectionList` 1.20.1 para dibujar la scrollbar Jobs. Existe reflection defensiva y fallback.
 - Mods, Resource Packs, Mundos y Multiplayer conservan listas reales; una sustitución total por otro mod puede no recibir el mismo acabado Jobs.
 - Fuentes con métricas extremas pueden forzar elipsis o alterar layout.
-- GUI Scale 4 y ventanas extremadamente pequeñas son el principal caso de estrés para paneles compactos.
 - El HUD contextual del main se oculta automáticamente en viewports pequeños para evitar solapes; su composición final requiere verificación manual en resoluciones ultrawide.
 
 ### Video
@@ -68,7 +68,8 @@ El procedimiento completo está en `docs/checklist-manual.md`.
 ### Rendimiento
 
 - No existe profiler GPU automático. Bajo consumo reduce trabajo decorativo, pero el coste final depende de GPU, resolución, GUI Scale, shaders y otros mods.
-- Barridos globales y microanimaciones se omiten con Movimiento reducido o Bajo consumo.
+- Barridos globales, pulso de borde y respiración de foco se omiten con Movimiento reducido o Bajo consumo.
+- La instrumentación está compuesta por rectángulos 2D simples y texto; aun así, el coste final debe comprobarse en el equipo real del usuario.
 
 ### Release
 
@@ -78,6 +79,7 @@ El procedimiento completo está en `docs/checklist-manual.md`.
 
 - PNG 10–17 aislados de movimiento interno y efectos procedurales.
 - Paleta UI separada de la escena y verificada en CI.
+- `CapaProfesionalJobs` no captura input.
 - Config Jobs conectada directamente a `ConfigTurno`.
 - Redirecciones sensibles por clase exacta.
 - Pantallas externas no reciben skin indiscriminadamente.

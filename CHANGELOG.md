@@ -1,5 +1,31 @@
 # Registro de cambios
 
+## 0.23.0 — Instrumentación, HUD y acabado de producto — 2026-09-02
+
+### Visible
+
+- Nueva `CapaProfesionalJobs` compartida: código de pantalla, contador de controles, perfil reconocido, módulos de audio, rail de teclas, línea de estado y foco exterior.
+- Main screen profundiza su HUD con LEDs de sistemas, progreso real de estancia, perfil y teclas F/M/TAB/ENTER.
+- Atmósfera global suma esquinas de registro, calibraciones, ticks, barridos y pulso de borde.
+- Movimiento reducido y Bajo consumo cambian movimiento decorativo por marcas estáticas en vez de borrar contexto.
+- Transiciones pasan a 470 ms con doble borde de papel, perforaciones, registros, ficha interna, rails y salida en dos fases.
+- Alto contraste también refuerza la nueva instrumentación.
+- Easter eggs administrativos conservan presencia discreta fuera de gameplay.
+- Auditoría específica documenta **72 mejoras visibles/perceptibles**.
+
+### Fondos PNG
+
+- Los PNG 10–17 no se reemplazan ni editan.
+- Siguen sin zoom, paneo, parallax, motas, foreground dinámico, flicker o deformación.
+- Se permiten fades, apagones y overlays globales que no muevan ni alteren la geometría de la imagen.
+- Futuros 18–19, si son PNG, heredan el mismo contrato.
+
+### Entrega
+
+- Versión: **0.23.0**.
+- Artefacto: **`jobsmenu-0.23.0.jar`**.
+- Auditoría: `docs/AUDITORIA_0.23.0_72_MEJORAS.md`.
+
 ## 0.22.1 — Main screen, pausa, transiciones y secretos — 2026-09-02
 
 ### Visible
