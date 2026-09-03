@@ -28,13 +28,13 @@ El bloque no compila el proyecto. Descarga el artefacto ya certificado por GitHu
 
 Todo JAR instalado o publicado debe incluir la versión en el nombre. Para esta entrega:
 
-`jobsmenu-0.23.0.jar`
+`jobsmenu-0.24.0.jar`
 
 El nombre genérico `jobsmenu-latest.jar` queda prohibido. La release sigue usando el tag rodante `dev-latest`, pero su único asset cambia de nombre con `mod_version`.
 
 ## PowerShell canónico
 
-El bloque consulta la API pública de la release `dev-latest`, localiza el único asset que cumpla `jobsmenu-*.jar`, descarga primero a `%TEMP%`, valida cabecera ZIP/JAR, calcula SHA-256 y sólo entonces reemplaza la copia instalada.
+El bloque consulta la API pública de la release `dev-latest`, localiza el único asset versionado, descarga primero a `%TEMP%`, valida cabecera ZIP/JAR, calcula SHA-256 y sólo entonces reemplaza la copia instalada.
 
 ```powershell
 $ErrorActionPreference = "Stop"
@@ -48,7 +48,10 @@ if (!(Test-Path $mods -PathType Container)) {
 
 Write-Host "Consultando dev-latest..." -ForegroundColor Cyan
 $release = Invoke-RestMethod -Uri $releaseApi -Headers @{ "User-Agent" = "JobsMenu-Deploy" }
-$assets = @($release.assets | Where-Object { $_.name -match '^jobsmenu-[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?\.jar$' })
+$assets = @(
+    $release.assets |
+    Where-Object { $_.name -match '^jobsmenu-[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?\.jar$' }
+)
 
 if ($assets.Count -ne 1) {
     throw "Se esperaba exactamente un JAR versionado en dev-latest y se encontraron $($assets.Count)."
@@ -84,6 +87,7 @@ Move-Item $temp $dest -Force
 
 Write-Host ""
 Write-Host "Jobs Menu instalado correctamente." -ForegroundColor Green
+Write-Host "Version: $($asset.name)" -ForegroundColor Cyan
 Write-Host "Destino: $dest" -ForegroundColor Cyan
 Write-Host "SHA-256: $sha"
 ```
@@ -109,16 +113,17 @@ Si falla cualquier paso, la release no se actualiza y el PowerShell no se entreg
 
 ## Qué NO certifica el CI
 
-El pipeline no puede confirmar cómo se ve o se siente la interfaz dentro de Minecraft real. Después del despliegue de `jobsmenu-0.23.0.jar` se debe ejecutar `docs/checklist-manual.md`.
+El pipeline no puede confirmar cómo se ve o se siente la interfaz dentro de Minecraft real. Después del despliegue de `jobsmenu-0.24.0.jar` se debe ejecutar `docs/checklist-manual.md`.
 
 Para esta versión conviene revisar especialmente:
 
-- HUD de turno del main screen, LEDs, progreso y perfil;
-- capa profesional compartida en Options, Config, Mods, Recursos, Idioma, Mundos y Multiplayer;
-- pausa LOCAL/SERVER;
-- transición de expediente de 470 ms;
-- calibraciones y barridos globales con y sin Movimiento reducido/Bajo consumo;
-- Alto contraste;
+- HUD principal: NXT, tiempo de visita, MUTE/volumen y chips 1–4/F/M;
+- atajos numéricos del main y 1–2 de pausa, incluido keypad;
+- protección de números mientras se escribe en buscadores/EditBox;
+- breadcrumb, KEY/PTR, tipo y posición de control;
+- controles vanilla/Forge tematizados;
+- scrollbars 0/25/50/75/100 en listas grandes;
+- GUI Scale 4, ultrawide, Movimiento reducido, Bajo consumo e Interfaz mínima;
 - fondos 10–17 durante fade/apagón/transición y overlays globales.
 
 Los PNG 10–17 no fueron sustituidos ni editados. Siguen sin movimiento propio y usan filtrado lineal al escalarse; los overlays globales están permitidos mientras no deformen ni desplacen la imagen.
