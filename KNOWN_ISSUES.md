@@ -25,11 +25,11 @@ CI **no ejecuta Minecraft con una ventana real**. Las modificaciones pueden qued
 Prioridad manual de 0.26.0:
 
 1. Las tres pistas — Absurdism, REQUIEM y Upon the Hill V2 — deben poder sonar en visitas distintas.
-2. `N` debe hacer crossfade a otra pista y no apilar cambios si se pulsa durante un crossfade.
-3. El crédito y `TRK` del HUD deben seguir a la pista dominante correcta.
+2. `N` debe aparecer en la barra inferior, hacer crossfade a otra pista y no apilar cambios durante un crossfade.
+3. El crédito musical debe seguir a la pista dominante correcta durante el crossfade.
 4. `M`, F3+T, Alt+Tab y navegación por subpantallas no deben duplicar instancias.
 5. Entrar a mundo/servidor debe cortar inmediatamente música y ambiente Jobs.
-6. Main con HUD ampliado, `NXT`, sesión, volumen, MUTE y pista actual.
+6. Main sin SHIFT CONTROL ni JOBS / LEVEL técnico duplicado; revisar que la hoja y la barra inferior respiren correctamente.
 7. Atajos 1–4 del main y 1–2 de pausa; EditBox no debe dispararlos al escribir.
 8. Breadcrumb, KEY/PTR, controles vanilla/Forge y scrollbars nuevas.
 9. GUI Scale 2/3/4, ultrawide, Movimiento reducido, Bajo consumo, Alto contraste e Interfaz mínima.

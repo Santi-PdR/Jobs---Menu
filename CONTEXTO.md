@@ -55,7 +55,7 @@ Familias de superficie:
 
 ## 3. Estado 0.26.0
 
-0.26.0 suma un catalogo musical real de tres pistas y conserva como base todo el pase visual 0.24.0.
+0.26.0 corrige regresiones detectadas en capturas reales, actualiza Absurdism y reemplaza el renderer procedural del Nivel 1 conservando backup del anterior.
 
 ### Musica de sesion 0.25
 
@@ -65,7 +65,7 @@ Familias de superficie:
 - inicio aleatorio por visita y siguiente pista sin repeticion inmediata;
 - crossfade automatico cada 2-4 minutos;
 - `N` solicita siguiente pista desde el main;
-- credito y HUD siguen a la pista dominante durante crossfade;
+- credito de musica sigue a la pista dominante durante crossfade;
 - `M` conserva mute y gameplay conserva hard-stop.
 
 ### Base visual 0.24
@@ -97,21 +97,17 @@ Familias de superficie:
 - Pausa: `1-2` / keypad `1-2` activan Reanudar y Condiciones;
 - Pausa: el renglón de salida no recibe numero rapido para evitar desconexiones accidentales;
 - los atajos numericos se ignoran con EditBox enfocado o modificadores;
-- `F`, `M`, `CTRL+F`, `F5`, `F1-F5`, TAB, ENTER y ESC solo se anuncian donde su comportamiento ya existe.
+- `F`, `M`, `N`, `CTRL+F`, `F5`, `F1-F5`, TAB, ENTER y ESC solo se anuncian donde su comportamiento ya existe.
 
 ### Main screen
 
-- placa lateral `JOBS / SHIFT CONTROL` retirada por completo;
-- lectura de Nivel y estado normal/transicion/Suspension;
-- LEDs rotulados R/A/M/U;
-- perfil actual o `CUSTOM`;
-- progreso real de estancia con cursor y marcas de cuartos;
-- `NXT MM:SS`, `NXT HOLD` o `NXT MOVE` segun estado;
-- tiempo de visita;
-- volumen Jobs numerico o `MUTE`;
-- medidor de volumen con escala;
-- capsulas `1-4`, F, M, TAB y ENTER;
-- toda la placa respeta luz, Alto contraste y espacio disponible.
+- el panel lateral `JOBS / SHIFT CONTROL` fue eliminado por completo;
+- el rótulo técnico duplicado `JOBS / LEVEL n` también fue eliminado;
+- el aviso de papel y el rótulo localizado del Nivel siguen siendo la lectura principal;
+- la fecha de turno usa tres argumentos posicionales y no puede mostrar `%s`;
+- la barra inferior contextual muestra `1-4`, F, M, N, TAB y ENTER;
+- N llama al cambio real de pista y respeta el bloqueo de crossfade;
+- la instrumentación compartida superior/inferior sigue sin capturar input.
 
 ### Controles vanilla/Forge preservados
 

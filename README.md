@@ -13,7 +13,19 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 | Rama entregable | **`main`** |
 | Niveles | **18 (0–17)** |
 
-## 0.26.0 · Catálogo musical real y control de sesión
+## 0.26.0 · Correcciones de capturas y nuevo Depósito
+
+- Retirado por completo el panel `SHIFT CONTROL`; tampoco queda el `JOBS / LEVEL` técnico flotando sobre el fondo.
+- La barra inferior del main incorpora **N** junto a `1-4`, `F`, `M`, `TAB` y `ENTER`; N cambia realmente de pista.
+- Mods vuelve a usar la geometría real de Forge, por lo que la lista de mods no se redimensiona ni se tapa.
+- Resource Packs conserva las dos listas vanilla con sus posiciones originales, evitando la superposición vista en captura.
+- Mundos y Multiplayer vuelven al padre Jobs con una sola pulsación de ESC/Volver.
+- Corregido el texto literal `%s` en la fecha del turno.
+- Reescritos los 20 avisos rotativos ES/EN para mantener reglas coherentes de la instalación.
+- Absurdism de runtime usa ahora el nuevo OGG subido en `music/`; REQUIEM y Upon the Hill V2 siguen siendo pistas separadas.
+- Nivel 1 · Depósito usa un renderer procedural nuevo con muelles, racks, pallets, vigas, luminarias y montacargas. El anterior queda respaldado.
+
+## 0.25.0 · Catálogo musical real y control de sesión
 
 - Catálogo real de **3 pistas**: Absurdism, REQUIEM y Upon the Hill V2.
 - REQUIEM y Upon the Hill se empaquetan desde los OGG autorizados ya presentes en `music/`; el build no descarga audio externo.

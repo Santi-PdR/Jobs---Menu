@@ -32,14 +32,11 @@ En todos:
 - [ ] El segundo 4 dentro de la ventana de confirmación ejecuta la salida igual que el click real.
 - [ ] F cambia de Nivel sólo con rotación habilitada.
 - [ ] M alterna silencio y el HUD pasa a `MUTE` al llegar a cero.
-- [ ] HUD muestra Nivel y normal/transición/Suspensión correctamente.
-- [ ] LEDs R/A/M/U reflejan rotación, ambiente, música y sonidos UI.
-- [ ] Perfil reconocido o `CUSTOM` es coherente.
-- [ ] Progreso de estancia avanza y el cursor acompaña.
-- [ ] `NXT MM:SS`, `NXT HOLD` y `NXT MOVE` aparecen en el estado correcto.
 - [ ] `T+MM:SS` avanza sin reiniciarse al volver de subpantallas.
-- [ ] Barra de volumen y valor numérico coinciden con Config Jobs.
-- [ ] Chips 1-4/F/M/TAB/ENTER no pisan hoja, ronda, crédito ni rótulo del Nivel.
+- [ ] No aparece `SHIFT CONTROL` ni `JOBS / LEVEL` sobre el fondo.
+- [ ] No aparece `%s` literalmente en la fecha del turno.
+- [ ] La barra inferior muestra 1-4/F/M/N/TAB/ENTER sin pisar hoja, ronda, crédito ni rótulo del Nivel.
+- [ ] N inicia un cambio real de pista y no apila crossfades.
 
 ## Pausa 0.26.0
 
@@ -170,3 +167,13 @@ Si todo pasa:
 - [ ] anotar resolución/GUI Scale usados;
 - [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.26.0.jar`;
 - [ ] reportar defecto visual con captura y `latest.log` si afecta recursos/audio/crash.
+
+## Regresiones reparadas en 0.26.0
+
+- [ ] Mods muestra nombres/logos/selección de mods y Config conserva su callback.
+- [ ] Resource Packs muestra las dos listas separadas sin textos o iconos superpuestos.
+- [ ] ESC en Mundos vuelve al main Jobs a la primera.
+- [ ] ESC y Cancel en Multiplayer vuelven al main Jobs a la primera.
+- [ ] Los avisos rotativos no contienen la antigua frase incoherente del fluorescente.
+- [ ] Absurdism, REQUIEM y Upon the Hill V2 pueden identificarse como tres pistas distintas.
+- [ ] Nivel 1 muestra el nuevo Depósito; `Nave_0.25.0.java.txt` es sólo backup y no participa en runtime.
