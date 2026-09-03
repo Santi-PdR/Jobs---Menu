@@ -36,3 +36,5 @@ Las pistas musicales conservan mono/estéreo y 44,1/48 kHz según la fuente auto
 5. Navegar por subpantallas: la música no reinicia.
 6. Probar `M`, F3+T y Alt+Tab.
 7. Entrar a un mundo/servidor: ningún audio Jobs debe sobrevivir.
+
+Absurdism source 0.26: music/Absurdism-_slowed-piano-part-only_.ogg -> assets/jobsmenu/sounds/musica/defecto.ogg

@@ -1,3 +1,13 @@
+## 0.26.0
+
+- Retirado SHIFT CONTROL y el rótulo duplicado JOBS / LEVEL del main.
+- Reparadas listas de Mods y Resource Packs preservando geometría Forge/vanilla.
+- Vuelta de Mundos/Multiplayer endurecida a una sola acción.
+- Atajo N conectado y anunciado en la barra inferior.
+- Fecha del turno corregida y avisos rotativos reescritos.
+- Absurdism actualizado desde la fuente nueva del repositorio.
+- Nuevo Nivel 1 · Depósito con backup del renderer anterior.
+
 # Registro de cambios
 
 ## 0.25.0 — Catálogo musical real — 2026-09-03

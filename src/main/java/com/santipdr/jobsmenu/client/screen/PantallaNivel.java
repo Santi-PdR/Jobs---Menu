@@ -8,7 +8,6 @@ import com.santipdr.jobsmenu.client.sound.GestorAmbiente;
 import com.santipdr.jobsmenu.client.sound.GestorMusica;
 import com.santipdr.jobsmenu.client.sound.MezclaAudio;
 import com.santipdr.jobsmenu.client.sound.SonidosNivel;
-import com.santipdr.jobsmenu.client.ui.HudPrincipalJobs;
 import com.santipdr.jobsmenu.client.ui.NotaAviso;
 import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.santipdr.jobsmenu.client.ui.RelojAparicion;
@@ -226,7 +225,6 @@ public class PantallaNivel extends Screen {
         if (!ConfigTurno.interfazMinima()) hoja(grafico);
         cabecera(grafico);
         super.render(grafico, ratonX, ratonY, parcial);
-        HudPrincipalJobs.dibujar(grafico, this.width, this.height, this.estadoFrame);
         if (ConfigTurno.mostrarCuentaRegresiva()) ronda(grafico);
         if (!ConfigTurno.interfazMinima()) {
             rotuloNivel(grafico);
@@ -251,21 +249,6 @@ public class PantallaNivel extends Screen {
         g.fill(x + this.anchoHoja + 8, y + 12, x + this.anchoHoja + 9, y + h - 12,
                 Paleta.conAlfa(Paleta.papelAviso(), 0.045F * luz));
 
-        if (this.width - (x + this.anchoHoja) > 150) {
-            int rx = x + this.anchoHoja + 18;
-            int rw = Math.min(98, this.width - rx - 14);
-            if (rw > 38) {
-                g.fill(rx, y + 2, rx + rw, y + 3, tenue);
-                g.fill(rx, y + 2, rx + 1, y + 31, tenue);
-                g.fill(rx + rw - 22, y + 8, rx + rw, y + 9, Paleta.conAlfa(Paleta.papelAviso(), 0.08F));
-                String tag = "JOBS / LEVEL " + this.estadoFrame.indice();
-                g.drawString(this.font, tag, rx, y + 8,
-                        Paleta.conAlfa(Paleta.papelAviso(), 0.36F * luz), false);
-                String file = SecretosJobs.codigoExpediente();
-                g.drawString(this.font, file, rx, y + 19,
-                        Paleta.conAlfa(Paleta.papelAviso(), 0.17F * luz), false);
-            }
-        }
     }
 
     private void estadoInstalacion(GuiGraphics grafico) {

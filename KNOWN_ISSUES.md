@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.25.0
+# Riesgos y pruebas pendientes — 0.26.0
 
 Este documento contiene únicamente riesgos vigentes. El historial vive en `CHANGELOG.md` y en auditorías de `docs/`.
 
@@ -13,7 +13,7 @@ Antes de publicar una entrega, GitHub Actions comprueba:
 - separación de paleta entre escena e interfaz;
 - contratos del reproductor musical y hard stop de gameplay;
 - build Forge 1.20.1;
-- creación de `jobsmenu-0.25.0.jar`;
+- creación de `jobsmenu-0.26.0.jar`;
 - publicación en `dev-latest` únicamente desde `main`.
 
 Un build que no termina en verde no debe actualizar la release.
@@ -22,7 +22,7 @@ Un build que no termina en verde no debe actualizar la release.
 
 CI **no ejecuta Minecraft con una ventana real**. Las modificaciones pueden quedar compiladas y verificadas sin que eso confirme estética, hitboxes, scrolling, sensación de input o convivencia visual con otros mods.
 
-Prioridad manual de 0.25.0:
+Prioridad manual de 0.26.0:
 
 1. Las tres pistas — Absurdism, REQUIEM y Upon the Hill V2 — deben poder sonar en visitas distintas.
 2. `N` debe hacer crossfade a otra pista y no apilar cambios si se pulsa durante un crossfade.

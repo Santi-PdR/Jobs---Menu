@@ -293,7 +293,7 @@ public final class CapaProfesionalJobs {
 
     private static String[] atajos(String codigo) {
         return switch (codigo) {
-            case "MAIN" -> new String[]{"1-4", "F", "M", "TAB", "ENTER"};
+            case "MAIN" -> new String[]{"1-4", "F", "M", "N", "TAB", "ENTER"};
             case "PAUSE" -> new String[]{"ESC", "M", "TAB", "ENTER"};
             case "WORLDS", "MODS", "LANG" -> new String[]{"CTRL+F", "ESC", "TAB", "ENTER"};
             case "MULTI" -> new String[]{"F5", "ESC", "TAB", "ENTER"};

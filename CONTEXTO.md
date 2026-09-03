@@ -7,8 +7,8 @@ Documento maestro del estado vigente. El historial vive en `CHANGELOG.md` y audi
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Version actual | **0.25.0** |
-| Artefacto esperado | **`jobsmenu-0.25.0.jar`** |
+| Version actual | **0.26.0** |
+| Artefacto esperado | **`jobsmenu-0.26.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -53,9 +53,9 @@ Familias de superficie:
 - **Formulario claro:** Options, Config Jobs, Idioma, controles y pausa.
 - **Archivo oscuro:** Mundos, Multiplayer, Mods y Recursos.
 
-## 3. Estado 0.25.0
+## 3. Estado 0.26.0
 
-0.25.0 suma un catalogo musical real de tres pistas y conserva como base todo el pase visual 0.24.0.
+0.26.0 suma un catalogo musical real de tres pistas y conserva como base todo el pase visual 0.24.0.
 
 ### Musica de sesion 0.25
 
@@ -101,7 +101,7 @@ Familias de superficie:
 
 ### Main screen
 
-- HUD `JOBS / SHIFT CONTROL` ampliado;
+- placa lateral `JOBS / SHIFT CONTROL` retirada por completo;
 - lectura de Nivel y estado normal/transicion/Suspension;
 - LEDs rotulados R/A/M/U;
 - perfil actual o `CUSTOM`;
@@ -234,7 +234,7 @@ CI certifica:
 - recursos, idiomas y ASCII Java;
 - contratos UI/musica;
 - Forge build 1.20.1;
-- artefacto `jobsmenu-0.25.0.jar`;
+- artefacto `jobsmenu-0.26.0.jar`;
 - publicacion a `dev-latest` desde `main`.
 
 CI no certifica estetica dentro de Minecraft. La prueba manual vigente esta en `docs/checklist-manual.md`.

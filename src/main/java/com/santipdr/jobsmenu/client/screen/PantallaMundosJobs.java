@@ -15,10 +15,12 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
 
     private static final int PANEL_X = 12;
     private static final int PANEL_Y = 8;
+    private final Screen anteriorJobs;
     private EditBox busqueda;
 
     public PantallaMundosJobs(Screen anterior) {
         super(anterior);
+        this.anteriorJobs = anterior;
     }
 
     @Override
@@ -46,12 +48,21 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
             this.busqueda.setFocused(true);
             return true;
         }
-        if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE && this.busqueda != null
-                && this.busqueda.isFocused() && !this.busqueda.getValue().isEmpty()) {
-            this.busqueda.setValue("");
+        if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) {
+            volverAlMenu();
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public void onClose() {
+        volverAlMenu();
+    }
+
+    private void volverAlMenu() {
+        if (this.minecraft == null) return;
+        this.minecraft.setScreen(this.anteriorJobs != null ? this.anteriorJobs : new PantallaNivel());
     }
 
     @Override

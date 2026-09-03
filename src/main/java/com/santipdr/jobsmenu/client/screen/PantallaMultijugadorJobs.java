@@ -24,12 +24,14 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
 
     private static final String SERVIDOR_IP = "JobsDosh.exaroton.me:56477";
 
+    private final Screen anteriorJobs;
     private Button realSelect, realDirect, realAdd, realEdit, realDelete, realRefresh, realCancel;
     private BotonExpediente select, edit, delete, refresh;
     private int panelX, panelY, panelW, panelH;
 
     public PantallaMultijugadorJobs(Screen anterior) {
         super(anterior);
+        this.anteriorJobs = anterior;
     }
 
     @Override
@@ -145,8 +147,9 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
 
     private BotonExpediente agregar(int x, int y, int w, String clave, String ayuda,
                                      BotonExpediente.Tipo tipo, Button real) {
+        Runnable accion = "gui.cancel".equals(clave) ? this::volverAlMenu : () -> pulsar(real);
         BotonExpediente b = new BotonExpediente(x, y, w, 21,
-                Component.translatable(clave), tipo, () -> pulsar(real));
+                Component.translatable(clave), tipo, accion);
         this.addRenderableWidget(b);
         b.setTooltip(Tooltip.create(Component.translatable(ayuda)));
         return b;
@@ -261,10 +264,24 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            volverAlMenu();
+            return true;
+        }
         if (keyCode == GLFW.GLFW_KEY_F5 && this.realRefresh != null && this.realRefresh.active) {
             this.realRefresh.onPress();
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public void onClose() {
+        volverAlMenu();
+    }
+
+    private void volverAlMenu() {
+        if (this.minecraft == null) return;
+        this.minecraft.setScreen(this.anteriorJobs != null ? this.anteriorJobs : new PantallaNivel());
     }
 }

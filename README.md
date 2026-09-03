@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 
 | | |
 |---|---|
-| Versión | **0.25.0** |
-| Artefacto | **`jobsmenu-0.25.0.jar`** |
+| Versión | **0.26.0** |
+| Artefacto | **`jobsmenu-0.26.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,7 +13,7 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 | Rama entregable | **`main`** |
 | Niveles | **18 (0–17)** |
 
-## 0.25.0 · Catálogo musical real y control de sesión
+## 0.26.0 · Catálogo musical real y control de sesión
 
 - Catálogo real de **3 pistas**: Absurdism, REQUIEM y Upon the Hill V2.
 - REQUIEM y Upon the Hill se empaquetan desde los OGG autorizados ya presentes en `music/`; el build no descarga audio externo.
@@ -105,7 +105,7 @@ GitHub Actions ejecuta:
 4. auditoría estática;
 5. contratos UI/música;
 6. `./gradlew build --stacktrace --no-daemon`;
-7. publicación de **`jobsmenu-0.25.0.jar`** en `dev-latest` sólo desde `main`.
+7. publicación de **`jobsmenu-0.26.0.jar`** en `dev-latest` sólo desde `main`.
 
 La release rodante conserva un único JAR versionado. `jobsmenu-latest.jar` está prohibido.
 
@@ -120,7 +120,7 @@ La prueba normal no compila localmente. El PowerShell canónico de `docs/DESPLIE
 - [`CONTEXTO.md`](CONTEXTO.md): contrato maestro actual.
 - [`CHANGELOG.md`](CHANGELOG.md): cambios por versión.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y pruebas manuales pendientes.
-- [`docs/AUDITORIA_AUDIO_0.25.0.md`](docs/AUDITORIA_AUDIO_0.25.0.md): catálogo musical y mejoras de sesión.
+- [`docs/AUDITORIA_AUDIO_0.26.0.md`](docs/AUDITORIA_AUDIO_0.26.0.md): catálogo musical y mejoras de sesión.
 - [`docs/AUDITORIA_0.24.0_84_MEJORAS.md`](docs/AUDITORIA_0.24.0_84_MEJORAS.md): pase transversal anterior.
 - [`docs/AUDITORIA_0.23.0_72_MEJORAS.md`](docs/AUDITORIA_0.23.0_72_MEJORAS.md): pase transversal anterior.
 - [`docs/checklist-manual.md`](docs/checklist-manual.md): prueba dentro de Minecraft.

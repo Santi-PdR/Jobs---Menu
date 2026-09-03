@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.25.0
+# Checklist manual de aceptación — 0.26.0
 
 Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código, recursos y build; **no certifica estética, hitboxes, audio ni compatibilidad visual dentro de Minecraft**.
 
@@ -6,7 +6,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.25.0.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.26.0.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Matriz mínima de layout
@@ -22,7 +22,7 @@ En todos:
 - [ ] código técnico, breadcrumb, reloj de sesión y barra inferior no pisan contenido;
 - [ ] la instrumentación secundaria desaparece antes que el contenido al reducir ventana.
 
-## Main screen 0.25.0
+## Main screen 0.26.0
 
 - [ ] `TitleScreen` entra a Jobs.
 - [ ] Los cuatro renglones responden dentro de su hitbox.
@@ -41,7 +41,7 @@ En todos:
 - [ ] Barra de volumen y valor numérico coinciden con Config Jobs.
 - [ ] Chips 1-4/F/M/TAB/ENTER no pisan hoja, ronda, crédito ni rótulo del Nivel.
 
-## Pausa 0.25.0
+## Pausa 0.26.0
 
 - [ ] El mundo real sigue visible detrás de la hoja.
 - [ ] 1 y keypad 1 reanudan.
@@ -61,7 +61,7 @@ En todos:
 - [ ] F1–F5 continúan aplicando perfiles en Config Jobs donde corresponde.
 - [ ] Los atajos visibles de cada pantalla corresponden con funciones realmente implementadas.
 
-## Instrumentación contextual 0.25.0
+## Instrumentación contextual 0.26.0
 
 - [ ] Código MAIN/PAUSE/OPTIONS/CONFIG/WORLDS/MULTI/MODS/RESOURCES/LANG/etc. coincide con la pantalla.
 - [ ] En ventanas amplias aparece el título real de la Screen como contexto secundario.
@@ -96,7 +96,7 @@ En todos:
 - [ ] EditBox enfocado muestra doble marco/notch sin tapar texto.
 - [ ] Campos no editables se distinguen sin parecer deshabilitados de forma incorrecta.
 
-## Scrollbars Jobs 0.25.0
+## Scrollbars Jobs 0.26.0
 
 Probar Mundos, Multiplayer, Mods, Resource Packs e Idioma:
 
@@ -168,5 +168,5 @@ Si todo pasa:
 
 - [ ] conservar SHA-256 del JAR probado;
 - [ ] anotar resolución/GUI Scale usados;
-- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.25.0.jar`;
+- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.26.0.jar`;
 - [ ] reportar defecto visual con captura y `latest.log` si afecta recursos/audio/crash.

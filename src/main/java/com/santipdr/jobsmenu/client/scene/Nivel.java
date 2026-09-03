@@ -4,6 +4,7 @@ import com.santipdr.jobsmenu.client.scene.planta.Biblioteca;
 import com.santipdr.jobsmenu.client.scene.planta.Catacumba;
 import com.santipdr.jobsmenu.client.scene.planta.Cisterna;
 import com.santipdr.jobsmenu.client.scene.planta.Cripta;
+import com.santipdr.jobsmenu.client.scene.planta.DepositoNuevo;
 import com.santipdr.jobsmenu.client.scene.planta.Invernadero;
 import com.santipdr.jobsmenu.client.scene.planta.Nave;
 import com.santipdr.jobsmenu.client.scene.planta.Natatorio;
@@ -82,13 +83,13 @@ public final class Nivel {
                     0.680F, 0.470F, 0.330F, 0.105F, 0.150F, 0.135F,
                     0.16F, 1.00F),
 
-            new Nivel("nivel1", new Nave(),
-                    0xFFB6BAAE, 0xFF74786C, 0xFF4A4E43,
-                    0xFF80847A, 0xFF5A5E54, 0xFF3C4036,
-                    0xFF9EA298, 0xFF5C6055,
-                    0xFF6E7268, 0xFFE8F0FF, 0xFF171B1D,
-                    0.505F, 0.720F, 0.235F, 0.255F, 0.300F, 0.098F,
-                    0.30F, 0.35F),
+            new Nivel("nivel1", new DepositoNuevo(),
+                    0xFFA8B0A7, 0xFF606861, 0xFF39403B,
+                    0xFF6A706B, 0xFF444A46, 0xFF303531,
+                    0xFF818A83, 0xFF454C47,
+                    0xFF555D57, 0xFFE5EEE8, 0xFF0B0F0E,
+                    0.500F, 0.610F, 0.260F, 0.280F, 0.245F, 0.105F,
+                    0.18F, 0.38F),
 
             new Nivel("nivel2", new Servicio(),
                     0xFF6E4A28, 0xFF3E2A17, 0xFF241609,
