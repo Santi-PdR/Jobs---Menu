@@ -1,0 +1,74 @@
+name: Cerrar docs 0.26 temporal
+
+on:
+  push:
+    branches:
+      - arena/01a07800-fix-ux-0251
+
+permissions:
+  contents: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: arena/01a07800-fix-ux-0251
+          fetch-depth: 0
+      - name: Sincronizar docs
+        shell: bash
+        run: |
+          if [ "$(git log -1 --pretty=%s)" = "docs-026-final" ]; then exit 0; fi
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def r(p): return Path(p).read_text(encoding='utf-8')
+          def w(p,s): Path(p).write_text(s,encoding='utf-8',newline='\n')
+
+          p='README.md'; s=r(p)
+          old='## 0.26.0 · Catálogo musical real y control de sesión\n'
+          nuevo='''## 0.26.0 · Correcciones de capturas y nuevo Depósito\n\n- Retirado por completo el panel `SHIFT CONTROL`; tampoco queda el `JOBS / LEVEL` técnico flotando sobre el fondo.\n- La barra inferior del main incorpora **N** junto a `1-4`, `F`, `M`, `TAB` y `ENTER`; N cambia realmente de pista.\n- Mods vuelve a usar la geometría real de Forge, por lo que la lista de mods no se redimensiona ni se tapa.\n- Resource Packs conserva las dos listas vanilla con sus posiciones originales, evitando la superposición vista en captura.\n- Mundos y Multiplayer vuelven al padre Jobs con una sola pulsación de ESC/Volver.\n- Corregido el texto literal `%s` en la fecha del turno.\n- Reescritos los 20 avisos rotativos ES/EN para mantener reglas coherentes de la instalación.\n- Absurdism de runtime usa ahora el nuevo OGG subido en `music/`; REQUIEM y Upon the Hill V2 siguen siendo pistas separadas.\n- Nivel 1 · Depósito usa un renderer procedural nuevo con muelles, racks, pallets, vigas, luminarias y montacargas. El anterior queda respaldado.\n\n## 0.25.0 · Catálogo musical real y control de sesión\n'''
+          if old not in s: raise SystemExit('heading README no encontrado')
+          s=s.replace(old,nuevo,1)
+          w(p,s)
+
+          p='CONTEXTO.md'; s=r(p)
+          s=s.replace('0.26.0 suma un catalogo musical real de tres pistas y conserva como base todo el pase visual 0.24.0.',
+                      '0.26.0 corrige regresiones detectadas en capturas reales, actualiza Absurdism y reemplaza el renderer procedural del Nivel 1 conservando backup del anterior.')
+          s=s.replace('- credito y HUD siguen a la pista dominante durante crossfade;',
+                      '- credito de musica sigue a la pista dominante durante crossfade;')
+          s=s.replace('- `F`, `M`, `CTRL+F`, `F5`, `F1-F5`, TAB, ENTER y ESC solo se anuncian donde su comportamiento ya existe.',
+                      '- `F`, `M`, `N`, `CTRL+F`, `F5`, `F1-F5`, TAB, ENTER y ESC solo se anuncian donde su comportamiento ya existe.')
+          start=s.index('### Main screen\n')
+          end=s.index('\n### Controles vanilla/Forge preservados',start)
+          bloque='''### Main screen\n\n- el panel lateral `JOBS / SHIFT CONTROL` fue eliminado por completo;\n- el rótulo técnico duplicado `JOBS / LEVEL n` también fue eliminado;\n- el aviso de papel y el rótulo localizado del Nivel siguen siendo la lectura principal;\n- la fecha de turno usa tres argumentos posicionales y no puede mostrar `%s`;\n- la barra inferior contextual muestra `1-4`, F, M, N, TAB y ENTER;\n- N llama al cambio real de pista y respeta el bloqueo de crossfade;\n- la instrumentación compartida superior/inferior sigue sin capturar input.\n'''
+          s=s[:start]+bloque+s[end:]
+          w(p,s)
+
+          p='KNOWN_ISSUES.md'; s=r(p)
+          s=s.replace('6. Main con HUD ampliado, `NXT`, sesión, volumen, MUTE y pista actual.',
+                      '6. Main sin SHIFT CONTROL ni JOBS / LEVEL técnico duplicado; revisar que la hoja y la barra inferior respiren correctamente.')
+          s=s.replace('3. El crédito y `TRK` del HUD deben seguir a la pista dominante correcta.',
+                      '3. El crédito musical debe seguir a la pista dominante correcta durante el crossfade.')
+          s=s.replace('2. `N` debe hacer crossfade a otra pista y no apilar cambios si se pulsa durante un crossfade.',
+                      '2. `N` debe aparecer en la barra inferior, hacer crossfade a otra pista y no apilar cambios durante un crossfade.')
+          w(p,s)
+
+          p='docs/checklist-manual.md'; s=r(p)
+          s=s.replace('- [ ] HUD muestra Nivel y normal/transición/Suspensión correctamente.\n','')
+          s=s.replace('- [ ] LEDs R/A/M/U reflejan rotación, ambiente, música y sonidos UI.\n','')
+          s=s.replace('- [ ] Perfil reconocido o `CUSTOM` es coherente.\n','')
+          s=s.replace('- [ ] Progreso de estancia avanza y el cursor acompaña.\n','')
+          s=s.replace('- [ ] `NXT MM:SS`, `NXT HOLD` y `NXT MOVE` aparecen en el estado correcto.\n','')
+          s=s.replace('- [ ] Barra de volumen y valor numérico coinciden con Config Jobs.\n','')
+          s=s.replace('- [ ] Chips 1-4/F/M/TAB/ENTER no pisan hoja, ronda, crédito ni rótulo del Nivel.\n',
+                      '- [ ] No aparece `SHIFT CONTROL` ni `JOBS / LEVEL` sobre el fondo.\n- [ ] No aparece `%s` literalmente en la fecha del turno.\n- [ ] La barra inferior muestra 1-4/F/M/N/TAB/ENTER sin pisar hoja, ronda, crédito ni rótulo del Nivel.\n- [ ] N inicia un cambio real de pista y no apila crossfades.\n')
+          s += '''\n## Regresiones reparadas en 0.26.0\n\n- [ ] Mods muestra nombres/logos/selección de mods y Config conserva su callback.\n- [ ] Resource Packs muestra las dos listas separadas sin textos o iconos superpuestos.\n- [ ] ESC en Mundos vuelve al main Jobs a la primera.\n- [ ] ESC y Cancel en Multiplayer vuelven al main Jobs a la primera.\n- [ ] Los avisos rotativos no contienen la antigua frase incoherente del fluorescente.\n- [ ] Absurdism, REQUIEM y Upon the Hill V2 pueden identificarse como tres pistas distintas.\n- [ ] Nivel 1 muestra el nuevo Depósito; `Nave_0.25.0.java.txt` es sólo backup y no participa en runtime.\n'''
+          w(p,s)
+          PY
+          git config user.name "Santi.pdr"
+          git config user.email "santiagopereiraxd029@gmail.com"
+          git add README.md CONTEXTO.md KNOWN_ISSUES.md docs/checklist-manual.md
+          git commit -m "docs-026-final"
+          git push origin HEAD:arena/01a07800-fix-ux-0251
