@@ -60,8 +60,6 @@ public final class PielVanillaJobs {
         int texto = archivo ? Paleta.ARCHIVO_TEXTO : Paleta.UI_TINTA;
         float contraste = ConfigTurno.altoContraste() ? 1.18F : 1.0F;
 
-        // Sombra y doble registro hacen que el slider se lea como una pieza
-        // fisica aun cuando Minecraft conserva su control real debajo.
         g.fill(x + 2, y + h, x + w + 1, y + h + 2,
                 Paleta.conAlfa(Paleta.VANO, slider.active ? 0.14F : 0.07F));
         marco(g, x, y, w, h,
@@ -252,14 +250,12 @@ public final class PielVanillaJobs {
                     Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.22F));
             g.fill(x + 4, y + h + 1, x + Math.min(w - 4, 28), y + h + 2,
                     Paleta.conAlfa(Paleta.UI_ACENTO, 0.22F));
-        }
-
-        if (!campo.isEditable()) {
+        } else {
             int cy = y + h / 2;
-            g.fill(x + 4, cy, x + 9, cy + 1,
-                    Paleta.conAlfa(tinta, 0.18F));
-            g.fill(x + w - 9, cy, x + w - 4, cy + 1,
+            g.fill(x + 4, cy, x + 8, cy + 1,
                     Paleta.conAlfa(tinta, 0.12F));
+            g.fill(x + w - 8, cy, x + w - 4, cy + 1,
+                    Paleta.conAlfa(tinta, 0.08F));
         }
     }
 
