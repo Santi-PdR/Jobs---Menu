@@ -7,8 +7,8 @@ Documento maestro del estado vigente. El historial vive en `CHANGELOG.md` y audi
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Version actual | **0.22.1** |
-| Artefacto esperado | **`jobsmenu-0.22.1.jar`** |
+| Version actual | **0.23.0** |
+| Artefacto esperado | **`jobsmenu-0.23.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -23,22 +23,23 @@ Documento maestro del estado vigente. El historial vive en `CHANGELOG.md` y audi
 3. `gradle.properties` es la fuente de verdad de version.
 4. CI obligatorio: Java 17 -> version -> fondos -> auditoria estatica -> contratos UI/musica -> Forge build -> publicacion.
 5. `dev-latest` contiene un unico JAR versionado y solo se actualiza desde `main` con pipeline verde.
-6. Java visible permanece ASCII; cadenas para usuario viven en idiomas.
+6. Java visible permanece ASCII; cadenas para usuario viven en idiomas. Codigos tecnicos y nombres de teclas pueden ser universales.
 7. ES/EN conservan paridad de claves.
 8. El rojo es exclusivo de Executores.
-9. Accesibilidad, movimiento reducido y Bajo consumo tienen prioridad sobre decoracion.
+9. Accesibilidad, Movimiento reducido y Bajo consumo tienen prioridad sobre decoracion.
 10. Ningun control visible puede tener un hitbox vanilla invisible superpuesto.
 11. Pantallas de logica compleja conservan comportamiento vanilla/Forge cuando eso protege compatibilidad.
-12. PNG 10-17 no reciben movimiento propio ni deformacion; fades/apagones/transiciones globales del menu si estan permitidos.
+12. PNG 10-17 no reciben movimiento propio ni deformacion; fades/apagones/transiciones y overlays globales del menu si estan permitidos.
 13. Audio de menu no puede sobrevivir dentro de gameplay.
 14. Pistas musicales solo se empaquetan con archivo autorizado y redistribuible.
 15. Nuevas pistas se integran desde OGG subido al repo; el build no descarga audio de terceros.
 16. Cambios visuales importantes se validan con CI y despues requieren prueba manual dentro de Minecraft.
 17. Despliegue normal siempre apunta a `test-1`.
+18. Capas globales de UI no capturan input ni sustituyen controles reales.
 
 ## 2. Identidad visual
 
-Jobs es un backrooms administrativo con peaje. El ocupante trabaja, junta dinero y paga para pasar al siguiente Nivel. La interfaz no es futurista: usa archivo, formulario, instalacion vieja, marcas de inventario y amenaza sugerida.
+Jobs es un backrooms administrativo con peaje. El ocupante trabaja, junta dinero y paga para pasar al siguiente Nivel. La interfaz no es futurista: usa archivo, formulario, instalacion vieja, marcas de inventario, calibracion y amenaza sugerida.
 
 La escena y la UI no comparten paleta por comodidad:
 
@@ -50,47 +51,59 @@ Familias de superficie:
 - **Formulario claro:** Options, Config Jobs, Idioma, controles y pausa.
 - **Archivo oscuro:** Mundos, Multiplayer, Mods y Recursos.
 
-## 3. Estado 0.22.1
+## 3. Estado 0.23.0
 
-0.22.1 concentra el salto visible en menu principal, pausa, transiciones globales y secretos de sesion.
+0.23.0 profesionaliza el sistema completo de interfaz con una capa contextual compartida y un HUD principal mas informativo, sin transformar Jobs en un dashboard futurista.
+
+### Capa profesional compartida
+
+- codigo tecnico discreto por familia de pantalla;
+- contador de controles activos/totales;
+- badge del perfil de experiencia reconocido;
+- indicadores UI / ambiente / musica;
+- rail inferior con TAB / ENTER / ESC y atajos contextuales;
+- linea de estado segmentada;
+- foco externo diferenciado para teclado y raton;
+- marcas laterales de registro;
+- actividad superior ultra sutil o sustituto estatico en Movimiento reducido/Bajo consumo;
+- soporte de alto contraste;
+- easter eggs administrativos integrados sin gameplay ni red.
 
 ### Menu principal
 
-- expediente con rails y marcas de registro;
-- HUD lateral contextual en viewports amplios;
-- lectura de turno, Nivel y estado de instalacion;
-- pista de atajos integrada sin convertir la pantalla en dashboard;
-- zona tecnica lateral con codigo de expediente;
-- reglas secundarias y jerarquia de profundidad alrededor de la hoja;
-- easter eggs de sesion discretos, sin red, recompensas ni efecto sobre gameplay.
-
-### Pausa
-
-- conserva el mundo real detras;
-- doble profundidad de sombra;
-- rails laterales y marcas de suspension;
-- panel contextual adicional en viewports amplios;
-- contexto visible `LOCAL/SERVER`;
-- codigo de expediente de sesion;
-- pista `M=MUTE`;
-- Escape reanuda;
-- Condiciones abre Options Jobs;
-- salir conserva la secuencia real de desconexion/guardado.
+- HUD lateral `JOBS / SHIFT CONTROL`;
+- lectura de Nivel y estado normal/transicion/Suspension;
+- cuatro LEDs para rotacion, ambiente, musica y sonidos UI;
+- codigo del perfil actual;
+- barra de progreso basada en la estancia real del Nivel;
+- marcas de 0/25/50/75/100 en progreso;
+- capsulas de teclas F, M, TAB y ENTER;
+- medidor inferior de seis barras;
+- registro central inferior;
+- alto contraste aplicado al HUD.
 
 ### Atmosfera compartida
 
-- rails globales muy tenues en pantallas Jobs;
-- registros superiores, inferiores y laterales;
-- barridos horizontales y verticales ultra sutiles;
-- nunca mueve, escala ni deforma el fondo;
-- se desactiva con Movimiento reducido o Bajo consumo.
+- cuatro esquinas de registro;
+- referencias de calibracion superior, inferior y laterales;
+- ticks estaticos en viewports amplios;
+- Papel limpio elimina calibraciones secundarias;
+- Movimiento reducido/Bajo consumo reemplazan barridos por marcas fijas;
+- barridos horizontales y verticales exclusivamente de interfaz;
+- pulso de sistema solo en el borde inferior de pantallas grandes;
+- nunca mueve, escala ni deforma el background.
 
 ### Transiciones
 
-- expediente transversal de 430 ms;
-- mayor profundidad de cola y sombra;
-- marcas de registro internas;
-- modo reducido conserva fade simple;
+- expediente transversal de 470 ms;
+- modo reducido conserva fade simple con registros centrales;
+- doble borde de papel;
+- triple registro vertical;
+- perforaciones/segmentos de archivador;
+- ficha interna discreta;
+- rails direccionales;
+- marcas por tercios;
+- segunda sombra de salida en dos fases;
 - no bloquea input ni cambia la Screen.
 
 ### Sistema visual heredado
@@ -102,6 +115,8 @@ Familias de superficie:
 - foco global reforzado;
 - scrollbars Jobs;
 - perfiles Equilibrado, Inmersivo, Rendimiento, Accesible y Minimo.
+
+La auditoria visible de esta entrega esta en `docs/AUDITORIA_0.23.0_72_MEJORAS.md`.
 
 ## 4. Estado de pantallas grandes
 
@@ -223,6 +238,7 @@ La musica usa `SoundSource.MASTER`: Maestro + volumen Jobs + volumen del aviso; 
 - Redirecciones principales por clase exacta.
 - Listas complejas conservan logica real.
 - `ListasExpediente` modifica presentacion y conserva rueda/click/drag.
+- `CapaProfesionalJobs` es solo visual y no captura input.
 - `PielVanillaJobs` no se aplica indiscriminadamente a pantallas externas.
 - Embeddium conserva su UI de video.
 - Mods que sustituyan totalmente pantallas pueden requerir integracion especifica.
@@ -237,7 +253,7 @@ CI certifica:
 - recursos, idiomas y ASCII Java;
 - contratos UI/musica;
 - Forge build 1.20.1;
-- artefacto `jobsmenu-0.22.1.jar`;
+- artefacto `jobsmenu-0.23.0.jar`;
 - publicacion a `dev-latest` desde `main`.
 
 CI no certifica estetica dentro de Minecraft. La prueba manual vigente esta en `docs/checklist-manual.md`.
