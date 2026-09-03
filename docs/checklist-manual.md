@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.23.0
+# Checklist manual de aceptación — 0.24.0
 
 Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código, recursos y build; **no certifica estética, hitboxes, audio ni compatibilidad visual dentro de Minecraft**.
 
@@ -6,221 +6,161 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.23.0.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.24.0.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Matriz mínima de layout
 
-Probar como mínimo 854×480, 1280×720, 1920×1080, ventana estrecha, poca altura, GUI Scale 2/3/4, español, inglés y Español (Uruguay).
+Probar 854×480, 1280×720, 1920×1080, ventana estrecha, poca altura, GUI Scale 2/3/4, español, inglés y Español (Uruguay).
 
 En todos:
 
-- [ ] no hay texto sobre botones;
-- [ ] no hay footer sobre Volver;
-- [ ] no hay controles fuera de pantalla;
-- [ ] foco de teclado visible;
-- [ ] no aparecen claves `jobsmenu.*`;
-- [ ] no aparece título vanilla por debajo de Jobs;
-- [ ] no hay hitboxes invisibles capturando click/foco;
-- [ ] el código técnico de pantalla no tapa el título real;
-- [ ] el contador de controles no invade cabeceras;
-- [ ] el rail inferior de teclas no tapa botones;
-- [ ] los módulos UI/A/M quedan fuera de controles interactivos.
+- [ ] no hay texto sobre botones ni footer sobre Volver;
+- [ ] no hay controles fuera de pantalla ni hitboxes invisibles;
+- [ ] foco de teclado visible y distinto del hover;
+- [ ] no aparecen claves `jobsmenu.*` ni títulos vanilla duplicados;
+- [ ] código técnico, breadcrumb, reloj de sesión y barra inferior no pisan contenido;
+- [ ] la instrumentación secundaria desaparece antes que el contenido al reducir ventana.
 
-## Main screen 0.23.0
+## Main screen 0.24.0
 
-- [ ] `TitleScreen` entra a Jobs, no al título vanilla.
-- [ ] Los cuatro renglones principales responden dentro de su hitbox.
-- [ ] Renunciar conserva segunda confirmación.
-- [ ] El HUD lateral aparece sólo cuando hay ancho suficiente.
-- [ ] El HUD lateral no pisa hoja, reloj, crédito ni rótulo de Nivel.
-- [ ] El HUD muestra Nivel y estado correctos.
-- [ ] Suspension, transición y normal se distinguen.
-- [ ] Los cuatro LEDs reflejan rotación, ambiente, música y sonidos UI.
-- [ ] El código de perfil coincide con la configuración reconocida.
-- [ ] La barra de progreso avanza durante la estancia.
-- [ ] La barra de progreso completa durante el traslado.
-- [ ] Las marcas 0/25/50/75/100 de la barra son legibles.
-- [ ] Las cápsulas F/M/TAB/ENTER no pisan otros elementos.
-- [ ] Las marcas técnicas siguen la luz del Nivel sin volverse ilegibles.
-- [ ] F cambia de Nivel sólo cuando la rotación está habilitada.
-- [ ] M alterna silencio.
-- [ ] Música/ambiente continúan al entrar a subpantallas.
-- [ ] Entrar a mundo/servidor corta música y ambiente desde gameplay.
-- [ ] Salir de mundo/servidor/kick vuelve a Jobs.
+- [ ] `TitleScreen` entra a Jobs.
+- [ ] Los cuatro renglones responden dentro de su hitbox.
+- [ ] 1/2/3/4 activan los renglones 01/02/03/04 respectivamente.
+- [ ] Keypad 1/2/3/4 hace lo mismo.
+- [ ] El primer 4 sólo arma la confirmación de Renunciar; no cierra de inmediato.
+- [ ] El segundo 4 dentro de la ventana de confirmación ejecuta la salida igual que el click real.
+- [ ] F cambia de Nivel sólo con rotación habilitada.
+- [ ] M alterna silencio y el HUD pasa a `MUTE` al llegar a cero.
+- [ ] HUD muestra Nivel y normal/transición/Suspensión correctamente.
+- [ ] LEDs R/A/M/U reflejan rotación, ambiente, música y sonidos UI.
+- [ ] Perfil reconocido o `CUSTOM` es coherente.
+- [ ] Progreso de estancia avanza y el cursor acompaña.
+- [ ] `NXT MM:SS`, `NXT HOLD` y `NXT MOVE` aparecen en el estado correcto.
+- [ ] `T+MM:SS` avanza sin reiniciarse al volver de subpantallas.
+- [ ] Barra de volumen y valor numérico coinciden con Config Jobs.
+- [ ] Chips 1-4/F/M/TAB/ENTER no pisan hoja, ronda, crédito ni rótulo del Nivel.
 
-## Pausa 0.23.0
+## Pausa 0.24.0
 
 - [ ] El mundo real sigue visible detrás de la hoja.
-- [ ] El oscurecido por capas no tapa completamente el contexto.
-- [ ] La sombra de la hoja no invade renglones ni hitboxes.
-- [ ] Las guías laterales se mantienen fuera de los controles.
-- [ ] El código técnico `PAUSE` no compite con la cabecera de la hoja.
-- [ ] El rail inferior incluye M además de TAB/ENTER/ESC cuando cabe.
-- [ ] Los módulos de audio se ven sin tapar el estado LOCAL/SERVER.
-- [ ] El panel contextual distingue LOCAL/SERVER correctamente.
-- [ ] El código de expediente no invade controles.
-- [ ] Escape reanuda.
-- [ ] Condiciones abre `PantallaOpcionesJobs`.
-- [ ] Volver desde Options regresa a pausa.
-- [ ] M sigue alternando silencio del mod.
-- [ ] Salir de mundo local muestra guardado y vuelve a Jobs.
-- [ ] Salir de servidor desconecta sin reproducir audio de menú dentro del mundo.
+- [ ] 1 y keypad 1 reanudan.
+- [ ] 2 y keypad 2 abren Condiciones.
+- [ ] 3 y keypad 3 **no** desconectan ni accionan la salida.
+- [ ] Escape reanuda y M alterna silencio.
+- [ ] Condiciones vuelve correctamente a pausa.
+- [ ] LOCAL/SERVER y código de expediente no invaden controles.
+- [ ] Salir manualmente conserva guardado/desconexión real y retorna a Jobs.
 
-## Capa profesional compartida
+## Atajos y campos de texto
 
-- [ ] Código MAIN/PAUSE/OPTIONS/CONFIG/etc. coincide con la pantalla.
-- [ ] Contador activo/visible cambia de forma coherente entre pantallas.
-- [ ] Badge de perfil aparece sólo cuando el perfil puede reconocerse.
-- [ ] UI/A/M distinguen encendido y apagado.
-- [ ] TAB/ENTER/ESC son legibles en 1280×720 y 1920×1080.
-- [ ] Ventana pequeña elimina elementos secundarios antes de solapar.
-- [ ] Foco de teclado es más fuerte que hover de ratón.
-- [ ] Hover no altera hitbox ni captura eventos nuevos.
-- [ ] La línea segmentada inferior no invade botones.
-- [ ] Alto contraste refuerza la instrumentación sin volverla agresiva.
-- [ ] Movimiento reducido congela la respiración de foco.
-- [ ] Bajo consumo elimina la actividad superior continua.
-- [ ] El expediente raro, si aparece, queda fuera de controles.
+- [ ] Con un buscador/EditBox enfocado, escribir 1–4 produce texto y no acciona renglones.
+- [ ] Ctrl+1, Alt+1, Shift+1 y combinaciones equivalentes no disparan el atajo Jobs.
+- [ ] Ctrl+F continúa funcionando en Mundos, Mods e Idioma.
+- [ ] F5 continúa refrescando Multiplayer.
+- [ ] F1–F5 continúan aplicando perfiles en Config Jobs donde corresponde.
+- [ ] Los atajos visibles de cada pantalla corresponden con funciones realmente implementadas.
 
-## Transiciones y atmósfera
+## Instrumentación contextual 0.24.0
 
-- [ ] La transición entre expedientes se siente suave y no bloquea input.
-- [ ] La transición completa dura aproximadamente 470 ms.
-- [ ] Se leen doble borde, registros y perforaciones sin que parezcan scanlines.
-- [ ] La ficha interna de transición no deja residuos al terminar.
-- [ ] La segunda sombra de salida desaparece completamente.
-- [ ] Movimiento reducido simplifica la transición a fade.
-- [ ] Bajo consumo elimina barridos decorativos continuos.
-- [ ] Las cuatro esquinas de registro quedan fuera del contenido principal.
-- [ ] Los ticks de calibración son discretos.
-- [ ] Papel limpio elimina ticks secundarios.
-- [ ] El pulso de borde inferior sólo aparece en pantallas grandes.
-- [ ] Los barridos horizontales/verticales son sutiles y no mueven el background.
-- [ ] Cambiar rápidamente entre pantallas no deja overlays congelados.
+- [ ] Código MAIN/PAUSE/OPTIONS/CONFIG/WORLDS/MULTI/MODS/RESOURCES/LANG/etc. coincide con la pantalla.
+- [ ] En ventanas amplias aparece el título real de la Screen como contexto secundario.
+- [ ] El contador activos/totales y su barra cambian coherentemente.
+- [ ] Breadcrumb conserva como máximo tres familias recientes y no repite la misma consecutivamente.
+- [ ] Breadcrumb se reinicia al iniciar una visita nueva al menú.
+- [ ] `T+MM:SS` no se reinicia al abrir Options/Mods/Resources dentro de la misma visita.
+- [ ] `Sxx` aumenta al abrir pantallas distintas y no aumenta cada frame.
+- [ ] `Vxxx` coincide con volumen Jobs; cero se muestra como `MUTE`.
+- [ ] Foco por teclado muestra `KEY`; hover sin foco muestra `PTR`.
+- [ ] Tipo de control se reconoce como TOG/SLD/TXT/ROW/BTN/CTL.
+- [ ] Posición `nn/nn` cambia al navegar con TAB.
+- [ ] Etiqueta del control actual se recorta antes de invadir metadatos.
+- [ ] Sin control actual, el perfil aparece como contexto cuando hay espacio.
+- [ ] Interfaz mínima elimina breadcrumb/telemetría secundaria antes de afectar usabilidad.
+- [ ] Movimiento reducido y Bajo consumo reemplazan actividad móvil por referencias fijas.
+- [ ] Alto contraste refuerza la instrumentación sin volverla ilegible.
 
-## Options / Config Jobs
+## Controles Jobs y controles vanilla/Forge
 
-- [ ] Config Jobs aparece como acción principal.
-- [ ] Piel, Sonido, Video, Controles, Idioma, Chat, Recursos, Accesibilidad y Online abren la pantalla correcta.
-- [ ] FOV aparece sólo cuando cabe.
-- [ ] Ventana pequeña reduce contenido antes de solapar.
-- [ ] Las seis categorías de Config funcionan y conservan valores.
-- [ ] Perfiles Equilibrado/Inmersivo/Rendimiento/Accesible/Mínimo aplican valores reales.
-- [ ] El código de perfil global cambia al aplicar un preset reconocible.
-- [ ] Tabs, toggles y sliders muestran tooltip localizado.
+- [ ] NORMAL/PRINCIPAL/JOBS/TERMINAL siguen diferenciados.
+- [ ] Toggle separa etiqueta y estado y mantiene teclado/click.
+- [ ] Slider Jobs conserva drag/teclado/valor.
+- [ ] Botones vanilla tematizados mantienen callback e hitbox originales.
+- [ ] Botón vanilla hover y foco KEY se distinguen.
+- [ ] Texto truncado muestra marca de recorte sin tapar la etiqueta.
+- [ ] Disabled se entiende como indisponible y no parece seleccionado.
+- [ ] Slider vanilla conserva drag y teclado.
+- [ ] Escala de slider vanilla muestra marcas reforzadas en 0/50/100.
+- [ ] Foco KEY de slider muestra notch superior sin mover el control.
+- [ ] EditBox conserva cursor, selección, copy/paste y escritura.
+- [ ] EditBox enfocado muestra doble marco/notch sin tapar texto.
+- [ ] Campos no editables se distinguen sin parecer deshabilitados de forma incorrecta.
 
-## Widgets Jobs
+## Scrollbars Jobs 0.24.0
 
-- [ ] NORMAL, PRINCIPAL, JOBS y TERMINAL se distinguen.
-- [ ] Hover y foco de teclado son diferentes y visibles.
-- [ ] Press no desplaza hitbox.
-- [ ] Disabled tiene estado físico legible.
-- [ ] Toggle separa etiqueta y estado.
-- [ ] Slider mantiene drag y teclado y muestra escala/porcentaje cuando cabe.
-- [ ] El foco externo de 0.23.0 no duplica de forma molesta el foco interno del widget.
-- [ ] Bajo consumo elimina tweens decorativos continuos.
-- [ ] Movimiento reducido simplifica transiciones.
+Probar Mundos, Multiplayer, Mods, Resource Packs e Idioma:
 
-## Mundos
+- [ ] rueda, click y drag reales siguen funcionando;
+- [ ] scrollbar coincide con el scroll real de la lista;
+- [ ] tramo recorrido del canal avanza con el scroll;
+- [ ] escala visual 0/25/50/75/100 queda alineada;
+- [ ] topes y chevrons no invaden entradas;
+- [ ] cursor externo izquierdo/derecho coincide con la posición;
+- [ ] thumb tiene doble sombra y grip sin salirse del canal;
+- [ ] al llegar arriba/abajo no hay overflow visual.
 
-- [ ] Lista y previews cargan completas.
-- [ ] La superficie central Jobs no tapa mundos ni buscador.
-- [ ] Scrollbar Jobs coincide con el scroll real.
-- [ ] Ctrl+F enfoca búsqueda y Escape la limpia.
-- [ ] Crear/editar/borrar/recrear conservan callbacks vanilla.
-- [ ] El título visible es Archivo de turnos / Shift archive.
-- [ ] La capa profesional no tapa el buscador ni previews.
+## Pantallas grandes
 
-## Multijugador
+### Mundos
+- [ ] búsqueda, crear/editar/borrar/recrear conservan callbacks vanilla.
+- [ ] Ctrl+F y Escape funcionan.
+- [ ] previews, breadcrumb y scrollbar no se pisan.
 
+### Multiplayer
 - [ ] `JobsDosh.exaroton.me:56477` aparece primero y una sola vez.
 - [ ] `Ghoul Outbreak` no aparece.
-- [ ] La tarjeta oficial no tapa la lista.
-- [ ] Estado de selección/protección visible.
-- [ ] Edit/Delete se desactivan para el servidor oficial.
-- [ ] Ping, MOTD, LAN, Direct Connect, Add/Edit/Delete/Refresh y Cancel funcionan.
-- [ ] F5 refresca.
-- [ ] Scrollbar Jobs coincide con el scroll real.
-- [ ] La capa profesional no tapa ping/MOTD/botones.
+- [ ] servidor oficial no se puede editar/borrar desde Jobs.
+- [ ] Ping/MOTD/LAN/Direct Connect/Add/Edit/Delete/Refresh/Cancel funcionan.
+- [ ] F5 refresca y la barra contextual lo anuncia.
 
-## Mods / Forge
+### Mods / Forge
+- [ ] lista completa, A–Z/Z–A, buscar, Config y Open mods folder funcionan.
+- [ ] catálogo y detalle no se solapan.
+- [ ] no reaparece dirt/título Forge duplicado.
+- [ ] Ctrl+F/Escape, scrollbar y barra contextual conviven con la lista real.
 
-- [ ] Lista completa de mods.
-- [ ] A–Z / Z–A funciona.
-- [ ] Buscar filtra correctamente.
-- [ ] Ctrl+F enfoca búsqueda y Escape limpia.
-- [ ] Catálogo y panel de detalle se distinguen visualmente.
-- [ ] Logos no quedan tapados por el marco Jobs.
-- [ ] Panel de información sigue legible.
-- [ ] Config sólo se activa cuando corresponde.
-- [ ] Open mods folder conserva acción real.
-- [ ] Scrollbar Jobs funciona y coincide con Forge.
-- [ ] No aparece título Forge duplicado.
-- [ ] Código técnico, contador y rail inferior no pisan la lista.
+### Resource Packs
+- [ ] las dos listas siguen separadas y sin dirt vanilla.
+- [ ] selección, orden, aplicar y abrir carpeta funcionan.
+- [ ] scrollbar no se dibuja fuera de cada lista.
 
-## Resource Packs
+### Idioma
+- [ ] lista, buscador, portapapeles, Ctrl+F, Escape y Aplicar funcionan.
+- [ ] hover, pendiente y aplicado se distinguen.
+- [ ] ES/EN y Español (Uruguay) conservan textos Jobs correctos.
 
-- [ ] Las dos listas están visualmente separadas.
-- [ ] No reaparece dirt vanilla.
-- [ ] Selección, orden y aplicar funcionan.
-- [ ] Abrir carpeta funciona.
-- [ ] Scrollbar Jobs no se dibuja fuera de su lista.
-- [ ] No aparece `jobsmenu-musica-activa` legado.
-- [ ] Capa profesional no invade las dos bandejas.
+## Sonido, Video y sesión
 
-## Idioma
-
-- [ ] Lista completa hace scroll.
-- [ ] Buscador conserva teclado, selección y portapapeles.
-- [ ] Ctrl+F enfoca búsqueda.
-- [ ] Escape limpia búsqueda antes de cerrar.
-- [ ] Hover, selección pendiente e idioma aplicado son distinguibles.
-- [ ] Código de idioma se ve como badge sin tapar el nombre.
-- [ ] Cambio actual → pendiente es legible.
-- [ ] Aplicar recarga recursos y vuelve al padre.
-- [ ] Error de recarga no deja la pantalla bloqueada en “aplicando”.
-- [ ] GUI Scale 4 / ventana estrecha no desborda panel ni botones.
-- [ ] ES ↔ EN funciona.
-- [ ] Español (Uruguay) conserva textos Jobs en español.
-
-## Sonido y Video
-
-- [ ] Sonido conserva todas las opciones vanilla esperadas y scrollbar Jobs.
-- [ ] La bandeja interior no tapa sliders.
-- [ ] Sin Embeddium abre `PantallaVideoJobs` y su marco no tapa opciones.
-- [ ] Con Embeddium se abre la pantalla real de Embeddium sin reconstrucción Jobs incorrecta.
-
-## Audio y recarga
-
+- [ ] Sonido conserva opciones vanilla y scrollbar Jobs.
+- [ ] Sin Embeddium abre Video Jobs; con Embeddium se respeta su UI real.
 - [ ] Absurdism entra con fade-in limpio.
-- [ ] Title → Options → Mods → Recursos → volver no reinicia ni duplica música.
-- [ ] F3+T no crea instancias fantasma.
-- [ ] Alt+Tab no duplica audio.
-- [ ] Ducking funciona en transición/Suspensión/presencia donde corresponde.
-- [ ] Desde el primer tick jugable no queda audio de menú.
-- [ ] Indicadores UI/A/M reflejan configuración después de volver de Config Jobs.
+- [ ] Main → Options → Mods → Recursos → volver no reinicia ni duplica música.
+- [ ] F3+T y Alt+Tab no crean instancias fantasma.
+- [ ] entrar a gameplay corta música/ambiente desde el primer tick jugable.
+- [ ] salir de mundo/servidor/kick recupera Jobs.
 
 ## Fondos 10–17
 
-- [ ] Los ocho PNG cargan sin morado/negro.
-- [ ] Se ven suavizados por filtrado lineal al escalar.
-- [ ] No zoom.
-- [ ] No paneo.
-- [ ] No parallax.
-- [ ] No flicker propio.
-- [ ] No scanlines animadas sobre el PNG.
-- [ ] No niebla móvil propia.
-- [ ] No motas/presencia sobre el PNG.
-- [ ] Fades/apagones globales funcionan sin mover la imagen.
-- [ ] Transición de expediente puede pasar por encima sin deformar la imagen.
-- [ ] Capa profesional y atmósfera UI pueden pasar por encima sin desplazar el PNG.
+- [ ] los ocho PNG cargan sin morado/negro y con filtrado lineal.
+- [ ] no zoom, paneo, parallax, flicker, scanlines animadas, niebla móvil, motas ni presencia propia.
+- [ ] fades/apagones/transición de expediente funcionan sin mover ni deformar la imagen.
+- [ ] breadcrumb, HUD, foco y demás overlays pueden pasar por encima sin alterar el PNG.
 
 ## Cierre de prueba
 
 Si todo pasa:
 
-- [ ] conservar el SHA-256 del JAR probado;
+- [ ] conservar SHA-256 del JAR probado;
 - [ ] anotar resolución/GUI Scale usados;
-- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.23.0.jar`;
-- [ ] reportar cualquier defecto visual con captura y `latest.log` si afecta recursos/audio/crash.
+- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.24.0.jar`;
+- [ ] reportar defecto visual con captura y `latest.log` si afecta recursos/audio/crash.
