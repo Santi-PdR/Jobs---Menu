@@ -1,5 +1,31 @@
 # Registro de cambios
 
+## 0.24.0 — Navegación contextual y controles de tercera generación — 2026-09-02
+
+### Visible / funcional
+
+- Instrumentación contextual 2.0 con título real, breadcrumb de las últimas tres pantallas, reloj de visita, pantallas visitadas, volumen Jobs y estado MUTE.
+- Barra inferior contextual con etiqueta del control actual, tipo `TOG/SLD/TXT/ROW/BTN`, posición dentro de los controles activos y modo `KEY/PTR`.
+- Atajos de pantalla ahora se anuncian de forma contextual: `CTRL+F`, `F5`, `F1-F5`, F/M y navegación común sólo donde existen realmente.
+- Main screen amplía `JOBS / SHIFT CONTROL` con LEDs rotulados, `NXT MM:SS/HOLD/MOVE`, tiempo de visita, volumen y medidor propio.
+- Se implementan atajos 1–4 / keypad 1–4 en el main y 1–2 / keypad 1–2 en pausa; EditBox y modificadores quedan protegidos.
+- Controles vanilla/Forge reciben doble registro, sombras, foco KEY distinto de hover, estados disabled más legibles y campos de texto más claros sin cambiar hitboxes.
+- Scrollbars ganan progreso de canal, escala 0/25/50/75/100, topes, chevrons, cursor dual y thumb con mayor profundidad.
+- Auditoría específica documenta **84 mejoras visibles/perceptibles**.
+
+### Fondos PNG
+
+- Los PNG 10–17 no se reemplazan ni editan.
+- Siguen sin zoom, paneo, parallax, motas, foreground dinámico, flicker o deformación.
+- Se permiten fades, apagones y overlays globales que no muevan ni alteren la geometría de la imagen.
+- Futuros 18–19, si son PNG, heredan el mismo contrato.
+
+### Entrega
+
+- Versión: **0.24.0**.
+- Artefacto: **`jobsmenu-0.24.0.jar`**.
+- Auditoría: `docs/AUDITORIA_0.24.0_84_MEJORAS.md`.
+
 ## 0.23.0 — Instrumentación, HUD y acabado de producto — 2026-09-02
 
 ### Visible
