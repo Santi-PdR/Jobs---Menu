@@ -3,6 +3,7 @@ package com.santipdr.jobsmenu.client;
 import com.santipdr.jobsmenu.JobsMenu;
 import com.santipdr.jobsmenu.client.screen.PantallaEstancia;
 import com.santipdr.jobsmenu.client.screen.PantallaNivel;
+import com.santipdr.jobsmenu.client.sound.GestorMusica;
 import com.santipdr.jobsmenu.client.ui.RenglonTablon;
 
 import net.minecraft.client.gui.components.EditBox;
@@ -33,6 +34,13 @@ public final class AtajosInterfazJobs {
         if (evento.getModifiers() != 0) return;
 
         int key = evento.getKeyCode();
+
+        // N es un atajo real del main, no una ayuda decorativa.
+        if (pantalla instanceof PantallaNivel && key == GLFW.GLFW_KEY_N) {
+            if (GestorMusica.adelantarPista()) evento.setCanceled(true);
+            return;
+        }
+
         int indice = -1;
         if (key >= GLFW.GLFW_KEY_1 && key <= GLFW.GLFW_KEY_4) {
             indice = key - GLFW.GLFW_KEY_1;
