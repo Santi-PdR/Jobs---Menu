@@ -1,0 +1,177 @@
+name: Aplicar 0.26 temporal
+
+on:
+  push:
+    branches:
+      - arena/01a07800-fix-ux-0251
+
+permissions:
+  contents: write
+
+jobs:
+  aplicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: arena/01a07800-fix-ux-0251
+          fetch-depth: 0
+      - name: Aplicar parche
+        shell: bash
+        run: |
+          if [ "$(git log -1 --pretty=%s)" = "apply-026-fixes" ]; then
+            echo "Parche ya aplicado"
+            exit 0
+          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, re
+
+          def read(p): return Path(p).read_text(encoding='utf-8')
+          def write(p,s): Path(p).write_text(s,encoding='utf-8',newline='\n')
+          def once(p,a,b):
+              s=read(p)
+              if a not in s: raise SystemExit(f'patron ausente: {p}: {a[:80]}')
+              write(p,s.replace(a,b,1))
+
+          # Main: fuera SHIFT CONTROL y JOBS / LEVEL duplicado.
+          p='src/main/java/com/santipdr/jobsmenu/client/screen/PantallaNivel.java'
+          s=read(p)
+          s=s.replace('import com.santipdr.jobsmenu.client.ui.HudPrincipalJobs;\n','')
+          s=s.replace('        HudPrincipalJobs.dibujar(grafico, this.width, this.height, this.estadoFrame);\n','')
+          pat=re.compile(r'\n        if \(this\.width - \(x \+ this\.anchoHoja\) > 150\) \{.*?\n        \}\n    \}\n\n    private void estadoInstalacion',re.S)
+          s,n=pat.subn('\n    }\n\n    private void estadoInstalacion',s,count=1)
+          if n!=1: raise SystemExit('no se pudo retirar JOBS / LEVEL')
+          write(p,s)
+
+          # N visible en rail inferior.
+          once('src/main/java/com/santipdr/jobsmenu/client/ui/CapaProfesionalJobs.java',
+               'case "MAIN" -> new String[]{"1-4", "F", "M", "TAB", "ENTER"};',
+               'case "MAIN" -> new String[]{"1-4", "F", "M", "N", "TAB", "ENTER"};')
+
+          # Nuevo deposito y paleta/camara propia.
+          p='src/main/java/com/santipdr/jobsmenu/client/scene/Nivel.java'
+          s=read(p)
+          s=s.replace('import com.santipdr.jobsmenu.client.scene.planta.Cripta;\n',
+                      'import com.santipdr.jobsmenu.client.scene.planta.Cripta;\nimport com.santipdr.jobsmenu.client.scene.planta.DepositoNuevo;\n')
+          old='''            new Nivel("nivel1", new Nave(),\n                    0xFFB6BAAE, 0xFF74786C, 0xFF4A4E43,\n                    0xFF80847A, 0xFF5A5E54, 0xFF3C4036,\n                    0xFF9EA298, 0xFF5C6055,\n                    0xFF6E7268, 0xFFE8F0FF, 0xFF171B1D,\n                    0.505F, 0.720F, 0.235F, 0.255F, 0.300F, 0.098F,\n                    0.30F, 0.35F),'''
+          new='''            new Nivel("nivel1", new DepositoNuevo(),\n                    0xFFA8B0A7, 0xFF606861, 0xFF39403B,\n                    0xFF6A706B, 0xFF444A46, 0xFF303531,\n                    0xFF818A83, 0xFF454C47,\n                    0xFF555D57, 0xFFE5EEE8, 0xFF0B0F0E,\n                    0.500F, 0.610F, 0.260F, 0.280F, 0.245F, 0.105F,\n                    0.18F, 0.38F),'''
+          if old not in s: raise SystemExit('nivel1 original no encontrado')
+          s=s.replace(old,new,1)
+          write(p,s)
+
+          # Worlds: una sola pulsacion de ESC vuelve al padre real.
+          p='src/main/java/com/santipdr/jobsmenu/client/screen/PantallaMundosJobs.java'
+          s=read(p)
+          s=s.replace('    private EditBox busqueda;\n\n    public PantallaMundosJobs(Screen anterior) {\n        super(anterior);\n    }',
+                      '    private final Screen anteriorJobs;\n    private EditBox busqueda;\n\n    public PantallaMundosJobs(Screen anterior) {\n        super(anterior);\n        this.anteriorJobs = anterior;\n    }')
+          old='''        if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE && this.busqueda != null\n                && this.busqueda.isFocused() && !this.busqueda.getValue().isEmpty()) {\n            this.busqueda.setValue("");\n            return true;\n        }\n        return super.keyPressed(keyCode, scanCode, modifiers);\n    }\n'''
+          new='''        if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) {\n            volverAlMenu();\n            return true;\n        }\n        return super.keyPressed(keyCode, scanCode, modifiers);\n    }\n\n    @Override\n    public void onClose() {\n        volverAlMenu();\n    }\n\n    private void volverAlMenu() {\n        if (this.minecraft == null) return;\n        this.minecraft.setScreen(this.anteriorJobs != null ? this.anteriorJobs : new PantallaNivel());\n    }\n'''
+          if old not in s: raise SystemExit('keyPressed mundos no encontrado')
+          write(p,s.replace(old,new,1))
+
+          # Multiplayer: ESC y Cancel no delegan en una pantalla vanilla oculta.
+          p='src/main/java/com/santipdr/jobsmenu/client/screen/PantallaMultijugadorJobs.java'
+          s=read(p)
+          s=s.replace('    private static final String SERVIDOR_IP = "JobsDosh.exaroton.me:56477";\n\n    private Button realSelect, realDirect, realAdd, realEdit, realDelete, realRefresh, realCancel;',
+                      '    private static final String SERVIDOR_IP = "JobsDosh.exaroton.me:56477";\n\n    private final Screen anteriorJobs;\n    private Button realSelect, realDirect, realAdd, realEdit, realDelete, realRefresh, realCancel;')
+          s=s.replace('    public PantallaMultijugadorJobs(Screen anterior) {\n        super(anterior);\n    }',
+                      '    public PantallaMultijugadorJobs(Screen anterior) {\n        super(anterior);\n        this.anteriorJobs = anterior;\n    }')
+          s=s.replace('''        BotonExpediente b = new BotonExpediente(x, y, w, 21,\n                Component.translatable(clave), tipo, () -> pulsar(real));''',
+                      '''        Runnable accion = "gui.cancel".equals(clave) ? this::volverAlMenu : () -> pulsar(real);\n        BotonExpediente b = new BotonExpediente(x, y, w, 21,\n                Component.translatable(clave), tipo, accion);''')
+          old='''    @Override\n    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {\n        if (keyCode == GLFW.GLFW_KEY_F5 && this.realRefresh != null && this.realRefresh.active) {\n            this.realRefresh.onPress();\n            return true;\n        }\n        return super.keyPressed(keyCode, scanCode, modifiers);\n    }\n}\n'''
+          new='''    @Override\n    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {\n        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {\n            volverAlMenu();\n            return true;\n        }\n        if (keyCode == GLFW.GLFW_KEY_F5 && this.realRefresh != null && this.realRefresh.active) {\n            this.realRefresh.onPress();\n            return true;\n        }\n        return super.keyPressed(keyCode, scanCode, modifiers);\n    }\n\n    @Override\n    public void onClose() {\n        volverAlMenu();\n    }\n\n    private void volverAlMenu() {\n        if (this.minecraft == null) return;\n        this.minecraft.setScreen(this.anteriorJobs != null ? this.anteriorJobs : new PantallaNivel());\n    }\n}\n'''
+          if old not in s: raise SystemExit('final multiplayer no encontrado')
+          write(p,s.replace(old,new,1))
+
+          # Idiomas: fecha con tres argumentos y avisos coherentes.
+          avisos_es=[
+            'La salida existe. El importe figura en su expediente.',
+            'No se admiten devoluciones de jornada. Lo trabajado queda registrado.',
+            'El saldo acumulado solo se utiliza para autorizar la salida.',
+            'Si el zumbido de la instalación se corta de golpe, no avance hasta que vuelva.',
+            'Los Executores no responden a negociación, órdenes ni advertencias.',
+            'Evite anunciar en voz alta el número de Nivel.',
+            'No cruce accesos marcados como cerrados aunque la puerta esté abierta.',
+            'Mantenga su puesto mientras dure el turno asignado.',
+            'La tarifa de salida cambia con el Nivel. Consulte el aviso antes de moverse.',
+            'Si una luminaria falla sobre usted, cambie de sitio y continúe esperando.',
+            'Las salidas internas conducen a otras zonas de la instalación.',
+            'Si encuentra una puerta de servicio abierta, no la utilice sin autorización.',
+            'Las consultas quedan registradas aunque no reciban respuesta.',
+            'Mantenga su turno disponible para inspección.',
+            'No consuma agua de depósitos, piletas o conducciones no señalizadas.',
+            'Si oye actividad fuera de su sector, espere antes de avanzar.',
+            'El ascensor está fuera de servicio. Utilice solo accesos habilitados.',
+            'Su turno no tiene hora de cierre asignada.',
+            'No deje alimentos ni objetos personales en los pasillos.',
+            'Los cortes de luz forman parte del mantenimiento. Permanezca en su sector.'
+          ]
+          avisos_en=[
+            'The exit exists. The amount due is listed in your file.',
+            'Worked time cannot be returned. Every completed shift remains on record.',
+            'Accumulated balance is used only to authorize departure.',
+            'If the facility hum stops suddenly, do not move until it returns.',
+            'Executors do not respond to negotiation, orders, or warnings.',
+            'Do not announce the Level number aloud.',
+            'Do not cross access points marked closed even when the door is open.',
+            'Remain at your assigned post for the duration of the shift.',
+            'Exit fees vary by Level. Read the notice before moving on.',
+            'If a light fails directly above you, move aside and continue waiting.',
+            'Internal exits lead to other areas of the facility.',
+            'Do not use an open service door without authorization.',
+            'Questions are recorded even when no answer is issued.',
+            'Keep your shift record available for inspection.',
+            'Do not drink from tanks, pools, or unmarked pipes.',
+            'If activity is heard outside your sector, wait before proceeding.',
+            'The elevator is out of service. Use authorized access routes only.',
+            'No closing time has been assigned to your shift.',
+            'Do not leave food or personal belongings in the corridors.',
+            'Power cuts are part of maintenance. Remain in your sector.'
+          ]
+          for path,fecha,avisos in [
+            ('src/main/resources/assets/jobsmenu/lang/es_es.json','Turno del %1$s/%2$s — %3$s',avisos_es),
+            ('src/main/resources/assets/jobsmenu/lang/en_us.json','Shift of %1$s/%2$s — %3$s',avisos_en)]:
+              data=json.loads(read(path))
+              data['jobsmenu.pantalla.fecha']=fecha
+              for i,t in enumerate(avisos): data[f'jobsmenu.aviso.{i}']=t
+              write(path,json.dumps(data,ensure_ascii=False,indent=2)+'\n')
+
+          # Version.
+          once('gradle.properties','mod_version=0.25.0','mod_version=0.26.0')
+
+          # Docs actuales.
+          for path in ['README.md','CONTEXTO.md','KNOWN_ISSUES.md','docs/checklist-manual.md','docs/DESPLIEGUE.md']:
+              s=read(path).replace('0.25.0','0.26.0').replace('jobsmenu-0.25.0.jar','jobsmenu-0.26.0.jar')
+              s=s.replace('HUD `JOBS / SHIFT CONTROL` ampliado;','placa lateral `JOBS / SHIFT CONTROL` retirada por completo;')
+              write(path,s)
+
+          p='README.md'
+          s=read(p)
+          marker='## 0.25.0 · Catálogo musical real y control de sesión\n'
+          intro='''## 0.26.0 · Correcciones de interfaz y nuevo Depósito\n\n- Eliminado por completo `SHIFT CONTROL` y el rótulo técnico duplicado `JOBS / LEVEL`.\n- Mods conserva ahora la geometría real de Forge; no se redimensiona su lista.\n- Resource Packs conserva las dos listas vanilla separadas; no se superponen.\n- ESC/Volver en Mundos y Multiplayer retorna al padre Jobs en una sola acción.\n- `N` es un atajo real y también aparece en la barra inferior del main.\n- Corregido el formato literal `%s` de la fecha del turno.\n- Reescritos los 20 avisos rotativos ES/EN con reglas coherentes de la instalación.\n- Absurdism de runtime se actualiza desde el OGG recién subido en `music/`.\n- Nivel 1 · Depósito estrena composición procedural; el renderer anterior queda respaldado en `backups/nivel1/`.\n\n'''
+          if marker in s and '## 0.26.0 · Correcciones de interfaz' not in s:
+              s=s.replace(marker,intro+marker,1)
+          write(p,s)
+
+          p='CHANGELOG.md'
+          s=read(p)
+          entry='''## 0.26.0\n\n- Retirado SHIFT CONTROL y el rótulo duplicado JOBS / LEVEL del main.\n- Reparadas listas de Mods y Resource Packs preservando geometría Forge/vanilla.\n- Vuelta de Mundos/Multiplayer endurecida a una sola acción.\n- Atajo N conectado y anunciado en la barra inferior.\n- Fecha del turno corregida y avisos rotativos reescritos.\n- Absurdism actualizado desde la fuente nueva del repositorio.\n- Nuevo Nivel 1 · Depósito con backup del renderer anterior.\n\n'''
+          if not s.startswith('## 0.26.0'):
+              s=entry+s
+          write(p,s)
+
+          write('docs/AUDITORIA_CORRECCIONES_0.26.0.md','''# Auditoría de correcciones 0.26.0\n\nPase motivado por capturas reales dentro de Minecraft.\n\n- SHIFT CONTROL: retirado, no renombrado.\n- JOBS / LEVEL duplicado: retirado.\n- Fecha `%s`: corregida a tres argumentos posicionales.\n- Mods: se conserva el layout real de Forge y ya no se fuerza `updateSize`.\n- Resource Packs: se conservan las dos listas reales y ya no se fuerza `updateSize`.\n- Worlds y Multiplayer: ESC/Volver apuntan directamente al padre Jobs.\n- Atajo N: llama a `GestorMusica.adelantarPista()` y se anuncia en MAIN.\n- Absurdism: runtime reemplazado con la nueva fuente subida en `music/`.\n- Avisos: 20 textos ES/EN reescritos para mantener lógica administrativa.\n- Nivel 1: `DepositoNuevo` sustituye a `Nave`; `Nave` queda intacta y copiada en `backups/nivel1/Nave_0.25.0.java.txt`.\n- PNG 10–17: sin cambios.\n''')
+
+          # Musica docs.
+          for path in ['docs/musica.md','music/LEEME.txt']:
+              s=read(path)
+              if 'Absurdism-_slowed-piano-part-only_.ogg' not in s:
+                  s += '\nAbsurdism source 0.26: music/Absurdism-_slowed-piano-part-only_.ogg -> assets/jobsmenu/sounds/musica/defecto.ogg\n'
+              write(path,s)
+          PY
+          git config user.name "Santi.pdr"
+          git config user.email "santiagopereiraxd029@gmail.com"
+          git add -A
+          git commit -m "apply-026-fixes"
+          git push origin HEAD:arena/01a07800-fix-ux-0251
