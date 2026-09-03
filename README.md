@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 
 | | |
 |---|---|
-| Versión | **0.23.0** |
-| Artefacto | **`jobsmenu-0.23.0.jar`** |
+| Versión | **0.24.0** |
+| Artefacto | **`jobsmenu-0.24.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,19 +13,20 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 | Rama entregable | **`main`** |
 | Niveles | **18 (0–17)** |
 
-## 0.23.0 · Instrumentación, HUD y acabado de producto
+## 0.24.0 · Navegación contextual y controles de tercera generación
 
-0.23.0 agrega un nuevo pase transversal que busca que Jobs se sienta como un sistema completo y no como pantallas tematizadas independientes.
+0.24.0 es un pase transversal centrado en hacer que el mod sea más fácil de leer, navegar y entender sin convertir Jobs en un dashboard futurista.
 
 Cambios principales:
 
-- **Nueva capa profesional compartida** con código de pantalla, contador de controles, perfil actual, estado de audio, ayudas de teclado, línea de estado segmentada, foco reforzado y registros periféricos.
-- **Main screen** con HUD de turno más profundo, LEDs de sistemas, perfil activo, progreso real de permanencia y teclas de acceso visibles.
-- **Atmósfera UI** ampliada con esquinas de registro, calibraciones, ticks, barridos y pulso de sistema exclusivamente en los bordes.
-- **Transiciones** rehechas con doble borde de papel, perforaciones, registro físico, rails direccionales y salida en dos fases.
-- **Accesibilidad** integrada en el propio acabado: Movimiento reducido y Bajo consumo cambian animación por estados estáticos en vez de borrar información.
-- **72 mejoras visibles/perceptibles** documentadas en `docs/AUDITORIA_0.23.0_72_MEJORAS.md`.
-- **Fondos PNG 10–17 intactos**: no se reemplazan, no se deforman y no reciben movimiento propio. Las transiciones y overlays globales pueden pasar por encima sin modificar el PNG.
+- **Instrumentación contextual 2.0**: ruta de las últimas pantallas, título contextual, tiempo de visita, número de pantallas visitadas, volumen Jobs, modo de entrada KEY/PTR, tipo de control y posición dentro del conjunto de controles activos.
+- **Barra inferior contextual** que muestra el control enfocado/hover, atajos reales de la pantalla y estado de navegación sin capturar input.
+- **Atajos numéricos reales**: 1–4 activan los cuatro renglones del main; en pausa 1–2 permiten Reanudar/Condiciones. No actúan mientras se escribe en un campo de texto.
+- **Main screen** con HUD ampliado: tiempo hasta traslado, tiempo de sesión, volumen maestro Jobs, estado MUTE, LEDs rotulados y progreso de estancia más preciso.
+- **Controles vanilla/Forge** con doble registro, sombras, foco de teclado distinto del hover, estados disabled más claros, sliders con escala 0/50/100 y campos de texto con marco de foco reforzado.
+- **Scrollbars Jobs** con canal de progreso, escala 0/25/50/75/100, topes, chevrons, cursor de posición externo y tirador de mayor profundidad.
+- **68 mejoras visibles/perceptibles** documentadas en `docs/AUDITORIA_0.24.0_68_MEJORAS.md`.
+- **Fondos PNG 10–17 intactos**: no se reemplazan, no se deforman y no reciben movimiento propio. Fades, apagones y overlays globales siguen permitidos si no mueven ni alteran la imagen.
 
 ## Fondos 10–17
 
@@ -53,7 +54,8 @@ Contratos permanentes:
 - escena y UI usan paletas separadas;
 - movimiento reducido y Bajo consumo tienen prioridad sobre decoración;
 - los PNG 10–17 no reciben movimiento propio;
-- las pantallas externas complejas no se reconstruyen por estética.
+- las pantallas externas complejas no se reconstruyen por estética;
+- ayudas visuales sólo anuncian atajos que existen realmente.
 
 ## Servidor oficial
 
@@ -65,7 +67,7 @@ Se localiza como `Jobs Official Server` / `Servidor oficial de Jobs`, queda prim
 
 ## Ciclo de sesión y audio
 
-`SesionMenu` representa una visita completa al menú. Abrir Options, Mods, Recursos u otra subpantalla no crea otra sesión ni reinicia música/ambiente.
+`SesionMenu` representa una visita completa al menú. Abrir Options, Mods, Recursos u otra subpantalla no crea otra sesión ni reinicia música/ambiente. En 0.24.0 también mantiene un reloj y un contador local de pantallas para la instrumentación visual; esos datos no se guardan ni salen por red.
 
 Al entrar a gameplay:
 
@@ -95,7 +97,7 @@ GitHub Actions ejecuta:
 4. auditoría estática;
 5. contratos UI/música;
 6. `./gradlew build --stacktrace --no-daemon`;
-7. publicación de **`jobsmenu-0.23.0.jar`** en `dev-latest` sólo desde `main`.
+7. publicación de **`jobsmenu-0.24.0.jar`** en `dev-latest` sólo desde `main`.
 
 La release rodante conserva un único JAR versionado. `jobsmenu-latest.jar` está prohibido.
 
@@ -110,9 +112,8 @@ La prueba normal no compila localmente. El PowerShell canónico de `docs/DESPLIE
 - [`CONTEXTO.md`](CONTEXTO.md): contrato maestro actual.
 - [`CHANGELOG.md`](CHANGELOG.md): cambios por versión.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y pruebas manuales pendientes.
-- [`docs/AUDITORIA_0.23.0_72_MEJORAS.md`](docs/AUDITORIA_0.23.0_72_MEJORAS.md): pase transversal actual.
-- [`docs/AUDITORIA_VISUAL_0.22.1.md`](docs/AUDITORIA_VISUAL_0.22.1.md): pase visual anterior.
-- [`docs/AUDITORIA_0.21.0_90_MEJORAS.md`](docs/AUDITORIA_0.21.0_90_MEJORAS.md): pase transversal anterior.
+- [`docs/AUDITORIA_0.24.0_68_MEJORAS.md`](docs/AUDITORIA_0.24.0_68_MEJORAS.md): pase transversal actual.
+- [`docs/AUDITORIA_0.23.0_72_MEJORAS.md`](docs/AUDITORIA_0.23.0_72_MEJORAS.md): pase transversal anterior.
 - [`docs/checklist-manual.md`](docs/checklist-manual.md): prueba dentro de Minecraft.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalación certificada en `test-1`.
 - [`docs/musica.md`](docs/musica.md): catálogo y lifecycle musical.
