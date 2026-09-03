@@ -13,6 +13,7 @@ import com.santipdr.jobsmenu.client.sound.GestorMusica;
 import com.santipdr.jobsmenu.client.sound.LimpiezaRecursosLegados;
 import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.client.ui.AtmosferaMenuJobs;
+import com.santipdr.jobsmenu.client.ui.CapaProfesionalJobs;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import com.santipdr.jobsmenu.client.ui.ListasExpediente;
 import com.santipdr.jobsmenu.client.ui.PielVanillaJobs;
@@ -126,6 +127,8 @@ public final class EscuchaCliente {
             ListasExpediente.renderarBarras(pantalla, evento.getGuiGraphics());
             AtmosferaMenuJobs.dibujar(evento.getGuiGraphics(), pantalla.width, pantalla.height,
                     System.currentTimeMillis());
+            CapaProfesionalJobs.dibujar(pantalla, evento.getGuiGraphics(),
+                    evento.getMouseX(), evento.getMouseY(), System.currentTimeMillis());
         } else if (SesionMenu.activa()) {
             if (clase.startsWith("net.minecraft.")) {
                 PielVanillaJobs.dibujar(pantalla, evento.getGuiGraphics(),
