@@ -15,3 +15,5 @@ Reglas:
 4. los OGG largos deben usar stream:true;
 5. mantener hard-stop al entrar en gameplay;
 6. actualizar docs y verificadores si cambia el catalogo.
+
+Absurdism source 0.26: music/Absurdism-_slowed-piano-part-only_.ogg -> assets/jobsmenu/sounds/musica/defecto.ogg

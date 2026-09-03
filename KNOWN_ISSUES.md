@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.25.0
+# Riesgos y pruebas pendientes — 0.26.0
 
 Este documento contiene únicamente riesgos vigentes. El historial vive en `CHANGELOG.md` y en auditorías de `docs/`.
 
@@ -13,7 +13,7 @@ Antes de publicar una entrega, GitHub Actions comprueba:
 - separación de paleta entre escena e interfaz;
 - contratos del reproductor musical y hard stop de gameplay;
 - build Forge 1.20.1;
-- creación de `jobsmenu-0.25.0.jar`;
+- creación de `jobsmenu-0.26.0.jar`;
 - publicación en `dev-latest` únicamente desde `main`.
 
 Un build que no termina en verde no debe actualizar la release.
@@ -22,14 +22,14 @@ Un build que no termina en verde no debe actualizar la release.
 
 CI **no ejecuta Minecraft con una ventana real**. Las modificaciones pueden quedar compiladas y verificadas sin que eso confirme estética, hitboxes, scrolling, sensación de input o convivencia visual con otros mods.
 
-Prioridad manual de 0.25.0:
+Prioridad manual de 0.26.0:
 
 1. Las tres pistas — Absurdism, REQUIEM y Upon the Hill V2 — deben poder sonar en visitas distintas.
-2. `N` debe hacer crossfade a otra pista y no apilar cambios si se pulsa durante un crossfade.
-3. El crédito y `TRK` del HUD deben seguir a la pista dominante correcta.
+2. `N` debe aparecer en la barra inferior, hacer crossfade a otra pista y no apilar cambios durante un crossfade.
+3. El crédito musical debe seguir a la pista dominante correcta durante el crossfade.
 4. `M`, F3+T, Alt+Tab y navegación por subpantallas no deben duplicar instancias.
 5. Entrar a mundo/servidor debe cortar inmediatamente música y ambiente Jobs.
-6. Main con HUD ampliado, `NXT`, sesión, volumen, MUTE y pista actual.
+6. Main sin SHIFT CONTROL ni JOBS / LEVEL técnico duplicado; revisar que la hoja y la barra inferior respiren correctamente.
 7. Atajos 1–4 del main y 1–2 de pausa; EditBox no debe dispararlos al escribir.
 8. Breadcrumb, KEY/PTR, controles vanilla/Forge y scrollbars nuevas.
 9. GUI Scale 2/3/4, ultrawide, Movimiento reducido, Bajo consumo, Alto contraste e Interfaz mínima.

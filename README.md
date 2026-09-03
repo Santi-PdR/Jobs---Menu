@@ -4,14 +4,26 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 
 | | |
 |---|---|
-| Versión | **0.25.0** |
-| Artefacto | **`jobsmenu-0.25.0.jar`** |
+| Versión | **0.26.0** |
+| Artefacto | **`jobsmenu-0.26.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
 | Lado | **Cliente** |
 | Rama entregable | **`main`** |
 | Niveles | **18 (0–17)** |
+
+## 0.26.0 · Correcciones de capturas y nuevo Depósito
+
+- Retirado por completo el panel `SHIFT CONTROL`; tampoco queda el `JOBS / LEVEL` técnico flotando sobre el fondo.
+- La barra inferior del main incorpora **N** junto a `1-4`, `F`, `M`, `TAB` y `ENTER`; N cambia realmente de pista.
+- Mods vuelve a usar la geometría real de Forge, por lo que la lista de mods no se redimensiona ni se tapa.
+- Resource Packs conserva las dos listas vanilla con sus posiciones originales, evitando la superposición vista en captura.
+- Mundos y Multiplayer vuelven al padre Jobs con una sola pulsación de ESC/Volver.
+- Corregido el texto literal `%s` en la fecha del turno.
+- Reescritos los 20 avisos rotativos ES/EN para mantener reglas coherentes de la instalación.
+- Absurdism de runtime usa ahora el nuevo OGG subido en `music/`; REQUIEM y Upon the Hill V2 siguen siendo pistas separadas.
+- Nivel 1 · Depósito usa un renderer procedural nuevo con muelles, racks, pallets, vigas, luminarias y montacargas. El anterior queda respaldado.
 
 ## 0.25.0 · Catálogo musical real y control de sesión
 
@@ -105,7 +117,7 @@ GitHub Actions ejecuta:
 4. auditoría estática;
 5. contratos UI/música;
 6. `./gradlew build --stacktrace --no-daemon`;
-7. publicación de **`jobsmenu-0.25.0.jar`** en `dev-latest` sólo desde `main`.
+7. publicación de **`jobsmenu-0.26.0.jar`** en `dev-latest` sólo desde `main`.
 
 La release rodante conserva un único JAR versionado. `jobsmenu-latest.jar` está prohibido.
 
@@ -120,7 +132,7 @@ La prueba normal no compila localmente. El PowerShell canónico de `docs/DESPLIE
 - [`CONTEXTO.md`](CONTEXTO.md): contrato maestro actual.
 - [`CHANGELOG.md`](CHANGELOG.md): cambios por versión.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y pruebas manuales pendientes.
-- [`docs/AUDITORIA_AUDIO_0.25.0.md`](docs/AUDITORIA_AUDIO_0.25.0.md): catálogo musical y mejoras de sesión.
+- [`docs/AUDITORIA_AUDIO_0.26.0.md`](docs/AUDITORIA_AUDIO_0.26.0.md): catálogo musical y mejoras de sesión.
 - [`docs/AUDITORIA_0.24.0_84_MEJORAS.md`](docs/AUDITORIA_0.24.0_84_MEJORAS.md): pase transversal anterior.
 - [`docs/AUDITORIA_0.23.0_72_MEJORAS.md`](docs/AUDITORIA_0.23.0_72_MEJORAS.md): pase transversal anterior.
 - [`docs/checklist-manual.md`](docs/checklist-manual.md): prueba dentro de Minecraft.
