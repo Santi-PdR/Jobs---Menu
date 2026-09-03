@@ -29,10 +29,10 @@ SUBTITULOS: set[str] = set()
 # Cuantas piezas de audio tiene la identidad sonora completa:
 #   8 de interfaz (ui/) + 30 camas (10 niveles x ambiente/caracter/actividad)
 #   + 31 eventos de recinto (eventos/) + 3 de transicion electrica (nivel/)
-#   + 1 de la figura + 1 de musica = 74.
+#   + 1 de la figura + 3 pistas musicales = 76.
 # La cuenta se mantiene derivada: si sounds.json cambia de verdad, este
 # numero se actualiza a mano (y el fallo de abajo lo recuerda).
-PIEZAS_ESPERADAS = 74
+PIEZAS_ESPERADAS = 76
 
 
 def fallo(mensaje: str) -> None:
@@ -591,10 +591,20 @@ def verificar_audio() -> None:
             else:
                 canales = datos_ogg[cabecera + 11]
                 frecuencia = int.from_bytes(datos_ogg[cabecera + 12:cabecera + 16], "little")
-                if canales != 1:
-                    fallo(f"{rel} tiene {canales} canales; el contrato del mod exige mono.")
-                if frecuencia != 44_100:
-                    fallo(f"{rel} usa {frecuencia} Hz; el contrato del mod exige 44100 Hz.")
+                partes = ruta.relative_to(carpeta).parts
+                es_musica = bool(partes) and partes[0] == "musica"
+                if es_musica:
+                    # Las canciones conservan imagen estereo y pueden venir a 44.1/48 kHz.
+                    # Ambiente, UI y FX siguen bajo el contrato mono 44.1 kHz.
+                    if canales not in (1, 2):
+                        fallo(f"{rel} tiene {canales} canales; musica admite mono o estereo.")
+                    if frecuencia not in (44_100, 48_000):
+                        fallo(f"{rel} usa {frecuencia} Hz; musica admite 44100 o 48000 Hz.")
+                else:
+                    if canales != 1:
+                        fallo(f"{rel} tiene {canales} canales; FX/ambiente exige mono.")
+                    if frecuencia != 44_100:
+                        fallo(f"{rel} usa {frecuencia} Hz; FX/ambiente exige 44100 Hz.")
         for ruta in sorted(carpeta.rglob("*")):
             if ruta.is_file() and ruta.suffix != ".ogg":
                 aviso(f"{ruta.relative_to(RAIZ)} no es un .ogg y esta en la carpeta de sonidos.")

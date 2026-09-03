@@ -4,14 +4,26 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Sustituye el fluj
 
 | | |
 |---|---|
-| Versión | **0.24.0** |
-| Artefacto | **`jobsmenu-0.24.0.jar`** |
+| Versión | **0.25.0** |
+| Artefacto | **`jobsmenu-0.25.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
 | Lado | **Cliente** |
 | Rama entregable | **`main`** |
 | Niveles | **18 (0–17)** |
+
+## 0.25.0 · Catálogo musical real y control de sesión
+
+- Catálogo real de **3 pistas**: Absurdism, REQUIEM y Upon the Hill V2.
+- REQUIEM y Upon the Hill se empaquetan desde los OGG autorizados ya presentes en `music/`; el build no descarga audio externo.
+- Cada pista tiene evento propio, `stream: true`, identidad independiente y crédito contextual.
+- El crédito del main ya no muestra REQUIEM mientras suena otra canción.
+- La visita comienza en una pista aleatoria y los cambios evitan repetir inmediatamente la pista actual.
+- Rotación musical aproximada de 2–4 minutos con crossfade.
+- Tecla **N** en el main para pasar manualmente a otra pista; durante un crossfade se rechaza el doble salto.
+- El HUD muestra la pista dominante actual y la ayuda `N>NEXT`.
+- Mute, ducking, recarga de recursos, continuidad por subpantallas y hard-stop en gameplay siguen vigentes.
 
 ## 0.24.0 · Navegación contextual y controles de tercera generación
 
@@ -79,13 +91,9 @@ Al salir de mundo, servidor, kick o desconexión, el flujo vuelve a `PantallaNiv
 
 La música Jobs usa Maestro + volumen Jobs; no depende del slider Música vanilla.
 
-## Música futura
+## Música
 
-La integración de una segunda pista sigue preparada mediante una sola subida a:
-
-`music/menu_nueva.ogg`
-
-El workflow `Integrar OGG subido` valida Vorbis, normaliza loudness/true peak, genera el recurso final, registra el tema, ejecuta verificaciones y compila con Java 17. Si algo falla, no publica la integración.
+El catálogo empaquetado es **Absurdism + REQUIEM + Upon the Hill V2**. Las fuentes autorizadas de REQUIEM y Upon the Hill se conservan en `music/`; los recursos de runtime viven en `assets/jobsmenu/sounds/musica/`. No existe descarga de audio durante build o ejecución.
 
 ## Build y entrega
 
@@ -97,7 +105,7 @@ GitHub Actions ejecuta:
 4. auditoría estática;
 5. contratos UI/música;
 6. `./gradlew build --stacktrace --no-daemon`;
-7. publicación de **`jobsmenu-0.24.0.jar`** en `dev-latest` sólo desde `main`.
+7. publicación de **`jobsmenu-0.25.0.jar`** en `dev-latest` sólo desde `main`.
 
 La release rodante conserva un único JAR versionado. `jobsmenu-latest.jar` está prohibido.
 
@@ -112,7 +120,8 @@ La prueba normal no compila localmente. El PowerShell canónico de `docs/DESPLIE
 - [`CONTEXTO.md`](CONTEXTO.md): contrato maestro actual.
 - [`CHANGELOG.md`](CHANGELOG.md): cambios por versión.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y pruebas manuales pendientes.
-- [`docs/AUDITORIA_0.24.0_84_MEJORAS.md`](docs/AUDITORIA_0.24.0_84_MEJORAS.md): pase transversal actual.
+- [`docs/AUDITORIA_AUDIO_0.25.0.md`](docs/AUDITORIA_AUDIO_0.25.0.md): catálogo musical y mejoras de sesión.
+- [`docs/AUDITORIA_0.24.0_84_MEJORAS.md`](docs/AUDITORIA_0.24.0_84_MEJORAS.md): pase transversal anterior.
 - [`docs/AUDITORIA_0.23.0_72_MEJORAS.md`](docs/AUDITORIA_0.23.0_72_MEJORAS.md): pase transversal anterior.
 - [`docs/checklist-manual.md`](docs/checklist-manual.md): prueba dentro de Minecraft.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalación certificada en `test-1`.

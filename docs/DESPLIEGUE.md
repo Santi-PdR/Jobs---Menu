@@ -28,7 +28,7 @@ El bloque no compila el proyecto. Descarga el artefacto ya certificado por GitHu
 
 Todo JAR instalado o publicado debe incluir la versión en el nombre. Para esta entrega:
 
-`jobsmenu-0.24.0.jar`
+`jobsmenu-0.25.0.jar`
 
 El nombre genérico `jobsmenu-latest.jar` queda prohibido. La release sigue usando el tag rodante `dev-latest`, pero su único asset cambia de nombre con `mod_version`.
 
@@ -113,16 +113,18 @@ Si falla cualquier paso, la release no se actualiza y el PowerShell no se entreg
 
 ## Qué NO certifica el CI
 
-El pipeline no puede confirmar cómo se ve o se siente la interfaz dentro de Minecraft real. Después del despliegue de `jobsmenu-0.24.0.jar` se debe ejecutar `docs/checklist-manual.md`.
+El pipeline no puede confirmar cómo se ve o se siente la interfaz dentro de Minecraft real. Después del despliegue de `jobsmenu-0.25.0.jar` se debe ejecutar `docs/checklist-manual.md`.
 
 Para esta versión conviene revisar especialmente:
 
+- catálogo musical: Absurdism, REQUIEM y Upon the Hill V2;
+- `N` debe cambiar a una pista distinta mediante crossfade y el HUD debe actualizar `TRK`;
+- créditos dinámicos, `M`, F3+T, Alt+Tab y hard-stop al entrar en gameplay;
 - HUD principal: NXT, tiempo de visita, MUTE/volumen y chips 1–4/F/M;
 - atajos numéricos del main y 1–2 de pausa, incluido keypad;
 - protección de números mientras se escribe en buscadores/EditBox;
 - breadcrumb, KEY/PTR, tipo y posición de control;
-- controles vanilla/Forge tematizados;
-- scrollbars 0/25/50/75/100 en listas grandes;
+- controles vanilla/Forge y scrollbars en listas grandes;
 - GUI Scale 4, ultrawide, Movimiento reducido, Bajo consumo e Interfaz mínima;
 - fondos 10–17 durante fade/apagón/transición y overlays globales.
 

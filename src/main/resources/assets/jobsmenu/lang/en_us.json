@@ -179,8 +179,6 @@
   "jobsmenu.subtitulo.nivel.encendido": "The tube starts up",
   "jobsmenu.subtitulo.figura.presencia": "Something at the far end",
   "jobsmenu.subtitulo.musica.tema": "Notice to occupants",
-  "jobsmenu.credito.titulo": "REQUIEM",
-  "jobsmenu.credito.autor": "Emmy Z · Forsaken OST",
   "jobsmenu.pausa.titulo": "SUSPENDED",
   "jobsmenu.pausa.subtitulo": "YOUR SHIFT HAS BEEN HALTED. THE ADMINISTRATION HAS NOTED IT.",
   "jobsmenu.pausa.reanudar": "Resume the shift",
@@ -322,5 +320,7 @@
   "jobsmenu.ajustes.categoria.nivel": "Level",
   "jobsmenu.ajustes.categoria.audio": "Audio",
   "jobsmenu.ajustes.categoria.accesibilidad": "Access",
-  "jobsmenu.ajustes.categoria.sistema": "System"
+  "jobsmenu.ajustes.categoria.sistema": "System",
+  "jobsmenu.subtitulo.musica.requiem": "Music: REQUIEM",
+  "jobsmenu.subtitulo.musica.upon_hill": "Music: Upon the Hill V2"
 }

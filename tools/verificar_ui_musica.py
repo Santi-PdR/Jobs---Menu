@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Contratos vigentes de 0.19.0: UI neutra, robustez, sesion musical y ranura OGG."""
+"""Contratos vigentes: UI neutra, robustez y catalogo musical de tres pistas."""
 from __future__ import annotations
 
 import json
@@ -97,7 +97,10 @@ def verify_robustness() -> None:
 def verify_music_session() -> None:
     manager = read(JAVA / "client/sound/GestorMusica.java")
     required = (
-        'new Pista("absurdism", SonidosNivel.MUSICA_TEMA, "musica/defecto.ogg")',
+        'new Pista("absurdism", SonidosNivel.MUSICA_TEMA, "musica/defecto.ogg",',
+        'new Pista("requiem", SonidosNivel.MUSICA_REQUIEM, "musica/requiem.ogg",',
+        'new Pista("upon_the_hill_v2", SonidosNivel.MUSICA_UPON_HILL,',
+        "adelantarPista()", "siguienteIndice(Pista[] pistas)", "tituloPistaActual()",
         "SUAVIZADO_SUBIDA", "SUAVIZADO_BAJADA", "SUAVIZADO_CROSSFADE",
         "atenderCrossfade()", "gananciaObjetivo", "canStartSilent()",
         "detenerAhora()", "cliente.getMusicManager().stopPlaying()",
@@ -124,21 +127,30 @@ def verify_music_session() -> None:
     music_doc = read(ROOT / "docs/musica.md")
     if "Absurdism" not in music_doc:
         fail("docs/musica.md no identifica la pista incluida como Absurdism.")
-    for token in ("upon_the_hill_v2", "music/menu_nueva.ogg", "integrar_ogg_subido.yml"):
+    for token in ("Absurdism", "REQUIEM", "Upon the Hill V2", "music/upon_the_hill_v2_q4.ogg"):
         if token not in music_doc:
-            fail(f"docs/musica.md perdio el contrato de la segunda pista: {token}")
+            fail(f"docs/musica.md perdio el catalogo musical: {token}")
+
+    for event_name, resource in (("musica.requiem", "jobsmenu:musica/requiem"),
+                                 ("musica.upon_hill", "jobsmenu:musica/upon_the_hill_v2")):
+        event = sounds.get(event_name)
+        if not isinstance(event, dict):
+            fail(f"sounds.json no contiene {event_name}.")
+        names = [item if isinstance(item, str) else item.get("name") for item in event.get("sounds", [])]
+        if resource not in names:
+            fail(f"{event_name} no apunta a {resource}.")
+
+    for filename in ("defecto.ogg", "requiem.ogg", "upon_the_hill_v2.ogg"):
+        ogg = RES / "sounds/musica" / filename
+        if not ogg.is_file() or ogg.stat().st_size < 64:
+            fail(f"Falta pista empaquetada: {filename}")
 
 
-def verify_upload_slot() -> None:
-    workflow = read(ROOT / ".github/workflows/integrar_ogg_subido.yml")
-    required = (
-        "music/menu_nueva.ogg", "tema_nuevo.ogg", "loudnorm=I=-18:TP=-1.5:LRA=11",
-        "MUSICA_TEMA_NUEVO", "upon_the_hill_v2", "./gradlew build --stacktrace --no-daemon",
-    )
-    for token in required:
-        if token not in workflow:
-            fail(f"El pipeline de OGG perdio el contrato: {token}")
 
+def verify_audio_sources() -> None:
+    for path in (ROOT / "music/REQUIEM-Forsaken-OST.ogg", ROOT / "music/upon_the_hill_v2_q4.ogg"):
+        if not path.is_file() or path.stat().st_size < 64:
+            fail(f"Falta fuente OGG autorizada: {path.relative_to(ROOT)}")
     legacy = (
         ROOT / ".github/workflows/integrar_pista_autorizada.yml",
         ROOT / "tools/cobalt_transport.py",
@@ -154,13 +166,13 @@ def main() -> int:
         verify_neutral_ui()
         verify_robustness()
         verify_music_session()
-        verify_upload_slot()
+        verify_audio_sources()
         print("UI neutra, bajo consumo y robustez 0.19: OK")
         print("Reproductor musical de sesion: OK")
-        print("Ranura de OGG subido: OK")
+        print("Catalogo musical de tres pistas: OK")
         return 0
     except Exception as exc:
-        print(f"ERROR 0.19.0: {exc}", file=sys.stderr)
+        print(f"ERROR catalogo musical: {exc}", file=sys.stderr)
         return 1
 
 

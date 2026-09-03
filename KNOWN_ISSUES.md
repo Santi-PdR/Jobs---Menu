@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.24.0
+# Riesgos y pruebas pendientes — 0.25.0
 
 Este documento contiene únicamente riesgos vigentes. El historial vive en `CHANGELOG.md` y en auditorías de `docs/`.
 
@@ -13,7 +13,7 @@ Antes de publicar una entrega, GitHub Actions comprueba:
 - separación de paleta entre escena e interfaz;
 - contratos del reproductor musical y hard stop de gameplay;
 - build Forge 1.20.1;
-- creación de `jobsmenu-0.24.0.jar`;
+- creación de `jobsmenu-0.25.0.jar`;
 - publicación en `dev-latest` únicamente desde `main`.
 
 Un build que no termina en verde no debe actualizar la release.
@@ -22,18 +22,18 @@ Un build que no termina en verde no debe actualizar la release.
 
 CI **no ejecuta Minecraft con una ventana real**. Las modificaciones pueden quedar compiladas y verificadas sin que eso confirme estética, hitboxes, scrolling, sensación de input o convivencia visual con otros mods.
 
-Prioridad manual de 0.24.0:
+Prioridad manual de 0.25.0:
 
-1. Main con HUD ampliado, `NXT`, sesión, volumen y MUTE.
-2. Atajos 1–4 y keypad 1–4 del main.
-3. Pausa con 1–2 / keypad 1–2 y confirmación de que 3 no desconecta.
-4. EditBox/buscadores: escribir números no debe disparar atajos.
-5. Breadcrumb, reloj de sesión y contador de pantallas al navegar entre subpantallas.
-6. Foco `KEY` frente a hover `PTR` en botones, sliders y campos.
-7. Scrollbars nuevas en Mundos, Multiplayer, Mods, Recursos e Idioma.
-8. GUI Scale 2/3/4, ultrawide y ventanas pequeñas.
-9. Movimiento reducido, Bajo consumo, Alto contraste e Interfaz mínima.
-10. PNG 10–17 durante navegación y traslados.
+1. Las tres pistas — Absurdism, REQUIEM y Upon the Hill V2 — deben poder sonar en visitas distintas.
+2. `N` debe hacer crossfade a otra pista y no apilar cambios si se pulsa durante un crossfade.
+3. El crédito y `TRK` del HUD deben seguir a la pista dominante correcta.
+4. `M`, F3+T, Alt+Tab y navegación por subpantallas no deben duplicar instancias.
+5. Entrar a mundo/servidor debe cortar inmediatamente música y ambiente Jobs.
+6. Main con HUD ampliado, `NXT`, sesión, volumen, MUTE y pista actual.
+7. Atajos 1–4 del main y 1–2 de pausa; EditBox no debe dispararlos al escribir.
+8. Breadcrumb, KEY/PTR, controles vanilla/Forge y scrollbars nuevas.
+9. GUI Scale 2/3/4, ultrawide, Movimiento reducido, Bajo consumo, Alto contraste e Interfaz mínima.
+10. PNG 10–17 durante navegación y traslados, sin movimiento interno.
 
 El procedimiento completo está en `docs/checklist-manual.md`.
 
@@ -63,7 +63,7 @@ El procedimiento completo está en `docs/checklist-manual.md`.
 
 - La música/ambiente depende de SoundEngine y del lifecycle de la sesión. F3+T, Alt+Tab y cambios rápidos de pantalla deben probarse manualmente para descartar una instancia fantasma perceptible.
 - La instrumentación de sesión sólo muestra datos locales temporales; no cambia ni reinicia el audio.
-- La segunda pista no está empaquetada mientras no exista el OGG autorizado en `music/menu_nueva.ogg`.
+- El catálogo de tres pistas ya está empaquetado. Queda pendiente validar dentro de Minecraft la mezcla percibida, diferencias de loudness y crossfade entre fuentes de distinta frecuencia.
 
 ### Fondos
 
@@ -94,7 +94,7 @@ El procedimiento completo está en `docs/checklist-manual.md`.
 - Pantallas externas no reciben skin indiscriminadamente.
 - Scrollbar visual conserva comportamiento real y tiene fallback.
 - `NativeImage` valida fondos en runtime y existe fallback procedural.
-- Reproductor musical ligado a sesión con watchdog de SoundEngine.
+- Reproductor musical ligado a sesión con watchdog de SoundEngine, tres pistas independientes y selección sin repetición inmediata.
 - Hard stop al entrar a gameplay.
 - JAR versionado y verificado por CI.
 - Movimiento reducido, destellos reducidos y Bajo consumo tienen prioridad.

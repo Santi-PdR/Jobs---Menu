@@ -163,14 +163,14 @@ public final class SonidosNivel {
 
     // ---- Musica ---------------------------------------------------------
 
-    /**
-     * Tema del menu.
-     *
-     * En sounds.json este evento apunta a dos archivos: musica/tema, que es la
-     * ranura de reemplazo para una pista con licencia propia, y musica/defecto,
-     * que es la pieza original que viene con el mod. Ver GestorMusica.
-     */
+    /** Absurdism, pista base historica del menu. */
     public static final RegistryObject<SoundEvent> MUSICA_TEMA = registrar("musica.tema");
+
+    /** REQUIEM - Emmy Z / Forsaken OST. */
+    public static final RegistryObject<SoundEvent> MUSICA_REQUIEM = registrar("musica.requiem");
+
+    /** Upon the Hill V2, pista adicional del catalogo. */
+    public static final RegistryObject<SoundEvent> MUSICA_UPON_HILL = registrar("musica.upon_hill");
 
     private static RegistryObject<SoundEvent> registrar(String nombre) {
         return REGISTRO.register(nombre,

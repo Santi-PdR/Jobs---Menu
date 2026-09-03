@@ -1,5 +1,24 @@
 # Registro de cambios
 
+## 0.25.0 — Catálogo musical real — 2026-09-03
+
+### Audio / UX
+
+- Integra Absurdism, REQUIEM y Upon the Hill V2 como tres pistas independientes.
+- REQUIEM y Upon the Hill usan los OGG autorizados presentes en `music/`; no hay descarga externa.
+- Los tres eventos musicales usan streaming para evitar cargar pistas largas completas en memoria.
+- Inicio aleatorio por visita y selección siguiente sin repetición inmediata.
+- Crossfade automático cada 2–4 minutos y salto manual con `N`.
+- Créditos dinámicos: el título/autor corresponden a la pista dominante real.
+- HUD principal muestra pista actual y ayuda de cambio.
+- Se mantienen ducking, mute, watchdog, recarga, continuidad de sesión y hard-stop en gameplay.
+
+### Entrega
+
+- Versión: **0.25.0**.
+- Artefacto: **`jobsmenu-0.25.0.jar`**.
+- Auditoría: `docs/AUDITORIA_AUDIO_0.25.0.md`.
+
 ## 0.24.0 — Navegación contextual y controles de tercera generación — 2026-09-02
 
 ### Visible / funcional

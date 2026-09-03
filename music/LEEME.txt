@@ -1,58 +1,17 @@
-MUSICA DE JOBS MENU
-====================
+JOBS MENU - FUENTES DE MUSICA
 
-PISTA INCLUIDA
+Este directorio conserva los OGG que el proyecto ya tiene autorizados para empaquetar.
+No es una carpeta de runtime de Minecraft.
 
-La pista de fabrica del mod vive en:
+Catalogo actual:
+- Absurdism: el recurso historico ya vive en src/main/resources/assets/jobsmenu/sounds/musica/defecto.ogg
+- REQUIEM: music/REQUIEM-Forsaken-OST.ogg -> sounds/musica/requiem.ogg
+- Upon the Hill V2: music/upon_the_hill_v2_q4.ogg -> sounds/musica/upon_the_hill_v2.ogg
 
-  src/main/resources/assets/jobsmenu/sounds/musica/defecto.ogg
-
-NUEVA PISTA: FLUJO DE UNA SOLA SUBIDA
-
-Para integrar la nueva cancion NO edites Java, sounds.json ni Gradle.
-Solo sube tu OGG con exactamente este nombre y ruta al branch main:
-
-  music/menu_nueva.ogg
-
-El workflow `.github/workflows/integrar_ogg_subido.yml` se encarga de:
-
-  1. verificar que sea OGG Vorbis real;
-  2. comprobar que no sea un archivo vacio o demasiado corto;
-  3. normalizar loudness y true peak para que no salte el volumen entre pistas;
-  4. convertirlo a 48 kHz estereo Vorbis;
-  5. copiar la version final al recurso del mod;
-  6. registrar automaticamente `musica.tema_nuevo`;
-  7. ampliar el catalogo de GestorMusica a dos pistas;
-  8. ejecutar verificaciones estaticas;
-  9. compilar con Java 17;
-  10. publicar la integracion en main solamente si todo lo anterior termina bien.
-
-En otras palabras: cuando quieras terminar la integracion, tu unica accion manual
-es subir `music/menu_nueva.ogg`.
-
-El nombre interno preparado para esta pista es:
-
-  upon_the_hill_v2
-
-El archivo integrado terminara en:
-
-  src/main/resources/assets/jobsmenu/sounds/musica/tema_nuevo.ogg
-
-MUSICA LOCAL DE PRUEBA
-
-Si quieres probar una pista sin empaquetarla en el JAR, el mod mantiene su flujo
-local en la raiz de la instancia:
-
-  jobsmenu-musica/
-
-Por ejemplo:
-
-  C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\jobsmenu-musica\
-
-REQUISITOS GENERALES
-
-  - Debe ser OGG Vorbis real; renombrar un MP3 no lo convierte.
-  - Para la integracion de GitHub el workflow normaliza canales, frecuencia y nivel.
-  - No se debe atribuir una obra ni inventar permisos desde el codigo.
-  - El credito visible solo debe activarse cuando los metadatos y la autorizacion
-    correspondiente esten documentados para la pista empaquetada.
+Reglas:
+1. no descargar audio de terceros durante build;
+2. no sustituir una pista por otra bajo el mismo nombre;
+3. cada tema debe tener SoundEvent propio;
+4. los OGG largos deben usar stream:true;
+5. mantener hard-stop al entrar en gameplay;
+6. actualizar docs y verificadores si cambia el catalogo.
