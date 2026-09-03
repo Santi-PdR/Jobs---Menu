@@ -8,6 +8,8 @@
 
 Los tres recursos de música usan `stream: true` en `sounds.json`. El build no descarga canciones ni depende de servicios externos.
 
+Las pistas musicales conservan mono/estéreo y 44,1/48 kHz según la fuente autorizada. Los sonidos de interfaz, ambiente y eventos mantienen el contrato mono 44,1 kHz.
+
 ## Sesión
 
 - La música pertenece a `SesionMenu`, no a una Screen.

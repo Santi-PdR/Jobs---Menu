@@ -40,6 +40,8 @@ El catálogo deja de ser una ranura futura y pasa a tres pistas reales e indepen
 32. Documentación ya no menciona una segunda pista pendiente.
 33. No existe descarga de audio en build.
 34. Los PNG 10–17 no se modifican en este pase.
+35. Música permite estéreo 44,1/48 kHz sin degradar las fuentes.
+36. UI, ambiente y FX conservan mono 44,1 kHz.
 
 ## Prueba pendiente
 
