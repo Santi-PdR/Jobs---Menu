@@ -7,8 +7,8 @@ Documento maestro del estado vigente. El historial vive en `CHANGELOG.md` y audi
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Version actual | **0.24.0** |
-| Artefacto esperado | **`jobsmenu-0.24.0.jar`** |
+| Version actual | **0.25.0** |
+| Artefacto esperado | **`jobsmenu-0.25.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -53,7 +53,22 @@ Familias de superficie:
 - **Formulario claro:** Options, Config Jobs, Idioma, controles y pausa.
 - **Archivo oscuro:** Mundos, Multiplayer, Mods y Recursos.
 
-## 3. Estado 0.24.0
+## 3. Estado 0.25.0
+
+0.25.0 suma un catalogo musical real de tres pistas y conserva como base todo el pase visual 0.24.0.
+
+### Musica de sesion 0.25
+
+- Absurdism, REQUIEM y Upon the Hill V2 son pistas independientes;
+- cada una tiene SoundEvent y OGG de runtime propio;
+- OGG largos usan streaming;
+- inicio aleatorio por visita y siguiente pista sin repeticion inmediata;
+- crossfade automatico cada 2-4 minutos;
+- `N` solicita siguiente pista desde el main;
+- credito y HUD siguen a la pista dominante durante crossfade;
+- `M` conserva mute y gameplay conserva hard-stop.
+
+### Base visual 0.24
 
 0.24.0 profundiza navegacion, lectura de controles y feedback contextual. La auditoria visible completa esta en `docs/AUDITORIA_0.24.0_84_MEJORAS.md`.
 
@@ -180,21 +195,16 @@ Contrato:
 
 ## 7. Musica y ambiente
 
-Pista incluida actual:
+Catalogo vigente:
 
-- **Absurdism** -> `assets/jobsmenu/sounds/musica/defecto.ogg`.
-
-Segunda pista preparada:
-
-- entrada: `music/menu_nueva.ogg`;
-- id interno: `upon_the_hill_v2`;
-- salida: `assets/jobsmenu/sounds/musica/tema_nuevo.ogg`;
-- workflow: `.github/workflows/integrar_ogg_subido.yml`.
+- **Absurdism** -> `assets/jobsmenu/sounds/musica/defecto.ogg`;
+- **REQUIEM** -> `assets/jobsmenu/sounds/musica/requiem.ogg`; fuente `music/REQUIEM-Forsaken-OST.ogg`;
+- **Upon the Hill V2** -> `assets/jobsmenu/sounds/musica/upon_the_hill_v2.ogg`; fuente `music/upon_the_hill_v2_q4.ogg`.
 
 Comportamiento obligatorio:
 
 - fade-in/fade-out;
-- crossfade cuando haya 2+ pistas;
+- crossfade automatico entre las 3 pistas y skip manual con `N`;
 - ducking en transiciones/Suspension/presencia;
 - continuidad por subpantallas;
 - watchdog de instancias fantasma;
@@ -224,7 +234,7 @@ CI certifica:
 - recursos, idiomas y ASCII Java;
 - contratos UI/musica;
 - Forge build 1.20.1;
-- artefacto `jobsmenu-0.24.0.jar`;
+- artefacto `jobsmenu-0.25.0.jar`;
 - publicacion a `dev-latest` desde `main`.
 
 CI no certifica estetica dentro de Minecraft. La prueba manual vigente esta en `docs/checklist-manual.md`.

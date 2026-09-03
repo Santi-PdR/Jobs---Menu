@@ -2,6 +2,7 @@ package com.santipdr.jobsmenu.client.ui;
 
 import com.santipdr.jobsmenu.client.SesionMenu;
 import com.santipdr.jobsmenu.client.scene.RotacionNiveles;
+import com.santipdr.jobsmenu.client.sound.GestorMusica;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 import com.santipdr.jobsmenu.config.PerfilesJobs;
 
@@ -28,7 +29,7 @@ public final class HudPrincipalJobs {
         int m = 12;
         int panelW = Math.min(178, Math.max(136, ancho / 5));
         int x = ancho - panelW - m;
-        int h = 124;
+        int h = 139;
         int y = Math.max(44, alto / 2 - h / 2);
         Font font = Minecraft.getInstance().font;
 
@@ -126,7 +127,12 @@ public final class HudPrincipalJobs {
                     Paleta.conAlfa(Paleta.papelAviso(), 0.08F * luz));
         }
 
-        int by = y + 95;
+        String pista = "TRK " + GestorMusica.tituloPistaActual() + "  N>NEXT";
+        g.drawString(font, ChromeExpediente.ajustar(font, pista, panelW - 18),
+                x + 9, y + 95,
+                Paleta.conAlfa(Paleta.papelAviso(), limitar(0.31F * luz * contraste)), false);
+
+        int by = y + 108;
         dibujarTecla(g, font, x + 9, by, "1-4", luz, contraste);
         dibujarTecla(g, font, x + 37, by, "F", luz, contraste);
         dibujarTecla(g, font, x + 55, by, "M", luz, contraste);

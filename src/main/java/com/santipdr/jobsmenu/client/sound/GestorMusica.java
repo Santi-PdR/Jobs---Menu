@@ -36,8 +36,8 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
     private static final float SUAVIZADO_BAJADA = 0.065F;
     private static final float SUAVIZADO_CROSSFADE = 0.030F;
     private static final int RETARDO_INICIAL = 20;
-    private static final int CAMBIO_MIN_TICKS = 4 * 60 * 20;
-    private static final int CAMBIO_VARIACION_TICKS = 3 * 60 * 20;
+    private static final int CAMBIO_MIN_TICKS = 2 * 60 * 20;
+    private static final int CAMBIO_VARIACION_TICKS = 2 * 60 * 20;
 
     private static GestorMusica principal;
     private static GestorMusica entrante;
@@ -72,17 +72,20 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         this.gananciaObjetivo = Math.max(0.0F, Math.min(1.0F, gananciaObjetivo));
     }
 
-    private record Pista(String id, RegistryObject<SoundEvent> evento, String recurso) {
+    private record Pista(String id, RegistryObject<SoundEvent> evento, String recurso,
+                         String titulo, String autor) {
     }
 
-    /**
-     * El evento legado musica.tema apunta actualmente al OGG que el proyecto
-     * identifica como Absurdism. La infraestructura acepta mas entradas sin
-     * volver a tocar el algoritmo de mezcla.
-     */
+    /** Catalogo real de la sesion. Cada pista conserva identidad y credito. */
     private static Pista[] catalogo() {
         return new Pista[] {
-                new Pista("absurdism", SonidosNivel.MUSICA_TEMA, "musica/defecto.ogg")
+                new Pista("absurdism", SonidosNivel.MUSICA_TEMA, "musica/defecto.ogg",
+                        "Absurdism", ""),
+                new Pista("requiem", SonidosNivel.MUSICA_REQUIEM, "musica/requiem.ogg",
+                        "REQUIEM", "Emmy Z - Forsaken OST"),
+                new Pista("upon_the_hill_v2", SonidosNivel.MUSICA_UPON_HILL,
+                        "musica/upon_the_hill_v2.ogg", "Upon the Hill V2",
+                        "ft. @iCosmicCoffee")
         };
     }
 
@@ -163,7 +166,7 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         if (pistas.length <= 1) return;
 
         if (entrante == null && ticksSesion >= proximoCambio && viva(principal)) {
-            int siguiente = (indiceActual + 1) % pistas.length;
+            int siguiente = siguienteIndice(pistas);
             entrante = crear(pistas[siguiente], 0.0F, 1.0F, 0);
             principal.gananciaObjetivo = 0.0F;
             Minecraft.getInstance().getSoundManager().play(entrante);
@@ -182,10 +185,35 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         }
     }
 
+    private static int siguienteIndice(Pista[] pistas) {
+        if (pistas.length <= 1) return 0;
+        int salto = 1 + (int) (Math.random() * (pistas.length - 1));
+        return (indiceActual + salto) % pistas.length;
+    }
+
+    /** Salta manualmente a otra pista sin repetir la actual. */
+    public static boolean adelantarPista() {
+        Pista[] pistas = catalogo();
+        if (pistas.length <= 1 || !SesionMenu.activa() || !ConfigTurno.musicaMenu()
+                || !viva(principal) || viva(entrante)) return false;
+        int siguiente = siguienteIndice(pistas);
+        entrante = crear(pistas[siguiente], 0.0F, 1.0F, 0);
+        principal.gananciaObjetivo = 0.0F;
+        Minecraft.getInstance().getSoundManager().play(entrante);
+        indiceActual = siguiente;
+        ticksSesion = 0;
+        proximoCambio = CAMBIO_MIN_TICKS
+                + (int) (Math.random() * CAMBIO_VARIACION_TICKS);
+        JobsMenu.LOG.info("[jobsmenu] Cambio manual hacia pista: {}.", pistas[siguiente].id());
+        return true;
+    }
+
     public static void nuevaVisita() {
         detenerInstancias(true);
         reintento = 0;
         marcador = -1;
+        Pista[] pistas = catalogo();
+        indiceActual = pistas.length <= 1 ? 0 : (int) (Math.random() * pistas.length);
         ticksSesion = 0;
         proximoCambio = CAMBIO_MIN_TICKS
                 + (int) (Math.random() * CAMBIO_VARIACION_TICKS);
@@ -254,8 +282,37 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         return principal == null ? "-" : principal.idPista;
     }
 
+    private static GestorMusica pistaDominante() {
+        if (viva(entrante) && entrante.gananciaActual > (principal == null ? 0.0F : principal.gananciaActual)) {
+            return entrante;
+        }
+        return principal;
+    }
+
+    private static Pista datosPista(String id) {
+        if (id == null) return null;
+        for (Pista pista : catalogo()) if (pista.id().equals(id)) return pista;
+        return null;
+    }
+
+    public static String tituloPistaActual() {
+        GestorMusica m = pistaDominante();
+        Pista pista = m == null ? null : datosPista(m.idPista);
+        return pista == null ? "-" : pista.titulo();
+    }
+
+    public static String autorPistaActual() {
+        GestorMusica m = pistaDominante();
+        Pista pista = m == null ? null : datosPista(m.idPista);
+        return pista == null ? "" : pista.autor();
+    }
+
+    public static int cantidadPistas() {
+        return catalogo().length;
+    }
+
     public static float creditoAlfa() {
-        GestorMusica m = viva(entrante) && entrante.gananciaActual > 0.55F ? entrante : principal;
+        GestorMusica m = pistaDominante();
         if (!viva(m) || !ConfigTurno.musicaMenu() || !ConfigTurno.creditoMusica()
                 || !marcadorHorneado()) return 0.0F;
 

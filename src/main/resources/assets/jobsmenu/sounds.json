@@ -606,7 +606,27 @@
     "sounds": [
       {
         "name": "jobsmenu:musica/defecto",
-        "stream": false
+        "stream": true
+      }
+    ]
+  },
+  "musica.requiem": {
+    "category": "music",
+    "subtitle": "jobsmenu.subtitulo.musica.requiem",
+    "sounds": [
+      {
+        "name": "jobsmenu:musica/requiem",
+        "stream": true
+      }
+    ]
+  },
+  "musica.upon_hill": {
+    "category": "music",
+    "subtitle": "jobsmenu.subtitulo.musica.upon_hill",
+    "sounds": [
+      {
+        "name": "jobsmenu:musica/upon_the_hill_v2",
+        "stream": true
       }
     ]
   }

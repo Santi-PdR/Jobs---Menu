@@ -322,5 +322,7 @@
   "jobsmenu.ajustes.categoria.nivel": "Nivel",
   "jobsmenu.ajustes.categoria.audio": "Audio",
   "jobsmenu.ajustes.categoria.accesibilidad": "Acceso",
-  "jobsmenu.ajustes.categoria.sistema": "Sistema"
+  "jobsmenu.ajustes.categoria.sistema": "Sistema",
+  "jobsmenu.subtitulo.musica.requiem": "Música: REQUIEM",
+  "jobsmenu.subtitulo.musica.upon_hill": "Música: Upon the Hill V2"
 }

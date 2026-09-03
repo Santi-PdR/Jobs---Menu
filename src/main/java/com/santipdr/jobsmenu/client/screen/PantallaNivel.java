@@ -284,8 +284,8 @@ public class PantallaNivel extends Screen {
     private void credito(GuiGraphics grafico) {
         float alfa = GestorMusica.creditoAlfa();
         if (alfa <= 0.02F) return;
-        Component titulo = Component.translatable("jobsmenu.credito.titulo");
-        Component autor = Component.translatable("jobsmenu.credito.autor");
+        Component titulo = Component.literal(GestorMusica.tituloPistaActual());
+        Component autor = Component.literal(GestorMusica.autorPistaActual());
         int margen = 12;
         int y = ConfigTurno.mostrarCuentaRegresiva() ? margen + 34 : margen;
         int anchoTitulo = this.font.width(titulo);
@@ -436,6 +436,14 @@ public class PantallaNivel extends Screen {
     public boolean keyPressed(int codigo, int escaneo, int modificadores) {
         if (codigo == GLFW.GLFW_KEY_M) {
             MezclaAudio.alternarSilencio();
+            return true;
+        }
+        if (codigo == GLFW.GLFW_KEY_N) {
+            if (GestorMusica.adelantarPista()) {
+                MezclaAudio.gesto(SonidosNivel.UI_ALTERNAR, 0.52F);
+            } else {
+                MezclaAudio.gesto(SonidosNivel.UI_NEGADO, 0.32F);
+            }
             return true;
         }
         if (codigo == GLFW.GLFW_KEY_F && ConfigTurno.rotarNiveles()) {
