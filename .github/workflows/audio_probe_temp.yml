@@ -1,0 +1,24 @@
+name: Audio probe temporal
+
+on:
+  push:
+    branches:
+      - arena/01a07600-ui-0240
+    paths:
+      - .github/workflows/audio_probe_temp.yml
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Identificar OGG existente
+        shell: bash
+        run: |
+          set -euo pipefail
+          f='music/REQUIEM-Forsaken-OST.ogg'
+          echo '=== SHA256 ==='
+          sha256sum "$f"
+          echo '=== FFPROBE ==='
+          ffprobe -v error -show_entries format=duration,size:stream=codec_name,sample_rate,channels -of default=nw=1 "$f"
