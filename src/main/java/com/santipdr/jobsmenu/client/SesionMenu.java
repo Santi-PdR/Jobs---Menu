@@ -5,59 +5,70 @@ import com.santipdr.jobsmenu.client.sound.GestorMusica;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 
-/**
- * Ciclo de vida de una visita al menu Jobs.
- *
- * La pantalla principal deja de ser la pantalla activa al abrir Opciones,
- * Sonido, Video, Controles, Mods, Recursos, Un jugador o Multijugador. Esas
- * pantallas siguen perteneciendo a la misma visita aunque ya no sean una
- * PantallaNivel. Mantener este estado separado de una clase de Screen evita
- * cortar y recrear la musica en cada salto y permite cerrarla con certeza al
- * entrar a un mundo, desactivar el menu o terminar la sesion.
- *
- * LA CONTINUIDAD DEL AMBIENTE
- *
- * La visita abarca el aviso y sus pantallas hijas (Opciones, Sonido, Mods...).
- * Antes, al pasar a una hija se detenia el ambiente del recinto y al volver
- * arrancaba de cero: las camas de sonido reiniciaban su bucle cada vez que se
- * tocaba un deslizador, y el pasillo "arrancaba" decenas de veces por sesion.
- * Ahora abrir/cerrar la visita es lo que levanta o detiene las camas, y las
- * pantallas hijas solo pausan los sucesos puntuales, no el sitio.
- */
+/** Ciclo de vida de una visita completa al menu Jobs. */
 public final class SesionMenu {
 
     private static boolean activa;
+    private static long inicioVisita;
+    private static long numeroVisita;
+    private static int pantallasVisitadas;
+    private static Screen ultimaPantalla;
 
     private SesionMenu() {
     }
 
     public static void abrir() {
-        // Al volver de un mundo, Minecraft puede haber retirado todos los
-        // canales del SoundEngine sin marcar como detenida nuestra instancia
-        // Java. Si se conserva esa referencia, asegurar() cree que el tema
-        // sigue sonando y no crea una nueva. Solo una visita realmente nueva
-        // invalida la referencia; volver desde Opciones mantiene continuidad.
+        // Una visita nueva reinicia solo la instrumentacion de sesion. Volver
+        // desde Options/Mods/etc. conserva el mismo reloj y el mismo audio.
         if (!activa) {
             GestorMusica.nuevaVisita();
+            inicioVisita = System.currentTimeMillis();
+            numeroVisita++;
+            pantallasVisitadas = 0;
+            ultimaPantalla = null;
         }
         activa = true;
-        // Idempotente: abrir() se vuelve a llamar cada vez que la pantalla se
-        // reconstruye (resize, vuelta de una hija) y no debe reiniciar camas.
         GestorAmbiente.abrir();
     }
 
     public static void cerrar() {
         activa = false;
-        // Fuera del menu no puede sobrevivir ni un tick de musica o ambiente.
+        ultimaPantalla = null;
         GestorMusica.detenerAhora();
         GestorAmbiente.cerrar();
     }
 
     /**
+     * Registra cambios reales de Screen sin contar frames. Es solo telemetria
+     * local de interfaz para el HUD; no se guarda en disco ni sale por red.
+     */
+    public static void registrarPantalla(Screen pantalla) {
+        if (!activa || pantalla == null || pantalla == ultimaPantalla) return;
+        ultimaPantalla = pantalla;
+        pantallasVisitadas++;
+    }
+
+    /** Milisegundos transcurridos desde que empezo la visita actual. */
+    public static long duracionVisitaMs() {
+        if (!activa || inicioVisita <= 0L) return 0L;
+        return Math.max(0L, System.currentTimeMillis() - inicioVisita);
+    }
+
+    /** Numero de pantallas distintas abiertas durante la visita actual. */
+    public static int pantallasVisitadas() {
+        return Math.max(0, pantallasVisitadas);
+    }
+
+    /** Contador de visitas de esta ejecucion de Minecraft. */
+    public static long numeroVisita() {
+        return Math.max(0L, numeroVisita);
+    }
+
+    /**
      * La visita solo puede seguir viva fuera de un mundo y con alguna pantalla
-     * abierta. El chequeo defensivo cubre cargas de mundo, desconexiones,
-     * cierres rapidos y configuraciones cambiadas desde el archivo.
+     * abierta. El chequeo defensivo cubre cargas, desconexiones y cierres.
      */
     public static boolean activa() {
         Minecraft cliente = Minecraft.getInstance();
