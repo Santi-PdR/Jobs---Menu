@@ -25,7 +25,7 @@ Cambios principales:
 - **Main screen** con HUD ampliado: tiempo hasta traslado, tiempo de sesión, volumen maestro Jobs, estado MUTE, LEDs rotulados y progreso de estancia más preciso.
 - **Controles vanilla/Forge** con doble registro, sombras, foco de teclado distinto del hover, estados disabled más claros, sliders con escala 0/50/100 y campos de texto con marco de foco reforzado.
 - **Scrollbars Jobs** con canal de progreso, escala 0/25/50/75/100, topes, chevrons, cursor de posición externo y tirador de mayor profundidad.
-- **68 mejoras visibles/perceptibles** documentadas en `docs/AUDITORIA_0.24.0_68_MEJORAS.md`.
+- **84 mejoras visibles/perceptibles** documentadas en `docs/AUDITORIA_0.24.0_84_MEJORAS.md`.
 - **Fondos PNG 10–17 intactos**: no se reemplazan, no se deforman y no reciben movimiento propio. Fades, apagones y overlays globales siguen permitidos si no mueven ni alteran la imagen.
 
 ## Fondos 10–17
@@ -112,7 +112,7 @@ La prueba normal no compila localmente. El PowerShell canónico de `docs/DESPLIE
 - [`CONTEXTO.md`](CONTEXTO.md): contrato maestro actual.
 - [`CHANGELOG.md`](CHANGELOG.md): cambios por versión.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y pruebas manuales pendientes.
-- [`docs/AUDITORIA_0.24.0_68_MEJORAS.md`](docs/AUDITORIA_0.24.0_68_MEJORAS.md): pase transversal actual.
+- [`docs/AUDITORIA_0.24.0_84_MEJORAS.md`](docs/AUDITORIA_0.24.0_84_MEJORAS.md): pase transversal actual.
 - [`docs/AUDITORIA_0.23.0_72_MEJORAS.md`](docs/AUDITORIA_0.23.0_72_MEJORAS.md): pase transversal anterior.
 - [`docs/checklist-manual.md`](docs/checklist-manual.md): prueba dentro de Minecraft.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalación certificada en `test-1`.
