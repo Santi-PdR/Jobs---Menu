@@ -4,6 +4,7 @@ import com.santipdr.jobsmenu.client.scene.EscenaNivel;
 import com.santipdr.jobsmenu.client.SesionMenu;
 import com.santipdr.jobsmenu.client.scene.Nivel;
 import com.santipdr.jobsmenu.client.scene.RotacionNiveles;
+import com.santipdr.jobsmenu.client.scene.RotulosNivelesImagen;
 import com.santipdr.jobsmenu.client.sound.GestorAmbiente;
 import com.santipdr.jobsmenu.client.sound.GestorMusica;
 import com.santipdr.jobsmenu.client.sound.MezclaAudio;
@@ -375,12 +376,12 @@ public class PantallaNivel extends Screen {
         entrada = Math.max(0.0F, Math.min(1.0F, entrada));
         float alfa = entrada * this.estadoFrame.luz();
         if (alfa <= 0.02F) return;
-        Component nombre = Component.translatable("jobsmenu." + nivel.clave + ".nombre");
+        Component nombre = RotulosNivelesImagen.nombre(nivel);
         Component nota;
         if (this.estadoFrame.enSuspension()) nota = Component.translatable("jobsmenu.suspension.nota");
         else {
             int cual = (int) (Math.floorDiv(this.estadoFrame.ahora(), 1000L) / 27L % NOTAS_POR_NIVEL);
-            nota = Component.translatable("jobsmenu." + nivel.clave + ".nota" + cual);
+            nota = RotulosNivelesImagen.nota(nivel, cual);
         }
         int x = 12;
         int y = this.height - 30;
