@@ -21,8 +21,9 @@ import java.util.Objects;
  * Niveles 10-17: contrato historico, imagen totalmente estatica.
  * Niveles 18-31: pueden usar un movimiento de camara extremadamente leve para
  * que las escenas nuevas respiren sin deformar el archivo ni tapar su lectura.
- * El movimiento se desactiva con escena quieta, Movimiento reducido o Bajo
- * consumo. Fades, apagones y transiciones globales siguen viviendo fuera.
+ * El movimiento se desactiva con escena quieta, Respiracion de camara apagada,
+ * Movimiento reducido o Bajo consumo. Fades, apagones y transiciones globales
+ * siguen viviendo fuera.
  */
 public final class PlantaImagen implements Planta {
 
@@ -113,6 +114,7 @@ public final class PlantaImagen implements Planta {
         float intensidad = intensidadMovimiento();
         boolean animar = intensidad > 0.0F
                 && ConfigTurno.escenaViva()
+                && ConfigTurno.respiracionCamara()
                 && !ConfigTurno.movimientoReducido()
                 && !ConfigTurno.bajoConsumo();
 
