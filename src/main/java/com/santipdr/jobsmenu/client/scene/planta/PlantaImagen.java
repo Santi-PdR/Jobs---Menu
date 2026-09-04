@@ -6,6 +6,7 @@ import com.santipdr.jobsmenu.JobsMenu;
 import com.santipdr.jobsmenu.client.scene.Marco;
 import com.santipdr.jobsmenu.client.scene.Nivel;
 import com.santipdr.jobsmenu.client.ui.Paleta;
+import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -15,16 +16,13 @@ import java.io.InputStream;
 import java.util.Objects;
 
 /**
- * Planta para las imagenes entregadas por el proyecto (niveles 10-31).
+ * Renderer de los fondos de imagen del proyecto.
  *
- * Desde 0.13.0 estas imagenes son deliberadamente estaticas: no hay zoom,
- * paneo, scanlines, niebla animada, flicker ni desplazamientos de color. El
- * renderer solo hace un recorte cover centrado, una integracion estatica muy
- * leve y los apagones/transiciones que pertenecen al flujo general del menu.
- *
- * El escalado usa filtrado lineal. Estos fondos son imagenes fotograficas/render
- * de alta resolucion y no pixel art; nearest-neighbor las convertia en bloques
- * visibles cuando la GUI o la ventana exigian reescalado.
+ * Niveles 10-17: contrato historico, imagen totalmente estatica.
+ * Niveles 18-31: pueden usar un movimiento de camara extremadamente leve para
+ * que las escenas nuevas respiren sin deformar el archivo ni tapar su lectura.
+ * El movimiento se desactiva con escena quieta, Movimiento reducido o Bajo
+ * consumo. Fades, apagones y transiciones globales siguen viviendo fuera.
  */
 public final class PlantaImagen implements Planta {
 
@@ -51,7 +49,7 @@ public final class PlantaImagen implements Planta {
     }
 
     @Override
-    public void dibujar(GuiGraphics g, Marco marco, Nivel nivel, float luz, float tiempo) {
+    public void dibujar(GuiGraphics g, Marco marco, Nivel nivel, float luz, float tiempoIgnorado) {
         int w = marco.ancho();
         int h = marco.alto();
 
@@ -61,7 +59,7 @@ public final class PlantaImagen implements Planta {
             dibujarFallback(g, w, h, nivel);
         }
 
-        integrarEstatico(g, w, h, nivel);
+        integrar(g, w, h, nivel);
 
         float oscuridad = 1.0F - limitar(luz, 0.0F, 1.0F);
         if (oscuridad > 0.001F) {
@@ -106,22 +104,61 @@ public final class PlantaImagen implements Planta {
         }
     }
 
-    /** Cover centrado, estable y con interpolacion lineal para evitar pixelado. */
+    /** Cover estable, con movimiento no destructivo solo en los fondos 18-31. */
     private void dibujarImagen(GuiGraphics g, int w, int h) {
         float escalaPantalla = Math.max(w / (float) anchoTextura, h / (float) altoTextura);
-        float visibleW = Math.min(anchoTextura, w / escalaPantalla);
-        float visibleH = Math.min(altoTextura, h / escalaPantalla);
-        float u = Math.max(0.0F, (anchoTextura - visibleW) * 0.5F);
-        float v = Math.max(0.0F, (altoTextura - visibleH) * 0.5F);
+        float visibleWBase = Math.min(anchoTextura, w / escalaPantalla);
+        float visibleHBase = Math.min(altoTextura, h / escalaPantalla);
+
+        float intensidad = intensidadMovimiento();
+        boolean animar = intensidad > 0.0F
+                && ConfigTurno.escenaViva()
+                && !ConfigTurno.movimientoReducido()
+                && !ConfigTurno.bajoConsumo();
+
+        float visibleW = visibleWBase;
+        float visibleH = visibleHBase;
+        float centroX = 0.5F;
+        float centroY = 0.5F;
+
+        if (animar) {
+            float t = (System.currentTimeMillis() % 600_000L) / 1000.0F;
+            float fase = modo * 0.731F;
+            float pulso = 0.62F + 0.38F * (float) Math.sin(t * 0.105F + fase);
+            float zoom = 1.0F + intensidad * (0.72F + 0.28F * pulso);
+            visibleW = visibleWBase / zoom;
+            visibleH = visibleHBase / zoom;
+
+            centroX += 0.13F * (float) Math.sin(t * 0.043F + fase);
+            centroY += 0.08F * (float) Math.sin(t * 0.031F + fase * 1.37F);
+        }
+
+        float margenX = Math.max(0.0F, anchoTextura - visibleW);
+        float margenY = Math.max(0.0F, altoTextura - visibleH);
+        float u = margenX * limitar(centroX, 0.0F, 1.0F);
+        float v = margenY * limitar(centroY, 0.0F, 1.0F);
 
         int regionW = Math.max(1, Math.min(anchoTextura, Math.round(visibleW)));
         int regionH = Math.max(1, Math.min(altoTextura, Math.round(visibleH)));
 
-        // Fuerza la textura a cargarse y aplica blur lineal sin mipmaps. Se hace
-        // antes de cada blit para sobrevivir a F3+T/recargas del TextureManager.
         RenderSystem.setShaderTexture(0, textura);
         Minecraft.getInstance().getTextureManager().getTexture(textura).setFilter(true, false);
         g.blit(textura, 0, 0, w, h, u, v, regionW, regionH, anchoTextura, altoTextura);
+    }
+
+    /**
+     * Intensidades deliberadamente pequenas. Los fondos con vacio, luna o
+     * circuitos reciben algo mas de respiracion; piedra, interior y bodegon se
+     * mantienen practicamente quietos. Los niveles 10-17 siempre devuelven 0.
+     */
+    private float intensidadMovimiento() {
+        return switch (modo) {
+            case 18, 25, 27, 30 -> 0.018F;
+            case 19, 21, 26, 29, 31 -> 0.012F;
+            case 20, 22, 23, 24 -> 0.006F;
+            case 28 -> 0.003F;
+            default -> 0.0F;
+        };
     }
 
     private void dibujarFallback(GuiGraphics g, int w, int h, Nivel nivel) {
@@ -137,8 +174,8 @@ public final class PlantaImagen implements Planta {
                 cx + huecoW / 2, cy + huecoH / 2, nivel.fondo);
     }
 
-    /** Integracion fija: sin tiempo, desplazamiento ni animacion del PNG. */
-    private void integrarEstatico(GuiGraphics g, int w, int h, Nivel nivel) {
+    /** Integracion fija sobre la imagen; no genera geometria ni objetos nuevos. */
+    private void integrar(GuiGraphics g, int w, int h, Nivel nivel) {
         int bordeX = Math.max(10, w / 20);
         int bordeY = Math.max(8, h / 22);
         float vignette = 0.075F;
@@ -146,11 +183,7 @@ public final class PlantaImagen implements Planta {
         g.fill(w - bordeX, 0, w, h, Paleta.conAlfa(Paleta.VANO, vignette));
         g.fill(0, 0, w, bordeY, Paleta.conAlfa(Paleta.VANO, vignette * 0.70F));
         g.fill(0, h - bordeY, w, h, Paleta.conAlfa(Paleta.VANO, vignette));
-        g.fill(0, 0, w, h, Paleta.conAlfa(nivel.niebla, 0.018F));
-
-        if (modo < 10) {
-            g.fill(0, 0, 1, 1, 0x00000000);
-        }
+        g.fill(0, 0, w, h, Paleta.conAlfa(nivel.niebla, modo >= 18 ? 0.012F : 0.018F));
     }
 
     private static float limitar(float valor, float minimo, float maximo) {

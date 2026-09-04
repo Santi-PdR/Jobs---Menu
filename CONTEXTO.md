@@ -1,19 +1,19 @@
 # CONTEXTO - Jobs - Aviso a los ocupantes
 
-Documento maestro del estado vigente. El historial vive en `CHANGELOG.md` y auditorias de `docs/`; este archivo define lo que debe seguir siendo verdad al modificar el proyecto.
+Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.md` y `docs/`.
 
 | Campo | Valor |
 |---|---|
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Version actual | **0.26.0** |
-| Artefacto esperado | **`jobsmenu-0.26.0.jar`** |
+| Version actual | **0.27.0** |
+| Artefacto esperado | **`jobsmenu-0.27.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
 | Lado | **Cliente** |
-| Niveles | **18 (0-17)** |
+| Niveles | **32 (0-31)** |
 | Alcance | Menus, interfaces, escena, audio, lore y accesibilidad. Sin gameplay. |
 
 ## 1. Reglas duras
@@ -21,222 +21,154 @@ Documento maestro del estado vigente. El historial vive en `CHANGELOG.md` y audi
 1. `main` es la unica rama entregable.
 2. Todo JAR lleva version: `jobsmenu-<mod_version>.jar`; nunca `jobsmenu-latest.jar`.
 3. `gradle.properties` es la fuente de verdad de version.
-4. CI obligatorio: Java 17 -> version -> fondos -> auditoria estatica -> contratos UI/musica -> Forge build -> publicacion.
-5. `dev-latest` contiene un unico JAR versionado y solo se actualiza desde `main` con pipeline verde.
-6. Java visible permanece ASCII; cadenas para usuario viven en idiomas. Codigos tecnicos y nombres de teclas pueden ser universales.
+4. CI obligatorio antes de publicar.
+5. `dev-latest` conserva un unico JAR versionado y solo se actualiza desde `main` verde.
+6. Java visible permanece ASCII; textos de usuario viven en lang.
 7. ES/EN conservan paridad de claves.
-8. El rojo es exclusivo de Executores.
+8. El rojo queda reservado a Executores.
 9. Accesibilidad, Movimiento reducido y Bajo consumo tienen prioridad sobre decoracion.
 10. Ningun control visible puede tener un hitbox vanilla invisible superpuesto.
-11. Pantallas de logica compleja conservan comportamiento vanilla/Forge cuando eso protege compatibilidad.
-12. PNG 10-17 no reciben movimiento propio ni deformacion; fades/apagones/transiciones y overlays globales del menu si estan permitidos.
-13. Audio de menu no puede sobrevivir dentro de gameplay.
-14. Pistas musicales solo se empaquetan con archivo autorizado y redistribuible.
-15. Nuevas pistas se integran desde OGG subido al repo; el build no descarga audio de terceros.
-16. Cambios visuales importantes se validan con CI y despues requieren prueba manual dentro de Minecraft.
-17. Despliegue normal siempre apunta a `test-1`.
-18. Capas globales de UI no capturan input ni sustituyen controles reales.
-19. Una ayuda visual de teclado solo puede anunciar una tecla implementada de verdad.
-20. Atajos numericos no actuan mientras un campo de texto tiene foco.
+11. Pantallas complejas conservan comportamiento vanilla/Forge cuando eso protege compatibilidad.
+12. PNG 10-17 no reciben movimiento propio ni deformacion.
+13. Los JPG 18-31 pueden usar solo movimiento de camara sutil, no destructivo y desactivable.
+14. Audio de menu no puede sobrevivir dentro de gameplay.
+15. Pistas musicales solo se empaquetan con archivo autorizado y redistribuible.
+16. El build no descarga audio ni fondos externos.
+17. Cambios visuales importantes requieren CI y luego prueba manual dentro de Minecraft.
+18. Despliegue normal siempre apunta a `test-1`.
+19. Capas globales de UI no capturan input ni sustituyen controles reales.
+20. Una ayuda visual de teclado solo puede anunciar una tecla implementada de verdad.
 
 ## 2. Identidad visual
 
-Jobs es un backrooms administrativo con peaje. El ocupante trabaja, junta dinero y paga para pasar al siguiente Nivel. La interfaz no es futurista: usa archivo, formulario, instalacion vieja, marcas de inventario, calibracion y amenaza sugerida.
+Jobs es una instalacion administrativa/industrial hostil: archivo, formularios, sectores, expedientes, peaje y mantenimiento. No debe sentirse como dashboard futurista.
 
-La escena y la UI no comparten paleta por comodidad:
-
-- escena: materiales y luz propios del Nivel;
-- UI: papel frio, grafito, gris verdoso y tinta neutra.
-
-Familias de superficie:
+Familias:
 
 - **Formulario claro:** Options, Config Jobs, Idioma, controles y pausa.
-- **Archivo oscuro:** Mundos, Multiplayer, Mods y Recursos.
+- **Archivo oscuro:** Mundos, Multiplayer, Mods y Resource Packs.
 
-## 3. Estado 0.26.0
+La escena usa la paleta material/luz del nivel; la UI usa papel frio, grafito, gris verdoso y tinta neutra.
 
-0.26.0 corrige regresiones detectadas en capturas reales, actualiza Absurdism y reemplaza el renderer procedural del Nivel 1 conservando backup del anterior.
+## 3. Estado 0.27.0
 
-### Musica de sesion 0.25
+0.27.0 amplia el catalogo con 14 fondos entregados directamente al repositorio y elimina la solucion temporal basada en ZIP/Base64.
 
-- Absurdism, REQUIEM y Upon the Hill V2 son pistas independientes;
-- cada una tiene SoundEvent y OGG de runtime propio;
-- OGG largos usan streaming;
-- inicio aleatorio por visita y siguiente pista sin repeticion inmediata;
-- crossfade automatico cada 2-4 minutos;
-- `N` solicita siguiente pista desde el main;
-- credito de musica sigue a la pista dominante durante crossfade;
-- `M` conserva mute y gameplay conserva hard-stop.
+### Fondos directos
 
-### Base visual 0.24
+Ruta de runtime y fuente versionada:
 
-0.24.0 profundiza navegacion, lectura de controles y feedback contextual. La auditoria visible completa esta en `docs/AUDITORIA_0.24.0_84_MEJORAS.md`.
+`src/main/resources/assets/jobsmenu/textures/backgrounds/`
 
-### Instrumentacion contextual
+Archivos nuevos:
 
-- codigo tecnico por familia de pantalla;
-- titulo real de la Screen como contexto secundario cuando cabe;
-- contador de controles activos/totales con barra de proporcion;
-- reloj de visita `T+MM:SS`;
-- contador de pantallas visitadas durante la visita actual;
-- volumen maestro Jobs y estado `MUTE`;
-- breadcrumb de las ultimas tres familias de pantalla;
-- etiqueta del control enfocado o bajo el puntero;
-- modo de entrada `KEY` / `PTR`;
-- tipo de control `TOG` / `SLD` / `TXT` / `ROW` / `BTN` / `CTL`;
-- indice del control actual dentro de los controles activos;
-- rail contextual por pantalla;
-- comportamiento responsive y simplificacion con Interfaz minima;
-- Movimiento reducido/Bajo consumo cambian actividad por referencias estaticas;
-- Alto contraste tambien gobierna esta instrumentacion.
+- `nivel18.jpg` - cool_glitchy_null_by_autumn
+- `nivel19.jpg` - dark_moon_1
+- `nivel20.jpg` - heavenlytegrity
+- `nivel21.jpg` - circuit_frolic
+- `nivel22.jpg` - caveman
+- `nivel23.jpg` - caveboy
+- `nivel24.jpg` - bad_posture
+- `nivel25.jpg` - a_very_null_night
+- `nivel26.jpg` - moonboy
+- `nivel27.jpg` - void_castle
+- `nivel28.jpg` - tbread
+- `nivel29.jpg` - scarlet_king
+- `nivel30.jpg` - new_super_circuit_bros_3d
+- `nivel31.jpg` - world_domination
 
-### Atajos visibles y reales
+Los 14 JPG son 1920x1080 y forman niveles nuevos 18-31. No se generan ni extraen durante Gradle.
 
-- Main: `1-4` activa los cuatro renglones de arriba hacia abajo;
-- Main: teclado numerico `1-4` hace lo mismo;
-- Pausa: `1-2` / keypad `1-2` activan Reanudar y Condiciones;
-- Pausa: el renglón de salida no recibe numero rapido para evitar desconexiones accidentales;
-- los atajos numericos se ignoran con EditBox enfocado o modificadores;
-- `F`, `M`, `N`, `CTRL+F`, `F5`, `F1-F5`, TAB, ENTER y ESC solo se anuncian donde su comportamiento ya existe.
+### Movimiento de imagen
 
-### Main screen
+- niveles 10-17: siempre estaticos;
+- niveles 18-31: respiracion de camara muy leve segun el fondo;
+- el movimiento se realiza solo en render: el JPG del repositorio no se modifica;
+- Movimiento reducido, Bajo consumo o escena quieta dejan la imagen fija;
+- no se agregan objetos, foreground falso, flicker agresivo ni deformacion.
 
-- el panel lateral `JOBS / SHIFT CONTROL` fue eliminado por completo;
-- el rótulo técnico duplicado `JOBS / LEVEL n` también fue eliminado;
-- el aviso de papel y el rótulo localizado del Nivel siguen siendo la lectura principal;
-- la fecha de turno usa tres argumentos posicionales y no puede mostrar `%s`;
-- la barra inferior contextual muestra `1-4`, F, M, N, TAB y ENTER;
-- N llama al cambio real de pista y respeta el bloqueo de crossfade;
-- la instrumentación compartida superior/inferior sigue sin capturar input.
+### Catalogo y lore
 
-### Controles vanilla/Forge preservados
+`Nivel.CATALOGO` tiene 32 entradas. ES/EN tienen nombre y tres notas para cada nivel 18-31. El mapeo completo vive en `docs/FONDOS_18_31.md`.
 
-`PielVanillaJobs` sigue dibujandose despues del control real y no cambia su logica.
+## 4. Estado heredado 0.26.0
 
-- botones con sombra, doble borde e highlight superior;
-- hover y foco de teclado se distinguen;
-- foco de teclado obtiene marcadores externos;
-- recorte de texto tiene indicador propio;
-- disabled queda mas legible;
-- sliders con doble borde, escala de diez pasos y notch de teclado;
-- campos de texto con doble borde, notch de foco y estado no editable;
-- archivo oscuro y formulario claro conservan paletas separadas.
+- `SHIFT CONTROL` fue retirado por completo.
+- el `JOBS / LEVEL` duplicado del fondo fue eliminado.
+- `N` cambia de pista y aparece en la barra inferior contextual.
+- Mods conserva la geometria real de `ModListScreen`.
+- Resource Packs conserva las listas reales de Minecraft.
+- Mundos y Multiplayer vuelven al padre Jobs con una sola accion.
+- la fecha ya no muestra `%s` literal.
+- avisos rotativos ES/EN fueron reescritos.
+- Nivel 1 usa `DepositoNuevo`; el anterior tiene backup.
 
-### Scrollbars
+## 5. Musica y sesion
 
-`ListasExpediente` mantiene rueda/click/drag reales y agrega:
+Catalogo real:
 
-- tramo recorrido en el canal;
-- escala 0/25/50/75/100;
-- topes y chevrons;
-- cursor de posicion a ambos lados;
-- doble sombra del tirador;
-- grip central ampliado;
-- marcas de extremo del tirador.
+1. Absurdism
+2. REQUIEM - Forsaken OST
+3. Upon the Hill V2
 
-### Sistema heredado
+Reglas:
 
-Se conserva todo lo ya certificado en 0.23.0:
+- inicio aleatorio por visita;
+- sin repeticion inmediata;
+- crossfade y rotacion automatica;
+- `N` solicita siguiente pista;
+- `M` controla mute Jobs;
+- F3+T/recarga no debe duplicar audio;
+- cambiar entre subpantallas Jobs no reinicia la sesion;
+- gameplay ejecuta hard-stop de musica y ambiente Jobs.
 
-- transicion de expediente de 470 ms;
-- atmosfera de bordes sin tocar el background;
-- botones NORMAL / PRINCIPAL / JOBS / TERMINAL;
-- toggles y sliders Jobs;
-- perfiles Equilibrado, Inmersivo, Rendimiento, Accesible y Minimo;
-- Mods, Resources, Mundos, Multiplayer, Idioma, Sonido y Video tematizados conservando logica real.
+## 6. Navegacion e interfaz
 
-## 4. Fondos 10-17
+Atajos principales del main:
 
-Los PNG 10-17 permanecen exactamente como archivos de imagen. Se usa filtrado lineal para evitar pixelado al ajustar la imagen a la ventana.
+- `1-4`: renglones principales;
+- `F`: siguiente nivel cuando corresponde;
+- `M`: mute Jobs;
+- `N`: siguiente pista;
+- `TAB`: navegacion;
+- `ENTER`: activar;
+- `ESC`: volver.
 
-No se agrega al PNG:
+Los atajos numericos no actuan mientras se escribe en un EditBox ni con modificadores.
 
-- zoom;
-- paneo;
-- parallax;
-- motas o particulas propias;
-- foreground dinamico;
-- flicker propio;
-- deformacion;
-- alteracion del encuadre fuente.
+Pantallas Forge/vanilla sensibles se tematizan alrededor de su logica real. No se redimensionan listas internas por estetica si eso rompe compatibilidad.
 
-Si estan permitidos fade, apagon de traslado, overlays de interfaz y transicion de expediente porque pertenecen a la navegacion global y no animan la geometria interna de la imagen. Si se agregan niveles 18-19 como PNG, heredan este contrato.
+## 7. Servidor oficial
 
-## 5. Navegacion y ciclo de vida
-
-`SesionMenu` representa una visita completa.
-
-- `TitleScreen` vanilla se redirige a `PantallaNivel` con menu propio;
-- pausa real se redirige a `PantallaEstancia`;
-- Options, Multiplayer, Mundos y Mods se tematizan solo dentro del flujo Jobs;
-- entrar a mundo/servidor cierra sesion y corta audio inmediatamente;
-- salir de mundo/servidor/kick recupera `PantallaNivel`;
-- reloj y contador de pantallas son temporales, locales y se reinician con una visita nueva;
-- no existe telemetria de red ni persistencia de esa instrumentacion.
-
-## 6. Multiplayer
-
-Servidor fijado:
+Unica entrada fijada:
 
 `JobsDosh.exaroton.me:56477`
 
-Contrato:
+Nombre localizado: `Jobs Official Server` / `Servidor oficial de Jobs`.
 
-- una sola entrada;
-- nombre localizado;
-- primera posicion;
-- protegida frente a edicion/borrado desde Jobs;
-- IP deduplicada;
-- `Ghoul Outbreak` eliminado y no recreado.
+`Ghoul Outbreak` no debe reaparecer.
 
-## 7. Musica y ambiente
+## 8. Verificacion
 
-Catalogo vigente:
+GitHub Actions verifica:
 
-- **Absurdism** -> `assets/jobsmenu/sounds/musica/defecto.ogg`;
-- **REQUIEM** -> `assets/jobsmenu/sounds/musica/requiem.ogg`; fuente `music/REQUIEM-Forsaken-OST.ogg`;
-- **Upon the Hill V2** -> `assets/jobsmenu/sounds/musica/upon_the_hill_v2.ogg`; fuente `music/upon_the_hill_v2_q4.ogg`.
+1. Java 17;
+2. politica de version;
+3. PNG 10-17 y JPEG 18-31;
+4. auditoria estatica;
+5. contratos UI/musica;
+6. Forge build;
+7. JAR versionado;
+8. publicacion a `dev-latest` solo desde `main`.
 
-Comportamiento obligatorio:
+CI no sustituye prueba visual. Despues del deploy revisar GUI Scale 2/3/4, fondos 18-31, movimiento reducido, Bajo consumo, audio y navegacion ESC.
 
-- fade-in/fade-out;
-- crossfade automatico entre las 3 pistas y skip manual con `N`;
-- ducking en transiciones/Suspension/presencia;
-- continuidad por subpantallas;
-- watchdog de instancias fantasma;
-- recuperacion tras recarga;
-- hard stop al entrar a gameplay.
+## 9. Despliegue
 
-La musica usa `SoundSource.MASTER`: Maestro + volumen Jobs + volumen del aviso; no slider Musica vanilla.
-
-## 8. Compatibilidad
-
-- Redirecciones principales por clase exacta.
-- Listas complejas conservan logica real.
-- `ListasExpediente` modifica presentacion y conserva rueda/click/drag.
-- `CapaProfesionalJobs` es solo visual y no captura input.
-- `AtajosInterfazJobs` solo actua en Main/Pausa y protege EditBox/modificadores.
-- `PielVanillaJobs` no se aplica indiscriminadamente a pantallas externas.
-- Embeddium conserva su UI de video.
-- Mods que sustituyan totalmente pantallas pueden requerir integracion especifica.
-
-## 9. Prueba y entrega
-
-CI certifica:
-
-- Java 17;
-- politica de version;
-- PNG/CRC/IDAT;
-- recursos, idiomas y ASCII Java;
-- contratos UI/musica;
-- Forge build 1.20.1;
-- artefacto `jobsmenu-0.26.0.jar`;
-- publicacion a `dev-latest` desde `main`.
-
-CI no certifica estetica dentro de Minecraft. La prueba manual vigente esta en `docs/checklist-manual.md`.
-
-Destino unico de despliegue:
+Destino unico:
 
 `C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods`
 
-El PowerShell se entrega solo despues de: docs actualizados -> CI de PR verde -> merge -> CI de main verde -> `dev-latest` actualizado.
+Flujo:
+
+`GitHub -> Actions -> dev-latest -> PowerShell -> test-1`
