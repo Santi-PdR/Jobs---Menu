@@ -1,106 +1,80 @@
-# Riesgos y pruebas pendientes — 0.26.0
+# Riesgos y pruebas pendientes — 0.27.0
 
-Este documento contiene únicamente riesgos vigentes. El historial vive en `CHANGELOG.md` y en auditorías de `docs/`.
+Este documento contiene riesgos vigentes. El historial está en `CHANGELOG.md` y en las auditorías de `docs/`.
 
-## Estado certificado automáticamente
+## Certificado automáticamente
 
-Antes de publicar una entrega, GitHub Actions comprueba:
+Antes de publicar, GitHub Actions comprueba:
 
 - Java 17;
-- nombre/versionado obligatorio del JAR;
-- integridad PNG/CRC/IDAT de fondos 10–17;
-- recursos, idiomas, ASCII Java y coherencia estática;
-- separación de paleta entre escena e interfaz;
-- contratos del reproductor musical y hard stop de gameplay;
-- build Forge 1.20.1;
-- creación de `jobsmenu-0.26.0.jar`;
-- publicación en `dev-latest` únicamente desde `main`.
+- JAR versionado;
+- integridad de PNG 10–17;
+- presencia, firma y dimensiones 1920×1080 de JPEG 18–31;
+- paridad ES/EN, recursos y coherencia estática;
+- contratos UI/música y hard-stop de gameplay;
+- rango `nivel_fijo` coherente con los 32 niveles;
+- Forge build 1.20.1;
+- publicación de `jobsmenu-0.27.0.jar` en `dev-latest` sólo desde `main`.
 
-Un build que no termina en verde no debe actualizar la release.
+Un pipeline fallido no debe actualizar la release.
 
-## Importante: qué queda sin certificar
+## Lo que CI no certifica
 
-CI **no ejecuta Minecraft con una ventana real**. Las modificaciones pueden quedar compiladas y verificadas sin que eso confirme estética, hitboxes, scrolling, sensación de input o convivencia visual con otros mods.
+CI no abre Minecraft con ventana real. Después del deploy hay que validar visualmente:
 
-Prioridad manual de 0.26.0:
+1. Los niveles 18–31 cargan su JPG correcto, sin textura morado/negro.
+2. El encuadre cover no corta zonas importantes en GUI Scale 2/3/4 y distintas relaciones de aspecto.
+3. La respiración de cámara de 18–31 es sutil y no resulta molesta.
+4. Movimiento reducido, Bajo consumo o escena quieta congelan los JPG nuevos.
+5. PNG 10–17 siguen completamente estáticos.
+6. `nivel_fijo` puede seleccionar cualquier nivel hasta 31.
+7. `N`, `M`, F3+T, Alt+Tab y navegación por subpantallas no duplican audio.
+8. Gameplay corta inmediatamente música y ambiente Jobs.
+9. Mods y Resource Packs conservan sus listas reales.
+10. ESC/Volver en Mundos y Multiplayer regresa en una sola acción.
 
-1. Las tres pistas — Absurdism, REQUIEM y Upon the Hill V2 — deben poder sonar en visitas distintas.
-2. `N` debe aparecer en la barra inferior, hacer crossfade a otra pista y no apilar cambios durante un crossfade.
-3. El crédito musical debe seguir a la pista dominante correcta durante el crossfade.
-4. `M`, F3+T, Alt+Tab y navegación por subpantallas no deben duplicar instancias.
-5. Entrar a mundo/servidor debe cortar inmediatamente música y ambiente Jobs.
-6. Main sin SHIFT CONTROL ni JOBS / LEVEL técnico duplicado; revisar que la hoja y la barra inferior respiren correctamente.
-7. Atajos 1–4 del main y 1–2 de pausa; EditBox no debe dispararlos al escribir.
-8. Breadcrumb, KEY/PTR, controles vanilla/Forge y scrollbars nuevas.
-9. GUI Scale 2/3/4, ultrawide, Movimiento reducido, Bajo consumo, Alto contraste e Interfaz mínima.
-10. PNG 10–17 durante navegación y traslados, sin movimiento interno.
+## Riesgos vigentes
 
-El procedimiento completo está en `docs/checklist-manual.md`.
+### Fondos 18–31
 
-## Riesgos conocidos
+- Los JPG son 1920×1080 y se renderizan directamente desde recursos; el coste depende de GPU, resolución y otros mods gráficos.
+- El movimiento de cámara de 18–31 es un recorte/zoom mínimo en runtime. No reescribe ni deforma el archivo, pero su sensación final requiere prueba visual.
+- Algunos fondos tienen composición cerca de los bordes; una ventana no 16:9 puede recortar laterales o parte superior/inferior por el comportamiento cover.
+- No existe profiler GPU automático.
 
-### Interfaces y listas
+### Fondos 10–17
 
-- `PielVanillaJobs` y `CapaProfesionalJobs` son capas posteriores al render. Un mod/resource pack que cambie radicalmente geometría u orden puede requerir compatibilidad específica.
-- La barra contextual y breadcrumb se ocultan o reducen según espacio; su equilibrio final requiere prueba visual, especialmente en GUI Scale 4 y ultrawide.
-- El estado `KEY/PTR` es informativo y depende del foco/hover que Minecraft expone en ese frame.
-- `ListasExpediente` depende de datos internos de `AbstractSelectionList` 1.20.1 para dibujar la scrollbar Jobs. Existe reflection defensiva y fallback.
-- La nueva scrollbar es visual: rueda, click y drag siguen perteneciendo a la lista real. Cualquier desalineación debe reportarse con captura y GUI Scale.
-- Fuentes con métricas extremas pueden forzar más elipsis de las previstas.
+- Permanecen rasterizados a su resolución histórica.
+- Filtrado lineal suaviza el escalado, pero no inventa detalle.
+- No reciben zoom, paneo, parallax, flicker, partículas, foreground dinámico ni deformación.
 
-### Atajos de teclado
+### Interfaces
 
-- `AtajosInterfazJobs` actúa sólo en `PantallaNivel` y `PantallaEstancia`, ignora EditBox enfocado y exige cero modificadores.
-- Otro mod que intercepte `ScreenEvent.KeyPressed.Pre` antes o después puede alterar la convivencia de un atajo; por eso 1–4 se limita a las pantallas propias y no se registra como keymapping global.
-- La salida de la pausa no tiene atajo numérico intencionalmente. El main conserva la confirmación existente del renglón 04 antes de cerrar Minecraft.
-
-### Video
-
-- Sin Embeddium se usa `PantallaVideoJobs`.
-- Con Embeddium se respeta su pantalla real y no se reconstruye por reflection profunda.
+- Las capas Jobs posteriores al render pueden necesitar compatibilidad específica con mods/resource packs que reorganicen profundamente una Screen.
+- Scrollbars Jobs son visuales; rueda, click y drag pertenecen a la lista real.
+- Embeddium conserva su pantalla real de vídeo.
 
 ### Audio
 
-- La música/ambiente depende de SoundEngine y del lifecycle de la sesión. F3+T, Alt+Tab y cambios rápidos de pantalla deben probarse manualmente para descartar una instancia fantasma perceptible.
-- La instrumentación de sesión sólo muestra datos locales temporales; no cambia ni reinicia el audio.
-- El catálogo de tres pistas ya está empaquetado. Queda pendiente validar dentro de Minecraft la mezcla percibida, diferencias de loudness y crossfade entre fuentes de distinta frecuencia.
-
-### Fondos
-
-- PNG 10–17 son rasterizados; la calidad máxima depende de la fuente original.
-- El filtrado lineal reduce pixelado al escalar, pero no inventa detalle ausente.
-- No se permite mover, deformar ni animar internamente el PNG.
-- Sí se permiten fades, apagones, transición de expediente y overlays globales que no cambien geometría ni contenido de la imagen.
-- Si se agregan 18–19 como PNG, heredan el mismo contrato.
-
-### Rendimiento
-
-- No existe profiler GPU automático. Bajo consumo reduce trabajo decorativo, pero el coste final depende de GPU, resolución, GUI Scale, shaders y otros mods.
-- Breadcrumb, telemetría local y códigos de control son texto/rectángulos 2D; aun así, el resultado final debe probarse en el equipo real.
-- Movimiento reducido y Bajo consumo sustituyen actividad continua por marcas estáticas.
+- La mezcla perceptiva entre Absurdism, REQUIEM y Upon the Hill V2 sólo puede validarse dentro del juego.
+- F3+T, Alt+Tab y cambios rápidos de pantalla deben probarse para descartar instancias fantasma perceptibles.
 
 ### Release
 
-- `dev-latest` es rodante. El asset lleva versión, pero el tag no es una release histórica inmutable.
+- `dev-latest` es rodante. El asset lleva versión, pero el tag no representa una release histórica inmutable.
 
-## Mitigaciones vigentes
+## Mitigaciones
 
-- PNG 10–17 aislados de movimiento interno y efectos procedurales.
-- Paleta UI separada de la escena y verificada en CI.
-- `CapaProfesionalJobs` no captura input.
-- Atajos numéricos protegidos frente a EditBox y modificadores.
-- Config Jobs conectada directamente a `ConfigTurno`.
-- Redirecciones sensibles por clase exacta.
-- Pantallas externas no reciben skin indiscriminadamente.
-- Scrollbar visual conserva comportamiento real y tiene fallback.
-- `NativeImage` valida fondos en runtime y existe fallback procedural.
-- Reproductor musical ligado a sesión con watchdog de SoundEngine, tres pistas independientes y selección sin repetición inmediata.
-- Hard stop al entrar a gameplay.
-- JAR versionado y verificado por CI.
-- Movimiento reducido, destellos reducidos y Bajo consumo tienen prioridad.
+- Los 14 JPG nuevos están versionados directamente en la ruta de recursos; no hay ZIP/Base64 ni extracción de build.
+- `tools/verificar_fondos.py` valida los 22 fondos de imagen (10–31).
+- `NativeImage` valida el recurso en runtime y existe fallback procedural ante fallo.
+- Movimiento reducido y Bajo consumo tienen prioridad.
+- Pantallas Forge/vanilla complejas conservan lógica real.
+- Reproductor musical está ligado a la sesión y aplica hard-stop en gameplay.
+- JAR versionado y CI obligatorio antes de publicar.
 
-## Regla de reporte
+## Reporte
 
-Un problema observado en Minecraft debe incluir versión exacta del JAR, SHA-256 si está disponible, pantalla/Nivel, ruta usada, resolución/GUI Scale, mods que sustituyan UI/video, opciones de accesibilidad relevantes, si ocurrió durante transición/Suspensión y captura. Adjuntar `latest.log` cuando afecte crash, recursos o audio.
+Un fallo visto en Minecraft debe incluir versión/JAR, SHA-256 si está disponible, nivel/pantalla, resolución, GUI Scale, opciones de Movimiento reducido/Bajo consumo, mods de UI/vídeo relevantes y captura. Adjuntar `latest.log` si afecta crash, recursos o audio.
 
-Un fallo visual o sonoro no se considera corregido sólo porque el proyecto compile.
+Un defecto visual o sonoro no se considera corregido sólo porque compile.
