@@ -1,0 +1,25 @@
+name: Export Source Temp
+
+on:
+  push:
+    branches:
+      - improve/nombres-fondos-029
+
+permissions:
+  contents: read
+
+jobs:
+  export-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pack source
+        run: |
+          mkdir -p /tmp/export
+          tar --exclude='.git' -czf /tmp/export/jobs-menu-source.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jobs-menu-source-temp
+          path: /tmp/export/jobs-menu-source.tar.gz
+          if-no-files-found: error
+          retention-days: 1
