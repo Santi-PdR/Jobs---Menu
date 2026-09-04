@@ -1,4 +1,4 @@
-name: Export Source Temp
+name: Apply Visual Review 029 Temp
 
 on:
   push:
@@ -6,20 +6,30 @@ on:
       - improve/nombres-fondos-029
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  export-source:
+  apply-review:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Pack source
-        run: |
-          mkdir -p /tmp/export
-          tar --exclude='.git' -czf /tmp/export/jobs-menu-source.tar.gz .
-      - uses: actions/upload-artifact@v4
         with:
-          name: jobs-menu-source-temp
-          path: /tmp/export/jobs-menu-source.tar.gz
-          if-no-files-found: error
-          retention-days: 1
+          fetch-depth: 0
+      - name: Apply reviewed patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat tools/patch029.gz.b64.* | base64 -d | gzip -d > /tmp/patch029.diff
+          git apply --check /tmp/patch029.diff
+          git apply /tmp/patch029.diff
+          rm -f tools/patch029.part00 tools/patch029.gz.b64.*
+          rm -f .github/workflows/export-source-temp.yml
+          python3 tools/verificar_version.py
+          python3 tools/verificar_fondos.py
+          python3 tools/verificar.py
+          python3 tools/verificar_ui_musica.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "0.29.0: revisar fondos reales y mejorar lectura"
+          git push origin HEAD:improve/nombres-fondos-029
