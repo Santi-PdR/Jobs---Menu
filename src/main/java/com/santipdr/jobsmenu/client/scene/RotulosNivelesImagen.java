@@ -9,6 +9,8 @@ import net.minecraft.network.chat.Component;
  * Los niveles anteriores siguen usando los lang JSON historicos. Este catalogo
  * queda separado a proposito para que los fondos entregados como imagen no
  * reciban nombres deducidos solo por paleta, indice o color dominante.
+ * Los escapes Unicode conservan la ortografia visible sin romper la politica
+ * ASCII del codigo Java que comprueba tools/verificar.py.
  */
 public final class RotulosNivelesImagen {
 
@@ -16,54 +18,54 @@ public final class RotulosNivelesImagen {
     private static final int ULTIMO = 31;
 
     private static final String[] NOMBRES_ES = {
-            "NIVEL 18 · Interferencia carmesí",
-            "NIVEL 19 · La anomalía púrpura",
-            "NIVEL 20 · El huésped de tinta",
-            "NIVEL 21 · El claro del centinela",
-            "NIVEL 22 · La caverna del vigía",
-            "NIVEL 23 · La cámara de pánico",
-            "NIVEL 24 · El umbral escarlata",
-            "NIVEL 25 · El bosque bajo la señal",
-            "NIVEL 26 · La luna del observador",
-            "NIVEL 27 · La fortaleza roja",
-            "NIVEL 28 · El registro corrompido",
-            "NIVEL 29 · La entidad del borde",
-            "NIVEL 30 · El distrito de caza",
-            "NIVEL 31 · El nexo de contención"
+            "NIVEL 18 \u00b7 Interferencia carmes\u00ed",
+            "NIVEL 19 \u00b7 La anomal\u00eda p\u00farpura",
+            "NIVEL 20 \u00b7 El hu\u00e9sped de tinta",
+            "NIVEL 21 \u00b7 El claro del centinela",
+            "NIVEL 22 \u00b7 La caverna del vig\u00eda",
+            "NIVEL 23 \u00b7 La c\u00e1mara de p\u00e1nico",
+            "NIVEL 24 \u00b7 El umbral escarlata",
+            "NIVEL 25 \u00b7 El bosque bajo la se\u00f1al",
+            "NIVEL 26 \u00b7 La luna del observador",
+            "NIVEL 27 \u00b7 La fortaleza roja",
+            "NIVEL 28 \u00b7 El registro corrompido",
+            "NIVEL 29 \u00b7 La entidad del borde",
+            "NIVEL 30 \u00b7 El distrito de caza",
+            "NIVEL 31 \u00b7 El nexo de contenci\u00f3n"
     };
 
     private static final String[] NOMBRES_EN = {
-            "LEVEL 18 · Crimson Interference",
-            "LEVEL 19 · The Violet Anomaly",
-            "LEVEL 20 · The Ink Host",
-            "LEVEL 21 · The Sentinel Clearing",
-            "LEVEL 22 · The Watcher Cavern",
-            "LEVEL 23 · The Panic Chamber",
-            "LEVEL 24 · The Scarlet Threshold",
-            "LEVEL 25 · The Forest Beneath the Signal",
-            "LEVEL 26 · The Watcher's Moon",
-            "LEVEL 27 · The Red Fortress",
-            "LEVEL 28 · The Corrupted Record",
-            "LEVEL 29 · The Edge Entity",
-            "LEVEL 30 · The Hunting District",
-            "LEVEL 31 · The Containment Nexus"
+            "LEVEL 18 \u00b7 Crimson Interference",
+            "LEVEL 19 \u00b7 The Violet Anomaly",
+            "LEVEL 20 \u00b7 The Ink Host",
+            "LEVEL 21 \u00b7 The Sentinel Clearing",
+            "LEVEL 22 \u00b7 The Watcher Cavern",
+            "LEVEL 23 \u00b7 The Panic Chamber",
+            "LEVEL 24 \u00b7 The Scarlet Threshold",
+            "LEVEL 25 \u00b7 The Forest Beneath the Signal",
+            "LEVEL 26 \u00b7 The Watcher's Moon",
+            "LEVEL 27 \u00b7 The Red Fortress",
+            "LEVEL 28 \u00b7 The Corrupted Record",
+            "LEVEL 29 \u00b7 The Edge Entity",
+            "LEVEL 30 \u00b7 The Hunting District",
+            "LEVEL 31 \u00b7 The Containment Nexus"
     };
 
     private static final String[][] NOTAS_ES = {
-            {"La imagen se desgarra en rojo aunque la señal figura como estable.", "No siga las líneas de interferencia: no corresponden a ningún pasillo.", "Si la silueta cambia entre parpadeos, abandone el punto de observación."},
-            {"El foco del cielo no es una estrella registrada por la instalación.", "La neblina violeta oculta profundidad; no la use para calcular distancia.", "Mantenga la vista fuera del centro cuando el destello vuelva a abrirse."},
+            {"La imagen se desgarra en rojo aunque la se\u00f1al figura como estable.", "No siga las l\u00edneas de interferencia: no corresponden a ning\u00fan pasillo.", "Si la silueta cambia entre parpadeos, abandone el punto de observaci\u00f3n."},
+            {"El foco del cielo no es una estrella registrada por la instalaci\u00f3n.", "La neblina violeta oculta profundidad; no la use para calcular distancia.", "Mantenga la vista fuera del centro cuando el destello vuelva a abrirse."},
             {"La figura blanca no pertenece al inventario ni a ninguna cuadrilla.", "Las ramificaciones negras cambian de forma sin mover su punto de origen.", "No espere a distinguir un rostro para informar una presencia."},
-            {"El terreno abierto no está vacío: la figura alta sigue en el perímetro.", "No cruce la línea de árboles aunque el centro del claro parezca seguro.", "Las formas del sector no responden a señales, luz ni llamadas."},
-            {"La silueta del fondo permanece erguida cuando cambia la iluminación.", "No use la pared de la cueva para estimar su altura.", "La ruta autorizada termina antes de la figura. No avance para comprobarlo."},
-            {"Los registros visuales muestran actividad alrededor del ocupante.", "No toque estructuras orgánicas aunque parezcan inmóviles o decorativas.", "Si oye movimiento detrás, continúe hacia la salida sin girarse."},
-            {"El arco rojo no figura como acceso operativo en ningún plano.", "La figura junto al umbral no debe usarse como referencia de escala.", "No atraviese el centro aunque parezca despejado durante un apagón."},
-            {"La cuadrícula luminosa sobre los árboles no pertenece al cielo exterior.", "Mantenga distancia de cualquier figura inmóvil en el límite del bosque.", "Los errores de imagen pueden persistir después del cambio de nivel."},
-            {"La superficie blanca registra una presencia suspendida frente al planeta.", "No siga sombras que no coincidan con la dirección de la luz.", "Archive las lecturas del horizonte sin acercarse al borde del sector."},
-            {"La estructura central recibe luz de una fuente que no figura en servicio.", "No use las siluetas del exterior como rutas de aproximación.", "Las plantas superiores están cerradas aunque vea ventanas encendidas."},
-            {"La imagen llega incompleta y con varias capas superpuestas.", "No intente corregir manualmente el desenfoque ni la rotación del registro.", "Si aparecen símbolos nuevos, anótelos sin quedarse frente a la pantalla."},
-            {"La masa del fondo no mantiene una forma estable entre inspecciones.", "Permanezca detrás de la línea de observación y no responda a sus movimientos.", "El magenta indica saturación del registro, no una zona segura."},
-            {"La criatura del sector supera la altura de las estructuras cercanas.", "No permanezca en espacios abiertos cuando la iluminación cambie a rojo.", "Las rutas marcadas en el suelo son de evacuación, no de aproximación."},
-            {"Las formas rojas convergen alrededor de objetos fuera de inventario.", "No retire luces, cubos ni fragmentos suspendidos dentro del perímetro.", "Si el patrón empieza a cerrarse, salga antes de que complete el círculo."}
+            {"El terreno abierto no est\u00e1 vac\u00edo: la figura alta sigue en el per\u00edmetro.", "No cruce la l\u00ednea de \u00e1rboles aunque el centro del claro parezca seguro.", "Las formas del sector no responden a se\u00f1ales, luz ni llamadas."},
+            {"La silueta del fondo permanece erguida cuando cambia la iluminaci\u00f3n.", "No use la pared de la cueva para estimar su altura.", "La ruta autorizada termina antes de la figura. No avance para comprobarlo."},
+            {"Los registros visuales muestran actividad alrededor del ocupante.", "No toque estructuras org\u00e1nicas aunque parezcan inm\u00f3viles o decorativas.", "Si oye movimiento detr\u00e1s, contin\u00fae hacia la salida sin girarse."},
+            {"El arco rojo no figura como acceso operativo en ning\u00fan plano.", "La figura junto al umbral no debe usarse como referencia de escala.", "No atraviese el centro aunque parezca despejado durante un apag\u00f3n."},
+            {"La cuadr\u00edcula luminosa sobre los \u00e1rboles no pertenece al cielo exterior.", "Mantenga distancia de cualquier figura inm\u00f3vil en el l\u00edmite del bosque.", "Los errores de imagen pueden persistir despu\u00e9s del cambio de nivel."},
+            {"La superficie blanca registra una presencia suspendida frente al planeta.", "No siga sombras que no coincidan con la direcci\u00f3n de la luz.", "Archive las lecturas del horizonte sin acercarse al borde del sector."},
+            {"La estructura central recibe luz de una fuente que no figura en servicio.", "No use las siluetas del exterior como rutas de aproximaci\u00f3n.", "Las plantas superiores est\u00e1n cerradas aunque vea ventanas encendidas."},
+            {"La imagen llega incompleta y con varias capas superpuestas.", "No intente corregir manualmente el desenfoque ni la rotaci\u00f3n del registro.", "Si aparecen s\u00edmbolos nuevos, an\u00f3telos sin quedarse frente a la pantalla."},
+            {"La masa del fondo no mantiene una forma estable entre inspecciones.", "Permanezca detr\u00e1s de la l\u00ednea de observaci\u00f3n y no responda a sus movimientos.", "El magenta indica saturaci\u00f3n del registro, no una zona segura."},
+            {"La criatura del sector supera la altura de las estructuras cercanas.", "No permanezca en espacios abiertos cuando la iluminaci\u00f3n cambie a rojo.", "Las rutas marcadas en el suelo son de evacuaci\u00f3n, no de aproximaci\u00f3n."},
+            {"Las formas rojas convergen alrededor de objetos fuera de inventario.", "No retire luces, cubos ni fragmentos suspendidos dentro del per\u00edmetro.", "Si el patr\u00f3n empieza a cerrarse, salga antes de que complete el c\u00edrculo."}
     };
 
     private static final String[][] NOTAS_EN = {
