@@ -139,3 +139,7 @@ La prueba normal no compila localmente. El PowerShell canónico de `docs/DESPLIE
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalación certificada en `test-1`.
 - [`docs/musica.md`](docs/musica.md): catálogo y lifecycle musical.
 - [`docs/compatibilidad.md`](docs/compatibilidad.md): convivencia con otros mods.
+
+### Fondos 18-31
+
+Desde 0.27.0 el catalogo llega al nivel 31 e incluye 14 fondos adicionales entregados por el usuario. Ver `docs/FONDOS_18_31.md`.

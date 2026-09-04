@@ -15,7 +15,7 @@ import java.io.InputStream;
 import java.util.Objects;
 
 /**
- * Planta para los PNG entregados por el proyecto (niveles 10-17).
+ * Planta para las imagenes entregadas por el proyecto (niveles 10-31).
  *
  * Desde 0.13.0 estas imagenes son deliberadamente estaticas: no hay zoom,
  * paneo, scanlines, niebla animada, flicker ni desplazamientos de color. El
@@ -44,7 +44,7 @@ public final class PlantaImagen implements Planta {
 
     /**
      * Compatibilidad con declaraciones antiguas de Nivel. Las dimensiones se
-     * ignoran: la fuente de verdad sigue siendo el PNG real.
+     * ignoran: la fuente de verdad sigue siendo la imagen real.
      */
     public PlantaImagen(String archivo, int anchoIgnorado, int altoIgnorado, int modo) {
         this(archivo, modo);
@@ -69,7 +69,7 @@ public final class PlantaImagen implements Planta {
         }
     }
 
-    /** Valida una vez usando el mismo decodificador PNG que usa Minecraft. */
+    /** Valida una vez usando el mismo decodificador de imagen que usa Minecraft. */
     private boolean texturaDisponible() {
         if (texturaValida != null) {
             return texturaValida;
@@ -88,7 +88,7 @@ public final class PlantaImagen implements Planta {
             texturaValida = true;
             return true;
         } catch (Exception error) {
-            registrarFallo("PNG no decodificable", error);
+            registrarFallo("imagen no decodificable", error);
             texturaValida = false;
             return false;
         }

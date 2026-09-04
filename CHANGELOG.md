@@ -1,3 +1,9 @@
+## 0.27.0
+
+- Se agregan 14 fondos nuevos como niveles 18-31 a partir del ZIP entregado por el usuario.
+- Los nuevos fondos se conservan como JPEG 960x540 y se extraen al JAR durante `processResources`.
+- Se amplian catalogo, traducciones y verificador de fondos; los niveles 10-17 no cambian.
+
 ## 0.26.0
 
 - Retirado SHIFT CONTROL y el rótulo duplicado JOBS / LEVEL del main.

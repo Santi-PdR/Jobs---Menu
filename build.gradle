@@ -86,6 +86,14 @@ tasks.named('processResources', ProcessResources).configure {
         }
     }
 
+    // Fondos 18-31 entregados por el usuario. Se versionan como un unico ZIP
+    // para conservar los binarios sin conversiones intermedias del conector.
+    // processResources los extrae como imagenes normales dentro del JAR.
+    inputs.file('assets/backgrounds/niveles18-31.zip')
+    from(zipTree(file('assets/backgrounds/niveles18-31.zip'))) {
+        into 'assets/jobsmenu/textures/backgrounds'
+    }
+
     // NOTA SOBRE LA MUSICA
     //
     // La pista de fabrica es el archivo original y versionado
