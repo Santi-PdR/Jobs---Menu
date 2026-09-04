@@ -7,8 +7,8 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Version actual | **0.27.0** |
-| Artefacto esperado | **`jobsmenu-0.27.0.jar`** |
+| Version actual | **0.28.0** |
+| Artefacto esperado | **`jobsmenu-0.28.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -23,8 +23,8 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 3. `gradle.properties` es la fuente de verdad de version.
 4. CI obligatorio antes de publicar.
 5. `dev-latest` conserva un unico JAR versionado y solo se actualiza desde `main` verde.
-6. Java visible permanece ASCII; textos de usuario viven en lang.
-7. ES/EN conservan paridad de claves.
+6. Java fuente permanece ASCII; cualquier caracter visible no ASCII en catalogos Java usa escapes Unicode. Los textos generales siguen viviendo en lang.
+7. ES/EN conservan paridad funcional.
 8. El rojo queda reservado a Executores.
 9. Accesibilidad, Movimiento reducido y Bajo consumo tienen prioridad sobre decoracion.
 10. Ningun control visible puede tener un hitbox vanilla invisible superpuesto.
@@ -38,6 +38,7 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 18. Despliegue normal siempre apunta a `test-1`.
 19. Capas globales de UI no capturan input ni sustituyen controles reales.
 20. Una ayuda visual de teclado solo puede anunciar una tecla implementada de verdad.
+21. `PantallaNivel` reserva el pie para el nombre y la nota del nivel; la barra contextual generica no se dibuja en el main.
 
 ## 2. Identidad visual
 
@@ -50,9 +51,40 @@ Familias:
 
 La escena usa la paleta material/luz del nivel; la UI usa papel frio, grafito, gris verdoso y tinta neutra.
 
-## 3. Estado 0.27.0
+## 3. Estado 0.28.0
 
-0.27.0 amplia el catalogo con 14 fondos entregados directamente al repositorio y elimina la solucion temporal basada en ZIP/Base64.
+0.28.0 limpia la lectura del main y corrige el catalogo visible de los fondos 18-31 tras revisar directamente las imagenes reales.
+
+### Pie del menu principal
+
+- `CapaProfesionalJobs` ya no se renderiza sobre `PantallaNivel`.
+- desaparecen del main los rotulos visibles `1-4`, `F`, `M`, `N`, `TAB` y `ENTER`;
+- los atajos siguen activos y no cambian sus callbacks;
+- las pantallas secundarias mantienen la instrumentacion contextual;
+- nombre y nota del nivel vuelven a dominar la zona inferior sin competir con una barra global.
+
+### Catalogo visual 18-31
+
+Los 14 JPG 1920x1080 se revisaron contra su contenido real. El catalogo visible ES/EN se centraliza en `RotulosNivelesImagen` para evitar nombres deducidos solo por paleta o nombre de archivo.
+
+Nombres ES vigentes:
+
+- 18: Interferencia carmesi
+- 19: La anomalia purpura
+- 20: El huesped de tinta
+- 21: El claro del centinela
+- 22: La caverna del vigia
+- 23: La camara de panico
+- 24: El umbral escarlata
+- 25: El bosque bajo la senal
+- 26: La luna del observador
+- 27: La fortaleza roja
+- 28: El registro corrompido
+- 29: La entidad del borde
+- 30: El distrito de caza
+- 31: El nexo de contencion
+
+La ortografia visible conserva acentos mediante escapes Unicode en Java. Cada fondo tiene tres notas ES/EN ligadas a elementos observables de la escena.
 
 ### Fondos directos
 
@@ -60,24 +92,7 @@ Ruta de runtime y fuente versionada:
 
 `src/main/resources/assets/jobsmenu/textures/backgrounds/`
 
-Archivos nuevos:
-
-- `nivel18.jpg` - cool_glitchy_null_by_autumn
-- `nivel19.jpg` - dark_moon_1
-- `nivel20.jpg` - heavenlytegrity
-- `nivel21.jpg` - circuit_frolic
-- `nivel22.jpg` - caveman
-- `nivel23.jpg` - caveboy
-- `nivel24.jpg` - bad_posture
-- `nivel25.jpg` - a_very_null_night
-- `nivel26.jpg` - moonboy
-- `nivel27.jpg` - void_castle
-- `nivel28.jpg` - tbread
-- `nivel29.jpg` - scarlet_king
-- `nivel30.jpg` - new_super_circuit_bros_3d
-- `nivel31.jpg` - world_domination
-
-Los 14 JPG son 1920x1080 y forman niveles nuevos 18-31. No se generan ni extraen durante Gradle.
+Los archivos `nivel18.jpg` a `nivel31.jpg` siguen siendo recursos directos del repositorio. No se generan ni extraen durante Gradle.
 
 ### Movimiento de imagen
 
@@ -87,21 +102,16 @@ Los 14 JPG son 1920x1080 y forman niveles nuevos 18-31. No se generan ni extraen
 - Movimiento reducido, Bajo consumo o escena quieta dejan la imagen fija;
 - no se agregan objetos, foreground falso, flicker agresivo ni deformacion.
 
-### Catalogo y lore
-
-`Nivel.CATALOGO` tiene 32 entradas. ES/EN tienen nombre y tres notas para cada nivel 18-31. El mapeo completo vive en `docs/FONDOS_18_31.md`.
-
-## 4. Estado heredado 0.26.0
+## 4. Estado heredado
 
 - `SHIFT CONTROL` fue retirado por completo.
 - el `JOBS / LEVEL` duplicado del fondo fue eliminado.
-- `N` cambia de pista y aparece en la barra inferior contextual.
 - Mods conserva la geometria real de `ModListScreen`.
 - Resource Packs conserva las listas reales de Minecraft.
 - Mundos y Multiplayer vuelven al padre Jobs con una sola accion.
 - la fecha ya no muestra `%s` literal.
-- avisos rotativos ES/EN fueron reescritos.
 - Nivel 1 usa `DepositoNuevo`; el anterior tiene backup.
+- `nivel_fijo` admite 0-31.
 
 ## 5. Musica y sesion
 
@@ -124,7 +134,7 @@ Reglas:
 
 ## 6. Navegacion e interfaz
 
-Atajos principales del main:
+Atajos funcionales del main:
 
 - `1-4`: renglones principales;
 - `F`: siguiente nivel cuando corresponde;
@@ -134,7 +144,7 @@ Atajos principales del main:
 - `ENTER`: activar;
 - `ESC`: volver.
 
-Los atajos numericos no actuan mientras se escribe en un EditBox ni con modificadores.
+En 0.28.0 estos atajos ya no se listan en una barra inferior sobre `PantallaNivel`; su funcionalidad permanece. Los atajos numericos no actuan mientras se escribe en un EditBox ni con modificadores.
 
 Pantallas Forge/vanilla sensibles se tematizan alrededor de su logica real. No se redimensionan listas internas por estetica si eso rompe compatibilidad.
 

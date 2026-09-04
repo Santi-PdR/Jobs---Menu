@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 
 | Campo | Valor |
 |---|---|
-| Version | **0.27.0** |
-| Artefacto | **`jobsmenu-0.27.0.jar`** |
+| Version | **0.28.0** |
+| Artefacto | **`jobsmenu-0.28.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,28 +13,26 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 | Rama entregable | **`main`** |
 | Niveles | **32 (0-31)** |
 
-## 0.27.0 · Fondos 18-31
+## 0.28.0 · Lectura limpia y catalogo visual
 
-- Se agregan **14 niveles nuevos**, del 18 al 31.
+- El menu principal ya no recibe la barra inferior generica de `CapaProfesionalJobs`; desaparecen los rótulos visibles de `1-4`, `F`, `M`, `N`, `TAB` y `ENTER` que competian con el nombre del nivel.
+- Las teclas siguen funcionando: solo se retira su HUD redundante en `PantallaNivel`.
+- Las pantallas secundarias conservan ayudas e instrumentacion contextual.
+- Se revisaron visualmente los 14 JPG reales de niveles 18-31 y se sustituyeron nombres genericos por nombres basados en la escena visible.
+- Los nuevos rotulos y notas ES/EN viven en `RotulosNivelesImagen`, con fuente Java ASCII-safe mediante escapes Unicode cuando corresponde.
+- Niveles 0-17 permanecen intactos.
+
+## Fondos 18-31
+
 - Los archivos entregados por el usuario viven directamente en `src/main/resources/assets/jobsmenu/textures/backgrounds/` como `nivel18.jpg` ... `nivel31.jpg`.
 - No se usa ZIP, Base64 ni reconstruccion durante Gradle: las imagenes del repositorio son los recursos reales del JAR.
 - Los JPG se conservan en **1920x1080, 16:9**.
-- `Nivel.CATALOGO` llega ahora a 32 entradas.
-- ES/EN incluyen nombre y tres notas propias para cada nivel nuevo.
+- `Nivel.CATALOGO` contiene 32 entradas.
 - Los niveles 10-17 mantienen su contrato historico y siguen totalmente estaticos.
 - Los niveles 18-31 pueden recibir una respiracion de camara muy leve y no destructiva. Movimiento reducido, Bajo consumo o escena quieta la desactivan.
 - El verificador de fondos valida PNG 10-17 y JPEG 18-31 directamente desde recursos.
 
-Asignacion completa: [`docs/FONDOS_18_31.md`](docs/FONDOS_18_31.md).
-
-## Estado heredado de 0.26.0
-
-- `SHIFT CONTROL` y el `JOBS / LEVEL` duplicado fueron retirados del main.
-- Mods y Resource Packs conservan geometria real Forge/vanilla.
-- ESC/Volver en Mundos y Multiplayer vuelve directamente al padre Jobs.
-- `N` cambia realmente de pista y aparece en la barra inferior contextual.
-- El texto literal `%s` de la fecha fue corregido.
-- El Nivel 1 usa `DepositoNuevo`; el renderer anterior sigue respaldado.
+Asignacion tecnica: [`docs/FONDOS_18_31.md`](docs/FONDOS_18_31.md).
 
 ## Musica
 
@@ -76,7 +74,8 @@ Reglas permanentes:
 - listas complejas conservan logica real de Minecraft/Forge;
 - rojo reservado a Executores;
 - accesibilidad y compatibilidad tienen prioridad sobre decoracion;
-- ayudas de teclado solo anuncian atajos realmente implementados.
+- ayudas de teclado solo anuncian atajos realmente implementados;
+- el main reserva su pie para el nombre y la nota del nivel, no para una barra global de atajos.
 
 ## Servidor oficial
 
@@ -101,7 +100,7 @@ El pipeline no sustituye una prueba visual dentro de Minecraft; GUI Scale, audio
 - [`CONTEXTO.md`](CONTEXTO.md): contrato maestro vigente.
 - [`CHANGELOG.md`](CHANGELOG.md): historial de versiones.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y pruebas pendientes.
-- [`docs/FONDOS_18_31.md`](docs/FONDOS_18_31.md): catalogo nuevo.
+- [`docs/FONDOS_18_31.md`](docs/FONDOS_18_31.md): catalogo de recursos.
 - [`docs/checklist-manual.md`](docs/checklist-manual.md): prueba dentro de Minecraft.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalacion certificada.
 - [`docs/musica.md`](docs/musica.md): catalogo y lifecycle musical.

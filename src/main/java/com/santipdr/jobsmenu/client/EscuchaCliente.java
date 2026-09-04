@@ -127,8 +127,13 @@ public final class EscuchaCliente {
             ListasExpediente.renderarBarras(pantalla, evento.getGuiGraphics());
             AtmosferaMenuJobs.dibujar(evento.getGuiGraphics(), pantalla.width, pantalla.height,
                     System.currentTimeMillis());
-            CapaProfesionalJobs.dibujar(pantalla, evento.getGuiGraphics(),
-                    evento.getMouseX(), evento.getMouseY(), System.currentTimeMillis());
+            // El menu principal ya tiene su propia composicion inferior (nombre y nota
+            // del nivel). La instrumentacion generica se reserva para las pantallas
+            // secundarias para que los atajos visibles no vuelvan a competir con ella.
+            if (!(pantalla instanceof PantallaNivel)) {
+                CapaProfesionalJobs.dibujar(pantalla, evento.getGuiGraphics(),
+                        evento.getMouseX(), evento.getMouseY(), System.currentTimeMillis());
+            }
         } else if (SesionMenu.activa()) {
             if (clase.startsWith("net.minecraft.")) {
                 PielVanillaJobs.dibujar(pantalla, evento.getGuiGraphics(),

@@ -1,5 +1,28 @@
 # Registro de cambios
 
+## 0.28.0 — Lectura limpia y catálogo visual — 2026-09-04
+
+### Menú principal
+
+- La capa profesional genérica deja de dibujarse sobre `PantallaNivel`: desaparecen del pie del menú los rótulos visibles `1-4`, `F`, `M`, `N`, `TAB` y `ENTER` que competían con el nombre y la nota del nivel.
+- Los atajos continúan funcionando exactamente igual; se elimina únicamente su rotulación redundante en el main.
+- Las pantallas secundarias conservan su instrumentación contextual y ayudas de teclado.
+- El nombre y la nota del nivel recuperan una zona inferior limpia y vuelven a ser la información dominante del fondo.
+
+### Fondos 18–31
+
+- Se revisaron visualmente los **14 JPG reales** usados por los niveles 18–31.
+- Se sustituye el naming genérico anterior por un catálogo visual explícito ES/EN, evitando nombres deducidos únicamente por color, índice o paleta.
+- Nuevos nombres: Interferencia carmesí, La anomalía púrpura, El huésped de tinta, El claro del centinela, La caverna del vigía, La cámara de pánico, El umbral escarlata, El bosque bajo la señal, La luna del observador, La fortaleza roja, El registro corrompido, La entidad del borde, El distrito de caza y El nexo de contención.
+- Cada uno recibe tres notas nuevas relacionadas con elementos realmente visibles en su imagen.
+- Los niveles 0–17 mantienen su sistema histórico de traducciones y comportamiento intactos.
+
+### Entrega
+
+- Versión: **0.28.0**.
+- Artefacto esperado: **`jobsmenu-0.28.0.jar`**.
+- Se mantiene `nivel_fijo` en **0–31**, los fondos 10–17 estáticos y el movimiento opcional/no destructivo de 18–31.
+
 ## 0.27.0 — Fondos 18–31 directos — 2026-09-04
 
 ### Fondos / escena
