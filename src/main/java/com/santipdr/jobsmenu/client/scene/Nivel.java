@@ -17,7 +17,7 @@ import com.santipdr.jobsmenu.client.scene.planta.Trono;
 /**
  * Un nivel del servidor visto desde donde esta pegado el aviso.
  *
- * Los niveles 0-9 conservan plantas procedurales. Los niveles 10-17 usan
+ * Los niveles 0-9 conservan plantas procedurales. Los niveles 10-31 usan
  * imagenes suministradas para el proyecto y pasan por PlantaImagen, por lo que
  * participan de luz, apagones, Suspension y tratamiento ambiental.
  */
@@ -225,6 +225,119 @@ public final class Nivel {
                     0xFF17243E, 0xFF7FB8FF, 0xFF02040A,
                     0.500F, 0.505F, 0.235F, 0.235F, 0.165F, 0.145F,
                     0.24F, 0.26F),
+
+            // Nuevos fondos de imagen entregados por el usuario (0.27.0).
+            new Nivel("nivel18", new PlantaImagen("nivel18.jpg", 18),
+                    0xFF43505A, 0xFF1A2229, 0xFF0B0F13,
+                    0xFF202930, 0xFF10161B, 0xFF080B0E,
+                    0xFF33414A, 0xFF151D22,
+                    0xFF1A252C, 0xFFA6D7D9, 0xFF030608,
+                    0.500F, 0.500F, 0.220F, 0.220F, 0.160F, 0.140F,
+                    0.20F, 0.24F),
+
+            new Nivel("nivel19", new PlantaImagen("nivel19.jpg", 19),
+                    0xFF33435F, 0xFF11182B, 0xFF080C16,
+                    0xFF172038, 0xFF0B1020, 0xFF050810,
+                    0xFF263552, 0xFF11192A,
+                    0xFF17253E, 0xFF9AC6FF, 0xFF02040A,
+                    0.500F, 0.505F, 0.235F, 0.235F, 0.165F, 0.145F,
+                    0.24F, 0.20F),
+
+            new Nivel("nivel20", new PlantaImagen("nivel20.jpg", 20),
+                    0xFF909AA4, 0xFF3B444D, 0xFF171B1F,
+                    0xFF323A41, 0xFF181D22, 0xFF0A0D10,
+                    0xFF68747D, 0xFF2A3137,
+                    0xFF4F5B64, 0xFFDDE8ED, 0xFF040608,
+                    0.500F, 0.490F, 0.220F, 0.220F, 0.155F, 0.135F,
+                    0.22F, 0.12F),
+
+            new Nivel("nivel21", new PlantaImagen("nivel21.jpg", 21),
+                    0xFF315B58, 0xFF12302E, 0xFF071918,
+                    0xFF173B38, 0xFF0C211F, 0xFF06110F,
+                    0xFF25504C, 0xFF102C29,
+                    0xFF153A36, 0xFF78F5D8, 0xFF020807,
+                    0.500F, 0.500F, 0.230F, 0.230F, 0.160F, 0.140F,
+                    0.30F, 0.18F),
+
+            new Nivel("nivel22", new PlantaImagen("nivel22.jpg", 22),
+                    0xFF715740, 0xFF3B2C20, 0xFF1B120C,
+                    0xFF463426, 0xFF281B12, 0xFF120B07,
+                    0xFF5A4432, 0xFF302217,
+                    0xFF382719, 0xFFE6B77B, 0xFF070403,
+                    0.500F, 0.505F, 0.235F, 0.235F, 0.170F, 0.145F,
+                    0.16F, 0.46F),
+
+            new Nivel("nivel23", new PlantaImagen("nivel23.jpg", 23),
+                    0xFF79604A, 0xFF423020, 0xFF20150C,
+                    0xFF4B3828, 0xFF2A1E13, 0xFF140D08,
+                    0xFF604A35, 0xFF332419,
+                    0xFF3E2C1D, 0xFFF0C38A, 0xFF080503,
+                    0.500F, 0.500F, 0.235F, 0.235F, 0.170F, 0.145F,
+                    0.18F, 0.42F),
+
+            new Nivel("nivel24", new PlantaImagen("nivel24.jpg", 24),
+                    0xFF6B7074, 0xFF30363B, 0xFF15191C,
+                    0xFF3A4044, 0xFF202428, 0xFF0D1012,
+                    0xFF545B60, 0xFF292F33,
+                    0xFF353C41, 0xFFCFD6D8, 0xFF040506,
+                    0.500F, 0.500F, 0.220F, 0.220F, 0.155F, 0.135F,
+                    0.20F, 0.22F),
+
+            new Nivel("nivel25", new PlantaImagen("nivel25.jpg", 25),
+                    0xFF403B58, 0xFF191628, 0xFF0B0913,
+                    0xFF211D31, 0xFF110E1C, 0xFF07050C,
+                    0xFF332E49, 0xFF171426,
+                    0xFF211B35, 0xFFB5A8FF, 0xFF020106,
+                    0.500F, 0.500F, 0.230F, 0.230F, 0.165F, 0.145F,
+                    0.22F, 0.16F),
+
+            new Nivel("nivel26", new PlantaImagen("nivel26.jpg", 26),
+                    0xFF415171, 0xFF18233B, 0xFF0A1020,
+                    0xFF202D47, 0xFF10192B, 0xFF070C16,
+                    0xFF324462, 0xFF16223A,
+                    0xFF1D2F50, 0xFFA7C8FF, 0xFF02050C,
+                    0.500F, 0.500F, 0.235F, 0.235F, 0.165F, 0.145F,
+                    0.26F, 0.18F),
+
+            new Nivel("nivel27", new PlantaImagen("nivel27.jpg", 27),
+                    0xFF493E59, 0xFF21182D, 0xFF0D0914,
+                    0xFF2A2036, 0xFF15101D, 0xFF08060D,
+                    0xFF3B314B, 0xFF1C1628,
+                    0xFF28203A, 0xFFC4ACED, 0xFF030207,
+                    0.500F, 0.500F, 0.230F, 0.230F, 0.165F, 0.145F,
+                    0.20F, 0.24F),
+
+            new Nivel("nivel28", new PlantaImagen("nivel28.jpg", 28),
+                    0xFF756B58, 0xFF3B3428, 0xFF1A1711,
+                    0xFF453D30, 0xFF262118, 0xFF100D09,
+                    0xFF5B5140, 0xFF302A20,
+                    0xFF3B3326, 0xFFE5D3A5, 0xFF060504,
+                    0.500F, 0.500F, 0.225F, 0.225F, 0.160F, 0.140F,
+                    0.16F, 0.30F),
+
+            new Nivel("nivel29", new PlantaImagen("nivel29.jpg", 29),
+                    0xFF6E2C2A, 0xFF2C1112, 0xFF150708,
+                    0xFF351718, 0xFF1B0B0C, 0xFF0C0506,
+                    0xFF552120, 0xFF261012,
+                    0xFF371516, 0xFFE78878, 0xFF050202,
+                    0.500F, 0.500F, 0.225F, 0.225F, 0.165F, 0.145F,
+                    0.14F, 0.18F),
+
+            new Nivel("nivel30", new PlantaImagen("nivel30.jpg", 30),
+                    0xFF31585D, 0xFF123037, 0xFF07181C,
+                    0xFF183A40, 0xFF0C2025, 0xFF061116,
+                    0xFF274D53, 0xFF102B30,
+                    0xFF17383E, 0xFF7DE2EE, 0xFF020709,
+                    0.500F, 0.500F, 0.230F, 0.230F, 0.160F, 0.140F,
+                    0.30F, 0.16F),
+
+            new Nivel("nivel31", new PlantaImagen("nivel31.jpg", 31),
+                    0xFF4A4D52, 0xFF202328, 0xFF0D0F12,
+                    0xFF292C31, 0xFF15171B, 0xFF080A0C,
+                    0xFF3B3E44, 0xFF1C1F23,
+                    0xFF282B30, 0xFFC3C9CF, 0xFF030405,
+                    0.500F, 0.500F, 0.220F, 0.220F, 0.155F, 0.135F,
+                    0.18F, 0.18F),
     };
 
     public static int cantidad() {
