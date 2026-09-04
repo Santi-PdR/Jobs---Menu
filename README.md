@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 
 | Campo | Valor |
 |---|---|
-| Version | **0.28.0** |
-| Artefacto | **`jobsmenu-0.28.0.jar`** |
+| Version | **0.29.0** |
+| Artefacto | **`jobsmenu-0.29.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,14 +13,15 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 | Rama entregable | **`main`** |
 | Niveles | **32 (0-31)** |
 
-## 0.28.0 · Lectura limpia y catalogo visual
+## 0.29.0 · Revisión visual real y lectura adaptativa
 
-- El menu principal ya no recibe la barra inferior generica de `CapaProfesionalJobs`; desaparecen los rótulos visibles de `1-4`, `F`, `M`, `N`, `TAB` y `ENTER` que competian con el nombre del nivel.
-- Las teclas siguen funcionando: solo se retira su HUD redundante en `PantallaNivel`.
-- Las pantallas secundarias conservan ayudas e instrumentacion contextual.
-- Se revisaron visualmente los 14 JPG reales de niveles 18-31 y se sustituyeron nombres genericos por nombres basados en la escena visible.
-- Los nuevos rotulos y notas ES/EN viven en `RotulosNivelesImagen`, con fuente Java ASCII-safe mediante escapes Unicode cuando corresponde.
-- Niveles 0-17 permanecen intactos.
+- Se volvieron a abrir los 14 JPG 18-31 desde el artefacto real y se compararon uno por uno con sus nombres y notas.
+- Se corrigen los rótulos que no describían bien la escena, especialmente 19, 21, 23, 25, 26, 28, 29, 30 y 31.
+- ES/EN vuelven a tener una única fuente de verdad en `lang/*.json`; `RotulosNivelesImagen` ya no duplica cadenas ni decide el idioma manualmente.
+- El nombre y la nota del nivel ahora se parten en varias líneas cuando hace falta en vez de desaparecer por falta de ancho.
+- Las tres notas empiezan de nuevo al entrar a cada nivel y cambian con un fundido discreto; Movimiento reducido/Bajo consumo eliminan ese fundido.
+- Los JPG 18-31 reciben puntos de interés de cámara por imagen y un paneo menor para evitar cortar criaturas, portales y estructuras cercanas a los bordes.
+- Los niveles 10-17 conservan su contrato totalmente estático.
 
 ## Fondos 18-31
 

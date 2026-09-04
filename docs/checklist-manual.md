@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.27.0
+# Checklist manual de aceptación — 0.29.0
 
 Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código, recursos y build; no certifica estética, input, audio perceptivo ni compatibilidad visual dentro de Minecraft.
 
@@ -6,7 +6,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.27.0.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.29.0.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Layout
@@ -27,7 +27,9 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 - [ ] F cambia de nivel cuando corresponde.
 - [ ] M alterna silencio Jobs.
 - [ ] N inicia un cambio real de pista sin apilar crossfades.
-- [ ] barra inferior muestra 1-4/F/M/N/TAB/ENTER sin solaparse.
+- [ ] el main no muestra la antigua barra inferior 1-4/F/M/N/TAB/ENTER.
+- [ ] el nombre y la nota del nivel quedan legibles y no desaparecen si necesitan dos líneas.
+- [ ] al cambiar de nivel la primera nota vuelve a empezar desde nota0.
 - [ ] no aparece `SHIFT CONTROL`.
 - [ ] no aparece un `JOBS / LEVEL` técnico duplicado sobre el fondo.
 - [ ] no aparece `%s` literal en la fecha.
@@ -83,6 +85,8 @@ Revisar todos: 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 y 31.
 - [ ] cada nivel muestra el JPG correcto según `docs/FONDOS_18_31.md`.
 - [ ] todos cargan nítidos y sin textura morado/negro.
 - [ ] el cover conserva una composición razonable en 16:9, ventana estrecha y GUI Scale 2/3/4.
+- [ ] la respiración mantiene dentro del encuadre el sujeto principal de cada JPG; revisar con especial atención 19, 22, 24, 29, 30 y 31.
+- [ ] los nombres visibles coinciden con la tabla de `docs/FONDOS_18_31.md`.
 - [ ] la respiración de cámara es lenta y muy sutil; no parece un zoom evidente.
 - [ ] no aparecen objetos o efectos falsos sobre la imagen.
 - [ ] Movimiento reducido congela completamente el fondo.
@@ -102,5 +106,5 @@ Si todo pasa:
 
 - [ ] conservar SHA-256 del JAR probado;
 - [ ] anotar resolución y GUI Scale;
-- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.27.0.jar`;
+- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.29.0.jar`;
 - [ ] reportar cualquier defecto visual con captura y `latest.log` cuando afecte recursos/audio/crash.
