@@ -1,5 +1,23 @@
 # Registro de cambios
 
+## 0.30.0 — Composición adaptativa del main — 2026-09-04
+
+### Legibilidad y layout
+
+- El rótulo inferior del nivel reserva ahora una franja propia para el estado de instalación; ambos dejan de ocupar las mismas coordenadas en ventanas bajas o nombres de dos líneas.
+- El crédito musical se adapta al ancho disponible, envuelve título/autor y se oculta limpiamente en el modo compacto, donde la prioridad es el aviso.
+- Las pistas sin autor, como Absurdism, ya no reservan ni dibujan una segunda línea vacía.
+- El bloque de crédito recibe un respaldo oscuro proporcional a su contenido y nunca empieza fuera de la pantalla.
+- La lógica no cambia hitboxes, acciones, atajos, música ni recursos de los niveles.
+
+### Calidad y entrega
+
+- `tools/verificar_ui_musica.py` incorpora un contrato automático para impedir que se pierdan las reservas de layout.
+- `README`, `CONTEXTO`, `KNOWN_ISSUES` y el checklist manual quedan sincronizados.
+- Versión: **0.30.0**.
+- Artefacto esperado: **`jobsmenu-0.30.0.jar`**.
+- Los JPG 18–31 y los PNG estáticos 10–17 permanecen intactos.
+
 ## 0.29.0 — Revisión visual real y encuadre por fondo — 2026-09-04
 
 ### Fondos 18–31

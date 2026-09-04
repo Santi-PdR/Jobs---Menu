@@ -55,6 +55,9 @@ public class PantallaNivel extends Screen {
     private static final int MARGEN_ROTULO = 12;
     private static final int ANCHO_ROTULO_MINIMO = 110;
     private static final int PASO_ROTULO = 10;
+    private static final int ALTO_ESTADO_RESERVADO = 18;
+    private static final int ANCHO_CREDITO_MINIMO = 320;
+    private static final int ALTO_CREDITO_MINIMO = 160;
 
     private int hojaX;
     private int hojaY;
@@ -272,20 +275,48 @@ public class PantallaNivel extends Screen {
 
     private void credito(GuiGraphics grafico) {
         float alfa = GestorMusica.creditoAlfa();
-        if (alfa <= 0.02F) return;
+        // En ventana angosta la prioridad es el aviso y sus acciones. El credito
+        // sigue disponible en resoluciones normales, pero nunca se monta sobre
+        // la hoja ni intenta empezar fuera de la pantalla.
+        if (alfa <= 0.02F || this.compacta || this.width < ANCHO_CREDITO_MINIMO
+                || this.height < ALTO_CREDITO_MINIMO) return;
+
         Component titulo = Component.literal(GestorMusica.tituloPistaActual());
         Component autor = Component.literal(GestorMusica.autorPistaActual());
         int margen = 12;
         int y = ConfigTurno.mostrarCuentaRegresiva() ? margen + 34 : margen;
-        int anchoTitulo = this.font.width(titulo);
-        int anchoAutor = this.font.width(autor);
-        int ancho = Math.max(anchoTitulo, anchoAutor);
+        int anchoDisponible = Math.max(1, this.width - 2 * margen - 12);
+        List<FormattedCharSequence> lineasTitulo = this.font.split(titulo, anchoDisponible);
+        List<FormattedCharSequence> lineasAutor = autor.getString().isBlank()
+                ? Collections.emptyList() : this.font.split(autor, anchoDisponible);
+        int alto = Math.max(1, lineasTitulo.size()) * PASO_ROTULO;
+        if (!lineasAutor.isEmpty()) alto += 2 + lineasAutor.size() * PASO_ROTULO;
+        int limiteInferior = this.height - margen
+                - (ConfigTurno.mostrarEstadoInstalacion() ? ALTO_ESTADO_RESERVADO : 0);
+        if (y + alto > limiteInferior) return;
+
+        int ancho = 18;
+        for (FormattedCharSequence linea : lineasTitulo) ancho = Math.max(ancho, this.font.width(linea));
+        for (FormattedCharSequence linea : lineasAutor) ancho = Math.max(ancho, this.font.width(linea));
+        ancho = Math.min(anchoDisponible, ancho);
         int izq = this.width - margen - ancho;
-        grafico.fill(izq - 6, y, izq - 5, y + 19, Paleta.conAlfa(Paleta.papelAviso(), 0.45F * alfa));
-        grafico.drawString(this.font, titulo, this.width - margen - anchoTitulo, y,
-                Paleta.conAlfa(Paleta.papelAviso(), 0.90F * alfa), false);
-        grafico.drawString(this.font, autor, this.width - margen - anchoAutor, y + 10,
-                Paleta.conAlfa(Paleta.papelAviso(), 0.55F * alfa), false);
+        grafico.fill(izq - 6, y - 3, this.width - margen + 4, y + alto + 3,
+                Paleta.conAlfa(Paleta.VANO, 0.28F * alfa));
+        grafico.fill(izq - 6, y - 3, izq - 5, y + alto + 3,
+                Paleta.conAlfa(Paleta.papelAviso(), 0.45F * alfa));
+
+        int cursorY = y;
+        for (FormattedCharSequence linea : lineasTitulo) {
+            grafico.drawString(this.font, linea, this.width - margen - this.font.width(linea), cursorY,
+                    Paleta.conAlfa(Paleta.papelAviso(), 0.90F * alfa), false);
+            cursorY += PASO_ROTULO;
+        }
+        if (!lineasAutor.isEmpty()) cursorY += 2;
+        for (FormattedCharSequence linea : lineasAutor) {
+            grafico.drawString(this.font, linea, this.width - margen - this.font.width(linea), cursorY,
+                    Paleta.conAlfa(Paleta.papelAviso(), 0.55F * alfa), false);
+            cursorY += PASO_ROTULO;
+        }
     }
 
     private float tinta() { return 0.10F + 0.90F * this.estadoFrame.luz(); }
@@ -410,7 +441,10 @@ public class PantallaNivel extends Screen {
         int altoNombre = Math.max(1, nombreLineas.size()) * PASO_ROTULO;
         int altoNota = Math.max(1, notaLineas.size()) * PASO_ROTULO;
         int altoBloque = altoNombre + 2 + altoNota;
-        int y = Math.max(MARGEN_ROTULO, this.height - MARGEN_ROTULO - altoBloque);
+        int reservaEstado = ConfigTurno.mostrarEstadoInstalacion()
+                ? ALTO_ESTADO_RESERVADO : 0;
+        int y = Math.max(MARGEN_ROTULO,
+                this.height - MARGEN_ROTULO - reservaEstado - altoBloque);
 
         if (!lateral && !ConfigTurno.interfazMinima()) {
             int finHoja = this.hojaY + this.hojaAlto;

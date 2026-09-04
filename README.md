@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 
 | Campo | Valor |
 |---|---|
-| Version | **0.29.0** |
-| Artefacto | **`jobsmenu-0.29.0.jar`** |
+| Version | **0.30.0** |
+| Artefacto | **`jobsmenu-0.30.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,7 +13,7 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 | Rama entregable | **`main`** |
 | Niveles | **32 (0-31)** |
 
-## 0.29.0 · Revisión visual real y lectura adaptativa
+## 0.30.0 · Revisión visual real y lectura adaptativa
 
 - Se volvieron a abrir los 14 JPG 18-31 desde el artefacto real y se compararon uno por uno con sus nombres y notas.
 - Se corrigen los rótulos que no describían bien la escena, especialmente 19, 21, 23, 25, 26, 28, 29, 30 y 31.
