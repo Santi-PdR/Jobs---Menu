@@ -94,6 +94,23 @@ def verify_robustness() -> None:
         fail("EscuchaCliente no corta mantenimiento tras cerrar la sesion en gameplay.")
 
 
+
+def verify_main_overlay_layout() -> None:
+    main_screen = read(JAVA / "client/screen/PantallaNivel.java")
+    required = (
+        "ALTO_ESTADO_RESERVADO",
+        "ANCHO_CREDITO_MINIMO",
+        "ALTO_CREDITO_MINIMO",
+        "this.compacta || this.width < ANCHO_CREDITO_MINIMO",
+        "autor.getString().isBlank()",
+        "int reservaEstado = ConfigTurno.mostrarEstadoInstalacion()",
+        "this.height - MARGEN_ROTULO - reservaEstado - altoBloque",
+    )
+    for token in required:
+        if token not in main_screen:
+            fail(f"PantallaNivel perdio el contrato de composicion adaptativa: {token}")
+
+
 def verify_music_session() -> None:
     manager = read(JAVA / "client/sound/GestorMusica.java")
     required = (
@@ -165,9 +182,11 @@ def main() -> int:
     try:
         verify_neutral_ui()
         verify_robustness()
+        verify_main_overlay_layout()
         verify_music_session()
         verify_audio_sources()
         print("UI neutra, bajo consumo y robustez 0.19: OK")
+        print("Composicion adaptativa del main: OK")
         print("Reproductor musical de sesion: OK")
         print("Catalogo musical de tres pistas: OK")
         return 0

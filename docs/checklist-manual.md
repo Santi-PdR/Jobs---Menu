@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.29.0
+# Checklist manual de aceptación — 0.30.0
 
 Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código, recursos y build; no certifica estética, input, audio perceptivo ni compatibilidad visual dentro de Minecraft.
 
@@ -6,7 +6,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.29.0.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.30.0.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Layout
@@ -17,7 +17,10 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 - [ ] no hay hitboxes invisibles superpuestos;
 - [ ] foco de teclado y hover se distinguen;
 - [ ] no aparecen claves `jobsmenu.*` ni títulos vanilla duplicados;
-- [ ] barra inferior y metadatos no pisan el contenido principal.
+- [ ] barra inferior y metadatos no pisan el contenido principal;
+- [ ] el rótulo del nivel no se solapa con el estado de instalación;
+- [ ] el crédito musical se oculta de forma limpia en ventanas compactas y no sale de pantalla;
+- [ ] una pista sin autor no deja una segunda línea vacía.
 
 ## Main
 
@@ -106,5 +109,5 @@ Si todo pasa:
 
 - [ ] conservar SHA-256 del JAR probado;
 - [ ] anotar resolución y GUI Scale;
-- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.29.0.jar`;
+- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.30.0.jar`;
 - [ ] reportar cualquier defecto visual con captura y `latest.log` cuando afecte recursos/audio/crash.
