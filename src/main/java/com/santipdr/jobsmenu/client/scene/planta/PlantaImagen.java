@@ -120,8 +120,8 @@ public final class PlantaImagen implements Planta {
 
         float visibleW = visibleWBase;
         float visibleH = visibleHBase;
-        float centroX = 0.5F;
-        float centroY = 0.5F;
+        float centroX = focoX();
+        float centroY = focoY();
 
         if (animar) {
             float t = (System.currentTimeMillis() % 600_000L) / 1000.0F;
@@ -131,8 +131,9 @@ public final class PlantaImagen implements Planta {
             visibleW = visibleWBase / zoom;
             visibleH = visibleHBase / zoom;
 
-            centroX += 0.13F * (float) Math.sin(t * 0.043F + fase);
-            centroY += 0.08F * (float) Math.sin(t * 0.031F + fase * 1.37F);
+            float factorPaneo = Math.min(1.0F, intensidad / 0.012F);
+            centroX += 0.045F * factorPaneo * (float) Math.sin(t * 0.043F + fase);
+            centroY += 0.030F * factorPaneo * (float) Math.sin(t * 0.031F + fase * 1.37F);
         }
 
         float margenX = Math.max(0.0F, anchoTextura - visibleW);
@@ -149,17 +150,57 @@ public final class PlantaImagen implements Planta {
     }
 
     /**
-     * Intensidades deliberadamente pequenas. Los fondos con vacio, luna o
-     * circuitos reciben algo mas de respiracion; piedra, interior y bodegon se
-     * mantienen practicamente quietos. Los niveles 10-17 siempre devuelven 0.
+     * Intensidades revisadas contra la composicion real de cada JPG. Escenas
+     * con sujetos grandes cerca del borde se mantienen mas quietas; cielo,
+     * vacio y fragmentacion admiten un poco mas de respiracion. 10-17 siguen
+     * devolviendo cero y por tanto permanecen totalmente estaticos.
      */
     private float intensidadMovimiento() {
         return switch (modo) {
-            case 18, 25, 27, 30 -> 0.018F;
-            case 19, 21, 26, 29, 31 -> 0.012F;
-            case 20, 22, 23, 24 -> 0.006F;
-            case 28 -> 0.003F;
+            case 19, 25, 26 -> 0.014F;
+            case 18, 27, 28 -> 0.010F;
+            case 20, 21, 24, 30, 31 -> 0.007F;
+            case 22, 23, 29 -> 0.005F;
             default -> 0.0F;
+        };
+    }
+
+    /** Punto de interes horizontal revisado para no cortar al sujeto principal. */
+    private float focoX() {
+        return switch (modo) {
+            case 19 -> 0.68F;
+            case 20 -> 0.58F;
+            case 21 -> 0.60F;
+            case 22 -> 0.66F;
+            case 23 -> 0.60F;
+            case 24 -> 0.62F;
+            case 25 -> 0.60F;
+            case 26 -> 0.58F;
+            case 28 -> 0.40F;
+            case 29 -> 0.55F;
+            case 30 -> 0.58F;
+            case 31 -> 0.54F;
+            default -> 0.50F;
+        };
+    }
+
+    /** Punto de interes vertical de cada composicion; 10-17 quedan centrados. */
+    private float focoY() {
+        return switch (modo) {
+            case 19 -> 0.42F;
+            case 20 -> 0.58F;
+            case 21 -> 0.58F;
+            case 22 -> 0.52F;
+            case 23 -> 0.53F;
+            case 24 -> 0.52F;
+            case 25 -> 0.46F;
+            case 26 -> 0.52F;
+            case 27 -> 0.55F;
+            case 28 -> 0.57F;
+            case 29 -> 0.53F;
+            case 30 -> 0.53F;
+            case 31 -> 0.50F;
+            default -> 0.50F;
         };
     }
 

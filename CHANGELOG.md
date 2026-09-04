@@ -1,5 +1,29 @@
 # Registro de cambios
 
+## 0.29.0 — Revisión visual real y encuadre por fondo — 2026-09-04
+
+### Fondos 18–31
+
+- Los 14 JPG se abrieron desde el artefacto generado y se revisaron uno por uno contra el texto visible.
+- Se corrigen especialmente los niveles 19, 21, 23, 25, 26, 28, 29, 30 y 31, cuyos nombres anteriores eran demasiado genéricos o no correspondían bien a la composición.
+- Nombres vigentes: Interferencia carmesí, La estrella del vacío, El huésped de tinta, El claro de los centinelas, La caverna del vigía, La maraña orgánica, El umbral escarlata, La señal sobre el bosque, El observador lunar, La fortaleza roja, El núcleo fragmentado, El soberano escarlata, La figura fragmentada y El coloso del vacío.
+- Se reescriben las tres notas ES/EN de cada JPG para que mencionen únicamente rasgos visibles de la escena.
+- `PlantaImagen` gana punto de interés por nivel y reduce el paneo; la respiración conserva mejor sujetos cercanos a los bordes.
+- Los niveles 10–17 siguen totalmente estáticos y sin cambios.
+
+### Lectura / localización
+
+- `RotulosNivelesImagen` deja de duplicar 14×2 catálogos literales: los `lang/*.json` vuelven a ser la única fuente de verdad.
+- El rótulo del nivel ya no desaparece cuando nombre/nota no caben en una sola línea; ahora ajusta el ancho y envuelve texto.
+- La rotación de notas se reinicia al cambiar de nivel y usa un fundido corto, desactivado visualmente por Movimiento reducido o Bajo consumo.
+- Se corrige el checklist manual que todavía pedía ver la antigua barra de atajos retirada en 0.28.0.
+
+### Entrega
+
+- Versión: **0.29.0**.
+- Artefacto esperado: **`jobsmenu-0.29.0.jar`**.
+- `nivel_fijo` permanece en **0–31** y no se reescribe ningún JPG.
+
 ## 0.28.0 — Lectura limpia y catálogo visual — 2026-09-04
 
 ### Menú principal

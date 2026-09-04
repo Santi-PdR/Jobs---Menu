@@ -50,6 +50,11 @@ public class PantallaNivel extends Screen {
     private static final int AIRE_PIE = 16;
     private static final int MARGEN_PANTALLA = 12;
     private static final long ENTRADA_ROTULO_MS = 900L;
+    private static final long ROTACION_NOTA_MS = 27_000L;
+    private static final long FUNDIDO_NOTA_MS = 650L;
+    private static final int MARGEN_ROTULO = 12;
+    private static final int ANCHO_ROTULO_MINIMO = 110;
+    private static final int PASO_ROTULO = 10;
 
     private int hojaX;
     private int hojaY;
@@ -372,32 +377,84 @@ public class PantallaNivel extends Screen {
 
     private void rotuloNivel(GuiGraphics grafico) {
         Nivel nivel = this.estadoFrame.nivel();
-        float entrada = (this.estadoFrame.ahora() - this.desdeCambio) / (float) ENTRADA_ROTULO_MS;
+        long transcurrido = Math.max(0L, this.estadoFrame.ahora() - this.desdeCambio);
+        float entrada = transcurrido / (float) ENTRADA_ROTULO_MS;
         entrada = Math.max(0.0F, Math.min(1.0F, entrada));
         float alfa = entrada * this.estadoFrame.luz();
         if (alfa <= 0.02F) return;
+
         Component nombre = RotulosNivelesImagen.nombre(nivel);
         Component nota;
-        if (this.estadoFrame.enSuspension()) nota = Component.translatable("jobsmenu.suspension.nota");
+        boolean suspension = this.estadoFrame.enSuspension();
+        if (suspension) nota = Component.translatable("jobsmenu.suspension.nota");
         else {
-            int cual = (int) (Math.floorDiv(this.estadoFrame.ahora(), 1000L) / 27L % NOTAS_POR_NIVEL);
+            int cual = (int) ((transcurrido / ROTACION_NOTA_MS) % NOTAS_POR_NIVEL);
             nota = RotulosNivelesImagen.nota(nivel, cual);
         }
-        int x = 12;
-        int y = this.height - 30;
-        int finHoja = this.hojaY + this.hojaAlto;
-        if (!ConfigTurno.interfazMinima() && y < finHoja + 4) {
-            x = this.hojaX + this.anchoHoja + 14;
-            y = Math.max(12, this.height - 30);
-            int anchoNecesario = Math.max(this.font.width(nombre), this.font.width(nota));
-            if (x + anchoNecesario > this.width - 12) return;
+
+        int x = MARGEN_ROTULO;
+        int ancho = Math.max(1, this.width - 2 * MARGEN_ROTULO);
+        boolean lateral = false;
+        if (!ConfigTurno.interfazMinima()) {
+            int candidatoX = this.hojaX + this.anchoHoja + 14;
+            int candidatoAncho = this.width - MARGEN_ROTULO - candidatoX;
+            if (candidatoAncho >= ANCHO_ROTULO_MINIMO) {
+                x = candidatoX;
+                ancho = candidatoAncho;
+                lateral = true;
+            }
         }
-        grafico.fill(x, y - 3, x + Math.max(18, this.font.width(nombre) / 3), y - 2,
+
+        List<FormattedCharSequence> nombreLineas = this.font.split(nombre, ancho);
+        List<FormattedCharSequence> notaLineas = this.font.split(nota, ancho);
+        int altoNombre = Math.max(1, nombreLineas.size()) * PASO_ROTULO;
+        int altoNota = Math.max(1, notaLineas.size()) * PASO_ROTULO;
+        int altoBloque = altoNombre + 2 + altoNota;
+        int y = Math.max(MARGEN_ROTULO, this.height - MARGEN_ROTULO - altoBloque);
+
+        if (!lateral && !ConfigTurno.interfazMinima()) {
+            int finHoja = this.hojaY + this.hojaAlto;
+            if (y < finHoja + 4) {
+                int arriba = this.hojaY - MARGEN_ROTULO - altoBloque;
+                if (arriba >= MARGEN_ROTULO) y = arriba;
+            }
+        }
+
+        int anchoBloque = 18;
+        for (FormattedCharSequence linea : nombreLineas) anchoBloque = Math.max(anchoBloque, this.font.width(linea));
+        for (FormattedCharSequence linea : notaLineas) anchoBloque = Math.max(anchoBloque, this.font.width(linea));
+        anchoBloque = Math.min(ancho, anchoBloque);
+
+        grafico.fill(x - 5, y - 5, x + anchoBloque + 5, y + altoBloque + 4,
+                Paleta.conAlfa(Paleta.VANO, 0.26F * alfa));
+        grafico.fill(x - 5, y - 5, x - 4, y + altoBloque + 4,
+                Paleta.conAlfa(Paleta.papelAviso(), 0.22F * alfa));
+        grafico.fill(x, y - 2, x + Math.max(18, anchoBloque / 3), y - 1,
                 Paleta.conAlfa(Paleta.papelAviso(), 0.12F * alfa));
-        grafico.drawString(this.font, nombre, x, y,
-                Paleta.conAlfa(Paleta.papelAviso(), 0.85F * alfa), false);
-        grafico.drawString(this.font, nota, x, y + 11,
-                Paleta.conAlfa(Paleta.papelAviso(), 0.45F * alfa), false);
+
+        int cursorY = y;
+        for (FormattedCharSequence linea : nombreLineas) {
+            grafico.drawString(this.font, linea, x, cursorY,
+                    Paleta.conAlfa(Paleta.papelAviso(), 0.88F * alfa), false);
+            cursorY += PASO_ROTULO;
+        }
+        cursorY += 2;
+
+        float alfaNota = suspension ? 1.0F : alfaCambioNota(transcurrido);
+        for (FormattedCharSequence linea : notaLineas) {
+            grafico.drawString(this.font, linea, x, cursorY,
+                    Paleta.conAlfa(Paleta.papelAviso(), 0.50F * alfa * alfaNota), false);
+            cursorY += PASO_ROTULO;
+        }
+    }
+
+    private float alfaCambioNota(long transcurrido) {
+        if (ConfigTurno.movimientoReducido() || ConfigTurno.bajoConsumo()) return 1.0F;
+        long fase = transcurrido % ROTACION_NOTA_MS;
+        if (fase < FUNDIDO_NOTA_MS) return fase / (float) FUNDIDO_NOTA_MS;
+        long restante = ROTACION_NOTA_MS - fase;
+        if (restante < FUNDIDO_NOTA_MS) return restante / (float) FUNDIDO_NOTA_MS;
+        return 1.0F;
     }
 
     private void easterEggs(GuiGraphics g) {

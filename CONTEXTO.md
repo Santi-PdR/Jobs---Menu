@@ -7,8 +7,8 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Version actual | **0.28.0** |
-| Artefacto esperado | **`jobsmenu-0.28.0.jar`** |
+| Version actual | **0.29.0** |
+| Artefacto esperado | **`jobsmenu-0.29.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -51,9 +51,9 @@ Familias:
 
 La escena usa la paleta material/luz del nivel; la UI usa papel frio, grafito, gris verdoso y tinta neutra.
 
-## 3. Estado 0.28.0
+## 3. Estado 0.29.0
 
-0.28.0 limpia la lectura del main y corrige el catalogo visible de los fondos 18-31 tras revisar directamente las imagenes reales.
+0.29.0 rehace la revisión visual de 18-31 usando los JPG reales del artefacto, corrige nombres/notas que no coincidían con la escena y mejora su lectura y encuadre sin tocar los archivos de imagen.
 
 ### Pie del menu principal
 
@@ -65,26 +65,26 @@ La escena usa la paleta material/luz del nivel; la UI usa papel frio, grafito, g
 
 ### Catalogo visual 18-31
 
-Los 14 JPG 1920x1080 se revisaron contra su contenido real. El catalogo visible ES/EN se centraliza en `RotulosNivelesImagen` para evitar nombres deducidos solo por paleta o nombre de archivo.
+Los 14 JPG 1920x1080 se revisaron contra su contenido real. Los nombres y notas visibles viven en los `lang/*.json`, mientras `RotulosNivelesImagen` funciona solo como fachada de acceso. Así no hay dos catálogos ES/EN que puedan desincronizarse.
 
 Nombres ES vigentes:
 
 - 18: Interferencia carmesi
-- 19: La anomalia purpura
+- 19: La estrella del vacio
 - 20: El huesped de tinta
-- 21: El claro del centinela
+- 21: El claro de los centinelas
 - 22: La caverna del vigia
-- 23: La camara de panico
+- 23: La marana organica
 - 24: El umbral escarlata
-- 25: El bosque bajo la senal
-- 26: La luna del observador
+- 25: La senal sobre el bosque
+- 26: El observador lunar
 - 27: La fortaleza roja
-- 28: El registro corrompido
-- 29: La entidad del borde
-- 30: El distrito de caza
-- 31: El nexo de contencion
+- 28: El nucleo fragmentado
+- 29: El soberano escarlata
+- 30: La figura fragmentada
+- 31: El coloso del vacio
 
-La ortografia visible conserva acentos mediante escapes Unicode en Java. Cada fondo tiene tres notas ES/EN ligadas a elementos observables de la escena.
+La ortografia visible se conserva directamente en los JSON de idioma. Cada fondo tiene tres notas ES/EN ligadas a elementos observables de la escena. El HUD las envuelve por ancho y reinicia la secuencia al entrar al nivel.
 
 ### Fondos directos
 
@@ -97,7 +97,7 @@ Los archivos `nivel18.jpg` a `nivel31.jpg` siguen siendo recursos directos del r
 ### Movimiento de imagen
 
 - niveles 10-17: siempre estaticos;
-- niveles 18-31: respiracion de camara muy leve segun el fondo;
+- niveles 18-31: respiracion de camara muy leve con intensidad y punto de interes propios por fondo;
 - el movimiento se realiza solo en render: el JPG del repositorio no se modifica;
 - Movimiento reducido, Bajo consumo o escena quieta dejan la imagen fija;
 - no se agregan objetos, foreground falso, flicker agresivo ni deformacion.
