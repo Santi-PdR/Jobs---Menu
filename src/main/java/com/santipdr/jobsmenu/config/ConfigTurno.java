@@ -124,7 +124,7 @@ public final class ConfigTurno {
 
         this.nivelFijo = builder
                 .comment("Nivel a mostrar cuando la rotacion esta apagada. 0 es el papel mural.")
-                .defineInRange("nivel_fijo", 0, 0, 17);
+                .defineInRange("nivel_fijo", 0, 0, 31);
 
         this.sonidoBotones = builder
                 .comment("Sonar la casilla al recorrer y al marcar los renglones del aviso.")
@@ -325,31 +325,6 @@ public final class ConfigTurno {
         return INSTANCE.volumenAmbiente.get() / 100.0F;
     }
 
-    // ----------------------------------------------------------------------
-    // Lectura y escritura para la pantalla de opciones
-    //
-    // La pantalla de "Condiciones de estancia" cambia estos valores en vivo y
-    // los deja escritos en el .toml, para que no haya que editarlo a mano. Cada
-    // setter escribe Y guarda: un ajuste que no sobrevive al cierre del juego
-    // no es un ajuste, es un capricho de la sesion.
-    //
-    // Los tres getters "en bruto" existen porque sus getters publicos combinan
-    // el valor con otro (rotar depende de escena viva; la cuenta y los avisos
-    // dependen de interfaz minima). La casilla de la opcion tiene que reflejar
-    // lo que el jugador eligio, no el resultado ya combinado, o se veria
-    // destildada aunque el jugador la hubiese marcado.
-    // ----------------------------------------------------------------------
-
-    // ----------------------------------------------------------------------
-    // Guardado diferido
-    //
-    // Un deslizador de Opciones llama al setter en CADA movimiento del raton:
-    // escribir el .toml por cada uno era decenas de escrituras por segundo.
-    // Ahora set() aplica el valor al instante (el volumen se oye en vivo) y el
-    // guardado se limita a uno cada GUARDAR_MS, con volcado garantizado al
-    // cerrar la pantalla de ajustes o al cambiar de pantalla.
-    // ----------------------------------------------------------------------
-
     private static final long GUARDAR_MS = 250L;
 
     private static long ultimoGuardadoMs;
@@ -381,7 +356,6 @@ public final class ConfigTurno {
         }
     }
 
-    /** Fuerza el volcado de un guardado diferido (cierre de pantalla o cambio). */
     public static void guardarPendiente() {
         volcarGuardado();
     }
@@ -397,7 +371,6 @@ public final class ConfigTurno {
         valor.save();
     }
 
-    /** El valor guardado de rotar niveles, sin combinar con escena viva. */
     public static boolean rotarNivelesBruto() {
         return leer(INSTANCE.rotarNiveles, true);
     }
@@ -425,37 +398,30 @@ public final class ConfigTurno {
         return INSTANCE.duracionAvisos.get();
     }
 
-    /** El valor guardado de la fecha, sin combinar con interfaz minima. */
     public static boolean mostrarFechaBruto() {
         return leer(INSTANCE.mostrarFecha, true);
     }
 
-    /** Volumen maestro del aviso en la escala 0 a 100 que ve el jugador. */
     public static int volumenAvisoPorcentaje() {
         return SPEC.isLoaded() ? INSTANCE.volumenAviso.get() : 100;
     }
 
-    /** Volumen maestro del aviso en la escala 0.0 - 1.0 del motor. */
     public static float volumenAviso() {
         return volumenAvisoPorcentaje() / 100.0F;
     }
 
-    /** El valor guardado de la cuenta, sin combinar con interfaz minima. */
     public static boolean mostrarCuentaRegresivaBruto() {
         return leer(INSTANCE.mostrarCuentaRegresiva, true);
     }
 
-    /** El valor guardado de los avisos, sin combinar con interfaz minima. */
     public static boolean avisosRotativosBruto() {
         return leer(INSTANCE.avisosRotativos, true);
     }
 
-    /** Volumen de la musica en la escala 0 a 100 que ve el jugador. */
     public static int volumenMusicaPorcentaje() {
         return SPEC.isLoaded() ? INSTANCE.volumenMusica.get() : 70;
     }
 
-    /** Volumen del ambiente en la escala 0 a 100 que ve el jugador. */
     public static int volumenAmbientePorcentaje() {
         return SPEC.isLoaded() ? INSTANCE.volumenAmbiente.get() : 55;
     }
@@ -481,13 +447,9 @@ public final class ConfigTurno {
     }
 
     public static void fijarNivelFijo(int nivel) {
-        fijar(INSTANCE.nivelFijo, Math.max(0, Math.min(17, nivel)));
+        fijar(INSTANCE.nivelFijo, Math.max(0, Math.min(31, nivel)));
     }
 
-    /**
-     * Tocar una de las cuatro opciones del perfil a mano lo desactiva: el
-     * perfil es un conjunto, y editarlo pieza a pieza ya no es el conjunto.
-     */
     private static void fijarConSalidaDePerfil(ForgeConfigSpec.BooleanValue destino,
                                                boolean valor) {
         if (SPEC.isLoaded() && INSTANCE.perfilAccesible.get()) {
@@ -588,13 +550,6 @@ public final class ConfigTurno {
         fijar(INSTANCE.bajoConsumo, valor);
     }
 
-    /**
-     * Enciende (o apaga) el perfil accesible completo.
-     *
-     * Al encenderlo, las cuatro opciones que lo componen quedan tambien en
-     * true: asi el archivo de configuracion dice la verdad y el perfil no
-     * depende de un valor calculado que nadie ve.
-     */
     public static void fijarPerfilAccesible(boolean valor) {
         if (SPEC.isLoaded()) {
             INSTANCE.perfilAccesible.set(valor);
