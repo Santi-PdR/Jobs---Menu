@@ -24,7 +24,7 @@ Las redirecciones principales se hacen por **clase exacta**.
 - `SelectWorldScreen` vanilla puede envolverse como `PantallaMundosJobs` conservando la lista/previews originales.
 - `ModListScreen` de Forge puede envolverse como `PantallaModsJobs` conservando su panel, búsqueda y acciones.
 
-Una subclase de otro mod no se sustituye automáticamente sólo por heredar de estas clases, salvo el retorno explícito desde gameplay donde una `JoinMultiplayerScreen` detectada se reconduce a la superficie Jobs correspondiente.
+Una subclase de otro mod no se sustituye automáticamente sólo por heredar de estas clases. El retorno desde gameplay es una excepción contextual: cuando Jobs sabe que acaba de salir de un servidor remoto, un destino vanilla de Title o Multiplayer se reconduce a `PantallaMultijugadorJobs`.
 
 ## Frontera entre menú y gameplay
 
@@ -149,7 +149,9 @@ Probar ES ↔ EN, Español (Uruguay), F3+T, aplicar/quitar packs y volver al men
 
 La cabecera **Puestos de acceso** reserva una tarjeta para `JobsDosh.exaroton.me:56477`. El servidor se guarda con nombre localizado, se deduplica por IP, se mueve al primer renglón y no permite Edit/Delete desde los botones Jobs. La migración retira `Ghoul Outbreak` y entradas que suplanten el nombre oficial con otra IP; Jobs es el único servidor instalado automáticamente por el mod.
 
-`ConnectScreen` se abre con `PantallaMultijugadorJobs` como padre. Cancelar o fallar antes del login vuelve a esa misma lista. Si el jugador ya estaba dentro de un servidor y `LoggingOut` conduce después a `JoinMultiplayerScreen`, Jobs crea una nueva `PantallaMultijugadorJobs` con `PantallaNivel` como padre; así salir, kick o pérdida de conexión no dejan al usuario en Multiplayer vanilla.
+`ConnectScreen` se abre con `PantallaMultijugadorJobs` como padre. Cancelar o fallar antes del login vuelve a esa misma lista.
+
+Para una sesión ya conectada, Jobs memoriza durante los ticks jugables si `Minecraft#getCurrentServer()` indica servidor remoto y vuelve a comprobarlo en `LoggingOut`. Forge dispara `LoggingOut` antes de continuar la limpieza de nivel, de modo que el contexto se captura aunque la desconexión vanilla termine después en `TitleScreen`. Si el retorno era remoto, tanto Title como `JoinMultiplayerScreen` se reconducen a una nueva `PantallaMultijugadorJobs` con `PantallaNivel` como padre. Un mundo local continúa al main Jobs.
 
 Los diálogos auxiliares pueden recibir `PielVanillaJobs`, pero siguen usando la lógica original.
 
@@ -167,7 +169,7 @@ La música se distribuye dentro del JAR. `LimpiezaRecursosLegados` sólo retira 
 
 Los eventos de login/logout y el tick defensivo con nivel activo detienen inmediatamente música y camas. No hay cola ni fundido audible dentro de un mundo o servidor. Los gestos breves de UI son independientes de ese lifecycle: en pausa/configuración Jobs pueden sonar sin abrir una visita ni mantener camas.
 
-Al abandonar una sesión, Title/Realms se reconduce a `PantallaNivel`; un destino `JoinMultiplayerScreen` se reconduce a `PantallaMultijugadorJobs`. Una pantalla de desconexión puede conservar antes su mensaje y, al continuar, cae en la lista Jobs.
+Al abandonar un mundo local, Title/Realms se reconduce a `PantallaNivel`. Al abandonar un servidor remoto, Title o Multiplayer se reconducen a `PantallaMultijugadorJobs`. Una pantalla de desconexión puede conservar antes su mensaje y, al continuar, cae en la lista Jobs.
 
 ## Instancia de referencia
 
@@ -195,7 +197,7 @@ No se mantiene un `.ps1` dentro del repositorio. El procedimiento está en [`DES
 - Embeddium/Oculus/addons exactos del modpack;
 - GPU/rendimiento de escenas procedurales 0–9;
 - SoundEngine con el conjunto completo de mods de audio;
-- retorno tras kick/desconexión con mods que sustituyan `DisconnectedScreen` o `JoinMultiplayerScreen`.
+- retorno tras kick/desconexión con mods que sustituyan `DisconnectedScreen`, `TitleScreen` o `JoinMultiplayerScreen`.
 
 ## Estado de certificación
 
