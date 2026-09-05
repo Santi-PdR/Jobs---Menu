@@ -60,13 +60,11 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
         this.actual = 0.0F;
         this.edad = 0;
 
-        float tono = 0.975F + 0.004F * Math.min(nivel, 9);
+        float tono = tonoNivel(nivel, papel);
         if (papel == Papel.CARACTER) {
             this.edad = 617;
-            tono *= 0.995F;
         } else if (papel == Papel.ACTIVIDAD) {
             this.edad = 1_483;
-            tono = 1.0F;
         }
         this.tonoBase = tono;
         this.pitch = tono;
@@ -78,6 +76,32 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
 
     public int nivel() {
         return this.nivel;
+    }
+
+    /**
+     * Tono fijo de cada mezcla. Los fondos de imagen reutilizan material
+     * autorizado de los diez ambientes originales, pero no suenan como una
+     * copia literal: cada composicion tiene afinacion propia y estable.
+     */
+    private static float tonoNivel(int nivel, Papel papel) {
+        if (nivel < 10) {
+            float tono = 0.975F + 0.004F * Math.max(0, nivel);
+            if (papel == Papel.CARACTER) tono *= 0.995F;
+            if (papel == Papel.ACTIVIDAD) tono = 1.0F;
+            return tono;
+        }
+        float base = switch (nivel) {
+            case 10, 13, 15, 18, 22, 24, 27 -> 0.952F;
+            case 11, 21, 28, 30 -> 1.012F;
+            case 12, 17, 20, 23, 25 -> 0.972F;
+            case 14 -> 0.986F;
+            case 16 -> 1.020F;
+            case 19, 26, 29, 31 -> 0.942F;
+            default -> 1.0F;
+        };
+        if (papel == Papel.CARACTER) return base * 0.996F;
+        if (papel == Papel.ACTIVIDAD) return 1.0F + (base - 1.0F) * 0.32F;
+        return base;
     }
 
     private static float matizNivel(int nivel, Papel papel) {
@@ -93,6 +117,20 @@ public class CapaAmbiente extends AbstractTickableSoundInstance {
             case 15 -> papel == Papel.ACTIVIDAD ? 1.18F : (papel == Papel.BASE ? 0.68F : 0.58F);
             case 16 -> papel == Papel.ACTIVIDAD ? 0.70F : (papel == Papel.BASE ? 0.58F : 0.52F);
             case 17 -> papel == Papel.ACTIVIDAD ? 0.95F : (papel == Papel.BASE ? 0.72F : 0.64F);
+            case 18 -> papel == Papel.ACTIVIDAD ? 1.10F : (papel == Papel.BASE ? 0.70F : 0.62F);
+            case 19 -> papel == Papel.ACTIVIDAD ? 0.72F : (papel == Papel.BASE ? 0.54F : 0.48F);
+            case 20 -> papel == Papel.ACTIVIDAD ? 0.78F : (papel == Papel.BASE ? 0.58F : 0.52F);
+            case 21 -> papel == Papel.ACTIVIDAD ? 0.88F : (papel == Papel.BASE ? 0.72F : 0.76F);
+            case 22 -> papel == Papel.ACTIVIDAD ? 0.86F : (papel == Papel.BASE ? 0.66F : 0.58F);
+            case 23 -> papel == Papel.ACTIVIDAD ? 0.82F : (papel == Papel.BASE ? 0.64F : 0.70F);
+            case 24 -> papel == Papel.ACTIVIDAD ? 1.08F : (papel == Papel.BASE ? 0.68F : 0.60F);
+            case 25 -> papel == Papel.ACTIVIDAD ? 0.78F : (papel == Papel.BASE ? 0.56F : 0.52F);
+            case 26 -> papel == Papel.ACTIVIDAD ? 0.70F : (papel == Papel.BASE ? 0.52F : 0.48F);
+            case 27 -> papel == Papel.ACTIVIDAD ? 0.94F : (papel == Papel.BASE ? 0.66F : 0.62F);
+            case 28 -> papel == Papel.ACTIVIDAD ? 1.02F : (papel == Papel.BASE ? 0.74F : 0.82F);
+            case 29 -> papel == Papel.ACTIVIDAD ? 0.84F : (papel == Papel.BASE ? 0.58F : 0.54F);
+            case 30 -> papel == Papel.ACTIVIDAD ? 1.04F : (papel == Papel.BASE ? 0.68F : 0.76F);
+            case 31 -> papel == Papel.ACTIVIDAD ? 0.68F : (papel == Papel.BASE ? 0.50F : 0.46F);
             default -> 1.0F;
         };
     }

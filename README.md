@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 
 | Campo | Valor |
 |---|---|
-| Version | **0.31.0** |
-| Artefacto | **`jobsmenu-0.31.0.jar`** |
+| Version | **0.32.0** |
+| Artefacto | **`jobsmenu-0.32.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,15 +13,14 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 | Rama entregable | **`main`** |
 | Niveles | **32 (0-31)** |
 
-## 0.31.0 · Revisión visual real y lectura adaptativa
+## 0.32.0 · Identidad ambiental completa y controles precisos
 
-- Se volvieron a abrir los 14 JPG 18-31 desde el artefacto real y se compararon uno por uno con sus nombres y notas.
-- Se corrigen los rótulos que no describían bien la escena, especialmente 19, 21, 23, 25, 26, 28, 29, 30 y 31.
-- ES/EN vuelven a tener una única fuente de verdad en `lang/*.json`; `RotulosNivelesImagen` ya no duplica cadenas ni decide el idioma manualmente.
-- El nombre y la nota del nivel ahora se parten en varias líneas cuando hace falta en vez de desaparecer por falta de ancho.
-- Las tres notas empiezan de nuevo al entrar a cada nivel y cambian con un fundido discreto; Movimiento reducido/Bajo consumo eliminan ese fundido.
-- Los JPG 18-31 reciben puntos de interés de cámara por imagen y un paneo menor para evitar cortar criaturas, portales y estructuras cercanas a los bordes.
-- Los niveles 10-17 conservan su contrato totalmente estático.
+- Los niveles 18-31 dejan de caer en el ambiente genérico del nivel 0: cada uno tiene base, carácter, actividad, repertorio, frecuencia, balance y afinación propios.
+- Las mezclas reutilizan únicamente los sonidos Jobs ya autorizados; no se añaden muestras externas ni se modifican los fondos.
+- Los sliders muestran la unidad real de cada ajuste: porcentaje para volumen, segundos para tiempos y posición del catálogo para nivel/pista.
+- Reactivar los sonidos de interfaz confirma el cambio con `UI_ALTERNAR`; antes el propio estado apagado impedía oírlo.
+- `N` mantiene la pista fija intacta y responde con el gesto Jobs de acción negada cuando el salto no está disponible.
+- Los verificadores protegen automáticamente la identidad de los 32 ambientes y evitan que regresen porcentajes falsos.
 
 ## Fondos 18-31
 

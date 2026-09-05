@@ -173,7 +173,7 @@ public final class GestorAmbiente {
 
     private static final Random AZAR = new Random();
 
-    /** Las camas que estan sonando. Dos por nivel, y hasta cuatro en el cambio. */
+    /** Las camas que estan sonando. Tres por nivel, y hasta seis en el cambio. */
     private static final List<CapaAmbiente> CAPAS = new ArrayList<>();
 
     /** Cuando toca el proximo evento, en milisegundos del reloj del sistema. */
@@ -396,6 +396,34 @@ public final class GestorAmbiente {
                 return SonidosNivel.AMBIENTE_NIVEL1;
             case 17:
                 return SonidosNivel.AMBIENTE_NIVEL8;
+            case 18:
+                return SonidosNivel.AMBIENTE_NIVEL7;
+            case 19:
+                return SonidosNivel.AMBIENTE_NIVEL8;
+            case 20:
+                return SonidosNivel.AMBIENTE_NIVEL5;
+            case 21:
+                return SonidosNivel.AMBIENTE_NIVEL6;
+            case 22:
+                return SonidosNivel.AMBIENTE_NIVEL7;
+            case 23:
+                return SonidosNivel.AMBIENTE_NIVEL6;
+            case 24:
+                return SonidosNivel.AMBIENTE_NIVEL9;
+            case 25:
+                return SonidosNivel.AMBIENTE_NIVEL7;
+            case 26:
+                return SonidosNivel.AMBIENTE_NIVEL8;
+            case 27:
+                return SonidosNivel.AMBIENTE_NIVEL4;
+            case 28:
+                return SonidosNivel.AMBIENTE_NIVEL2;
+            case 29:
+                return SonidosNivel.AMBIENTE_NIVEL9;
+            case 30:
+                return SonidosNivel.AMBIENTE_NIVEL1;
+            case 31:
+                return SonidosNivel.AMBIENTE_NIVEL8;
             default:
                 return SonidosNivel.AMBIENTE_NIVEL0;
         }
@@ -436,6 +464,34 @@ public final class GestorAmbiente {
             case 16:
                 return SonidosNivel.CARACTER_NIVEL5;
             case 17:
+                return SonidosNivel.CARACTER_NIVEL7;
+            case 18:
+                return SonidosNivel.CARACTER_NIVEL0;
+            case 19:
+                return SonidosNivel.CARACTER_NIVEL7;
+            case 20:
+                return SonidosNivel.CARACTER_NIVEL5;
+            case 21:
+                return SonidosNivel.CARACTER_NIVEL6;
+            case 22:
+                return SonidosNivel.CARACTER_NIVEL7;
+            case 23:
+                return SonidosNivel.CARACTER_NIVEL6;
+            case 24:
+                return SonidosNivel.CARACTER_NIVEL0;
+            case 25:
+                return SonidosNivel.CARACTER_NIVEL7;
+            case 26:
+                return SonidosNivel.CARACTER_NIVEL7;
+            case 27:
+                return SonidosNivel.CARACTER_NIVEL9;
+            case 28:
+                return SonidosNivel.CARACTER_NIVEL2;
+            case 29:
+                return SonidosNivel.CARACTER_NIVEL9;
+            case 30:
+                return SonidosNivel.CARACTER_NIVEL2;
+            case 31:
                 return SonidosNivel.CARACTER_NIVEL7;
             default:
                 return SonidosNivel.CARACTER_NIVEL0;
@@ -478,6 +534,34 @@ public final class GestorAmbiente {
                 return SonidosNivel.ACTIVIDAD_NIVEL7;
             case 17:
                 return SonidosNivel.ACTIVIDAD_NIVEL1;
+            case 18:
+                return SonidosNivel.ACTIVIDAD_NIVEL1;
+            case 19:
+                return SonidosNivel.ACTIVIDAD_NIVEL8;
+            case 20:
+                return SonidosNivel.ACTIVIDAD_NIVEL7;
+            case 21:
+                return SonidosNivel.ACTIVIDAD_NIVEL1;
+            case 22:
+                return SonidosNivel.ACTIVIDAD_NIVEL4;
+            case 23:
+                return SonidosNivel.ACTIVIDAD_NIVEL6;
+            case 24:
+                return SonidosNivel.ACTIVIDAD_NIVEL1;
+            case 25:
+                return SonidosNivel.ACTIVIDAD_NIVEL8;
+            case 26:
+                return SonidosNivel.ACTIVIDAD_NIVEL8;
+            case 27:
+                return SonidosNivel.ACTIVIDAD_NIVEL9;
+            case 28:
+                return SonidosNivel.ACTIVIDAD_NIVEL2;
+            case 29:
+                return SonidosNivel.ACTIVIDAD_NIVEL9;
+            case 30:
+                return SonidosNivel.ACTIVIDAD_NIVEL1;
+            case 31:
+                return SonidosNivel.ACTIVIDAD_NIVEL8;
             default:
                 return SonidosNivel.ACTIVIDAD_NIVEL0;
         }
@@ -709,7 +793,7 @@ public final class GestorAmbiente {
      * siguiente suceso todo el peso que tenia el primero.
      */
 
-    /** Repertorio intencional para los cinco fondos suministrados. */
+    /** Repertorio intencional para cada fondo de imagen del catalogo. */
     private static Repertorio repertorioDe(int nivel) {
         return switch (nivel) {
             case 10 -> REPERTORIOS[4];  // cadenas, fuego y piedra
@@ -720,6 +804,20 @@ public final class GestorAmbiente {
             case 15 -> REPERTORIOS[1];  // interferencia: estructura distante, poco literal
             case 16 -> REPERTORIOS[7];  // prisma: piedra, aire y silencios largos
             case 17 -> REPERTORIOS[8];  // galeria azul: eco profundo y actividad remota
+            case 18 -> REPERTORIOS[1];  // interferencia carmesi: metal y estructura distante
+            case 19 -> REPERTORIOS[8];  // estrella del vacio: eco profundo y agua remota
+            case 20 -> REPERTORIOS[5];  // huesped de tinta: madera, papel y susurro contenido
+            case 21 -> REPERTORIOS[6];  // claro de centinelas: vidrio, hojas y agua
+            case 22 -> REPERTORIOS[7];  // caverna del vigia: piedra, gota y aire subterraneo
+            case 23 -> REPERTORIOS[6];  // marana organica: follaje, vidrio y humedad
+            case 24 -> REPERTORIOS[9];  // umbral escarlata: ruina y puerta remota
+            case 25 -> REPERTORIOS[7];  // senal sobre el bosque: aire y piedra lejana
+            case 26 -> REPERTORIOS[8];  // observador lunar: cisterna enorme y vacia
+            case 27 -> REPERTORIOS[9];  // fortaleza roja: cascote, tela y porton
+            case 28 -> REPERTORIOS[2];  // nucleo fragmentado: maquina, caneria y valvula
+            case 29 -> REPERTORIOS[9];  // soberano escarlata: sala monumental y silenciosa
+            case 30 -> REPERTORIOS[1];  // figura fragmentada: estructura e interferencia
+            case 31 -> REPERTORIOS[8];  // coloso del vacio: escala, eco y distancia
             default -> REPERTORIOS[Math.floorMod(nivel, REPERTORIOS.length)];
         };
     }
@@ -751,6 +849,20 @@ public final class GestorAmbiente {
             case 15 -> 1.35F;
             case 16 -> 1.75F;
             case 17 -> 1.40F;
+            case 18 -> 1.30F;
+            case 19 -> 1.70F;
+            case 20 -> 1.55F;
+            case 21 -> 1.15F;
+            case 22 -> 1.40F;
+            case 23 -> 1.25F;
+            case 24 -> 1.35F;
+            case 25 -> 1.60F;
+            case 26 -> 1.75F;
+            case 27 -> 1.30F;
+            case 28 -> 1.10F;
+            case 29 -> 1.50F;
+            case 30 -> 1.35F;
+            case 31 -> 1.80F;
             default -> 1.0F;
         };
     }

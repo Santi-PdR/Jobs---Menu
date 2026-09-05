@@ -105,9 +105,19 @@ def verify_robustness() -> None:
 
     settings = read(JAVA / "client/screen/PantallaAjustesAviso.java")
     for token in ('"jobsmenu.ajustes.nivelfijo.detalle", 0, 31',
-                  '"jobsmenu.ajustes.pista.detalle", 0, 3', "toggleCuatro"):
+                  '"jobsmenu.ajustes.pista.detalle", 0, 3', "toggleCuatro",
+                  "PantallaAjustesAviso::fijarSonidoBotones",
+                  'v -> Component.literal(v + "/31")',
+                  'v -> Component.literal(v + "/3")'):
         if token not in settings:
             fail(f"Ajustes perdio selector completo: {token}")
+
+    slider = read(JAVA / "client/ui/SliderExpediente.java")
+    for token in ("lecturaCorta", "this.lecturaCorta.apply(valorEntero())"):
+        if token not in slider:
+            fail(f"SliderExpediente perdio su lectura semantica: {token}")
+    if 'Math.round(this.value * 100.0D) + "%"' in slider:
+        fail("SliderExpediente volvio a mostrar porcentajes falsos en todos los controles.")
 
     multiplayer = read(JAVA / "client/screen/PantallaMultijugadorJobs.java")
     for token in ("conectarSeleccionado", "ConnectScreen.startConnecting(this, this.minecraft",
@@ -193,6 +203,21 @@ def verify_music_session() -> None:
 
 
 
+def verify_ambient_catalog() -> None:
+    manager = read(JAVA / "client/sound/GestorAmbiente.java")
+    layer = read(JAVA / "client/sound/CapaAmbiente.java")
+    for level in range(18, 32):
+        if manager.count(f"case {level}:") < 3:
+            fail(f"Nivel {level} no tiene las tres camas ambientales explicitas.")
+        if manager.count(f"case {level} ->") < 2:
+            fail(f"Nivel {level} no tiene repertorio y espera ambiental explicitos.")
+        if f"case {level} -> papel" not in layer:
+            fail(f"Nivel {level} no tiene balance de capas propio.")
+    for token in ("tonoNivel(nivel, papel)", "private static float tonoNivel"):
+        if token not in layer:
+            fail(f"CapaAmbiente perdio afinacion por fondo: {token}")
+
+
 def verify_audio_sources() -> None:
     for path in (ROOT / "music/REQUIEM-Forsaken-OST.ogg", ROOT / "music/upon_the_hill_v2_q4.ogg"):
         if not path.is_file() or path.stat().st_size < 64:
@@ -213,11 +238,14 @@ def main() -> int:
         verify_robustness()
         verify_main_overlay_layout()
         verify_music_session()
+        verify_ambient_catalog()
         verify_audio_sources()
         print("UI neutra, bajo consumo y robustez 0.19: OK")
         print("Composicion adaptativa del main: OK")
         print("Reproductor musical de sesion: OK")
         print("Catalogo musical de tres pistas: OK")
+        print("Identidad ambiental de 32 niveles: OK")
+        print("Lecturas semanticas de sliders: OK")
         return 0
     except Exception as exc:
         print(f"ERROR catalogo musical: {exc}", file=sys.stderr)

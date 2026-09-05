@@ -1,5 +1,29 @@
 # Registro de cambios
 
+## 0.32.0 — Ambientes completos y controles precisos — 2026-09-04
+
+### Audio ambiental
+
+- Los niveles 18-31 reciben combinaciones explícitas de base, carácter y actividad; ya no heredan silenciosamente el ambiente del nivel 0.
+- Cada uno define repertorio de sucesos, intervalo, balance de capas y afinación estable según su composición.
+- Se reutilizan los OGG Jobs existentes y autorizados; no se incorporan muestras externas.
+- El cambio de nivel conserva los crossfades de tres capas y el silencio intencional entre eventos.
+
+### Interacción y ajustes
+
+- Los sliders dejan de usar un porcentaje universal: volumen muestra `%`, los tiempos `s` y nivel/pista muestran su posición real en el catálogo.
+- Reactivar Sonidos de interfaz confirma la acción con el gesto Jobs de alternar.
+- Pulsar `N` cuando la pista es fija, la música está apagada o hay un crossfade mantiene el estado y responde con `UI_NEGADO`.
+
+### Calidad y entrega
+
+- `tools/verificar_ui_musica.py` certifica las tres camas, repertorio, frecuencia, balance y afinación de los 14 fondos nuevos.
+- El mismo verificador impide reintroducir porcentajes engañosos en sliders no porcentuales.
+- Versión: **0.32.0**.
+- Artefacto esperado: **`jobsmenu-0.32.0.jar`**.
+- Los JPG 18-31, PNG 10-17 y pistas musicales permanecen intactos.
+
+
 ## 0.31.0 — Identidad sonora, pista fija y retorno multijugador — 2026-09-04
 
 ### Sonidos de interfaz

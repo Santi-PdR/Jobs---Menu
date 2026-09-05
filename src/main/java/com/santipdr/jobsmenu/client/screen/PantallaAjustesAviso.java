@@ -1,5 +1,7 @@
 package com.santipdr.jobsmenu.client.screen;
 
+import com.santipdr.jobsmenu.client.sound.MezclaAudio;
+import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.client.ui.BotonExpediente;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import com.santipdr.jobsmenu.client.ui.Paleta;
@@ -136,17 +138,20 @@ public class PantallaAjustesAviso extends Screen {
         grid.slider("jobsmenu.ajustes.nivelfijo.detalle", 0, 31,
                 ConfigTurno.nivelFijo(), ConfigTurno::fijarNivelFijo,
                 v -> Component.translatable("jobsmenu.ajustes.nivelvalor",
-                        Component.translatable("jobsmenu.ajustes.nivelfijo"), v));
+                        Component.translatable("jobsmenu.ajustes.nivelfijo"), v),
+                v -> Component.literal(v + "/31"));
         grid.slider("jobsmenu.ajustes.estancia.detalle", 15, 90,
                 ConfigTurno.duracionEstancia(), ConfigTurno::fijarDuracionEstancia,
                 v -> Component.translatable("jobsmenu.ajustes.segundos",
-                        Component.translatable("jobsmenu.ajustes.estancia"), v));
+                        Component.translatable("jobsmenu.ajustes.estancia"), v),
+                v -> Component.literal(v + " s"));
         grid.togglePar("jobsmenu.ajustes.rotacioncalma", ConfigTurno::rotacionCalma, ConfigTurno::fijarRotacionCalma,
                 "jobsmenu.ajustes.avisos", ConfigTurno::avisosRotativosBruto, ConfigTurno::fijarAvisosRotativos);
         grid.slider("jobsmenu.ajustes.duracion.detalle", 4, 15,
                 ConfigTurno.duracionAvisos(), ConfigTurno::fijarDuracionAvisos,
                 v -> Component.translatable("jobsmenu.ajustes.segundos",
-                        Component.translatable("jobsmenu.ajustes.duracion"), v));
+                        Component.translatable("jobsmenu.ajustes.duracion"), v),
+                v -> Component.literal(v + " s"));
         grid.toggleCompleto("jobsmenu.ajustes.fecha", ConfigTurno::mostrarFechaBruto, ConfigTurno::fijarMostrarFecha);
     }
 
@@ -155,23 +160,38 @@ public class PantallaAjustesAviso extends Screen {
         grid.slider("jobsmenu.ajustes.volaviso.detalle", 0, 100,
                 ConfigTurno.volumenAvisoPorcentaje(), ConfigTurno::fijarVolumenAviso,
                 v -> Component.translatable("jobsmenu.ajustes.porciento",
-                        Component.translatable("jobsmenu.ajustes.volaviso"), v));
+                        Component.translatable("jobsmenu.ajustes.volaviso"), v),
+                v -> Component.literal(v + "%"));
         grid.slider("jobsmenu.ajustes.volmusica.detalle", 0, 100,
                 ConfigTurno.volumenMusicaPorcentaje(), ConfigTurno::fijarVolumenMusica,
                 v -> Component.translatable("jobsmenu.ajustes.porciento",
-                        Component.translatable("jobsmenu.ajustes.volmusica"), v));
+                        Component.translatable("jobsmenu.ajustes.volmusica"), v),
+                v -> Component.literal(v + "%"));
         grid.slider("jobsmenu.ajustes.volambiente.detalle", 0, 100,
                 ConfigTurno.volumenAmbientePorcentaje(), ConfigTurno::fijarVolumenAmbiente,
                 v -> Component.translatable("jobsmenu.ajustes.porciento",
-                        Component.translatable("jobsmenu.ajustes.volambiente"), v));
+                        Component.translatable("jobsmenu.ajustes.volambiente"), v),
+                v -> Component.literal(v + "%"));
         grid.slider("jobsmenu.ajustes.pista.detalle", 0, 3,
                 ConfigTurno.pistaMusica(), ConfigTurno::fijarPistaMusica,
-                v -> Component.translatable("jobsmenu.ajustes.pista.valor", nombrePista(v)));
+                v -> Component.translatable("jobsmenu.ajustes.pista.valor", nombrePista(v)),
+                v -> Component.literal(v + "/3"));
         grid.toggleCuatro(
                 "jobsmenu.ajustes.musica", ConfigTurno::musicaMenu, ConfigTurno::fijarMusicaMenu,
                 "jobsmenu.ajustes.ambiente", ConfigTurno::sonidoAmbiente, ConfigTurno::fijarSonidoAmbiente,
-                "jobsmenu.ajustes.botones", ConfigTurno::sonidoBotones, ConfigTurno::fijarSonidoBotones,
+                "jobsmenu.ajustes.botones", ConfigTurno::sonidoBotones, PantallaAjustesAviso::fijarSonidoBotones,
                 "jobsmenu.ajustes.credito", ConfigTurno::creditoMusica, ConfigTurno::fijarCreditoMusica);
+    }
+
+    /**
+     * Al reactivar los gestos, confirma el cambio despues de persistirlo.
+     * El click previo se omite porque la opcion aun estaba apagada.
+     */
+    private static void fijarSonidoBotones(boolean activo) {
+        ConfigTurno.fijarSonidoBotones(activo);
+        if (activo) {
+            MezclaAudio.gesto(SonidosNivel.UI_ALTERNAR, 0.52F);
+        }
     }
 
     private static Component nombrePista(int pista) {
@@ -397,10 +417,11 @@ public class PantallaAjustesAviso extends Screen {
 
         void slider(String detalle, int min, int max, int valor,
                     java.util.function.IntConsumer fijar,
-                    java.util.function.IntFunction<Component> rotulo) {
+                    java.util.function.IntFunction<Component> rotulo,
+                    java.util.function.IntFunction<Component> lecturaCorta) {
             int y = contentY + fila * paso;
             registrarAyuda(addRenderableWidget(new SliderExpediente(x0, y, colW * 2 + gap, alto,
-                    min, max, valor, rotulo, fijar)), detalle);
+                    min, max, valor, rotulo, fijar, lecturaCorta)), detalle);
             fila++;
         }
 
