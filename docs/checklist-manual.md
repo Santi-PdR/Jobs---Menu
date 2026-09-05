@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.33.0
+# Checklist manual de aceptación — 0.34.0
 
 Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código, recursos y build; no certifica estética, input, audio perceptivo ni compatibilidad visual dentro de Minecraft.
 
@@ -6,7 +6,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.33.0.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.34.0.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Layout
@@ -51,6 +51,9 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 ## Pausa y navegación
 
 - [ ] el mundo real permanece visible detrás de la pausa Jobs.
+- [ ] abrir chat no muestra transición, banda ni piel Jobs.
+- [ ] abrir inventario o un contenedor no muestra transición, banda ni piel Jobs.
+- [ ] Pausa y Config Jobs sí conservan la tematización.
 - [ ] 1 reanuda y 2 abre Condiciones; 3 no desconecta.
 - [ ] ESC reanuda correctamente.
 - [ ] Mundos vuelve al main Jobs con una sola pulsación de ESC.
@@ -127,5 +130,5 @@ Si todo pasa:
 
 - [ ] conservar SHA-256 del JAR probado;
 - [ ] anotar resolución y GUI Scale;
-- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.33.0.jar`;
+- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.34.0.jar`;
 - [ ] reportar cualquier defecto visual con captura y `latest.log` cuando afecte recursos/audio/crash.

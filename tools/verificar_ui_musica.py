@@ -133,15 +133,27 @@ def verify_robustness() -> None:
     if legacy_video.exists():
         fail("PantallaVideoJobs sigue presente: Video Settings debe ser vanilla.")
     for token in ("esVideoIntocable", "pantalla instanceof VideoSettingsScreen",
-                  "esVideoIntocable(Minecraft.getInstance().screen)"):
+                  "esVideoIntocable(pantalla)"):
         if token not in listener:
             fail(f"EscuchaCliente dejo de aislar Video Settings: {token}")
 
     multiplayer = read(JAVA / "client/screen/PantallaMultijugadorJobs.java")
     for token in ("conectarSeleccionado", "ConnectScreen.startConnecting(this, this.minecraft",
-                  "ServerAddress.parseString(servidor.ip)"):
+                  "ServerAddress.parseString(servidor.ip)", "super.onClose()",
+                  "if (this.cerrando) return;", "this.cerrando = false;"):
         if token not in multiplayer:
-            fail(f"Multijugador perdio retorno contextual de conexion: {token}")
+            fail(f"Multijugador perdio retorno contextual o salida unica: {token}")
+    for forbidden in ("anteriorJobs", "volverAlMenu()", "GLFW.GLFW_KEY_ESCAPE"):
+        if forbidden in multiplayer:
+            fail(f"Multijugador recupero una ruta de salida duplicada: {forbidden}")
+
+    transition = read(JAVA / "client/ui/TransicionInterfazJobs.java")
+    for token in ("usaTransicionJobs", "TransicionInterfazJobs.cancelar()",
+                  "Minecraft.getInstance().level != null && !propia"):
+        if token not in listener:
+            fail(f"EscuchaCliente perdio la frontera menu/gameplay: {token}")
+    if "public static void cancelar()" not in transition:
+        fail("TransicionInterfazJobs no puede limpiar una transicion fuera del menu.")
 
 
 

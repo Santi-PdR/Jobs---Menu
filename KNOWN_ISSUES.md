@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.33.0
+# Riesgos y pruebas pendientes — 0.34.0
 
 Este documento contiene riesgos vigentes. El historial está en `CHANGELOG.md` y en las auditorías de `docs/`.
 
@@ -13,12 +13,15 @@ Antes de publicar, GitHub Actions comprueba:
 - paridad ES/EN, recursos y coherencia estática;
 - contratos UI/música y hard-stop de gameplay;
 - aislamiento completo de Video Settings vanilla;
+- salida única e idempotente de Multiplayer;
+- transiciones limitadas a pantallas propias Jobs;
+- frontera dura que excluye chat, inventario y UI de gameplay;
 - ausencia de `PantallaVideoJobs` y reflection de páginas Embeddium;
 - rango `nivel_fijo` coherente con los 32 niveles;
 - perfiles ambientales explícitos para los niveles 18-31;
 - lecturas semánticas en sliders de volumen, tiempo, nivel y pista;
 - Forge build 1.20.1;
-- publicación de `jobsmenu-0.33.0.jar` en `dev-latest` sólo desde `main`.
+- publicación de `jobsmenu-0.34.0.jar` en `dev-latest` sólo desde `main`.
 
 Un pipeline fallido no debe actualizar la release.
 
@@ -36,6 +39,8 @@ CI no abre Minecraft con ventana real. Después del deploy hay que validar visua
 8. Gameplay corta inmediatamente música y ambiente Jobs.
 9. Mods y Resource Packs conservan sus listas reales.
 10. ESC/Volver en Mundos y Multiplayer regresa en una sola acción.
+11. Chat e inventario no muestran barridos, bandas ni pieles Jobs.
+12. Pausa y configuración conservan la tematización permitida.
 
 ## Riesgos vigentes
 
@@ -54,9 +59,10 @@ CI no abre Minecraft con ventana real. Después del deploy hay que validar visua
 
 ### Interfaces
 
-- La composición adaptativa de 0.33.0 reserva zonas independientes para rótulo, estado y crédito; aun así debe revisarse visualmente con traducciones o resource packs que cambien mucho el ancho del texto.
+- La composición adaptativa de 0.34.0 reserva zonas independientes para rótulo, estado y crédito; aun así debe revisarse visualmente con traducciones o resource packs que cambien mucho el ancho del texto.
 
-- Las capas Jobs posteriores al render pueden necesitar compatibilidad específica con mods/resource packs que reorganicen profundamente una Screen.
+- Las capas Jobs posteriores al render sólo actúan en el flujo de menús. Chat, inventario y pantallas no Jobs con un mundo cargado se excluyen de forma explícita.
+- Las pantallas propias de pausa/configuración pueden necesitar compatibilidad específica con mods/resource packs que reorganicen profundamente una Screen.
 - Scrollbars Jobs son visuales; rueda, click y drag pertenecen a la lista real.
 - Jobs abre Video Settings vanilla y no fuerza ni reconstruye la interfaz de Embeddium. La integración que otros mods hagan sobre la clase vanilla debe validarse en el modpack real.
 

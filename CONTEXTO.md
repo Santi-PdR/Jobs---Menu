@@ -7,8 +7,8 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Version actual | **0.33.0** |
-| Artefacto esperado | **`jobsmenu-0.33.0.jar`** |
+| Version actual | **0.34.0** |
+| Artefacto esperado | **`jobsmenu-0.34.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -39,6 +39,8 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 19. Capas globales de UI no capturan input ni sustituyen controles reales.
 20. Una ayuda visual de teclado solo puede anunciar una tecla implementada de verdad.
 21. `PantallaNivel` reserva el pie para el nombre y la nota del nivel; la barra contextual generica no se dibuja en el main.
+22. Chat, inventario y demás pantallas de gameplay no reciben piel, banda, transición ni sustitución de clicks Jobs.
+23. Escape y Cancelar comparten una sola ruta vanilla e idempotente en Multiplayer.
 
 ## 2. Identidad visual
 
@@ -51,18 +53,19 @@ Familias:
 
 La escena usa la paleta material/luz del nivel; la UI usa papel frio, grafito, gris verdoso y tinta neutra.
 
-## 3. Estado 0.33.0
+## 3. Estado 0.34.0
 
-0.33.0 restaura Video Settings como pantalla vanilla intacta y mantiene las mejoras de audio y controles de 0.32.0.
+0.34.0 corrige la salida de Multiplayer y convierte la separación entre menús y gameplay en un contrato explícito.
 
-### Video Settings intocable
+### Navegación y alcance visual
 
-- se abre `VideoSettingsScreen` directamente;
-- Jobs no recoloca la lista, oculta botones ni reconstruye opciones;
-- no se aplican piel, marco, transición ni sustitución de click dentro de esa pantalla;
-- `PantallaVideoJobs` y la reflection de Embeddium fueron eliminadas;
-- el FOV duplicado desaparece del hub Jobs y Online usa la fila completa;
-- la pantalla vuelve a su padre Jobs con el botón vanilla Done.
+- `PantallaMultijugadorJobs` conserva exclusivamente el padre de `JoinMultiplayerScreen`;
+- Escape y Cancelar convergen en `super.onClose()` y un guard impide dobles cierres;
+- se eliminan `anteriorJobs`, `volverAlMenu()` y la captura manual de Escape;
+- una transición sólo nace si el origen o el destino pertenece a `client.screen`;
+- abrir chat, inventario u otra pantalla con un mundo cargado cancela cualquier transición pendiente;
+- las capas visuales y la sustitución de click también respetan esa frontera dura;
+- Video Settings permanece vanilla e intocable.
 
 ### Ambiente de los 32 niveles
 

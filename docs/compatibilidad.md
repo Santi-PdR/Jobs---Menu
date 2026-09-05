@@ -1,4 +1,4 @@
-# Compatibilidad y despliegue — 0.16.2
+# Compatibilidad y despliegue — 0.34.0
 
 ## Perfil soportado
 
@@ -8,8 +8,8 @@
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente; el servidor no necesita Jobs Menu |
-| Versión del mod | **0.16.2** |
-| Artefacto | `build/libs/jobsmenu-0.16.2.jar` |
+| Versión del mod | **0.34.0** |
+| Artefacto | `build/libs/jobsmenu-0.34.0.jar` |
 
 Jobs Menu distingue entre **pantallas que controla**, **pantallas vanilla cuya lógica conserva** y **pantallas de otros mods que debe respetar**. La compatibilidad tiene prioridad sobre una reimplementación cosmética frágil.
 
@@ -25,6 +25,12 @@ Las redirecciones principales se hacen por **clase exacta**.
 - `ModListScreen` de Forge puede envolverse como `PantallaModsJobs` conservando su panel, búsqueda y acciones.
 
 Una subclase de otro mod no se sustituye automáticamente sólo por heredar de estas clases.
+
+## Frontera entre menú y gameplay
+
+Las transiciones sólo se notifican cuando el origen o el destino es una pantalla propia de Jobs. Si el cambio no pertenece a ese flujo, la transición pendiente se cancela.
+
+Cuando existe un mundo cargado, cualquier pantalla no Jobs queda fuera del postprocesado global. Esto incluye chat, inventario, contenedores y pantallas de gameplay de otros mods: no reciben piel, banda contextual, transición ni reemplazo de clicks. La pausa Jobs y sus pantallas propias de configuración siguen admitidas.
 
 ## Options y Config Jobs
 
@@ -135,7 +141,7 @@ Probar ES ↔ EN, Español (Uruguay), F3+T, aplicar/quitar packs y volver al men
 
 ## Multijugador
 
-`PantallaMultijugadorJobs` conserva `ServerSelectionList`, ping, MOTD, favicons, LAN y las acciones vanilla de seleccionar, conexión directa, añadir, editar, borrar, refrescar y cancelar.
+`PantallaMultijugadorJobs` conserva `ServerSelectionList`, ping, MOTD, favicons, LAN y las acciones vanilla de seleccionar, conexión directa, añadir, editar, borrar, refrescar y cancelar. Escape y Cancelar convergen en la navegación de `JoinMultiplayerScreen`; un guard idempotente impide dobles cierres.
 
 La cabecera **Puestos de acceso** reserva una tarjeta para `JobsDosh.exaroton.me:56477`. El servidor se guarda con nombre localizado, se deduplica por IP, se mueve al primer renglón y no permite Edit/Delete desde los botones Jobs. La migración retira `Ghoul Outbreak` y entradas que suplanten el nombre oficial con otra IP; Jobs es el único servidor instalado automáticamente por el mod.
 
@@ -164,7 +170,7 @@ C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\
 El JAR de esta entrega debe quedar únicamente como:
 
 ```text
-C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.16.2.jar
+C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.34.0.jar
 ```
 
 No se mantiene un `.ps1` dentro del repositorio. El procedimiento está en [`DESPLIEGUE.md`](DESPLIEGUE.md).
@@ -191,7 +197,7 @@ CI certifica:
 3. PNG 10–17;
 4. recursos/idiomas/ASCII/coherencia estática;
 5. build Forge;
-6. preparación de `jobsmenu-0.16.2.jar`.
+6. preparación de `jobsmenu-0.34.0.jar`.
 
 La publicación a `dev-latest` sólo ocurre desde `main`.
 

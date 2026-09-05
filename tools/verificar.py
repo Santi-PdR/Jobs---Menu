@@ -953,6 +953,10 @@ def verificar_ui_sesion_0162() -> None:
         ("CampoBusquedaCentrado", idioma, "buscador de Idioma centrado"),
         ("ghoul outbreak", multi, "migración del servidor Ghoul"),
         ("oficialConservado", multi, "deduplicación de la IP oficial"),
+        ("super.onClose()", multi, "salida vanilla única de Multiplayer"),
+        ("if (this.cerrando) return;", multi, "salida idempotente de Multiplayer"),
+        ("usaTransicionJobs", escucha, "transiciones limitadas a menús Jobs"),
+        ("Minecraft.getInstance().level != null && !propia", escucha, "frontera visual de gameplay"),
         ("ClientPlayerNetworkEvent.LoggingIn", escucha, "corte de audio al conectar"),
         ("ClientPlayerNetworkEvent.LoggingOut", escucha, "retorno tras desconexión"),
         ("retornoDesdeJuego", escucha, "redirección al menú Jobs"),
@@ -962,6 +966,10 @@ def verificar_ui_sesion_0162() -> None:
     for fragmento, fuente, descripcion in invariantes:
         if fragmento not in fuente:
             fallo(f"0.16.2 perdió el contrato de {descripcion}.")
+
+    for fragmento in ("anteriorJobs", "volverAlMenu()", "GLFW.GLFW_KEY_ESCAPE"):
+        if fragmento in multi:
+            fallo(f"Multiplayer recuperó una ruta de salida duplicada: {fragmento}.")
 
     if 'Component.translatable("options.title")' in opciones:
         fallo("Options volvió a dibujar el rótulo vanilla bajo Config Jobs.")
