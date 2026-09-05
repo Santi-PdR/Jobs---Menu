@@ -8,10 +8,9 @@ import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.IdentityHashMap;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /** Integracion defensiva de listas vanilla dentro del lenguaje visual Jobs. */
 public final class ListasExpediente {
@@ -19,6 +18,25 @@ public final class ListasExpediente {
     private static final Field CAMPO_Y0;
     private static final Field CAMPO_Y1;
     private static final Method METODO_SCROLLBAR_X;
+
+    /**
+     * Reflection de estructura, no de instancia. Antes se recorria toda la
+     * jerarquia y se hacia setAccessible() en cada frame. Las clases de Screen
+     * son finitas durante una sesion, asi que sus campos se descubren una vez.
+     */
+    private static final Map<Class<?>, List<Field>> CAMPOS_LISTA_POR_CLASE = new HashMap<>();
+
+    /**
+     * Cache de la pantalla activa. Solo retenemos una instancia: evita crear
+     * ArrayList/IdentityHashMap en cada render y no convierte el cache en un
+     * registro permanente de pantallas ya cerradas.
+     */
+    private static Screen pantallaCache;
+    private static List<AbstractSelectionList<?>> listasCache = List.of();
+
+    /** Dedupe de la barra cuando una Screen la dibuja y Render.Post la vuelve a pedir. */
+    private static Screen pantallaFrame;
+    private static boolean barrasDibujadasFrame;
 
     static {
         Field y0 = null;
@@ -38,12 +56,32 @@ public final class ListasExpediente {
     private ListasExpediente() {
     }
 
+    /** Se llama desde ScreenEvent.Render.Pre para que cada frame pinte la barra una sola vez. */
+    public static void comenzarFrame(Screen pantalla) {
+        pantallaFrame = pantalla;
+        barrasDibujadasFrame = false;
+    }
+
+    /** Libera referencias de la pantalla saliente y evita retener listas entre visitas. */
+    public static void liberar(Screen pantalla) {
+        if (pantallaCache == pantalla) {
+            pantallaCache = null;
+            listasCache = List.of();
+        }
+        if (pantallaFrame == pantalla) {
+            pantallaFrame = null;
+            barrasDibujadasFrame = false;
+        }
+    }
+
     public static void estilizar(Screen pantalla) {
         estilizar(pantalla, -1, -1);
     }
 
     public static void estilizar(Screen pantalla, int arriba, int abajo) {
-        for (AbstractSelectionList<?> lista : encontrarListas(pantalla)) {
+        // init()/resize puede reconstruir la lista dentro de la misma Screen.
+        invalidar(pantalla);
+        for (AbstractSelectionList<?> lista : listasDe(pantalla)) {
             try {
                 lista.setRenderBackground(false);
                 lista.setRenderTopAndBottom(false);
@@ -57,8 +95,12 @@ public final class ListasExpediente {
 
     public static void renderarBarras(Screen pantalla, GuiGraphics g) {
         if (pantalla == null || g == null) return;
+        if (pantalla == pantallaFrame && barrasDibujadasFrame) return;
 
-        for (AbstractSelectionList<?> lista : encontrarListas(pantalla)) {
+        List<AbstractSelectionList<?>> listas = listasDe(pantalla);
+        if (pantalla == pantallaFrame) barrasDibujadasFrame = true;
+
+        for (AbstractSelectionList<?> lista : listas) {
             try {
                 int maxScroll = lista.getMaxScroll();
                 if (maxScroll <= 0) continue;
@@ -197,26 +239,59 @@ public final class ListasExpediente {
         return resolverY0(lista);
     }
 
-    private static List<AbstractSelectionList<?>> encontrarListas(Screen pantalla) {
-        List<AbstractSelectionList<?>> resultado = new ArrayList<>();
-        if (pantalla == null) return resultado;
+    private static void invalidar(Screen pantalla) {
+        if (pantallaCache == pantalla) {
+            pantallaCache = null;
+            listasCache = List.of();
+        }
+    }
 
-        Set<Object> vistos = Collections.newSetFromMap(new IdentityHashMap<>());
-        Class<?> tipo = pantalla.getClass();
+    private static List<AbstractSelectionList<?>> listasDe(Screen pantalla) {
+        if (pantalla == null) return List.of();
+        if (pantallaCache == pantalla) return listasCache;
+
+        List<AbstractSelectionList<?>> resultado = new ArrayList<>();
+        for (Field campo : camposLista(pantalla.getClass())) {
+            try {
+                Object valor = campo.get(pantalla);
+                if (valor instanceof AbstractSelectionList<?> lista && !contieneIdentidad(resultado, lista)) {
+                    resultado.add(lista);
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+        pantallaCache = pantalla;
+        listasCache = List.copyOf(resultado);
+        return listasCache;
+    }
+
+    private static List<Field> camposLista(Class<?> clasePantalla) {
+        List<Field> cache = CAMPOS_LISTA_POR_CLASE.get(clasePantalla);
+        if (cache != null) return cache;
+
+        List<Field> campos = new ArrayList<>();
+        Class<?> tipo = clasePantalla;
         while (tipo != null && tipo != Object.class) {
-            for (Field f : tipo.getDeclaredFields()) {
+            for (Field campo : tipo.getDeclaredFields()) {
+                if (!AbstractSelectionList.class.isAssignableFrom(campo.getType())) continue;
                 try {
-                    if (!AbstractSelectionList.class.isAssignableFrom(f.getType())) continue;
-                    f.setAccessible(true);
-                    Object o = f.get(pantalla);
-                    if (o instanceof AbstractSelectionList<?> lista && vistos.add(lista)) {
-                        resultado.add(lista);
-                    }
+                    campo.setAccessible(true);
+                    campos.add(campo);
                 } catch (Throwable ignored) {
                 }
             }
             tipo = tipo.getSuperclass();
         }
-        return resultado;
+        List<Field> inmutable = List.copyOf(campos);
+        CAMPOS_LISTA_POR_CLASE.put(clasePantalla, inmutable);
+        return inmutable;
+    }
+
+    private static boolean contieneIdentidad(List<AbstractSelectionList<?>> listas,
+                                             AbstractSelectionList<?> candidata) {
+        for (AbstractSelectionList<?> lista : listas) {
+            if (lista == candidata) return true;
+        }
+        return false;
     }
 }
