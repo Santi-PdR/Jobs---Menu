@@ -132,26 +132,17 @@ public final class EscuchaCliente {
         } else {
             TransicionInterfazJobs.cancelar();
         }
-        // La animacion corta de entrada tambien es una transicion visual. No se
-        // registra mientras existe gameplay: pausa y configuracion aparecen ya
-        // estabilizadas sobre el mundo, sin barridos ni fundidos de entrada.
         if (Minecraft.getInstance().level == null) {
             PulidoInterfazJobs.notificarApertura(siguiente);
         }
         gesto(anterior, siguiente);
     }
 
-    /** Abre un marco de deduplicacion antes de que la Screen pinte sus listas. */
     @SubscribeEvent
     public static void alEmpezarRenderPantalla(ScreenEvent.Render.Pre evento) {
         ListasExpediente.comenzarFrame(evento.getScreen());
     }
 
-    /**
-     * Las pantallas propias se pintan enteras. Los dialogos vanilla auxiliares
-     * conservan su logica, pero reciben chrome, controles y campos Jobs. Las
-     * pantallas de terceros solo reciben contexto minimo para no romper hooks.
-     */
     @SubscribeEvent
     public static void alRenderizarPantalla(ScreenEvent.Render.Post evento) {
         Screen pantalla = evento.getScreen();
@@ -160,9 +151,7 @@ public final class EscuchaCliente {
         Minecraft cliente = Minecraft.getInstance();
         String clase = pantalla.getClass().getName();
         boolean propia = esPantallaPropia(pantalla);
-        // Inventario, chat y cualquier otra Screen con un mundo cargado son
-        // gameplay: ninguna piel, banda ni transicion Jobs puede alcanzarlas.
-        if (cliente.level != null && !propia) return;
+        if (Minecraft.getInstance().level != null && !propia) return;
 
         actualizarHoverVanilla(pantalla, evento.getMouseX(), evento.getMouseY());
 
@@ -172,9 +161,6 @@ public final class EscuchaCliente {
                     evento.getMouseX(), evento.getMouseY());
             ListasExpediente.renderarBarras(pantalla, evento.getGuiGraphics());
             AtmosferaMenuJobs.dibujar(evento.getGuiGraphics(), pantalla.width, pantalla.height, ahora);
-            // El menu principal ya tiene su propia composicion inferior (nombre y nota
-            // del nivel). La instrumentacion generica se reserva para las pantallas
-            // secundarias para que los atajos visibles no vuelvan a competir con ella.
             if (!(pantalla instanceof PantallaNivel)) {
                 CapaProfesionalJobs.dibujar(pantalla, evento.getGuiGraphics(),
                         evento.getMouseX(), evento.getMouseY(), ahora);
@@ -191,8 +177,6 @@ public final class EscuchaCliente {
             PulidoInterfazJobs.dibujar(pantalla, evento.getGuiGraphics(),
                     evento.getMouseX(), evento.getMouseY());
         }
-        // Doble compuerta: incluso si una transicion quedara pendiente justo al
-        // entrar al mundo, nunca se dibuja sobre pausa/configuracion de gameplay.
         if (cliente.level == null) {
             TransicionInterfazJobs.dibujar(pantalla, evento.getGuiGraphics());
         } else {
@@ -200,12 +184,6 @@ public final class EscuchaCliente {
         }
     }
 
-    /**
-     * Los controles vanilla que conservamos por compatibilidad no deben volver
-     * a introducir el click de fabrica en una superficie Jobs. La musica y el
-     * ambiente siguen ligados a SesionMenu; este feedback de UI tambien se
-     * permite en pausa/configuracion Jobs dentro de gameplay sin reabrir audio.
-     */
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void alReproducirSonido(PlaySoundEvent evento) {
         Screen pantalla = Minecraft.getInstance().screen;
@@ -239,8 +217,6 @@ public final class EscuchaCliente {
     public static void alSalirJuego(ClientPlayerNetworkEvent.LoggingOut evento) {
         Minecraft cliente = Minecraft.getInstance();
         retornoDesdeJuego = true;
-        // Se usa tambien el estado capturado en ticks jugables por si otro mod
-        // limpia currentServer antes de que Forge entregue LoggingOut.
         retornoMultijugadorPendiente = enServidorRemoto || cliente.getCurrentServer() != null;
         enServidorRemoto = false;
         TransicionInterfazJobs.cancelar();
@@ -255,8 +231,6 @@ public final class EscuchaCliente {
             if (cliente.level != null) {
                 enServidorRemoto = cliente.getCurrentServer() != null;
             }
-            // Gameplay es frontera dura. Corta inmediatamente y no ejecuta
-            // mantenimiento de audio/transiciones durante el resto de este tick.
             TransicionInterfazJobs.cancelar();
             SesionMenu.cerrar();
             return;
@@ -265,31 +239,16 @@ public final class EscuchaCliente {
         GestorAmbiente.mantenerCamas();
     }
 
-    /**
-     * Video Settings queda fuera de toda piel, marco, transicion y gesto Jobs.
-     * Se reconocen tambien las pantallas conocidas de Sodium/Embeddium para no
-     * pintar encima si otro mod sustituye la instancia vanilla.
-     */
     private static boolean esPantallaPropia(Screen pantalla) {
         return pantalla != null
                 && pantalla.getClass().getName().startsWith("com.santipdr.jobsmenu.client.screen.");
     }
 
-    /**
-     * Una superficie Jobs puede vivir dentro de gameplay (pausa/configuracion)
-     * sin que eso reactive la sesion de musica. Los dialogos vanilla auxiliares
-     * solo heredan feedback Jobs mientras la visita de menu sigue activa.
-     */
     private static boolean esSuperficieJobsActiva(Screen pantalla) {
         if (pantalla == null || !ConfigTurno.menuPropio() || esVideoIntocable(pantalla)) return false;
         return esPantallaPropia(pantalla) || SesionMenu.activa();
     }
 
-    /**
-     * Los widgets propios ya gestionan su hover. Para botones/sliders vanilla
-     * conservados por compatibilidad se guarda solo el conjunto actualmente
-     * enfocado, en vez de una entrada booleana para cada boton de la pantalla.
-     */
     private static void actualizarHoverVanilla(Screen pantalla, int mouseX, int mouseY) {
         if (!esSuperficieJobsActiva(pantalla)) return;
         if (pantallaHoverVanilla != pantalla) {
@@ -311,11 +270,6 @@ public final class EscuchaCliente {
         }
     }
 
-    /**
-     * Las transiciones pertenecen exclusivamente al flujo fuera de gameplay.
-     * Aunque la pausa/configuracion sean pantallas Jobs, con un nivel cargado
-     * aparecen y desaparecen sin barridos ni fundidos de transicion.
-     */
     private static boolean usaTransicionJobs(Screen desde, Screen hasta) {
         if (Minecraft.getInstance().level != null) return false;
         if (hasta == null || esVideoIntocable(desde) || esVideoIntocable(hasta)) return false;
