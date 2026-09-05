@@ -42,6 +42,8 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.Collections;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 /** La puerta del aviso: lifecycle, redirecciones, sonido y continuidad visual. */
@@ -55,7 +57,8 @@ public final class EscuchaCliente {
     private static boolean retornoDesdeJuego;
     private static boolean retornoMultijugadorPendiente;
     private static boolean enServidorRemoto;
-    private static final WeakHashMap<AbstractButton, Boolean> HOVER_VANILLA = new WeakHashMap<>();
+    private static final Set<AbstractButton> HOVER_VANILLA =
+            Collections.newSetFromMap(new WeakHashMap<>());
     private static Screen pantallaHoverVanilla;
 
     @SubscribeEvent(priority = EventPriority.NORMAL)
@@ -138,6 +141,12 @@ public final class EscuchaCliente {
         gesto(anterior, siguiente);
     }
 
+    /** Abre un marco de deduplicacion antes de que la Screen pinte sus listas. */
+    @SubscribeEvent
+    public static void alEmpezarRenderPantalla(ScreenEvent.Render.Pre evento) {
+        ListasExpediente.comenzarFrame(evento.getScreen());
+    }
+
     /**
      * Las pantallas propias se pintan enteras. Los dialogos vanilla auxiliares
      * conservan su logica, pero reciben chrome, controles y campos Jobs. Las
@@ -153,22 +162,22 @@ public final class EscuchaCliente {
         boolean propia = esPantallaPropia(pantalla);
         // Inventario, chat y cualquier otra Screen con un mundo cargado son
         // gameplay: ninguna piel, banda ni transicion Jobs puede alcanzarlas.
-        if (Minecraft.getInstance().level != null && !propia) return;
+        if (cliente.level != null && !propia) return;
 
         actualizarHoverVanilla(pantalla, evento.getMouseX(), evento.getMouseY());
 
+        long ahora = System.currentTimeMillis();
         if (propia) {
             PielVanillaJobs.dibujar(pantalla, evento.getGuiGraphics(),
                     evento.getMouseX(), evento.getMouseY());
             ListasExpediente.renderarBarras(pantalla, evento.getGuiGraphics());
-            AtmosferaMenuJobs.dibujar(evento.getGuiGraphics(), pantalla.width, pantalla.height,
-                    System.currentTimeMillis());
+            AtmosferaMenuJobs.dibujar(evento.getGuiGraphics(), pantalla.width, pantalla.height, ahora);
             // El menu principal ya tiene su propia composicion inferior (nombre y nota
             // del nivel). La instrumentacion generica se reserva para las pantallas
             // secundarias para que los atajos visibles no vuelvan a competir con ella.
             if (!(pantalla instanceof PantallaNivel)) {
                 CapaProfesionalJobs.dibujar(pantalla, evento.getGuiGraphics(),
-                        evento.getMouseX(), evento.getMouseY(), System.currentTimeMillis());
+                        evento.getMouseX(), evento.getMouseY(), ahora);
             }
         } else if (SesionMenu.activa()) {
             if (clase.startsWith("net.minecraft.")) {
@@ -209,7 +218,13 @@ public final class EscuchaCliente {
 
     @SubscribeEvent
     public static void alCerrarPantalla(ScreenEvent.Closing evento) {
+        Screen pantalla = evento.getScreen();
         ConfigTurno.guardarPendiente();
+        ListasExpediente.liberar(pantalla);
+        if (pantallaHoverVanilla == pantalla) {
+            HOVER_VANILLA.clear();
+            pantallaHoverVanilla = null;
+        }
     }
 
     @SubscribeEvent
@@ -272,8 +287,8 @@ public final class EscuchaCliente {
 
     /**
      * Los widgets propios ya gestionan su hover. Para botones/sliders vanilla
-     * conservados por compatibilidad se mantiene estado debil por instancia y
-     * se dispara UI_PASAR una sola vez al entrar con raton o foco de teclado.
+     * conservados por compatibilidad se guarda solo el conjunto actualmente
+     * enfocado, en vez de una entrada booleana para cada boton de la pantalla.
      */
     private static void actualizarHoverVanilla(Screen pantalla, int mouseX, int mouseY) {
         if (!esSuperficieJobsActiva(pantalla)) return;
@@ -286,9 +301,12 @@ public final class EscuchaCliente {
             if (child.getClass().getName().startsWith("com.santipdr.jobsmenu.")) continue;
             boolean foco = boton.visible && boton.active
                     && (boton.isMouseOver(mouseX, mouseY) || boton.isFocused());
-            boolean anterior = Boolean.TRUE.equals(HOVER_VANILLA.put(boton, foco));
-            if (foco && !anterior) {
-                MezclaAudio.gesto(SonidosNivel.UI_PASAR, 0.22F);
+            if (foco) {
+                if (HOVER_VANILLA.add(boton)) {
+                    MezclaAudio.gesto(SonidosNivel.UI_PASAR, 0.22F);
+                }
+            } else {
+                HOVER_VANILLA.remove(boton);
             }
         }
     }
