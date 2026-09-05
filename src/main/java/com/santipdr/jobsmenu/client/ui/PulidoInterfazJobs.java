@@ -17,6 +17,8 @@ public final class PulidoInterfazJobs {
 
     private static final long ENTRADA_MS = 460L;
     private static final long AVISO_MS = 2100L;
+    private static final Component CAMBIO_GUARDADO =
+            Component.translatable("jobsmenu.interfaz.cambio_guardado");
     private static final Map<Screen, Long> APERTURAS = new WeakHashMap<>();
     private static long avisoHasta;
 
@@ -34,11 +36,11 @@ public final class PulidoInterfazJobs {
 
     public static void dibujar(Screen pantalla, GuiGraphics g, int mouseX, int mouseY) {
         if (pantalla == null || g == null) return;
+        long ahora = System.currentTimeMillis();
         marcoPantalla(g, pantalla.width, pantalla.height);
-        guiaJerarquia(g, pantalla);
-        foco(g, pantalla, mouseX, mouseY);
-        entrada(g, pantalla);
-        aviso(g, pantalla);
+        widgets(g, pantalla, mouseX, mouseY, ahora);
+        entrada(g, pantalla, ahora);
+        aviso(g, pantalla, ahora);
     }
 
     private static void marcoPantalla(GuiGraphics g, int w, int h) {
@@ -82,52 +84,18 @@ public final class PulidoInterfazJobs {
         }
     }
 
-    private static void guiaJerarquia(GuiGraphics g, Screen pantalla) {
-        if (pantalla.width < 220 || pantalla.height < 120) return;
-        int m = Math.max(6, Math.min(12, Math.min(pantalla.width, pantalla.height) / 28));
+    /** Cuenta jerarquia y pinta foco en un unico recorrido de children(). */
+    private static void widgets(GuiGraphics g, Screen pantalla, int mouseX, int mouseY, long ahora) {
         int activos = 0;
         int visibles = 0;
+        boolean animarFoco = !ConfigTurno.movimientoReducido() && !ConfigTurno.bajoConsumo();
+
         for (var child : pantalla.children()) {
-            if (child instanceof AbstractWidget w && w.visible) {
-                visibles++;
-                if (w.active) activos++;
-            }
-        }
+            if (!(child instanceof AbstractWidget w) || !w.visible) continue;
+            visibles++;
+            if (w.active) activos++;
+            if (!w.active) continue;
 
-        int maxPips = Math.min(9, visibles);
-        int start = pantalla.width - m - maxPips * 4;
-        for (int i = 0; i < maxPips; i++) {
-            boolean activo = i < Math.min(activos, maxPips);
-            int a = activo ? (i == 0 ? 0x2E : 0x1A) : 0x0D;
-            int base = activo ? Paleta.UI_ACENTO : Paleta.UI_TINTA_TENUE;
-            g.fill(start + i * 4, pantalla.height - m - 2,
-                    start + i * 4 + 2, pantalla.height - m,
-                    (a << 24) | (base & 0x00FFFFFF));
-        }
-
-        if (pantalla.width >= 360) {
-            int x = m + 18;
-            int y = pantalla.height - m - 2;
-            g.fill(x, y, x + 22, y + 1, Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.10F));
-            g.fill(x, y - 2, x + Math.min(22, 4 + activos * 2), y - 1,
-                    Paleta.conAlfa(Paleta.UI_ACENTO, 0.12F));
-        }
-    }
-
-    private static void esquina(GuiGraphics g, int x, int y, int l, int dx, int dy, int c) {
-        int x0 = dx > 0 ? x : x - l;
-        int y0 = dy > 0 ? y : y - l;
-        g.fill(x0, Math.min(y, y + dy), x0 + l, Math.max(y, y + dy), c);
-        g.fill(Math.min(x, x + dx), y0, Math.max(x, x + dx), y0 + l, c);
-        int px = dx > 0 ? x + 2 : x - 3;
-        int py = dy > 0 ? y + 2 : y - 3;
-        g.fill(px, py, px + 1, py + 1, Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.30F));
-    }
-
-    private static void foco(GuiGraphics g, Screen pantalla, int mouseX, int mouseY) {
-        long ahora = System.currentTimeMillis();
-        for (var child : pantalla.children()) {
-            if (!(child instanceof AbstractWidget w) || !w.visible || !w.active) continue;
             boolean raton = w.isMouseOver(mouseX, mouseY);
             boolean teclado = w.isFocused() && !raton;
             if (!raton && !teclado) continue;
@@ -137,7 +105,7 @@ public final class PulidoInterfazJobs {
             int ancho = w.getWidth();
             int alto = w.getHeight();
             float pulso = 1.0F;
-            if (teclado && !ConfigTurno.movimientoReducido() && !ConfigTurno.bajoConsumo()) {
+            if (teclado && animarFoco) {
                 pulso = 0.84F + 0.16F * (float) ((Math.sin(ahora / 300.0D) + 1.0D) * 0.5D);
             }
             int c = Paleta.conAlfa(teclado ? Paleta.UI_ACENTO_FUERTE : Paleta.UI_ACENTO,
@@ -170,16 +138,51 @@ public final class PulidoInterfazJobs {
                         Paleta.conAlfa(Paleta.UI_ACENTO, 0.13F));
             }
         }
+
+        dibujarJerarquia(g, pantalla, visibles, activos);
     }
 
-    private static void entrada(GuiGraphics g, Screen pantalla) {
+    private static void dibujarJerarquia(GuiGraphics g, Screen pantalla, int visibles, int activos) {
+        if (pantalla.width < 220 || pantalla.height < 120) return;
+        int m = Math.max(6, Math.min(12, Math.min(pantalla.width, pantalla.height) / 28));
+        int maxPips = Math.min(9, visibles);
+        int start = pantalla.width - m - maxPips * 4;
+        for (int i = 0; i < maxPips; i++) {
+            boolean activo = i < Math.min(activos, maxPips);
+            int a = activo ? (i == 0 ? 0x2E : 0x1A) : 0x0D;
+            int base = activo ? Paleta.UI_ACENTO : Paleta.UI_TINTA_TENUE;
+            g.fill(start + i * 4, pantalla.height - m - 2,
+                    start + i * 4 + 2, pantalla.height - m,
+                    (a << 24) | (base & 0x00FFFFFF));
+        }
+
+        if (pantalla.width >= 360) {
+            int x = m + 18;
+            int y = pantalla.height - m - 2;
+            g.fill(x, y, x + 22, y + 1, Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.10F));
+            g.fill(x, y - 2, x + Math.min(22, 4 + activos * 2), y - 1,
+                    Paleta.conAlfa(Paleta.UI_ACENTO, 0.12F));
+        }
+    }
+
+    private static void esquina(GuiGraphics g, int x, int y, int l, int dx, int dy, int c) {
+        int x0 = dx > 0 ? x : x - l;
+        int y0 = dy > 0 ? y : y - l;
+        g.fill(x0, Math.min(y, y + dy), x0 + l, Math.max(y, y + dy), c);
+        g.fill(Math.min(x, x + dx), y0, Math.max(x, x + dx), y0 + l, c);
+        int px = dx > 0 ? x + 2 : x - 3;
+        int py = dy > 0 ? y + 2 : y - 3;
+        g.fill(px, py, px + 1, py + 1, Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.30F));
+    }
+
+    private static void entrada(GuiGraphics g, Screen pantalla, long ahora) {
         if (Minecraft.getInstance().level != null) {
             APERTURAS.remove(pantalla);
             return;
         }
         Long abierta = APERTURAS.get(pantalla);
         if (abierta == null) return;
-        long dt = System.currentTimeMillis() - abierta;
+        long dt = ahora - abierta;
         if (dt < 0 || dt >= ENTRADA_MS) return;
         float t = dt / (float) ENTRADA_MS;
         float restante = 1.0F - t;
@@ -209,12 +212,11 @@ public final class PulidoInterfazJobs {
         }
     }
 
-    private static void aviso(GuiGraphics g, Screen pantalla) {
-        long restante = avisoHasta - System.currentTimeMillis();
+    private static void aviso(GuiGraphics g, Screen pantalla, long ahora) {
+        long restante = avisoHasta - ahora;
         if (restante <= 0L) return;
         Font font = Minecraft.getInstance().font;
-        Component texto = Component.translatable("jobsmenu.interfaz.cambio_guardado");
-        int tw = font.width(texto);
+        int tw = font.width(CAMBIO_GUARDADO);
         int w = Math.min(pantalla.width - 16, tw + 38);
         int x = pantalla.width - w - 8;
         int y = 8;
@@ -231,7 +233,7 @@ public final class PulidoInterfazJobs {
         g.fill(x + 4, y + 23, x + w - 4, y + 24, Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.18F * a));
         g.fill(x + 4, y + 23, x + 4 + Math.max(1, Math.round((w - 8) * progreso)), y + 24,
                 Paleta.conAlfa(Paleta.UI_ACENTO, 0.34F * a));
-        g.drawString(font, ChromeExpediente.ajustar(font, texto.getString(), w - 27),
+        g.drawString(font, ChromeExpediente.ajustar(font, CAMBIO_GUARDADO.getString(), w - 27),
                 x + 18, y + 8, Paleta.conAlfa(Paleta.ARCHIVO_TEXTO, 0.98F * a), false);
     }
 }
