@@ -72,13 +72,9 @@ tasks.named('processResources', ProcessResources).configure {
     }
 
     // Minecraft no hereda automaticamente es_uy/es_mx/etc. desde es_es: si el
-    // jugador selecciona Español (Uruguay), las claves propias que no existen
-    // en es_uy caen hasta en_us. Eso producia pantallas mitad español y mitad
-    // ingles ("Close file", "Notice settings", subtitulos ingleses...).
-    //
-    // Jobs usa una unica traduccion española neutral. La duplicamos solo en la
-    // salida del build para mantener una fuente de verdad y cubrir las variantes
-    // oficiales que aparecen en el selector de Minecraft.
+    // jugador selecciona Espanol (Uruguay), las claves propias que no existen
+    // en es_uy caen hasta en_us. Jobs usa una traduccion espanola neutral y la
+    // duplica solo en la salida para mantener una unica fuente de verdad.
     ['es_ar', 'es_cl', 'es_ec', 'es_mx', 'es_uy', 'es_ve'].each { codigo ->
         from('src/main/resources/assets/jobsmenu/lang/es_es.json') {
             into 'assets/jobsmenu/lang'
@@ -86,19 +82,17 @@ tasks.named('processResources', ProcessResources).configure {
         }
     }
 
-    // NOTA SOBRE LA MUSICA
-    //
-    // La pista de fabrica es el archivo original y versionado
-    // assets/jobsmenu/sounds/musica/defecto.ogg. No se copia material externo
-    // desde music/ durante el build: ese directorio conserva una referencia que
-    // requiere permiso antes de redistribuirse.
-    //
-    // Para una pista propia con licencia: reemplazar el .ogg de recursos por
-    // otro OGG Vorbis mono. El credito debe vivir en lang y solo habilitarse
-    // cuando la autoria y los derechos de distribucion esten confirmados.
+    // La musica distribuida ya vive dentro de assets. El build no descarga ni
+    // copia material externo desde music/.
 }
 
 tasks.named('jar', Jar).configure {
+    // Mismos archivos + mismo codigo deben producir un archivo estable. Los
+    // timestamps de entradas y del manifest hacian variar el hash sin que el
+    // mod hubiese cambiado.
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+
     manifest {
         attributes([
                 'Specification-Title'     : mod_id,
@@ -106,37 +100,19 @@ tasks.named('jar', Jar).configure {
                 'Specification-Version'   : '1',
                 'Implementation-Title'    : project.name,
                 'Implementation-Version'  : project.version,
-                'Implementation-Vendor'   : mod_authors,
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                'Implementation-Vendor'   : mod_authors
         ])
     }
     finalizedBy 'reobfJar'
 }
 
-// MEMORIA DE LA REOBFUSCACION
-//
-// reobfJar (ForgeGradle) NO corre dentro del daemon de Gradle: abre un proceso
-// Java aparte para la herramienta de reofuscacion, y ese proceso reserva por
-// defecto ~1/4 de la RAM fisica del equipo. En una PC con poca RAM o archivo de
-// paginacion chico, ese pedido (varios cientos de MB) no se puede comprometer y
-// el build muere con 'os::commit_memory ... failed (errno=1455)'. Bajarle el
-// heap al daemon no lo arregla, porque el que pide la memoria es este fork.
-//
-// reobfJar es un RenameJarInPlace (hereda de JarExec) y expone getJvmArgs(), que
-// se los pasa al proceso. Con un tope chico, el mod -que es minusculo-
-// reobfusca de sobra y no vuelve a pedir memoria que el sistema no tiene.
-//
-// Se configura en afterEvaluate porque ForgeGradle crea las tareas de reobf
-// tarde, durante la evaluacion: en el cuerpo del script todavia no existen, y
-// tasks.named('reobfJar') fallaria con "Task ... not found". Se recorre por tipo
-// para no depender del nombre exacto y no romper si algun dia cambia.
+// reobfJar abre un proceso Java separado. El tope evita reservas de memoria
+// desproporcionadas en equipos con poca RAM/archivo de paginacion.
 afterEvaluate {
     tasks.withType(net.minecraftforge.gradle.userdev.tasks.RenameJarInPlace).configureEach {
         it.getJvmArgs().set(['-Xmx384m', '-XX:+UseSerialGC'])
     }
 }
-
-
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
