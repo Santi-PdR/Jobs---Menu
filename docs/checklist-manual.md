@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.36.0
+# Checklist manual de aceptación — 0.37.0
 
 Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código, recursos y build; no certifica estética, input, audio perceptivo ni compatibilidad visual dentro de Minecraft.
 
@@ -6,7 +6,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.36.0.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.37.0.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Layout
@@ -81,8 +81,15 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 - [ ] `Ghoul Outbreak` no aparece.
 - [ ] el servidor oficial no se puede editar ni borrar desde Jobs.
 - [ ] Direct Connect/Add/Edit/Delete funcionan para las demás entradas.
+- [ ] seleccionar un servidor guardado y pulsar F5 mantiene seleccionado ese mismo servidor por IP.
+- [ ] el botón Actualizar también conserva la selección actual.
+- [ ] si no había servidor online seleccionado, la recarga no inventa selección.
 - [ ] F5 y Actualizar reconstruyen directamente Multijugador Jobs, sin flash ni pantalla Multiplayer vanilla intermedia.
-- [ ] F5 y Actualizar siguen detectando LAN, favicons, ping y MOTD correctamente después de la recarga.
+- [ ] el indicador inferior dice `F5 // ACTUALIZAR` / `F5 // REFRESH` según idioma y ya no muestra el literal `JOBS/SERVER`.
+- [ ] F5 reproduce un único gesto Jobs de alternar; clickear Actualizar conserva sólo el gesto normal del botón.
+- [ ] pulsar F5 repetidamente muy rápido no apila pantallas ni produce varias salidas/entradas perceptibles.
+- [ ] F5 y Actualizar siguen detectando LAN, favicons, ping y MOTD correctamente después de varias recargas.
+- [ ] una entrada LAN efímera puede reaparecer por el detector sin depender de una Entry anterior.
 - [ ] Cancelar durante conexión vuelve a la misma lista Jobs.
 - [ ] un error antes del login vuelve a la misma lista Jobs.
 - [ ] ESC vuelve al padre Jobs con una sola pulsación.
@@ -146,5 +153,5 @@ Si todo pasa:
 
 - [ ] conservar SHA-256 del JAR probado;
 - [ ] anotar resolución y GUI Scale;
-- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.36.0.jar`;
+- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.37.0.jar`;
 - [ ] reportar cualquier defecto visual con captura y `latest.log` cuando afecte recursos/audio/crash.
