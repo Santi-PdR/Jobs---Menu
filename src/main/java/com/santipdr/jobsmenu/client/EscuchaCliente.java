@@ -53,6 +53,7 @@ public final class EscuchaCliente {
 
     private static boolean presentado;
     private static boolean retornoDesdeJuego;
+    private static boolean retornoMultijugadorPendiente;
     private static final WeakHashMap<AbstractButton, Boolean> HOVER_VANILLA = new WeakHashMap<>();
     private static Screen pantallaHoverVanilla;
 
@@ -63,10 +64,11 @@ public final class EscuchaCliente {
 
         ConfigTurno.guardarPendiente();
 
-        boolean retornoMultijugador = siguiente instanceof JoinMultiplayerScreen;
+        boolean destinoMultijugador = siguiente instanceof JoinMultiplayerScreen
+                || siguiente != null && siguiente.getClass() == TitleScreen.class;
         boolean destinoRetorno = siguiente != null && (
                 siguiente.getClass() == TitleScreen.class
-                        || retornoMultijugador
+                        || siguiente instanceof JoinMultiplayerScreen
                         || siguiente.getClass().getName().equals(
                                 "net.minecraft.client.gui.screens.realms.RealmsMainScreen"));
         boolean flujoAdministrativo = SesionMenu.activa()
@@ -74,12 +76,13 @@ public final class EscuchaCliente {
                 || anterior instanceof PantallaEstancia
                 || anterior instanceof PantallaOpcionesJobs;
 
-        if (ConfigTurno.menuPropio() && retornoDesdeJuego && retornoMultijugador) {
-            retornoDesdeJuego = false;
+        if (ConfigTurno.menuPropio() && retornoDesdeJuego
+                && retornoMultijugadorPendiente && destinoMultijugador) {
+            limpiarRetornoJuego();
             siguiente = new PantallaMultijugadorJobs(new PantallaNivel());
             evento.setNewScreen(siguiente);
         } else if (ConfigTurno.menuPropio() && retornoDesdeJuego && destinoRetorno) {
-            retornoDesdeJuego = false;
+            limpiarRetornoJuego();
             siguiente = new PantallaNivel();
             evento.setNewScreen(siguiente);
         } else if (ConfigTurno.menuPropio()
@@ -111,7 +114,7 @@ public final class EscuchaCliente {
         }
 
         if (siguiente instanceof PantallaNivel) {
-            retornoDesdeJuego = false;
+            limpiarRetornoJuego();
         }
         if (ConfigTurno.menuPropio() && esPantallaPropia(siguiente)
                 && Minecraft.getInstance().level == null) {
@@ -198,13 +201,17 @@ public final class EscuchaCliente {
 
     @SubscribeEvent
     public static void alEntrarJuego(ClientPlayerNetworkEvent.LoggingIn evento) {
-        retornoDesdeJuego = false;
+        limpiarRetornoJuego();
         SesionMenu.cerrar();
     }
 
     @SubscribeEvent
     public static void alSalirJuego(ClientPlayerNetworkEvent.LoggingOut evento) {
+        Minecraft cliente = Minecraft.getInstance();
         retornoDesdeJuego = true;
+        // currentServer solo existe para una conexion multijugador remota. Se
+        // captura antes de que clearLevel borre el contexto y abra TitleScreen.
+        retornoMultijugadorPendiente = cliente.getCurrentServer() != null;
         SesionMenu.cerrar();
     }
 
@@ -286,6 +293,11 @@ public final class EscuchaCliente {
         if (siguiente == null || siguiente.getClass() != PauseScreen.class) return false;
         Component titulo = siguiente.getTitle();
         return titulo != null && Component.translatable("menu.game").equals(titulo);
+    }
+
+    private static void limpiarRetornoJuego() {
+        retornoDesdeJuego = false;
+        retornoMultijugadorPendiente = false;
     }
 
     private static void gesto(Screen anterior, Screen siguiente) {
