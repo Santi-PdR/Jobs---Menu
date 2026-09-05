@@ -7,8 +7,8 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Version actual | **0.36.0** |
-| Artefacto esperado | **`jobsmenu-0.36.0.jar`** |
+| Version actual | **0.37.0** |
+| Artefacto esperado | **`jobsmenu-0.37.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -45,6 +45,8 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 25. Un retorno desde servidor remoto nunca debe caer en Multiplayer o Title vanilla: conserva `PantallaMultijugadorJobs` como superficie contextual.
 26. Mientras exista un mundo o servidor cargado no se crea, registra ni dibuja ninguna animacion de transicion Jobs, incluida la entrada corta de `PulidoInterfazJobs`.
 27. Actualizar Multiplayer no crea una `JoinMultiplayerScreen` vanilla intermedia: reconstruye directamente la superficie Jobs con el mismo padre.
+28. F5/Actualizar conserva la IP del servidor seleccionado y restaura la selección después de reconstruir la lista; una Entry vieja nunca se reutiliza.
+29. `docs/README.md` separa documentación vigente de auditorías históricas; un documento viejo no redefine el contrato actual.
 
 ## 2. Identidad visual
 
@@ -57,18 +59,20 @@ Familias:
 
 La escena usa la paleta material/luz del nivel; la UI usa papel frio, grafito, gris verdoso y tinta neutra.
 
-## 3. Estado 0.36.0
+## 3. Estado 0.37.0
 
-0.36.0 corrige la ruta real de cierre de Multiplayer y convierte la ausencia de transiciones durante gameplay en un contrato absoluto.
+0.37.0 conserva los contratos de 0.35/0.36 y pule continuidad de selección, feedback de recarga, CI y documentación.
 
 ### Multiplayer
 
 - `PantallaMultijugadorJobs` guarda explicitamente su `pantallaPadre`;
-- ESC llega a `onClose()` desde la logica normal de `Screen`, pero `onClose()` ya no delega en `super.onClose()`;
+- ESC llega a `onClose()` desde la logica normal de `Screen`, pero `onClose()` no delega en `super.onClose()`;
 - Cancelar llama a la misma funcion `cerrarAlPadre()`;
 - `cerrarAlPadre()` aplica guard idempotente y hace `minecraft.setScreen(padreDestino())` una sola vez;
-- esto replica la intencion del boton Cancelar vanilla, que vuelve directamente a `lastScreen`, sin depender del stack de capas Forge;
-- F5/Actualizar usa `refrescarLista()` y crea directamente otra `PantallaMultijugadorJobs` con el mismo padre;
+- F5/Actualizar captura únicamente la IP del servidor online seleccionado, marca la pantalla saliente como cerrada y crea otra `PantallaMultijugadorJobs` con el mismo padre;
+- la nueva pantalla busca una Entry fresca con esa IP, la selecciona y ejecuta `onSelectedChange()` para sincronizar acciones vanilla;
+- nunca se conserva una referencia a una `ServerSelectionList.Entry` perteneciente a la lista anterior;
+- el atajo F5 emite `UI_ALTERNAR` Jobs y su indicador usa la traduccion de `selectServer.refresh`, no literales duros `JOBS/SERVER`;
 - conectar sigue usando esta pantalla como padre de `ConnectScreen`, por lo que Cancelar/error antes del login regresan a la lista Jobs.
 
 ### Gameplay sin transiciones
@@ -113,11 +117,11 @@ La escena usa la paleta material/luz del nivel; la UI usa papel frio, grafito, g
 
 ### Pie del menu principal
 
-- `CapaProfesionalJobs` ya no se renderiza sobre `PantallaNivel`.
+- `CapaProfesionalJobs` no se renderiza sobre `PantallaNivel`.
 - desaparecen del main los rotulos visibles `1-4`, `F`, `M`, `N`, `TAB` y `ENTER`;
 - los atajos siguen activos y no cambian sus callbacks;
 - las pantallas secundarias mantienen la instrumentacion contextual;
-- nombre y nota del nivel vuelven a dominar la zona inferior sin competir con una barra global.
+- nombre y nota del nivel dominan la zona inferior sin competir con una barra global.
 
 ### Catalogo visual 18-31
 
@@ -224,11 +228,12 @@ GitHub Actions verifica:
 3. PNG 10-17 y JPEG 18-31;
 4. auditoria estatica;
 5. contratos UI/musica;
-6. Forge build;
-7. JAR versionado;
-8. publicacion a `dev-latest` solo desde `main`.
+6. continuidad de Multiplayer y sincronizacion de documentacion vigente;
+7. Forge build;
+8. JAR versionado;
+9. publicacion a `dev-latest` solo desde `main`.
 
-CI no sustituye prueba visual. Despues del deploy revisar GUI Scale 2/3/4, fondos 18-31, movimiento reducido, Bajo consumo, audio, Multiplayer con ESC/Cancelar/F5 y ausencia total de transiciones mientras existe gameplay.
+CI no sustituye prueba visual. Despues del deploy revisar GUI Scale 2/3/4, fondos 18-31, movimiento reducido, Bajo consumo, audio, Multiplayer con ESC/Cancelar/F5, preservacion de seleccion al refrescar y ausencia total de transiciones mientras existe gameplay.
 
 ## 9. Despliegue
 
