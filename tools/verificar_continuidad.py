@@ -27,6 +27,7 @@ def main() -> None:
         "this.cerrando = true;",
         "new PantallaMultijugadorJobs(padreDestino(), seleccion)",
         'Component.translatable("selectServer.refresh")',
+        "if (this.minecraft != null && !this.cerrando)",
         "MezclaAudio.gesto(SonidosNivel.UI_ALTERNAR, 0.34F);",
     ):
         require(multiplayer, token, "PantallaMultijugadorJobs")
