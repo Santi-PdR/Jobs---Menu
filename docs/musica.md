@@ -1,4 +1,4 @@
-# Música — Jobs Menu 0.35.0
+# Música — Jobs Menu 0.36.0
 
 ## Catálogo empaquetado
 
@@ -23,9 +23,10 @@ En `Ajustes del aviso > Audio` se puede elegir **Aleatoria**, **Absurdism**, **R
 - `N` en el main solicita un cambio manual; no encadena otro mientras ya existe un crossfade.
 - `M` mantiene el mute global Jobs.
 - Options, Mods, Mundos, Multiplayer y Recursos no reinician la pista.
-- Transiciones, Suspensión y presencia aplican ducking.
+- Transiciones, Suspensión y presencia aplican ducking únicamente dentro del flujo de menú.
 - F3+T reconstruye de forma defensiva la sesión de audio.
 - Entrar a mundo/servidor aplica hard-stop inmediato a música y ambiente.
+- Desde 0.36.0 no se crean ni dibujan transiciones Jobs mientras existe un nivel cargado; esto no altera el hard-stop ni el feedback breve de UI permitido en pausa/configuración.
 
 ## Feedback de interfaz
 
@@ -46,7 +47,7 @@ Los controles vanilla preservados por compatibilidad sustituyen `minecraft:ui.bu
 5. Navegar por subpantallas: la música no reinicia.
 6. Probar `M`, F3+T y Alt+Tab.
 7. Entrar a un mundo/servidor: música y ambiente Jobs deben detenerse por completo.
-8. Abrir pausa/configuración Jobs dentro del mundo: click/hover Jobs pueden responder, pero música y ambiente deben seguir apagados.
-9. Abrir Video Settings, chat e inventario: no deben recibir sustitución de sonido Jobs.
+8. Abrir pausa/configuración Jobs dentro del mundo: click/hover Jobs pueden responder, pero música y ambiente deben seguir apagados y no debe aparecer ninguna transición de entrada/salida.
+9. Abrir Video Settings, chat e inventario: no deben recibir sustitución de sonido Jobs ni transición Jobs.
 
 Absurdism source 0.26: music/Absurdism-_slowed-piano-part-only_.ogg -> assets/jobsmenu/sounds/musica/defecto.ogg
