@@ -23,15 +23,16 @@ public final class PielVanillaJobs {
         if (pantalla == null || g == null) return;
         Font font = Minecraft.getInstance().font;
         boolean archivo = esArchivoOscuro(pantalla);
+        float contraste = ConfigTurno.altoContraste() ? 1.18F : 1.0F;
 
         for (var child : pantalla.children()) {
             if (child.getClass().getName().startsWith("com.santipdr.jobsmenu.")) continue;
             if (child instanceof AbstractButton boton && !(child instanceof AbstractSliderButton)) {
-                dibujarBoton(g, font, boton, mouseX, mouseY, archivo);
+                dibujarBoton(g, font, boton, mouseX, mouseY, archivo, contraste);
             } else if (child instanceof AbstractSliderButton slider) {
-                dibujarSlider(g, slider, mouseX, mouseY, archivo);
+                dibujarSlider(g, slider, mouseX, mouseY, archivo, contraste);
             } else if (child instanceof EditBox campo) {
-                dibujarCampo(g, campo, archivo);
+                dibujarCampo(g, campo, archivo, contraste);
             }
         }
     }
@@ -45,7 +46,7 @@ public final class PielVanillaJobs {
     }
 
     private static void dibujarSlider(GuiGraphics g, AbstractSliderButton slider,
-                                      int mouseX, int mouseY, boolean archivo) {
+                                      int mouseX, int mouseY, boolean archivo, float contraste) {
         if (!slider.visible) return;
         int x = slider.getX();
         int y = slider.getY();
@@ -58,7 +59,6 @@ public final class PielVanillaJobs {
         boolean foco = raton || teclado;
         int base = archivo ? Paleta.ARCHIVO_ACENTO : Paleta.UI_TINTA_TENUE;
         int texto = archivo ? Paleta.ARCHIVO_TEXTO : Paleta.UI_TINTA;
-        float contraste = ConfigTurno.altoContraste() ? 1.18F : 1.0F;
 
         g.fill(x + 2, y + h, x + w + 1, y + h + 2,
                 Paleta.conAlfa(Paleta.VANO, slider.active ? 0.14F : 0.07F));
@@ -111,7 +111,7 @@ public final class PielVanillaJobs {
     }
 
     private static void dibujarBoton(GuiGraphics g, Font font, AbstractButton boton,
-                                     int mouseX, int mouseY, boolean archivo) {
+                                     int mouseX, int mouseY, boolean archivo, float contraste) {
         if (!boton.visible) return;
         int x = boton.getX();
         int y = boton.getY();
@@ -122,7 +122,6 @@ public final class PielVanillaJobs {
         boolean raton = boton.active && boton.isMouseOver(mouseX, mouseY);
         boolean teclado = boton.active && boton.isFocused() && !raton;
         boolean foco = raton || teclado;
-        float contraste = ConfigTurno.altoContraste() ? 1.18F : 1.0F;
         int fondo;
         int bordeBase;
         int tinta;
@@ -135,9 +134,9 @@ public final class PielVanillaJobs {
             tinta = Paleta.ARCHIVO_TEXTO;
             tintaTenue = Paleta.ARCHIVO_TEXTO_TENUE;
         } else {
-            fondo = Paleta.mezclar(Paleta.papelAviso(), Paleta.UI_PAPEL_FOCO,
-                    foco ? 0.76F : 0.16F);
-            if (!boton.active) fondo = Paleta.mezclar(Paleta.VANO, Paleta.papelAviso(), 0.72F);
+            int papel = Paleta.papelAviso();
+            fondo = Paleta.mezclar(papel, Paleta.UI_PAPEL_FOCO, foco ? 0.76F : 0.16F);
+            if (!boton.active) fondo = Paleta.mezclar(Paleta.VANO, papel, 0.72F);
             bordeBase = Paleta.UI_TINTA_TENUE;
             tinta = Paleta.tintaPrincipal();
             tintaTenue = Paleta.tintaSecundaria();
@@ -216,7 +215,8 @@ public final class PielVanillaJobs {
         }
     }
 
-    private static void dibujarCampo(GuiGraphics g, EditBox campo, boolean archivo) {
+    private static void dibujarCampo(GuiGraphics g, EditBox campo,
+                                     boolean archivo, float contraste) {
         if (!campo.isVisible()) return;
         int x = campo.getX();
         int y = campo.getY();
@@ -227,7 +227,6 @@ public final class PielVanillaJobs {
         boolean foco = campo.isFocused();
         int base = archivo ? Paleta.ARCHIVO_ACENTO : Paleta.UI_TINTA_TENUE;
         int tinta = archivo ? Paleta.ARCHIVO_TEXTO_TENUE : Paleta.UI_TINTA;
-        float contraste = ConfigTurno.altoContraste() ? 1.18F : 1.0F;
         int borde = Paleta.conAlfa(base,
                 limitar((foco ? 0.88F : 0.48F) * contraste));
 
