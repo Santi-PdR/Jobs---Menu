@@ -1,5 +1,33 @@
 # Registro de cambios
 
+## 0.31.0 — Identidad sonora, pista fija y retorno multijugador — 2026-09-04
+
+### Sonidos de interfaz
+
+- Se elimina el fallback a `minecraft:ui.button.click`: click, hover, confirmación, volver, alternar y negado conservan siempre los OGG Jobs.
+- Los controles vanilla mantenidos por compatibilidad sustituyen su click mediante `PlaySoundEvent` mientras la sesión Jobs está activa.
+- Hover, confirmación, negado y volver reciben franjas de tono diferentes y variación mínima propia.
+- Si un registro aún no está listo, el gesto se omite de forma segura en lugar de sonar vanilla o provocar un crash.
+
+### Música
+
+- Audio incorpora un selector persistente: Aleatoria, Absurdism, REQUIEM o Upon the Hill V2.
+- Una pista fija entra con crossfade, no rota automáticamente y no es reemplazada por `N`.
+- Volver a Aleatoria conserva la pista actual y reactiva la rotación 2–4 minutos.
+- El selector convive con encendido, volumen, ambiente, gestos y créditos sin agrandar el panel.
+
+### Multijugador y ajustes
+
+- Conectar a un servidor usa `PantallaMultijugadorJobs` como padre real de `ConnectScreen`; Cancelar y los errores regresan a la lista multijugador, no al main.
+- El selector visual de `nivel_fijo` se corrige de 0–17 a 0–31.
+- Se amplían los verificadores y el checklist para cubrir los cuatro contratos.
+
+### Entrega
+
+- Versión: **0.31.0**.
+- Artefacto esperado: **`jobsmenu-0.31.0.jar`**.
+- Fondos, pistas y archivos OGG empaquetados permanecen intactos.
+
 ## 0.30.0 — Composición adaptativa del main — 2026-09-04
 
 ### Legibilidad y layout

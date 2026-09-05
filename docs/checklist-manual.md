@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.30.0
+# Checklist manual de aceptación — 0.31.0
 
 Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código, recursos y build; no certifica estética, input, audio perceptivo ni compatibilidad visual dentro de Minecraft.
 
@@ -6,7 +6,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.30.0.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.31.0.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Layout
@@ -64,7 +64,10 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 ## Música y sesión
 
 - [ ] en visitas distintas pueden iniciar Absurdism, REQUIEM o Upon the Hill V2.
-- [ ] N cambia mediante crossfade a una pista distinta.
+- [ ] Audio permite elegir Aleatoria, Absurdism, REQUIEM o Upon the Hill V2 y conserva la elección al reiniciar;
+- [ ] en modo fijo no hay rotación automática ni N rompe la selección;
+- [ ] N cambia mediante crossfade a una pista distinta cuando está en Aleatoria;
+- [ ] click, hover, toggles y sliders usan gestos Jobs, nunca `ui.button.click` vanilla.
 - [ ] pulsar N durante el crossfade no crea una tercera instancia.
 - [ ] el crédito visible corresponde a la pista dominante.
 - [ ] REQUIEM acredita `Emmy Z - Forsaken OST`.
@@ -96,7 +99,7 @@ Revisar todos: 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 y 31.
 - [ ] Bajo consumo congela completamente el fondo.
 - [ ] desactivar escena viva congela completamente el fondo.
 - [ ] volver a opciones normales recupera el movimiento sin saltos bruscos.
-- [ ] `nivel_fijo` permite seleccionar cualquier valor de 0 a 31.
+- [ ] `nivel_fijo` permite seleccionar cualquier valor de 0 a 31 también desde la interfaz de configuración.
 
 ## Nivel 1 · Depósito
 
@@ -109,5 +112,5 @@ Si todo pasa:
 
 - [ ] conservar SHA-256 del JAR probado;
 - [ ] anotar resolución y GUI Scale;
-- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.30.0.jar`;
+- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.31.0.jar`;
 - [ ] reportar cualquier defecto visual con captura y `latest.log` cuando afecte recursos/audio/crash.

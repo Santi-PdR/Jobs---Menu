@@ -35,6 +35,7 @@ public final class ConfigTurno {
     public final ForgeConfigSpec.IntValue volumenAmbiente;
     public final ForgeConfigSpec.IntValue volumenAviso;
     public final ForgeConfigSpec.BooleanValue musicaMenu;
+    public final ForgeConfigSpec.IntValue pistaMusica;
     public final ForgeConfigSpec.IntValue volumenMusica;
     public final ForgeConfigSpec.BooleanValue creditoMusica;
     public final ForgeConfigSpec.BooleanValue eventosAmbientales;
@@ -145,6 +146,10 @@ public final class ConfigTurno {
         this.musicaMenu = builder
                 .comment("Dejar sonando el tema del menu por debajo de todo lo demas.")
                 .define("musica_menu", true);
+
+        this.pistaMusica = builder
+                .comment("Pista del menu: 0 aleatoria, 1 Absurdism, 2 REQUIEM, 3 Upon the Hill V2.")
+                .defineInRange("pista_musica", 0, 0, 3);
 
         this.volumenMusica = builder
                 .comment("Volumen del tema del menu, de 0 a 100.")
@@ -269,6 +274,11 @@ public final class ConfigTurno {
 
     public static boolean musicaMenu() {
         return leer(INSTANCE.musicaMenu, true);
+    }
+
+    /** 0 aleatoria; 1 Absurdism; 2 REQUIEM; 3 Upon the Hill V2. */
+    public static int pistaMusica() {
+        return SPEC.isLoaded() ? INSTANCE.pistaMusica.get() : 0;
     }
 
     public static boolean creditoMusica() {
@@ -520,6 +530,10 @@ public final class ConfigTurno {
 
     public static void fijarMusicaMenu(boolean valor) {
         fijar(INSTANCE.musicaMenu, valor);
+    }
+
+    public static void fijarPistaMusica(int pista) {
+        fijar(INSTANCE.pistaMusica, Math.max(0, Math.min(3, pista)));
     }
 
     public static void fijarCreditoMusica(boolean valor) {

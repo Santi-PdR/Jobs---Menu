@@ -4,6 +4,7 @@ import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraftforge.registries.RegistryObject;
@@ -132,11 +133,46 @@ public final class MezclaAudio {
             }
             ultimoRoceNanos = ahora;
         }
-        float tono = 0.98F + (float) Math.random() * 0.04F;
-        SoundEvent sonido = resolver(evento, SoundEvents.UI_BUTTON_CLICK.value());
+        SoundEvent sonido = resolverPersonalizado(evento);
+        if (sonido == null) return;
+        float tono = tonoGesto(evento);
         Minecraft.getInstance().getSoundManager()
                 .play(SimpleSoundInstance.forUI(sonido, tono,
                         volumen * INTERFAZ * ConfigTurno.volumenAviso()));
+    }
+
+    /**
+     * Sustituye el click vanilla de controles que conservan logica nativa.
+     * Devuelve null si el registro aun no esta listo: es preferible silencio
+     * transitorio a romper la identidad con el clac de Minecraft.
+     */
+    public static SoundInstance reemplazoClickVanilla() {
+        SoundEvent sonido = resolverPersonalizado(SonidosNivel.UI_ELEGIR);
+        if (sonido == null) return null;
+        return SimpleSoundInstance.forUI(sonido, tonoGesto(SonidosNivel.UI_ELEGIR),
+                0.72F * INTERFAZ * ConfigTurno.volumenAviso());
+    }
+
+    /** Cada gesto ocupa una franja de tono propia, sin sonar mecanicamente repetido. */
+    private static float tonoGesto(RegistryObject<SoundEvent> evento) {
+        float azar = (float) Math.random();
+        if (evento == SonidosNivel.UI_PASAR) return 1.035F + azar * 0.035F;
+        if (evento == SonidosNivel.UI_CONFIRMAR) return 0.955F + azar * 0.025F;
+        if (evento == SonidosNivel.UI_NEGADO) return 0.915F + azar * 0.025F;
+        if (evento == SonidosNivel.UI_VOLVER || evento == SonidosNivel.UI_CERRAR) {
+            return 0.975F + azar * 0.025F;
+        }
+        return 0.990F + azar * 0.030F;
+    }
+
+    private static SoundEvent resolverPersonalizado(RegistryObject<SoundEvent> evento) {
+        if (evento != null && evento.isPresent()) return evento.get();
+        if (!avisoRegistroFaltante) {
+            avisoRegistroFaltante = true;
+            com.santipdr.jobsmenu.JobsMenu.LOG.warn(
+                    "[jobsmenu] Un gesto propio aun no esta registrado; se omite sin usar audio vanilla.");
+        }
+        return null;
     }
 
     /** Un sonido de ambiente suelto, sin posicion, con tono y volumen dados. */
@@ -152,9 +188,9 @@ public final class MezclaAudio {
      *
      * Un JAR viejo, un registro de otro entorno o una carga parcial de recursos
      * puede dejar un RegistryObject sin valor. get() lanza en ese caso, y el
-     * camino de dibujo de un widget no debe propagarlo. Los gestos conservan
-     * una respuesta vanilla; los consumidores que pasan null pueden omitir una
-     * capa ambiental sin inventar ruido.
+     * camino de dibujo de un widget no debe propagarlo. Los gestos de interfaz
+     * nunca usan audio vanilla; los otros consumidores conservan un respaldo
+     * seguro o pueden omitir una capa ambiental.
      */
     public static SoundEvent resolver(RegistryObject<SoundEvent> evento, SoundEvent respaldo) {
         if (evento != null && evento.isPresent()) {

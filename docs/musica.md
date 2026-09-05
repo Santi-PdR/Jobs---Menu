@@ -1,4 +1,4 @@
-# Música — Jobs Menu 0.25.0
+# Música — Jobs Menu 0.31.0
 
 ## Catálogo empaquetado
 
@@ -10,10 +10,14 @@ Los tres recursos de música usan `stream: true` en `sounds.json`. El build no d
 
 Las pistas musicales conservan mono/estéreo y 44,1/48 kHz según la fuente autorizada. Los sonidos de interfaz, ambiente y eventos mantienen el contrato mono 44,1 kHz.
 
+## Selección en configuración
+
+En `Ajustes del aviso > Audio` se puede elegir **Aleatoria**, **Absurdism**, **REQUIEM** o **Upon the Hill V2**. La elección se guarda en `pista_musica` (0–3). Una pista fija no rota automáticamente y la tecla `N` no la sustituye; al volver a Aleatoria se conserva la pista actual y se reactiva la rotación para el siguiente intervalo.
+
 ## Sesión
 
 - La música pertenece a `SesionMenu`, no a una Screen.
-- Una visita empieza en una pista aleatoria.
+- Una visita empieza en una pista aleatoria o en la pista fija elegida.
 - La siguiente pista se elige entre las otras dos, evitando repetir inmediatamente.
 - El cambio automático ocurre aproximadamente cada 2–4 minutos y usa crossfade.
 - `N` en el main solicita un cambio manual; no encadena otro mientras ya existe un crossfade.

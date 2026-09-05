@@ -28,10 +28,12 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.client.event.sound.PlaySoundEvent;
 import net.minecraftforge.client.gui.ModListScreen;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -147,6 +149,19 @@ public final class EscuchaCliente {
                     evento.getMouseX(), evento.getMouseY());
         }
         TransicionInterfazJobs.dibujar(pantalla, evento.getGuiGraphics());
+    }
+
+    /**
+     * Los controles vanilla que conservamos por compatibilidad no deben volver
+     * a introducir el click de fabrica en una interfaz Jobs.
+     */
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void alReproducirSonido(PlaySoundEvent evento) {
+        if (!SesionMenu.activa()) return;
+        if (!evento.getOriginalSound().getLocation()
+                .equals(SoundEvents.UI_BUTTON_CLICK.value().getLocation())) return;
+        evento.setSound(ConfigTurno.sonidoBotones()
+                ? MezclaAudio.reemplazoClickVanilla() : null);
     }
 
     @SubscribeEvent

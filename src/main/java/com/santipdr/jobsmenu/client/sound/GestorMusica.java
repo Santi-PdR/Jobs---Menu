@@ -46,6 +46,7 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
     private static int proximoCambio = CAMBIO_MIN_TICKS;
     private static int reintento;
     private static int marcador = -1;
+    private static int selectorVisto = -1;
 
     private final String idPista;
     private float actual;
@@ -95,6 +96,9 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
 
         Pista[] pistas = catalogo();
         if (pistas.length == 0) return;
+        int fijada = indiceFijado(pistas);
+        if (fijada >= 0) indiceActual = fijada;
+        selectorVisto = ConfigTurno.pistaMusica();
         indiceActual = Math.floorMod(indiceActual, pistas.length);
         principal = crear(pistas[indiceActual], 0.0F, 1.0F, RETARDO_INICIAL);
         Minecraft.getInstance().getSoundManager().play(principal);
@@ -118,6 +122,58 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         return MezclaAudio.resolver(pista.evento(), SoundEvents.MUSIC_MENU.value());
     }
 
+    private static int indiceFijado(Pista[] pistas) {
+        int seleccion = ConfigTurno.pistaMusica();
+        if (seleccion <= 0 || pistas.length == 0) return -1;
+        return Math.min(pistas.length - 1, seleccion - 1);
+    }
+
+    /**
+     * Aplica cambios del selector sin reiniciar el ambiente. Una pista fija
+     * entra por crossfade; volver a Aleatoria conserva la actual y reactiva la
+     * rotación para el siguiente intervalo.
+     */
+    private static void sincronizarSeleccion() {
+        int seleccion = ConfigTurno.pistaMusica();
+        if (seleccion == selectorVisto) return;
+        selectorVisto = seleccion;
+        ticksSesion = 0;
+        proximoCambio = CAMBIO_MIN_TICKS
+                + (int) (Math.random() * CAMBIO_VARIACION_TICKS);
+        if (seleccion <= 0) return;
+
+        Pista[] pistas = catalogo();
+        int objetivo = indiceFijado(pistas);
+        if (objetivo < 0) return;
+        Pista pista = pistas[objetivo];
+
+        if (viva(entrante) && entrante.idPista.equals(pista.id())) {
+            entrante.gananciaObjetivo = 1.0F;
+            if (viva(principal)) principal.gananciaObjetivo = 0.0F;
+            indiceActual = objetivo;
+            return;
+        }
+        if (viva(principal) && principal.idPista.equals(pista.id())) {
+            principal.gananciaObjetivo = 1.0F;
+            if (viva(entrante)) entrante.detener(true);
+            entrante = null;
+            indiceActual = objetivo;
+            return;
+        }
+        if (viva(entrante)) entrante.detener(true);
+        entrante = null;
+        if (viva(principal)) {
+            principal.gananciaObjetivo = 0.0F;
+            entrante = crear(pista, 0.0F, 1.0F, 0);
+            Minecraft.getInstance().getSoundManager().play(entrante);
+        } else {
+            principal = crear(pista, 0.0F, 1.0F, 0);
+            Minecraft.getInstance().getSoundManager().play(principal);
+        }
+        indiceActual = objetivo;
+        JobsMenu.LOG.info("[jobsmenu] Seleccion fija aplicada: {}.", pista.id());
+    }
+
     public static void atender() {
         if (reintento > 0) reintento--;
 
@@ -126,6 +182,7 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         if (!sesionMusical) return;
 
         cliente.getMusicManager().stopPlaying();
+        sincronizarSeleccion();
         asegurar();
         ticksSesion++;
 
@@ -163,9 +220,10 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         }
 
         Pista[] pistas = catalogo();
-        if (pistas.length <= 1) return;
+        boolean permiteRotacion = pistas.length > 1 && ConfigTurno.pistaMusica() == 0;
 
-        if (entrante == null && ticksSesion >= proximoCambio && viva(principal)) {
+        if (permiteRotacion && entrante == null
+                && ticksSesion >= proximoCambio && viva(principal)) {
             int siguiente = siguienteIndice(pistas);
             entrante = crear(pistas[siguiente], 0.0F, 1.0F, 0);
             principal.gananciaObjetivo = 0.0F;
@@ -194,7 +252,8 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
     /** Salta manualmente a otra pista sin repetir la actual. */
     public static boolean adelantarPista() {
         Pista[] pistas = catalogo();
-        if (pistas.length <= 1 || !SesionMenu.activa() || !ConfigTurno.musicaMenu()
+        if (pistas.length <= 1 || ConfigTurno.pistaMusica() != 0
+                || !SesionMenu.activa() || !ConfigTurno.musicaMenu()
                 || !viva(principal) || viva(entrante)) return false;
         int siguiente = siguienteIndice(pistas);
         entrante = crear(pistas[siguiente], 0.0F, 1.0F, 0);
@@ -213,7 +272,10 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         reintento = 0;
         marcador = -1;
         Pista[] pistas = catalogo();
-        indiceActual = pistas.length <= 1 ? 0 : (int) (Math.random() * pistas.length);
+        selectorVisto = ConfigTurno.pistaMusica();
+        int fijada = indiceFijado(pistas);
+        indiceActual = fijada >= 0 ? fijada
+                : (pistas.length <= 1 ? 0 : (int) (Math.random() * pistas.length));
         ticksSesion = 0;
         proximoCambio = CAMBIO_MIN_TICKS
                 + (int) (Math.random() * CAMBIO_VARIACION_TICKS);
@@ -232,6 +294,7 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
     public static void recursosRecargados() {
         detenerInstancias(true);
         marcador = -1;
+        selectorVisto = -1;
         reintento = 20;
         ticksSesion = 0;
     }
