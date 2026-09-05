@@ -54,6 +54,7 @@ public final class EscuchaCliente {
     private static boolean presentado;
     private static boolean retornoDesdeJuego;
     private static boolean retornoMultijugadorPendiente;
+    private static boolean enServidorRemoto;
     private static final WeakHashMap<AbstractButton, Boolean> HOVER_VANILLA = new WeakHashMap<>();
     private static Screen pantallaHoverVanilla;
 
@@ -202,6 +203,7 @@ public final class EscuchaCliente {
     @SubscribeEvent
     public static void alEntrarJuego(ClientPlayerNetworkEvent.LoggingIn evento) {
         limpiarRetornoJuego();
+        enServidorRemoto = Minecraft.getInstance().getCurrentServer() != null;
         SesionMenu.cerrar();
     }
 
@@ -209,9 +211,10 @@ public final class EscuchaCliente {
     public static void alSalirJuego(ClientPlayerNetworkEvent.LoggingOut evento) {
         Minecraft cliente = Minecraft.getInstance();
         retornoDesdeJuego = true;
-        // currentServer solo existe para una conexion multijugador remota. Se
-        // captura antes de que clearLevel borre el contexto y abra TitleScreen.
-        retornoMultijugadorPendiente = cliente.getCurrentServer() != null;
+        // Se usa tambien el estado capturado en ticks jugables por si otro mod
+        // limpia currentServer antes de que Forge entregue LoggingOut.
+        retornoMultijugadorPendiente = enServidorRemoto || cliente.getCurrentServer() != null;
+        enServidorRemoto = false;
         SesionMenu.cerrar();
     }
 
@@ -220,6 +223,9 @@ public final class EscuchaCliente {
         if (evento.phase != TickEvent.Phase.END) return;
         Minecraft cliente = Minecraft.getInstance();
         if (cliente.level != null || !ConfigTurno.menuPropio()) {
+            if (cliente.level != null) {
+                enServidorRemoto = cliente.getCurrentServer() != null;
+            }
             // Gameplay es frontera dura. Corta inmediatamente y no ejecuta
             // mantenimiento de audio del menu durante el resto de este tick.
             SesionMenu.cerrar();
