@@ -5,41 +5,21 @@ import com.santipdr.jobsmenu.config.ConfigTurno;
 /**
  * Decide en que nivel esta parado el menu y como se pasa de uno al siguiente.
  *
- * El cambio no es un fundido de postal. Aca la transicion es lo que le pasa a
- * cualquiera que se mueva entre niveles: los tubos se apagan, hay un momento en
- * que no hay nada, y cuando la luz vuelve el pasillo ya no es el mismo. Nadie
- * lo anuncia y nadie lo comenta.
- *
- * Todo se calcula desde el reloj del sistema, sin estado mutable. {@link Estado}
- * permite que un frame use exactamente el mismo instante para nivel, luz y
- * transicion; sin ese snapshot, una vuelta del reloj entre dos llamadas podia
- * mostrar la planta nueva con la luz del nivel anterior.
+ * Todo se calcula desde el reloj del sistema. Estado permite que renderer,
+ * audio y chrome compartan nivel, luz y transicion sin mezclar instantes.
  */
 public final class RotacionNiveles {
 
     private RotacionNiveles() {
     }
 
-    /** Duracion del apagon raro de La Suspension. */
     private static final long SUSPENSION_MS = 22_000L;
-
-    /**
-     * Ranuras largas para La Suspension. El desfase determinista de cada ranura
-     * evita que el evento parezca un temporizador exacto, sin guardar estado en
-     * disco ni en la pantalla.
-     */
     private static final long SUSPENSION_RANURA_MS = 48L * 60_000L;
     private static final long SUSPENSION_INICIO_MS = 22L * 60_000L;
     private static final long SUSPENSION_JITTER_MS = 3L * 60_000L + 30_000L;
     private static final long SUSPENSION_BORDE_MS = 1_500L;
-
-    /** Cuanto dura el apagon completo, de la primera falla a la luz firme. */
     private static final long TRANSICION_MS = 2_600L;
-
-    /** Parte de la transicion que se va en apagar el nivel viejo. */
     private static final float REPARTO_APAGADO = 0.42F;
-
-    /** Cuanto antes del corte empieza el pasillo a dar senales. */
     private static final long AVISO_MS = 1_400L;
 
     private static final float[][] AVISO_CHISPAZOS = {
@@ -52,36 +32,28 @@ public final class RotacionNiveles {
             {0.62F, 0.68F, 0.40F},
     };
 
-    /**
-     * Desplazamiento de la rotacion pedido a mano en esta sesion (tecla F en
-     * el aviso). No es configuracion: es una consulta al catalogo. Se suma al
-     * indice del ciclo y perdura hasta que el jugador vuelva a pedir otro.
-     */
+    /** Desplazamiento de la rotacion pedido a mano en esta sesion. */
     private static int desplazamiento;
 
     /** Instante del ultimo salto manual, o Long.MIN_VALUE si todavia no hubo. */
     private static long ultimoSalto = Long.MIN_VALUE;
 
     /**
-     * Adelanta un nivel el recinto que se muestra, con su apagon incluido.
-     *
-     * Es la unica forma de recorrer el catalogo sin esperar al ciclo: el
-     * cambio respeta la ventana de transicion (luz, chispazos y sonido salen
-     * del mismo estado) y no salta la escena en seco.
+     * Renderer, tres camas, musica y chrome pueden pedir el mismo estado dentro
+     * del mismo milisegundo. Compartir ese record elimina calculos/asignaciones
+     * duplicadas sin introducir una ventana temporal nueva: al cambiar el reloj
+     * un solo milisegundo el estado se vuelve a calcular.
      */
+    private static long instanteCache = Long.MIN_VALUE;
+    private static Estado estadoCache;
+
+    /** Adelanta un nivel conservando la ventana de apagon del salto manual. */
     public static void adelantar() {
         desplazamiento++;
         ultimoSalto = System.currentTimeMillis();
+        invalidarCache();
     }
 
-    /**
-     * Estado inmutable de la rotacion en un instante concreto.
-     *
-     * No guarda una referencia global: cada frame captura uno y lo pasa por el
-     * renderer. El reloj de sonidos puede seguir consultando los metodos
-     * estaticos porque sus disparos son eventos puntuales, pero la imagen ya no
-     * mezcla dos lecturas de System.currentTimeMillis().
-     */
     public record Estado(int indice, Nivel nivel, float luz, long ahora, long dentro,
                           long estancia, boolean rotacion, boolean suspension,
                           float avanceSuspension, long cicloSuspension) {
@@ -90,12 +62,10 @@ public final class RotacionNiveles {
             return this.rotacion && this.dentro >= this.estancia;
         }
 
-        /** La Suspension esta activa en este instante. */
         public boolean enSuspension() {
             return this.suspension;
         }
 
-        /** Avance 0..1 dentro del apagon raro, para diagnostico y audio. */
         public float avanceSuspension() {
             return this.avanceSuspension;
         }
@@ -112,6 +82,17 @@ public final class RotacionNiveles {
     /** Captura nivel, luz y posicion de la transicion con una sola lectura. */
     public static Estado capturar() {
         long ahora = System.currentTimeMillis();
+        Estado cache = estadoCache;
+        if (cache != null && instanteCache == ahora) {
+            return cache;
+        }
+        Estado calculado = calcular(ahora);
+        instanteCache = ahora;
+        estadoCache = calculado;
+        return calculado;
+    }
+
+    private static Estado calcular(long ahora) {
         if (!ConfigTurno.rotarNiveles()) {
             int indice = ConfigTurno.nivelFijo();
             return new Estado(indice, Nivel.porIndice(indice), 1.0F, ahora,
@@ -125,16 +106,10 @@ public final class RotacionNiveles {
         int indice = (int) (reloj / ciclo);
         long dentro = reloj % ciclo;
 
-        // El salto sucede cuando vuelve la luz: el jugador no llega a ver
-        // geometria nueva completamente iluminada antes de que termine el corte.
         if (dentro >= estancia + (long) (TRANSICION_MS * REPARTO_APAGADO)) {
             indice = (indice + 1) % Nivel.cantidad();
         }
 
-        // Salto manual (tecla F): el indice pedido se suma a la rotacion, y
-        // durante la primera transicion la luz se fuerza dentro de la ventana
-        // de apagado para que el cambio suene y se vea como un traslado de
-        // verdad, no como un corte seco a plena luz.
         if (desplazamiento != 0) {
             indice = Math.floorMod(indice + desplazamiento, Nivel.cantidad());
             if (ultimoSalto != Long.MIN_VALUE) {
@@ -160,7 +135,11 @@ public final class RotacionNiveles {
                 dentro, estancia, true, suspension, avanceSuspension, cicloSuspension);
     }
 
-    /** Indice del nivel que se esta mostrando ahora mismo. */
+    private static void invalidarCache() {
+        instanteCache = Long.MIN_VALUE;
+        estadoCache = null;
+    }
+
     public static int indiceActual() {
         return capturar().indice();
     }
@@ -200,14 +179,6 @@ public final class RotacionNiveles {
         return Math.max(0.0F, Math.min(1.0F, luz));
     }
 
-    /**
-     * Inicio determinista de la Suspension de una ranura.
-     *
-     * Cada ranura dura 48 minutos y el inicio se mueve hasta 3 minutos y medio
-     * dentro de ella. La separacion entre dos eventos queda aproximadamente
-     * entre 45 y 52 minutos, pero no hay un contador que pueda desincronizarse
-     * al redimensionar la pantalla o entrar en Opciones.
-     */
     private static long inicioSuspension(long ciclo) {
         long mezcla = ciclo * 0x9E3779B97F4A7C15L + 0xD1B54A32D192ED03L;
         mezcla ^= mezcla >>> 30;
@@ -219,7 +190,6 @@ public final class RotacionNiveles {
         return ciclo * SUSPENSION_RANURA_MS + SUSPENSION_INICIO_MS + jitter;
     }
 
-    /** Luz monotona y sin parpadeos durante el apagon raro. */
     private static float luzSuspension(float avance) {
         if (avance <= 0.0F) {
             return 1.0F;
@@ -262,7 +232,6 @@ public final class RotacionNiveles {
         return chispazoActual(capturar());
     }
 
-    /** Chispazo visible en el estado que ya capturo el renderer. */
     public static int chispazoActual(Estado estado) {
         if (!estado.rotacion() || estado.enSuspension() || ConfigTurno.destellosReducidos()) {
             return -1;
@@ -362,11 +331,6 @@ public final class RotacionNiveles {
         return ConfigTurno.rotarNiveles();
     }
 
-    /**
-     * La estancia del nivel, configurable (15 a 90 s) y con la rotacion en
-     * calma al doble. Antes eran dos constantes; ahora el jugador decide el
-     * ritmo y "en calma" sigue siendo el doble de lo que elija.
-     */
     private static long estanciaMs() {
         long base = ConfigTurno.duracionEstancia() * 1_000L;
         return ConfigTurno.rotacionCalma() ? base * 2L : base;

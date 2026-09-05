@@ -27,6 +27,16 @@ import java.util.Locale;
 public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
 
     private static final String SERVIDOR_IP = "JobsDosh.exaroton.me:56477";
+    private static final Component TITULO = Component.translatable("jobsmenu.interfaz.multijugador.titulo");
+    private static final Component SUBTITULO = Component.translatable("jobsmenu.interfaz.multijugador.subtitulo");
+    private static final Component SERVIDOR_OFICIAL = Component.translatable("jobsmenu.servidor.oficial");
+    private static final Component FIJADO = Component.translatable("jobsmenu.servidor.fijado");
+    private static final Tooltip TOOLTIP_PROTEGIDO =
+            Tooltip.create(Component.translatable("jobsmenu.tooltip.servidor.protegido"));
+    private static final Tooltip TOOLTIP_EDITAR =
+            Tooltip.create(Component.translatable("jobsmenu.tooltip.servidor.editar"));
+    private static final Tooltip TOOLTIP_ELIMINAR =
+            Tooltip.create(Component.translatable("jobsmenu.tooltip.servidor.eliminar"));
 
     private final Screen pantallaPadre;
     private final String servidorPreferido;
@@ -34,6 +44,13 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
     private BotonExpediente select, edit, delete, refresh;
     private int panelX, panelY, panelW, panelH;
     private boolean cerrando;
+    private boolean seleccionOficial;
+    private boolean tooltipInicializado;
+    private boolean tooltipOficial;
+    private String oficialVisible = "";
+    private String ipVisible = SERVIDOR_IP;
+    private String ayudaF5 = "F5";
+    private int anchoFijado;
 
     public PantallaMultijugadorJobs(Screen anterior) {
         this(anterior, null);
@@ -48,6 +65,7 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
     @Override
     protected void init() {
         this.cerrando = false;
+        this.tooltipInicializado = false;
         super.init();
         this.panelX = 12;
         this.panelY = 8;
@@ -73,14 +91,26 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
                 lista.updateSize(this.width, this.height, top, bottom);
             }
         }
+        prepararRotulos();
         crearBotones();
+    }
+
+    private void prepararRotulos() {
+        int tarjetaW = Math.max(1, this.panelW - 36);
+        int reservado = tarjetaW > 340 ? 150 : 30;
+        this.oficialVisible = ChromeExpediente.ajustar(this.font, SERVIDOR_OFICIAL.getString(),
+                Math.max(8, tarjetaW - reservado));
+        this.ipVisible = ChromeExpediente.ajustar(this.font, SERVIDOR_IP, Math.max(40, tarjetaW - 70));
+        this.ayudaF5 = "F5  //  " + Component.translatable("selectServer.refresh")
+                .getString().toUpperCase(Locale.ROOT);
+        this.anchoFijado = this.font.width(FIJADO);
     }
 
     private void asegurarServidorOficial() {
         ServerList servidores = this.getServers();
         if (servidores == null) return;
 
-        String nombre = Component.translatable("jobsmenu.servidor.oficial").getString();
+        String nombre = SERVIDOR_OFICIAL.getString();
         boolean oficialConservado = false;
         for (int i = servidores.size() - 1; i >= 0; i--) {
             ServerData dato = servidores.get(i);
@@ -215,17 +245,17 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
 
     private void sincronizarEstados() {
         boolean oficial = servidorOficialSeleccionado();
+        this.seleccionOficial = oficial;
         if (this.select != null) this.select.active = this.realSelect != null && this.realSelect.active;
         if (this.edit != null) this.edit.active = !oficial && this.realEdit != null && this.realEdit.active;
         if (this.delete != null) this.delete.active = !oficial && this.realDelete != null && this.realDelete.active;
         if (this.refresh != null) this.refresh.active = !this.cerrando;
-        if (oficial) {
-            Component ayuda = Component.translatable("jobsmenu.tooltip.servidor.protegido");
-            if (this.edit != null) this.edit.setTooltip(Tooltip.create(ayuda));
-            if (this.delete != null) this.delete.setTooltip(Tooltip.create(ayuda));
-        } else {
-            if (this.edit != null) this.edit.setTooltip(Tooltip.create(Component.translatable("jobsmenu.tooltip.servidor.editar")));
-            if (this.delete != null) this.delete.setTooltip(Tooltip.create(Component.translatable("jobsmenu.tooltip.servidor.eliminar")));
+
+        if (!this.tooltipInicializado || this.tooltipOficial != oficial) {
+            this.tooltipInicializado = true;
+            this.tooltipOficial = oficial;
+            if (this.edit != null) this.edit.setTooltip(oficial ? TOOLTIP_PROTEGIDO : TOOLTIP_EDITAR);
+            if (this.delete != null) this.delete.setTooltip(oficial ? TOOLTIP_PROTEGIDO : TOOLTIP_ELIMINAR);
         }
     }
 
@@ -264,56 +294,44 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
 
         ListasExpediente.renderarBarras(this, g);
         ChromeExpediente.reemplazarCabeceraArchivo(g, this.font,
-                Component.translatable("jobsmenu.interfaz.multijugador.titulo"),
-                Component.translatable("jobsmenu.interfaz.multijugador.subtitulo"),
-                panelX, panelY, panelW);
+                TITULO, SUBTITULO, panelX, panelY, panelW);
 
         int tarjetaX = panelX + 18;
         int tarjetaY = panelY + 47;
         int tarjetaW = Math.max(1, panelW - 36);
         int tarjetaH = 24;
-        boolean seleccionOficial = servidorOficialSeleccionado();
         int fondo = Paleta.mezclar(Paleta.ARCHIVO_SUPERFICIE,
-                Paleta.ARCHIVO_SUPERFICIE_FOCO, seleccionOficial ? 0.72F : 0.20F);
+                Paleta.ARCHIVO_SUPERFICIE_FOCO, this.seleccionOficial ? 0.72F : 0.20F);
         g.fill(tarjetaX, tarjetaY, tarjetaX + tarjetaW, tarjetaY + tarjetaH, fondo);
         g.fill(tarjetaX, tarjetaY, tarjetaX + Math.min(3, tarjetaW), tarjetaY + tarjetaH,
-                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, seleccionOficial ? 0.92F : 0.62F));
+                Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, this.seleccionOficial ? 0.92F : 0.62F));
         g.fill(tarjetaX + 6, tarjetaY + 5, tarjetaX + 12, tarjetaY + 11,
                 Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.68F));
         g.fill(tarjetaX + 8, tarjetaY + 11, tarjetaX + 10, tarjetaY + 17,
                 Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.44F));
 
-        String oficialTxt = Component.translatable("jobsmenu.servidor.oficial").getString();
-        int reservado = tarjetaW > 340 ? 150 : 30;
-        String oficialVisible = ChromeExpediente.ajustar(this.font, oficialTxt,
-                Math.max(8, tarjetaW - reservado));
-        g.drawString(this.font, oficialVisible, tarjetaX + 18, tarjetaY + 5,
+        g.drawString(this.font, this.oficialVisible, tarjetaX + 18, tarjetaY + 5,
                 Paleta.conAlfa(Paleta.ARCHIVO_TEXTO, 0.94F), false);
 
         if (tarjetaW > 220) {
-            String ipVisible = ChromeExpediente.ajustar(this.font, SERVIDOR_IP, Math.max(40, tarjetaW - 70));
-            g.drawString(this.font, ipVisible, tarjetaX + 18, tarjetaY + 14,
+            g.drawString(this.font, this.ipVisible, tarjetaX + 18, tarjetaY + 14,
                     Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.62F), false);
         }
 
-        Component fijado = Component.translatable("jobsmenu.servidor.fijado");
-        int fw = this.font.width(fijado);
-        if (tarjetaW > fw + 170) {
-            int fx = tarjetaX + tarjetaW - fw - 10;
+        if (tarjetaW > this.anchoFijado + 170) {
+            int fx = tarjetaX + tarjetaW - this.anchoFijado - 10;
             g.fill(fx - 6, tarjetaY + 5, tarjetaX + tarjetaW - 5, tarjetaY + 17,
-                    Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, seleccionOficial ? 0.18F : 0.10F));
-            g.drawString(this.font, fijado, fx, tarjetaY + 7,
+                    Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, this.seleccionOficial ? 0.18F : 0.10F));
+            g.drawString(this.font, FIJADO, fx, tarjetaY + 7,
                     Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.82F), false);
         }
 
         int ruleY = this.height - 74;
         g.fill(panelX + 18, ruleY, panelX + panelW - 18, ruleY + 1,
                 Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.16F));
-        String ayuda = "F5  //  " + Component.translatable("selectServer.refresh")
-                .getString().toUpperCase(Locale.ROOT);
-        int aw = this.font.width(ayuda);
+        int aw = this.font.width(this.ayudaF5);
         if (panelW > aw + 80) {
-            g.drawString(this.font, ayuda, panelX + panelW - aw - 22, ruleY + 4,
+            g.drawString(this.font, this.ayudaF5, panelX + panelW - aw - 22, ruleY + 4,
                     Paleta.conAlfa(Paleta.ARCHIVO_TEXTO_TENUE, 0.52F), false);
         }
     }

@@ -5,13 +5,7 @@ import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 import net.minecraft.client.gui.GuiGraphics;
 
-/**
- * Tratamiento final comun a todos los recintos.
- *
- * No cambia la geometria de ninguna Planta. Agrega profundidad atmosferica,
- * rebote de luz sobre el suelo, humedad y un grano minimo para evitar que las
- * superficies grandes se lean como rectangulos planos.
- */
+/** Tratamiento final comun a los recintos procedurales. */
 public final class TratamientoEscena {
 
     private TratamientoEscena() {
@@ -20,46 +14,37 @@ public final class TratamientoEscena {
     public static void dibujar(GuiGraphics g, int ancho, int alto,
                                Nivel nivel, float luz, float tiempo,
                                boolean movimiento) {
-        profundidad(g, ancho, alto, nivel, luz);
-        reboteSuelo(g, ancho, alto, nivel, luz, tiempo);
-        humedad(g, ancho, alto, nivel, luz, tiempo, movimiento);
-        // El grano es un punteado por fotograma pensado para pantallas
-        // normales; en bajo consumo no aporta lo que cuesta.
-        if (movimiento && !ConfigTurno.destellosReducidos()
-                && !ConfigTurno.bajoConsumo()) {
+        boolean ahorro = ConfigTurno.bajoConsumo();
+        profundidad(g, ancho, alto, nivel, luz, ahorro);
+        reboteSuelo(g, ancho, alto, nivel, luz, tiempo, ahorro);
+        humedad(g, ancho, alto, nivel, luz, tiempo, movimiento, ahorro);
+        if (movimiento && !ConfigTurno.destellosReducidos() && !ahorro) {
             grano(g, ancho, alto, nivel, luz, tiempo);
         }
     }
 
-    /**
-     * Niebla leve en el tercio lejano: separa fondo, medio y primer plano.
-     *
-     * Es la UNICA pasada atmosferica de profundidad del renderer. Antes
-     * DireccionArte repintaba una sombra y un halo alrededor del mismo punto
-     * de fuga, y el centro del cuadro quedaba doblemente ahogado; el halo de
-     * color de identidad de cada nivel se traslado aca.
-     */
-    private static void profundidad(GuiGraphics g, int ancho, int alto, Nivel nivel, float luz) {
+    private static void profundidad(GuiGraphics g, int ancho, int alto,
+                                    Nivel nivel, float luz, boolean ahorro) {
         int centroX = (int) (ancho * nivel.fugaX);
         int centroY = (int) (alto * nivel.fugaY);
         int radioX = Math.max(28, ancho / 5);
         int radioY = Math.max(18, alto / 5);
+        int capas = ahorro ? 3 : 6;
 
-        for (int i = 6; i >= 1; i--) {
-            float t = i / 6.0F;
+        for (int i = capas; i >= 1; i--) {
+            float t = i / (float) capas;
             int rx = (int) (radioX * t);
             int ry = (int) (radioY * t);
-            float alfa = 0.010F * (7 - i) * luz;
+            float alfa = 0.060F * (capas + 1 - i) / capas * luz;
             int color = Paleta.conAlfa(nivel.niebla, alfa);
             g.fill(centroX - rx, centroY - ry, centroX + rx, centroY + ry, color);
         }
 
-        // Halo de color lejano (antes en DireccionArte): mantiene la identidad
-        // cromatica de cada nivel sin sumar otra capa de oscuridad.
         int haloW = Math.max(20, ancho / 5);
         int haloH = Math.max(12, alto / 7);
-        for (int i = 4; i >= 0; i--) {
-            float a = (0.010F + i * 0.006F) * luz;
+        int halos = ahorro ? 3 : 5;
+        for (int i = halos - 1; i >= 0; i--) {
+            float a = (0.010F + i * (ahorro ? 0.010F : 0.006F)) * luz;
             int x0 = centroX - haloW - i * 9;
             int x1 = centroX + haloW + i * 9;
             int y0 = centroY - haloH - i * 5;
@@ -69,15 +54,14 @@ public final class TratamientoEscena {
         }
     }
 
-    /** Rebote vertical muy tenue ligado al material del suelo de cada nivel. */
     private static void reboteSuelo(GuiGraphics g, int ancho, int alto,
-                                    Nivel nivel, float luz, float tiempo) {
+                                    Nivel nivel, float luz, float tiempo, boolean ahorro) {
         float fuerza = (0.018F + nivel.reflejo * 0.050F) * luz;
         float respiracion = Trazo.pulsoLuz(0.92F, 0.08F, tiempo, 0.37F, nivel.clave.hashCode());
         fuerza *= respiracion;
 
         int inicio = (int) (alto * 0.62F);
-        int bandas = 8;
+        int bandas = ahorro ? 4 : 8;
         for (int i = 0; i < bandas; i++) {
             float t = i / (float) bandas;
             int y0 = inicio + (alto - inicio) * i / bandas;
@@ -87,14 +71,15 @@ public final class TratamientoEscena {
         }
     }
 
-    /** Condensacion y reflejo horizontal solo donde la humedad del nivel lo justifica. */
     private static void humedad(GuiGraphics g, int ancho, int alto,
-                                Nivel nivel, float luz, float tiempo, boolean movimiento) {
+                                Nivel nivel, float luz, float tiempo,
+                                boolean movimiento, boolean ahorro) {
         if (nivel.humedad < 0.35F) {
             return;
         }
 
         int lineas = 3 + Math.round(nivel.humedad * 4.0F);
+        if (ahorro) lineas = Math.max(2, (lineas + 1) / 2);
         for (int i = 0; i < lineas; i++) {
             float base = Trazo.pseudo(nivel.clave.hashCode() + i * 19);
             float deriva = movimiento ? (float) Math.sin(tiempo * (0.08F + i * 0.011F) + i) * 0.015F : 0.0F;
@@ -107,7 +92,6 @@ public final class TratamientoEscena {
         }
     }
 
-    /** Textura subpixel muy escasa; no es ruido de TV ni filtro visible. */
     private static void grano(GuiGraphics g, int ancho, int alto,
                               Nivel nivel, float luz, float tiempo) {
         int fase = (int) (tiempo * 4.0F);

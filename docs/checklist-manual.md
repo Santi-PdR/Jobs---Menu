@@ -1,12 +1,12 @@
-# Checklist manual de aceptación — 0.37.0
+# Checklist manual de aceptación — 0.38.0
 
-Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código, recursos y build; no certifica estética, input, audio perceptivo ni compatibilidad visual dentro de Minecraft.
+Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código, recursos y build; no certifica estética, input, audio perceptivo, FPS ni compatibilidad visual dentro de Minecraft.
 
 ## Preparación
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.37.0.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.38.0.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Layout
@@ -22,6 +22,24 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 - [ ] el crédito musical se oculta de forma limpia en ventanas compactas y no sale de pantalla;
 - [ ] una pista sin autor no deja una segunda línea vacía;
 - [ ] volumen muestra porcentaje, los tiempos muestran segundos y nivel/pista no muestran porcentajes falsos.
+
+## Optimización 0.38.0
+
+- [ ] Mundos, Mods, Resource Packs, Idioma y Multiplayer con listas largas se sienten fluidos al mover ratón, hacer scroll y cambiar foco;
+- [ ] cada lista muestra una sola scrollbar Jobs por frame, sin doble borde, parpadeo ni grosor variable;
+- [ ] rueda, click y drag de scrollbar siguen perteneciendo a la lista vanilla/Forge y funcionan normalmente;
+- [ ] abrir/cerrar/reabrir varias pantallas no deja scrollbar, foco o selección de una Screen anterior;
+- [ ] alternar repetidamente entre pantallas Jobs no acumula hover fantasma ni sonidos repetidos;
+- [ ] con Bajo consumo desactivado la composición procedural conserva el acabado normal anterior;
+- [ ] con Bajo consumo activado la escena sigue legible y estable aunque use menos bandas/capas;
+- [ ] comparar una escena procedural 0–9 con Bajo consumo ON/OFF y confirmar que OFF mantiene mayor fineza de vignette/profundidad;
+- [ ] después de mostrar fondos 10–31, pulsar F3+T y confirmar que vuelven a cargar con filtrado correcto, sin morado/negro ni aspecto pixelado inesperado;
+- [ ] varias recargas de recursos consecutivas no degradan ni duplican el tratamiento de las texturas;
+- [ ] el aviso administrativo sigue rotando en el intervalo configurado y no queda congelado por la caché de texto;
+- [ ] si se prueba una ventana especial de fecha/hora, aparece igual que antes;
+- [ ] la luz/transición de nivel y las camas de audio permanecen sincronizadas pese al snapshot compartido de `RotacionNiveles`;
+- [ ] Alto contraste sigue afectando botones, sliders y campos vanilla tematizados en toda la Screen;
+- [ ] navegación rápida Main → Options → Mods → Recursos → volver no deja elementos o datos visuales de la pantalla anterior.
 
 ## Video Settings vanilla
 
@@ -85,7 +103,7 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 - [ ] el botón Actualizar también conserva la selección actual.
 - [ ] si no había servidor online seleccionado, la recarga no inventa selección.
 - [ ] F5 y Actualizar reconstruyen directamente Multijugador Jobs, sin flash ni pantalla Multiplayer vanilla intermedia.
-- [ ] el indicador inferior dice `F5 // ACTUALIZAR` / `F5 // REFRESH` según idioma y ya no muestra el literal `JOBS/SERVER`.
+- [ ] el indicador inferior dice `F5 // ACTUALIZAR` / `F5 // REFRESH` según idioma y no muestra `JOBS/SERVER`.
 - [ ] F5 reproduce un único gesto Jobs de alternar; clickear Actualizar conserva sólo el gesto normal del botón.
 - [ ] pulsar F5 repetidamente muy rápido no apila pantallas ni produce varias salidas/entradas perceptibles.
 - [ ] F5 y Actualizar siguen detectando LAN, favicons, ping y MOTD correctamente después de varias recargas.
@@ -153,5 +171,5 @@ Si todo pasa:
 
 - [ ] conservar SHA-256 del JAR probado;
 - [ ] anotar resolución y GUI Scale;
-- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.37.0.jar`;
-- [ ] reportar cualquier defecto visual con captura y `latest.log` cuando afecte recursos/audio/crash.
+- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.38.0.jar`;
+- [ ] reportar cualquier defecto visual, sonoro o de rendimiento con captura y `latest.log` cuando afecte recursos/audio/crash.

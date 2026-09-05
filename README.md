@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 
 | Campo | Valor |
 |---|---|
-| Version | **0.37.0** |
-| Artefacto | **`jobsmenu-0.37.0.jar`** |
+| Version | **0.38.0** |
+| Artefacto | **`jobsmenu-0.38.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,15 +13,24 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 | Rama entregable | **`main`** |
 | Niveles | **32 (0-31)** |
 
-## 0.37.0 · Continuidad de Multiplayer y documentación ordenada
+## 0.38.0 · Optimización global
 
-- F5/Actualizar conserva la IP del servidor seleccionado y la vuelve a seleccionar después de reconstruir la lista Jobs; ya no obliga a buscar de nuevo la misma entrada.
-- La recarga queda protegida por el mismo guard idempotente del cierre, evitando que varias pulsaciones rápidas encolen pantallas nuevas.
-- F5 recibe feedback sonoro Jobs propio; el pequeño indicador de recarga usa la traducción vanilla de `selectServer.refresh` en vez de texto duro `JOBS/SERVER`.
-- Escape y Cancelar mantienen el padre Jobs directo de 0.36.0 y conectar sigue usando esta pantalla como padre real de `ConnectScreen`.
-- Se añade un verificador específico de continuidad/documentación al pipeline y un índice `docs/README.md` que separa contrato vigente de auditorías históricas.
-- `CHANGELOG.md` recupera las entradas faltantes 0.35.0 y 0.36.0 y queda sincronizado con 0.37.0.
-- La frontera de gameplay no cambia: no hay transiciones, música ni ambiente Jobs durante un mundo/servidor; Video Settings sigue vanilla.
+0.38.0 es una pasada de rendimiento y mantenimiento sobre el mod completo sin ampliar su alcance a gameplay.
+
+- Las listas vanilla/Forge tematizadas ya no recorren por reflection todos los fields de la Screen en cada frame: los fields se descubren una vez por clase y las listas se cachean sólo mientras la pantalla está viva.
+- Las scrollbars Jobs quedan deduplicadas por frame aunque una Screen propia y `Render.Post` pidan dibujarlas en la misma pasada.
+- El lifecycle libera la caché de listas al cerrar una pantalla y el seguimiento de hover vanilla conserva sólo los botones actualmente enfocados.
+- Los fondos de imagen aplican filtrado lineal una vez por objeto de textura; F3+T vuelve a aplicarlo automáticamente sólo si Minecraft crea otra textura.
+- La nota administrativa reutiliza el `Component` mientras no cambia de aviso y resuelve fechas especiales como máximo una vez por minuto.
+- `PulidoInterfazJobs` comparte un único reloj por pasada y combina conteo de jerarquía + foco en un solo recorrido de widgets.
+- Los consumidores de escena/audio comparten el mismo snapshot de `RotacionNiveles` cuando lo solicitan dentro del mismo milisegundo.
+- Multiplayer precalcula rótulos y reutiliza tooltips en vez de reconstruirlos continuamente durante render.
+- `PielVanillaJobs` resuelve Alto contraste una sola vez por pasada de piel.
+- **Bajo consumo** reduce de verdad draw calls en viñeta, profundidad, rebote y humedad; el modo normal mantiene la misma composición.
+- El JAR se genera con orden reproducible y sin timestamps variables en sus entradas/manifest.
+- `tools/verificar_optimizacion.py` impide que estos caminos calientes vuelvan silenciosamente al comportamiento anterior.
+
+Los contratos de 0.35–0.37 permanecen: retorno contextual de servidor, F5 con selección por IP, sonido Jobs, cero transiciones durante gameplay y Video Settings completamente vanilla.
 
 ## Fondos 18-31
 
@@ -89,13 +98,13 @@ Nombre localizado: `Jobs Official Server` / `Servidor oficial de Jobs`.
 
 ## Build y entrega
 
-GitHub Actions ejecuta Java 17, politica de version, validacion de fondos, verificadores estaticos, contratos UI/musica, continuidad de Multiplayer/documentacion y Forge build. Solo `main` verde publica `dev-latest`.
+GitHub Actions ejecuta Java 17, politica de version, validacion de fondos, verificadores estaticos, contratos UI/musica, continuidad de Multiplayer/documentacion, contratos de optimizacion y Forge build. Solo `main` verde publica `dev-latest`.
 
 El test normal instala el JAR certificado en:
 
 `C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods`
 
-El pipeline no sustituye una prueba visual dentro de Minecraft; GUI Scale, audio, navegacion y fondos deben revisarse manualmente despues del deploy.
+El pipeline no sustituye una prueba visual dentro de Minecraft; GUI Scale, audio, navegacion, fondos y Bajo consumo deben revisarse manualmente despues del deploy.
 
 ## Documentacion
 
@@ -103,6 +112,7 @@ El pipeline no sustituye una prueba visual dentro de Minecraft; GUI Scale, audio
 - [`CONTEXTO.md`](CONTEXTO.md): contrato maestro vigente.
 - [`CHANGELOG.md`](CHANGELOG.md): historial de versiones.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y pruebas pendientes.
+- [`docs/AUDITORIA_0.38.0_OPTIMIZACION_GLOBAL.md`](docs/AUDITORIA_0.38.0_OPTIMIZACION_GLOBAL.md): alcance técnico de esta pasada.
 - [`docs/FONDOS_18_31.md`](docs/FONDOS_18_31.md): catalogo de recursos.
 - [`docs/checklist-manual.md`](docs/checklist-manual.md): prueba dentro de Minecraft.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): instalacion certificada.

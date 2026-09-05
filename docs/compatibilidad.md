@@ -1,4 +1,4 @@
-# Compatibilidad y despliegue — 0.37.0
+# Compatibilidad y despliegue — 0.38.0
 
 ## Perfil soportado
 
@@ -8,248 +8,107 @@
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente; el servidor no necesita Jobs Menu |
-| Versión del mod | **0.37.0** |
-| Artefacto | `build/libs/jobsmenu-0.37.0.jar` |
+| Versión del mod | **0.38.0** |
+| Artefacto | `build/libs/jobsmenu-0.38.0.jar` |
 
-Jobs Menu distingue entre **pantallas que controla**, **pantallas vanilla cuya lógica conserva** y **pantallas de otros mods que debe respetar**. La compatibilidad tiene prioridad sobre una reimplementación cosmética frágil.
+Jobs distingue entre pantallas propias, pantallas vanilla/Forge cuya lógica debe conservar y pantallas de otros mods que debe respetar. Compatibilidad y accesibilidad tienen prioridad sobre una reimplementación cosmética frágil.
 
-## Regla de sustitución
+## Frontera menú / gameplay
 
-Las redirecciones principales se hacen por **clase exacta**.
+Las sustituciones principales siguen siendo por clase exacta. Title, pausa, Options, Multiplayer, Mundos y Mods pueden entrar al flujo Jobs cuando corresponde. Una subclase de otro mod no se reemplaza automáticamente sólo por herencia.
 
-- `TitleScreen` vanilla puede convertirse en `PantallaNivel`.
-- La pausa real vanilla puede convertirse en `PantallaEstancia`.
-- `OptionsScreen` vanilla dentro del flujo Jobs puede convertirse en `PantallaOpcionesJobs`.
-- `JoinMultiplayerScreen` vanilla dentro del flujo Jobs puede convertirse en `PantallaMultijugadorJobs`.
-- `SelectWorldScreen` vanilla puede envolverse como `PantallaMundosJobs` conservando la lista/previews originales.
-- `ModListScreen` de Forge puede envolverse como `PantallaModsJobs` conservando su panel, búsqueda y acciones.
+Con un mundo o servidor cargado no existe transición Jobs. `usaTransicionJobs()` rechaza gameplay, login/logout/tick cancelan residuos, el render no dibuja `TransicionInterfazJobs` y `PulidoInterfazJobs.notificarApertura()` no se registra. Pausa/Config Jobs pueden conservar tema y feedback breve; chat, inventario, contenedores, Video Settings y pantallas de gameplay no Jobs quedan fuera.
 
-Una subclase de otro mod no se sustituye automáticamente sólo por heredar de estas clases. El retorno desde gameplay es una excepción contextual: cuando Jobs sabe que acaba de salir de un servidor remoto, un destino vanilla de Title o Multiplayer se reconduce a `PantallaMultijugadorJobs`.
+El hard-stop de música/ambiente sigue separado del feedback corto de interfaz: un click/hover permitido en Pausa/Config Jobs no abre `SesionMenu`.
 
-## Frontera entre menú y gameplay
+## Video Settings vanilla
 
-Fuera de gameplay, las transiciones sólo se notifican cuando el origen o el destino es una pantalla propia de Jobs. Si el cambio no pertenece a ese flujo, la transición pendiente se cancela.
+`PantallaOpcionesJobs` abre `VideoSettingsScreen` directamente. Jobs no reconstruye opciones, no mueve listas, no oculta Done, no dibuja chrome/transiciones/hover Jobs y también excluye sustitutos conocidos de Embeddium/Sodium por nombre de clase. Oculus/addons siguen siendo responsabilidad de sus propias integraciones.
 
-**Con un mundo o servidor cargado no existe ninguna animación de transición Jobs.** Desde 0.36.0 la frontera tiene varias compuertas deliberadamente redundantes:
+## Listas vanilla/Forge — optimización 0.38.0
 
-- `usaTransicionJobs()` rechaza cualquier transición si `Minecraft.level != null`;
-- login, logout y el tick de gameplay cancelan una transición pendiente;
-- el render no ejecuta `TransicionInterfazJobs.dibujar()` durante gameplay;
-- `PulidoInterfazJobs.notificarApertura()` no se registra durante gameplay, por lo que desaparece también su animación corta de entrada.
+`ListasExpediente` mantiene `AbstractSelectionList` como fuente de verdad para contenido, selección, wheel, click, drag y scroll. Jobs sólo dibuja una capa visual sobre la scrollbar real.
 
-La pausa Jobs y sus pantallas propias de configuración siguen tematizadas y pueden conservar foco/feedback de UI, pero aparecen directamente sobre el juego, sin barrido ni fundido. Cualquier pantalla no Jobs con un mundo cargado queda además fuera del postprocesado global. Esto incluye chat, inventario, contenedores y pantallas de gameplay de otros mods: no reciben piel, banda contextual, transición ni reemplazo de clicks.
+Antes de 0.38.0 el helper recorría por reflection toda la jerarquía de fields en cada render y construía colecciones temporales repetidamente. Ahora:
 
-El feedback corto de interfaz está separado del lifecycle musical: una pantalla propia Jobs puede reemplazar clicks vanilla y emitir hover aun con un mundo cargado, pero eso no reactiva `SesionMenu`, música ni camas ambientales.
+- los fields compatibles se descubren una vez por clase y se guardan en `CAMPOS_LISTA_POR_CLASE`;
+- las instancias de lista se resuelven una vez para la Screen viva;
+- `estilizar()` invalida la cache porque `init()`/resize pueden reconstruir widgets;
+- `ScreenEvent.Closing` libera la referencia a la Screen y sus listas;
+- `Render.Pre` inicia una deduplicación por frame;
+- si una Screen propia y `Render.Post` solicitan la scrollbar en el mismo frame, sólo la primera llamada la dibuja;
+- si reflection defensiva no puede resolver una lista modificada, Jobs no altera la lógica interna ni inventa hitboxes.
 
-## Options y Config Jobs
+Esto reduce trabajo en Mundos, Multiplayer, Mods, Resource Packs, Idioma y cualquier otra pantalla Jobs con `AbstractSelectionList`, sin reemplazar la implementación vanilla/Forge.
 
-`PantallaOpcionesJobs` es un hub propio. La configuración del mod aparece como acción principal diferenciada de las opciones Minecraft.
+## Controles vanilla tematizados
 
-`PantallaAjustesAviso` es también una pantalla propia: ya no usa `OptionsList`/`OptionInstance` como interfaz visible. Sus cinco categorías escriben directamente sobre `ConfigTurno` mediante widgets Jobs.
+`PielVanillaJobs` dibuja papel/tinta, foco, slider y campos sobre controles reales sin cambiar callbacks, listeners, validación o hitboxes. En 0.38.0 Alto contraste se consulta una sola vez por pasada de piel y se comparte entre todos los widgets de esa Screen.
 
-Las dos entradas válidas son:
+El seguimiento sonoro de hover usa un set débil que contiene sólo botones actualmente hover/focused. Al cerrar la Screen se limpia su estado; widgets Jobs propios siguen excluidos para evitar doble `UI_PASAR`.
 
-- Options → Config Jobs;
-- **Mods → Jobs Menu → Config**.
+## Render y escena
 
-Ambas abren la misma implementación.
+### Fondos 10–17
 
-## Pantallas vanilla preservadas
+Son PNG estáticos por contrato permanente. No reciben zoom, paneo, respiración, parallax, flicker, niebla móvil ni deformación.
 
-Se conserva la lógica de Minecraft/Forge en:
+### Fondos 18–31
 
-- Sonido;
-- Video vanilla;
-- Chat;
-- Accesibilidad;
-- Mouse;
-- Teclas;
-- Online;
-- Resource Packs;
-- Seleccionar mundo;
-- Mods de Forge;
-- diálogos de servidor y confirmación cuando conviene.
+Son JPG directos 1920×1080 con cover y respiración de cámara muy leve/desactivable. `PlantaImagen` valida el recurso una vez con `NativeImage` y mantiene fallback procedural ante fallo.
 
-Las envolturas ejecutan primero la lógica original. Jobs retira fondos/bandas cuando es seguro, reserva espacio para su chrome y desactiva botones `Done` duplicados cuando los sustituye.
+Desde 0.38.0 el filtrado lineal ya no se vuelve a configurar en cada frame. Se guarda la identidad del `AbstractTexture`; `setFilter(true, false)` sólo se ejecuta cuando aparece un objeto de textura nuevo. Por eso F3+T/resource reload vuelve a aplicar el filtro automáticamente sin mantener referencias a un objeto viejo.
 
-## `PielVanillaJobs` y feedback preservado
+### Bajo consumo
 
-Durante una sesión Jobs, pantallas auxiliares cuyo paquete pertenece a `net.minecraft.*` pueden recibir una capa visual posterior al render:
+Bajo consumo ahora reduce trabajo de render además de desactivar movimiento caro:
 
-- botones de papel/tinta;
-- estados hover/foco visibles;
-- borde administrativo en campos de texto.
+- vignette usa bandas más anchas;
+- profundidad procedural usa menos capas;
+- rebote de suelo usa menos bandas;
+- humedad usa menos líneas;
+- grano/presencia/motas/movimiento siguen obedeciendo sus guardas anteriores.
 
-Los botones y sliders vanilla que siguen vivos por compatibilidad reciben además `UI_PASAR` una sola vez al entrar con ratón o foco de teclado. Sus clicks `ui.button.click` se sustituyen por `UI_ELEGIR` en cualquier superficie Jobs válida. Los widgets Jobs propios se excluyen de ese seguimiento para no duplicar sus sonidos.
+Con Bajo consumo desactivado se conservan las cantidades de capas del modo normal anterior.
 
-La capa **no cambia**:
+## Estado compartido de escena/audio
 
-- hitboxes;
-- listeners;
-- validación;
-- foco;
-- protocolo;
-- datos de la pantalla.
+Renderer, chrome, música y varias camas pueden solicitar `RotacionNiveles.capturar()` casi simultáneamente. 0.38.0 reutiliza el mismo `Estado` únicamente cuando las consultas caen en el mismo milisegundo. Al siguiente milisegundo se recalcula normalmente y `adelantar()` invalida el cache de inmediato.
 
-Por eso Direct Connect, Add Server y confirmaciones pueden verse integrados sin duplicar su lógica.
+La optimización no cambia estancias, transiciones, Suspensión, nivel fijo, crossfades ni hard-stop; sólo evita records/cálculos equivalentes repetidos y alinea consumidores simultáneos al mismo snapshot.
 
-Las pantallas de terceros no reciben `PielVanillaJobs`; como máximo reciben la banda contextual general durante una visita de menú sin gameplay.
+## Multiplayer
 
-## Scrollbar Jobs
+`PantallaMultijugadorJobs` conserva `ServerSelectionList`, servers.dat, ping, MOTD, favicons, LAN y acciones vanilla.
 
-`ListasExpediente` conserva `AbstractSelectionList` como fuente de verdad para posición, wheel, click, drag y tamaño del contenido.
+ESC y Cancelar convergen en `cerrarAlPadre()` con guard idempotente. F5/Actualizar transporta únicamente la IP de una entrada online seleccionada, crea una pantalla/lista nueva y busca una Entry fresca con la misma IP. Las entradas LAN no se fuerzan porque pertenecen al detector nuevo.
 
-Después del render vanilla, Jobs cubre la barra gris y dibuja sobre el mismo hitbox cuando puede resolver los datos internos:
+Desde 0.38.0 los rótulos que dependen sólo del tamaño/idioma de la Screen se preparan durante `init()` y los tooltips protegido/editar/eliminar se reutilizan; ya no se crean Components/Tooltips equivalentes en cada render. Esto no cambia botones ni permisos del servidor oficial.
 
-- canaleta de archivador;
-- topes;
-- marcas de recorrido;
-- tirador proporcional;
-- agarres internos.
+Servidor fijado único: `JobsDosh.exaroton.me:56477`. `Ghoul Outbreak` no debe reaparecer.
 
-La integración usa reflection defensiva con nombres SRG. Si no puede resolverse una lista modificada, se conserva una scrollbar utilizable/fallback en vez de abortar o inventar coordenadas.
+## Resource Packs, idioma y recarga
 
-## Video Settings vanilla y mods de rendimiento
+Idioma y Resource Packs usan las recargas reales de Minecraft. `RecargaRecursosCliente` sigue invalidando audio asociado a un SoundEngine anterior. Variantes `es_ar`, `es_cl`, `es_ec`, `es_mx`, `es_uy`, `es_ve` se generan desde `es_es` durante `processResources`.
 
-`PantallaOpcionesJobs` abre directamente `VideoSettingsScreen`. Jobs no reconstruye páginas de Embeddium, no mueve la lista, no oculta Done y no dibuja pieles, marcos, transiciones ni feedback de hover/click encima.
+Después de F3+T se deben comprobar tanto audio como fondos de imagen: una nueva textura debe recuperar el filtro lineal y una nueva sesión de sonido no debe dejar instancias huérfanas.
 
-Si Embeddium, Oculus u otro addon modifica la clase vanilla por sus propios mecanismos, Jobs no interfiere. Esa integración debe probarse en el modpack real porque pertenece al otro mod.
+## Build reproducible
 
-## Fondos PNG 10–17
+El `Jar` usa `preserveFileTimestamps = false` y `reproducibleFileOrder = true`. Se retiró `Implementation-Timestamp`, que introducía una diferencia de manifest basada sólo en la hora de build.
 
-Los fondos 10–17 son **estáticos por requisito permanente**.
-
-No reciben zoom, paneo, respiración, parallax, flicker, niebla móvil, scanline animada, motas, presencia ni tratamientos globales que desplacen la imagen.
-
-`ChromeExpediente` puede dibujar elementos estáticos de interfaz delante/alrededor del documento; eso no altera el PNG.
-
-Los apagones/transiciones de Nivel continúan fuera de gameplay porque representan el estado general del menú. `tools/verificar_fondos.py` y `NativeImage` siguen validando los recursos.
-
-## Accesibilidad
-
-La familia Jobs respeta:
-
-- movimiento reducido;
-- destellos reducidos;
-- alto contraste;
-- texto grande;
-- papel limpio;
-- guía de lectura;
-- bajo consumo;
-- perfil accesible.
-
-La Guía de accesibilidad vanilla no se mantiene como botón inferior dentro de `PantallaAccesibilidadJobs`, porque Jobs ya proporciona su propio cierre y ese botón duplicado provocaba solape.
-
-Movimiento reducido simplifica microinteracciones y transiciones del menú. Los PNG 10–17 permanecen estáticos con cualquier combinación de ajustes. Durante gameplay las transiciones de pantalla Jobs están deshabilitadas independientemente de estos perfiles.
-
-## Resource Packs e idioma
-
-Idioma y paquetes usan la recarga real de recursos de Minecraft. `RecargaRecursosCliente` invalida referencias de música/ambiente asociadas a un `SoundEngine` anterior.
-
-`es_ar`, `es_cl`, `es_ec`, `es_mx`, `es_uy` y `es_ve` reutilizan el catálogo Jobs `es_es` durante `processResources`; esto evita que variantes españolas queden con cadenas propias del mod en inglés.
-
-Probar ES ↔ EN, Español (Uruguay), F3+T, aplicar/quitar packs y volver al menú sin duplicados de audio. Resource Packs usa archivo oscuro y no debe dejar dirt ni generar un paquete musical Jobs.
-
-## Multijugador
-
-`PantallaMultijugadorJobs` conserva `ServerSelectionList`, ping, MOTD, favicons, LAN y las acciones de seleccionar, conexión directa, añadir, editar y borrar sobre la lógica real de Minecraft.
-
-### ESC y Cancelar
-
-La corrección 0.36.0 deja de asumir que `super.onClose()` equivale al botón Cancelar vanilla. En Minecraft/Forge 1.20.1 no es así: el botón Cancelar de `JoinMultiplayerScreen` vuelve directamente a `lastScreen`, mientras `Screen.onClose()` usa `popGuiLayer()`.
-
-Jobs guarda por ello su propio `pantallaPadre` y hace que:
-
-- ESC → `onClose()` → `cerrarAlPadre()`;
-- botón Cancelar → `cerrarAlPadre()`;
-- `cerrarAlPadre()` aplique un guard idempotente y llame una sola vez a `minecraft.setScreen(padreDestino())`;
-- no exista una llamada real a `super.onClose();` en esa ruta.
-
-Así ambas acciones terminan exactamente en el mismo padre Jobs sin depender del stack de capas Forge.
-
-### Actualizar/F5
-
-Desde 0.37.0 Actualizar/F5 reconstruye directamente Jobs **sin perder la selección de un servidor guardado**:
-
-- `ipSeleccionada()` extrae únicamente la IP del `OnlineServerEntry` seleccionado;
-- antes de `setScreen()` se activa `cerrando`, de modo que una segunda pulsación no puede encolar otra reconstrucción sobre la misma pantalla;
-- la nueva `PantallaMultijugadorJobs` recibe padre + IP, no una referencia a la Entry anterior;
-- después de `updateOnlineServers`, `restaurarSeleccionPreferida()` recorre las Entries nuevas y selecciona la que tenga la misma IP;
-- `onSelectedChange()` sincroniza los estados vanilla tras la restauración;
-- una entrada LAN efímera no se fuerza artificialmente porque depende del nuevo ciclo del detector LAN;
-- no existe una `JoinMultiplayerScreen` vanilla intermedia;
-- F5 por teclado emite `UI_ALTERNAR`; el botón Actualizar conserva su propio gesto de click y `refrescarLista()` no añade un segundo sonido;
-- el indicador inferior reutiliza la traducción vanilla `selectServer.refresh` y ya no contiene el literal `JOBS/SERVER`.
-
-`init()` sigue recreando `servers.dat`, detector LAN, pinger y widgets reales. La preservación por IP mejora continuidad sin acoplar objetos de listas distintas.
-
-La cabecera **Puestos de acceso** reserva una tarjeta para `JobsDosh.exaroton.me:56477`. El servidor se guarda con nombre localizado, se deduplica por IP, se mueve al primer renglón y no permite Edit/Delete desde los botones Jobs. La migración retira `Ghoul Outbreak` y entradas que suplanten el nombre oficial con otra IP; Jobs es el único servidor instalado automáticamente por el mod.
-
-`ConnectScreen` se abre con `PantallaMultijugadorJobs` como padre. Cancelar o fallar antes del login vuelve a esa misma lista.
-
-Para una sesión ya conectada, Jobs memoriza durante los ticks jugables si `Minecraft#getCurrentServer()` indica servidor remoto y vuelve a comprobarlo en `LoggingOut`. Forge dispara `LoggingOut` antes de continuar la limpieza de nivel, de modo que el contexto se captura aunque la desconexión vanilla termine después en `TitleScreen`. Si el retorno era remoto, tanto Title como `JoinMultiplayerScreen` se reconducen a una nueva `PantallaMultijugadorJobs` con `PantallaNivel` como padre. Un mundo local continúa al main Jobs.
-
-Los diálogos auxiliares pueden recibir `PielVanillaJobs`, pero siguen usando la lógica original.
-
-## Selector de mundos y Mods
-
-`PantallaMundosJobs` conserva `SelectWorldScreen`: previews, selección y operaciones vanilla siguen siendo responsabilidad de Minecraft. Jobs lo presenta como **Archivo de turnos**, reubica el buscador y elimina bandas/fondos que rompían continuidad.
-
-`PantallaModsJobs` conserva `ModListScreen` de Forge: búsqueda, orden, logos, panel de información, Config y carpeta de mods permanecen intactos. El render blanco fijo se atenúa con gris neutro sin reimplementar el registro de mods ni amarillear sus recursos.
-
-## Audio y lifecycle
-
-La visita al menú mantiene continuidad de música y camas ambientales al navegar. Abrir Options, Config, Sonido, Mods o una pantalla hija no debe reiniciar el recinto.
-
-La música se distribuye dentro del JAR. `LimpiezaRecursosLegados` sólo retira el antiguo `resourcepacks/jobsmenu-musica-activa`; Jobs no crea un pack nuevo.
-
-Los eventos de login/logout y el tick defensivo con nivel activo detienen inmediatamente música y camas. No hay cola ni fundido audible dentro de un mundo o servidor. Los gestos breves de UI son independientes de ese lifecycle: en pausa/configuración Jobs pueden sonar sin abrir una visita ni mantener camas.
-
-Al abandonar un mundo local, Title/Realms se reconduce a `PantallaNivel`. Al abandonar un servidor remoto, Title o Multiplayer se reconducen a `PantallaMultijugadorJobs`. Una pantalla de desconexión puede conservar antes su mensaje y, al continuar, cae en la lista Jobs.
+Esto mejora estabilidad del binario, aunque el hash publicado sigue dependiendo también de ForgeGradle/reobf y las herramientas exactas del runner. El SHA-256 de `dev-latest` es la autoridad para instalar.
 
 ## Instancia de referencia
 
-```text
-C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\
-```
+`C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\`
 
-El JAR de esta entrega debe quedar únicamente como:
+JAR esperado:
 
-```text
-C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.37.0.jar
-```
+`C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.38.0.jar`
 
-No se mantiene un `.ps1` dentro del repositorio. El procedimiento está en [`DESPLIEGUE.md`](DESPLIEGUE.md).
+## Certificación y límites
 
-## Límites que requieren prueba manual
+CI comprueba Java 17, versión, fondos, recursos/idiomas, UI/música, frontera gameplay, continuidad Multiplayer/docs, contratos de optimización y Forge build. Sólo un `main` verde publica `dev-latest`.
 
-- mods que sustituyen pantallas después de que Jobs ya las haya abierto;
-- widgets/listas reconstruidos por otros mods fuera del `init()` vanilla;
-- `PielVanillaJobs` con resource packs de GUI muy agresivos;
-- scrollbar con listas profundamente modificadas;
-- fuentes con métricas extremas;
-- GUI Scale extremos;
-- narración y navegación de teclado;
-- Embeddium/Oculus/addons exactos del modpack;
-- GPU/rendimiento de escenas procedurales 0–9;
-- SoundEngine con el conjunto completo de mods de audio;
-- detector LAN/pinger/favicons y preservación de selección después de múltiples F5/Actualizar;
-- retorno tras kick/desconexión con mods que sustituyan `DisconnectedScreen`, `TitleScreen` o `JoinMultiplayerScreen`.
-
-## Estado de certificación
-
-CI certifica:
-
-1. Java 17;
-2. política de artefacto versionado;
-3. PNG 10–17 y JPEG 18–31;
-4. recursos/idiomas/ASCII/coherencia estática;
-5. contratos específicos de cierre directo de Multiplayer y ausencia de transiciones durante gameplay;
-6. contrato 0.37 de selección preservada por IP, guard de recarga y feedback F5;
-7. sincronización mínima de documentación vigente e índice `docs/README.md`;
-8. build Forge;
-9. preparación de `jobsmenu-0.37.0.jar`.
-
-La publicación a `dev-latest` sólo ocurre desde `main`.
-
-Un build verde no certifica estética, hitboxes, narración, scroll ni compatibilidad visual dentro del modpack. Esa aceptación depende de la prueba manual documentada.
+CI no mide FPS ni certifica percepción. Requieren prueba manual: GUI Scale extremos, listas largas, scrollbar/drag, Bajo consumo ON/OFF, F3+T, Embeddium/Oculus del modpack real, narración/teclado, audio perceptivo, LAN/pinger/favicons y retorno tras kick/desconexión.

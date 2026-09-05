@@ -7,8 +7,8 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Version actual | **0.37.0** |
-| Artefacto esperado | **`jobsmenu-0.37.0.jar`** |
+| Version actual | **0.38.0** |
+| Artefacto esperado | **`jobsmenu-0.38.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -45,8 +45,13 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 25. Un retorno desde servidor remoto nunca debe caer en Multiplayer o Title vanilla: conserva `PantallaMultijugadorJobs` como superficie contextual.
 26. Mientras exista un mundo o servidor cargado no se crea, registra ni dibuja ninguna animacion de transicion Jobs, incluida la entrada corta de `PulidoInterfazJobs`.
 27. Actualizar Multiplayer no crea una `JoinMultiplayerScreen` vanilla intermedia: reconstruye directamente la superficie Jobs con el mismo padre.
-28. F5/Actualizar conserva la IP del servidor seleccionado y restaura la selección después de reconstruir la lista; una Entry vieja nunca se reutiliza.
-29. `docs/README.md` separa documentación vigente de auditorías históricas; un documento viejo no redefine el contrato actual.
+28. F5/Actualizar conserva la IP del servidor seleccionado y restaura una Entry fresca; una Entry vieja nunca se reutiliza.
+29. `docs/README.md` separa documentacion vigente de auditorias historicas; un documento viejo no redefine el contrato actual.
+30. Las listas Jobs no vuelven a hacer descubrimiento reflection completo por frame; cachean fields por clase y listas por Screen viva.
+31. Una scrollbar Jobs se dibuja como maximo una vez por frame aunque una Screen y `Render.Post` la soliciten.
+32. El filtrado lineal de fondos se configura por instancia de textura, no por frame; una recarga de recursos vuelve a aplicarlo al nuevo objeto.
+33. Bajo consumo debe reducir draw calls ademas de apagar movimiento costoso.
+34. El JAR debe usar orden reproducible y no incluir timestamps variables generados por el build.
 
 ## 2. Identidad visual
 
@@ -59,119 +64,83 @@ Familias:
 
 La escena usa la paleta material/luz del nivel; la UI usa papel frio, grafito, gris verdoso y tinta neutra.
 
-## 3. Estado 0.37.0
+## 3. Estado 0.38.0
 
-0.37.0 conserva los contratos de 0.35/0.36 y pule continuidad de selección, feedback de recarga, CI y documentación.
+0.38.0 conserva los contratos funcionales de 0.35-0.37 y optimiza caminos calientes de render, listas, escena, audio, texto y build.
+
+### Listas y lifecycle
+
+- `ListasExpediente` descubre los fields `AbstractSelectionList` una vez por clase y conserva solamente las listas de la Screen activa;
+- `estilizar()` invalida la cache de instancia porque `init()`/resize pueden reconstruir widgets;
+- `ScreenEvent.Render.Pre` abre la deduplicacion del frame y evita que una scrollbar pedida por la Screen y por `Render.Post` se pinte dos veces;
+- `ScreenEvent.Closing` libera la referencia a la Screen y sus listas;
+- el hover vanilla usa un `WeakHashMap` como set y conserva solo botones actualmente enfocados/hover, no un booleano por cada boton visitado.
+
+### Texturas y fondos
+
+- `PlantaImagen` sigue validando cada archivo una vez con `NativeImage` y conserva fallback procedural si el recurso falla;
+- el filtro lineal se aplica una vez por objeto `AbstractTexture`;
+- F3+T/resource reload reemplaza el objeto y la comprobacion de identidad reaplica el filtro automaticamente;
+- 10-17 siguen completamente estaticos y 18-31 mantienen su respiracion sutil no destructiva.
+
+### UI y texto
+
+- `PulidoInterfazJobs` captura una sola hora por pasada y recorre `children()` una sola vez para jerarquia + foco;
+- el aviso de cambio guardado reutiliza su `Component`;
+- `NotaAviso` reutiliza el `Component` mientras la clave no cambia y cachea el calendario especial por minuto;
+- `PielVanillaJobs` lee Alto contraste una vez por pasada;
+- Multiplayer prepara rotulos dependientes del ancho al hacer `init()` y reutiliza tooltips edit/protegido/eliminar en vez de crearlos cada frame.
+
+### Escena, audio y Bajo consumo
+
+- `RotacionNiveles.capturar()` comparte el mismo record entre consumidores que consultan exactamente el mismo milisegundo; al siguiente milisegundo se recalcula normalmente;
+- el salto manual invalida ese cache de inmediato;
+- Bajo consumo duplica el ancho de las bandas de vignette y reduce capas de profundidad, rebote y humedad;
+- el modo visual normal mantiene la cantidad y progresion anterior de esas capas;
+- eventos, presencia, motas, movimiento de imagen y grano siguen respetando sus guardas existentes de accesibilidad/ahorro.
+
+### Build reproducible
+
+- `jar` usa `preserveFileTimestamps = false` y `reproducibleFileOrder = true`;
+- se elimina `Implementation-Timestamp`, que hacia variar el hash por hora de compilacion aunque el contenido no cambiara;
+- `tools/verificar_optimizacion.py` fija estos contratos junto a los verificadores historicos.
 
 ### Multiplayer
 
 - `PantallaMultijugadorJobs` guarda explicitamente su `pantallaPadre`;
-- ESC llega a `onClose()` desde la logica normal de `Screen`, pero `onClose()` no delega en `super.onClose()`;
-- Cancelar llama a la misma funcion `cerrarAlPadre()`;
-- `cerrarAlPadre()` aplica guard idempotente y hace `minecraft.setScreen(padreDestino())` una sola vez;
-- F5/Actualizar captura únicamente la IP del servidor online seleccionado, marca la pantalla saliente como cerrada y crea otra `PantallaMultijugadorJobs` con el mismo padre;
-- la nueva pantalla busca una Entry fresca con esa IP, la selecciona y ejecuta `onSelectedChange()` para sincronizar acciones vanilla;
-- nunca se conserva una referencia a una `ServerSelectionList.Entry` perteneciente a la lista anterior;
-- el atajo F5 emite `UI_ALTERNAR` Jobs y su indicador usa la traduccion de `selectServer.refresh`, no literales duros `JOBS/SERVER`;
-- conectar sigue usando esta pantalla como padre de `ConnectScreen`, por lo que Cancelar/error antes del login regresan a la lista Jobs.
+- ESC y Cancelar convergen en `cerrarAlPadre()` con guard idempotente;
+- F5/Actualizar captura solo la IP del servidor online seleccionado y crea una lista nueva;
+- la lista nueva restaura una Entry fresca y ejecuta `onSelectedChange()`;
+- F5 conserva `UI_ALTERNAR` Jobs y el indicador localizado de Refresh/Actualizar;
+- conectar sigue usando esta pantalla como padre de `ConnectScreen`.
 
 ### Gameplay sin transiciones
 
 - `usaTransicionJobs()` devuelve false siempre que `Minecraft.level != null`;
 - cualquier transicion pendiente se cancela en login, logout y tick de gameplay;
 - `TransicionInterfazJobs.dibujar()` solo se llama cuando no existe nivel cargado;
-- `PulidoInterfazJobs.notificarApertura()` tampoco se llama durante gameplay, eliminando su animacion corta de entrada;
-- Pausa Jobs, Config Jobs y sus subpantallas pueden conservar tema, foco y sonidos breves, pero aparecen directamente, sin barrido/fundido de entrada;
-- chat, inventario, contenedores y Video Settings mantienen sus exclusiones anteriores.
+- `PulidoInterfazJobs.notificarApertura()` tampoco se registra durante gameplay;
+- Pausa/Config Jobs pueden conservar tema y feedback corto, pero aparecen sin transicion;
+- chat, inventario, contenedores y Video Settings mantienen sus exclusiones.
 
-### Audio de interfaz
+### Audio de interfaz y retorno
 
-- `PlaySoundEvent` sustituye `minecraft:ui.button.click` en cualquier superficie propia Jobs, incluso con un mundo cargado;
-- esa sustitucion no reactiva `SesionMenu`, por lo que pausa/configuracion pueden sonar Jobs sin devolver musica o ambiente al gameplay;
-- botones y sliders vanilla conservados por compatibilidad reciben `UI_PASAR` una sola vez al entrar con raton o foco;
-- widgets Jobs propios siguen gestionando su hover internamente y se excluyen del seguimiento global;
-- Video Settings, chat, inventario y pantallas de gameplay no Jobs quedan fuera.
+- `PlaySoundEvent` sustituye `minecraft:ui.button.click` solo en superficies Jobs validas;
+- el feedback corto no reactiva `SesionMenu`, musica ni camas;
+- abandonar servidor remoto vuelve a `PantallaMultijugadorJobs`; abandonar mundo local vuelve a `PantallaNivel`;
+- Video Settings, chat, inventario y pantallas no Jobs quedan fuera.
 
-### Retorno tras juego
+## 4. Fondos y ambiente
 
-- mientras hay un nivel cargado se memoriza si `Minecraft#getCurrentServer()` identifica un servidor remoto;
-- `LoggingOut` conserva ese contexto antes de que la limpieza vanilla pueda perderlo;
-- abandonar un servidor remoto reconduce tanto `TitleScreen` como `JoinMultiplayerScreen` a `PantallaMultijugadorJobs` con `PantallaNivel` como padre;
-- abandonar un mundo local o volver a Title/Realms sin contexto remoto reconduce a `PantallaNivel`.
+- 0-9 conservan sus escenas procedurales y tres camas;
+- 10-17 mantienen sus PNG y combinaciones de ambiente, sin movimiento de imagen;
+- 18-31 mantienen JPG directos 1920x1080, punto de interes, respiracion opcional y perfiles de base/caracter/actividad;
+- no se incorporan muestras nuevas ni audio de terceros;
+- Movimiento reducido, Bajo consumo o escena quieta dejan los fondos de imagen fijos.
 
-### Ambiente de los 32 niveles
-
-- 0-9 conservan sus tres camas y repertorios originales;
-- 10-17 mantienen las combinaciones disenadas en sus versiones de imagen;
-- 18-31 tienen seleccion explicita de base, caracter, actividad y eventos;
-- cada fondo 18-31 define ademas frecuencia, balance y afinacion estables;
-- no se incorporan muestras nuevas ni audio de terceros.
-
-### Controles de ajustes
-
-- volumen muestra porcentaje;
-- estancia y duracion de avisos muestran segundos;
-- nivel fijo muestra posicion 0-31 y pista muestra posicion 0-3;
-- reactivar Sonidos de interfaz produce confirmacion Jobs;
-- `N` no altera una pista fija y usa `UI_NEGADO` cuando no puede saltar.
-
-### Pie del menu principal
-
-- `CapaProfesionalJobs` no se renderiza sobre `PantallaNivel`.
-- desaparecen del main los rotulos visibles `1-4`, `F`, `M`, `N`, `TAB` y `ENTER`;
-- los atajos siguen activos y no cambian sus callbacks;
-- las pantallas secundarias mantienen la instrumentacion contextual;
-- nombre y nota del nivel dominan la zona inferior sin competir con una barra global.
-
-### Catalogo visual 18-31
-
-Los 14 JPG 1920x1080 se revisaron contra su contenido real. Los nombres y notas visibles viven en los `lang/*.json`, mientras `RotulosNivelesImagen` funciona solo como fachada de acceso. Asi no hay dos catalogos ES/EN que puedan desincronizarse.
-
-Nombres ES vigentes:
-
-- 18: Interferencia carmesi
-- 19: La estrella del vacio
-- 20: El huesped de tinta
-- 21: El claro de los centinelas
-- 22: La caverna del vigia
-- 23: La marana organica
-- 24: El umbral escarlata
-- 25: La senal sobre el bosque
-- 26: El observador lunar
-- 27: La fortaleza roja
-- 28: El nucleo fragmentado
-- 29: El soberano escarlata
-- 30: La figura fragmentada
-- 31: El coloso del vacio
-
-La ortografia visible se conserva directamente en los JSON de idioma. Cada fondo tiene tres notas ES/EN ligadas a elementos observables de la escena. El HUD las envuelve por ancho y reinicia la secuencia al entrar al nivel.
-
-### Fondos directos
-
-Ruta de runtime y fuente versionada:
+Ruta de fondos:
 
 `src/main/resources/assets/jobsmenu/textures/backgrounds/`
-
-Los archivos `nivel18.jpg` a `nivel31.jpg` siguen siendo recursos directos del repositorio. No se generan ni extraen durante Gradle.
-
-### Movimiento de imagen
-
-- niveles 10-17: siempre estaticos;
-- niveles 18-31: respiracion de camara muy leve con intensidad y punto de interes propios por fondo;
-- el movimiento se realiza solo en render: el JPG del repositorio no se modifica;
-- Movimiento reducido, Bajo consumo o escena quieta dejan la imagen fija;
-- no se agregan objetos, foreground falso, flicker agresivo ni deformacion.
-
-## 4. Estado heredado
-
-- `SHIFT CONTROL` fue retirado por completo.
-- el `JOBS / LEVEL` duplicado del fondo fue eliminado.
-- Mods conserva la geometria real de `ModListScreen`.
-- Resource Packs conserva las listas reales de Minecraft.
-- Mundos y Multiplayer vuelven al padre Jobs con una sola accion.
-- la fecha ya no muestra `%s` literal.
-- Nivel 1 usa `DepositoNuevo`; el anterior tiene backup.
-- `nivel_fijo` admite 0-31.
 
 ## 5. Musica y sesion
 
@@ -183,31 +152,22 @@ Catalogo real:
 
 Reglas:
 
-- inicio aleatorio por visita;
-- sin repeticion inmediata;
+- inicio aleatorio por visita o pista fija elegida;
+- sin repeticion inmediata en Aleatoria;
 - crossfade y rotacion automatica;
-- `N` solicita siguiente pista;
+- `N` solicita siguiente pista solo cuando corresponde;
 - `M` controla mute Jobs;
 - F3+T/recarga no debe duplicar audio;
 - cambiar entre subpantallas Jobs no reinicia la sesion;
-- gameplay ejecuta hard-stop de musica y ambiente Jobs;
-- sonidos breves de botones/hover no forman parte de la sesion musical y pueden responder en pausa/configuracion Jobs.
+- gameplay ejecuta hard-stop de musica y ambiente Jobs.
 
 ## 6. Navegacion e interfaz
 
-Atajos funcionales del main:
+Atajos funcionales del main: `1-4`, `F`, `M`, `N`, `TAB`, `ENTER` y `ESC`.
 
-- `1-4`: renglones principales;
-- `F`: siguiente nivel cuando corresponde;
-- `M`: mute Jobs;
-- `N`: siguiente pista;
-- `TAB`: navegacion;
-- `ENTER`: activar;
-- `ESC`: volver.
+Desde 0.28.0 no se listan en una barra inferior sobre `PantallaNivel`; su funcionalidad permanece. Los atajos numericos no actuan mientras se escribe en un EditBox ni con modificadores.
 
-En 0.28.0 estos atajos ya no se listan en una barra inferior sobre `PantallaNivel`; su funcionalidad permanece. Los atajos numericos no actuan mientras se escribe en un EditBox ni con modificadores.
-
-Pantallas Forge/vanilla sensibles se tematizan alrededor de su logica real. No se redimensionan listas internas por estetica si eso rompe compatibilidad.
+Pantallas Forge/vanilla sensibles se tematizan alrededor de su logica real. Video Settings sigue vanilla por contrato.
 
 ## 7. Servidor oficial
 
@@ -226,14 +186,15 @@ GitHub Actions verifica:
 1. Java 17;
 2. politica de version;
 3. PNG 10-17 y JPEG 18-31;
-4. auditoria estatica;
-5. contratos UI/musica;
-6. continuidad de Multiplayer y sincronizacion de documentacion vigente;
-7. Forge build;
-8. JAR versionado;
-9. publicacion a `dev-latest` solo desde `main`.
+4. auditoria estatica y paridad de idiomas;
+5. contratos UI/musica y frontera de gameplay;
+6. continuidad de Multiplayer/documentacion;
+7. contratos de optimizacion de caminos calientes;
+8. Forge build;
+9. JAR versionado;
+10. publicacion a `dev-latest` solo desde `main`.
 
-CI no sustituye prueba visual. Despues del deploy revisar GUI Scale 2/3/4, fondos 18-31, movimiento reducido, Bajo consumo, audio, Multiplayer con ESC/Cancelar/F5, preservacion de seleccion al refrescar y ausencia total de transiciones mientras existe gameplay.
+CI no mide FPS ni reemplaza prueba visual. Despues del deploy revisar GUI Scale 2/3/4, fondos, Bajo consumo, audio, F3+T, Multiplayer con ESC/Cancelar/F5 y ausencia de transiciones durante gameplay.
 
 ## 9. Despliegue
 
