@@ -1,5 +1,38 @@
 # Registro de cambios
 
+## 0.38.0 — Optimización global — 2026-09-05
+
+### Rendimiento de UI y listas
+
+- `ListasExpediente` deja de recorrer por reflection toda la jerarquía de una Screen en cada frame: cachea fields por clase y listas por instancia viva.
+- `ScreenEvent.Render.Pre` abre una deduplicación por frame y evita dibujar dos veces la misma scrollbar Jobs cuando también la solicita la propia Screen.
+- `ScreenEvent.Closing` libera las referencias de listas y hover de la pantalla saliente.
+- El seguimiento de hover vanilla mantiene únicamente los botones actualmente hover/focused mediante un set débil.
+- `PulidoInterfazJobs` combina jerarquía y foco en un solo recorrido de widgets y comparte un único reloj por pasada.
+- `PielVanillaJobs` resuelve Alto contraste una sola vez por pasada.
+
+### Texturas, escena y audio
+
+- `PlantaImagen` aplica filtrado lineal una vez por objeto `AbstractTexture` y sólo lo reaplica si F3+T/resource reload entrega una nueva instancia.
+- `NotaAviso` reutiliza Components mientras no cambia la clave y cachea el calendario especial por minuto.
+- `RotacionNiveles.capturar()` comparte el mismo `Estado` entre consumidores que consultan dentro del mismo milisegundo; un salto manual invalida el cache.
+- Multiplayer prepara rótulos dependientes del layout en `init()` y reutiliza tooltips protegidos/editar/eliminar.
+
+### Bajo consumo
+
+- Bajo consumo reduce draw calls reales además de apagar animaciones: menos bandas de vignette, capas de profundidad/halo, rebote de suelo y líneas de humedad.
+- Con Bajo consumo desactivado se mantienen las cantidades de capas del modo normal anterior.
+
+### Build, CI y documentación
+
+- El JAR usa `preserveFileTimestamps = false` y `reproducibleFileOrder = true`.
+- Se elimina `Implementation-Timestamp` para evitar variaciones binarias debidas sólo a la hora de compilación.
+- Se añade `tools/verificar_optimizacion.py` al workflow para proteger caches, deduplicación, filtros, Bajo consumo y build reproducible.
+- README, CONTEXTO, KNOWN_ISSUES, compatibilidad, música, checklist, despliegue e índice de docs se sincronizan con 0.38.0.
+- Nueva auditoría `docs/AUDITORIA_0.38.0_OPTIMIZACION_GLOBAL.md`.
+- Versión: **0.38.0**.
+- Artefacto esperado: **`jobsmenu-0.38.0.jar`**.
+
 ## 0.37.0 — Continuidad de Multiplayer y documentación — 2026-09-05
 
 ### Multiplayer
