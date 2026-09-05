@@ -321,7 +321,9 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == GLFW.GLFW_KEY_F5) {
-            MezclaAudio.gesto(SonidosNivel.UI_ALTERNAR, 0.34F);
+            if (this.minecraft != null && !this.cerrando) {
+                MezclaAudio.gesto(SonidosNivel.UI_ALTERNAR, 0.34F);
+            }
             refrescarLista();
             return true;
         }
