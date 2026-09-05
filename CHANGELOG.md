@@ -1,5 +1,69 @@
 # Registro de cambios
 
+## 0.37.0 — Continuidad de Multiplayer y documentación — 2026-09-05
+
+### Multiplayer
+
+- F5/Actualizar conserva la IP del servidor online seleccionado y restaura una Entry nueva con la misma IP después de reconstruir `PantallaMultijugadorJobs`.
+- Nunca se reutiliza una `ServerSelectionList.Entry` de la lista anterior; las entradas LAN efímeras vuelven a depender del detector recién creado.
+- `refrescarLista()` activa el guard `cerrando` antes de cambiar de pantalla para impedir recargas repetidas sobre la instancia saliente.
+- F5 por teclado reproduce `UI_ALTERNAR` Jobs una vez; el botón Actualizar mantiene su gesto propio sin duplicado.
+- El indicador inferior reutiliza la traducción de `selectServer.refresh` y elimina el literal duro `JOBS/SERVER`.
+
+### Documentación y calidad
+
+- Se crea `docs/README.md` como índice de contrato vigente frente a auditorías históricas.
+- `CHANGELOG.md` recupera las entradas 0.35.0 y 0.36.0 que no habían quedado registradas.
+- README, CONTEXTO, KNOWN_ISSUES, checklist y compatibilidad se sincronizan con 0.37.0.
+- Nuevo `tools/verificar_continuidad.py` fija en CI la continuidad F5, el guard de recarga, el feedback y la coherencia documental básica.
+- Versión: **0.37.0**.
+- Artefacto esperado: **`jobsmenu-0.37.0.jar`**.
+
+## 0.36.0 — Cierre fiable de Multiplayer y cero transiciones en gameplay — 2026-09-05
+
+### Multiplayer
+
+- `PantallaMultijugadorJobs` guarda explícitamente el padre Jobs y ESC/Cancelar convergen en `cerrarAlPadre()`.
+- El cierre deja de delegar en `super.onClose()`/`popGuiLayer()` y usa `minecraft.setScreen(padreDestino())` una sola vez con guard idempotente.
+- F5/Actualizar reconstruye directamente una pantalla Jobs con el mismo padre, sin una `JoinMultiplayerScreen` vanilla intermedia.
+- Conectar mantiene `PantallaMultijugadorJobs` como padre real de `ConnectScreen`.
+
+### Gameplay
+
+- Si `Minecraft.level != null`, no se crea ni dibuja `TransicionInterfazJobs`.
+- Login, logout y tick de gameplay cancelan cualquier transición pendiente.
+- `PulidoInterfazJobs.notificarApertura()` tampoco registra su animación corta durante gameplay.
+- Pausa/Config Jobs conservan tematización y feedback breve; chat, inventario, contenedores y Video Settings permanecen fuera.
+
+### Calidad y entrega
+
+- Los verificadores fijan la ruta directa de cierre/refresh y la frontera absoluta de transiciones.
+- Versión: **0.36.0**.
+- Artefacto: **`jobsmenu-0.36.0.jar`**.
+
+## 0.35.0 — Feedback Jobs y retorno contextual tras servidor — 2026-09-05
+
+### Sonidos de interfaz
+
+- La sustitución de `minecraft:ui.button.click` se desacopla de la sesión musical: una pantalla propia Jobs puede usar click Jobs incluso dentro de pausa/configuración con mundo cargado.
+- Los controles vanilla preservados por compatibilidad reciben `UI_PASAR` al entrar con ratón o foco, con deduplicación por instancia.
+- Los widgets Jobs propios quedan fuera de ese seguimiento global para no duplicar hover.
+- Video Settings, chat, inventario y demás gameplay no Jobs permanecen excluidos.
+
+### Retorno tras servidor
+
+- Se memoriza si la sesión jugable pertenece a un servidor remoto usando `Minecraft#getCurrentServer()` antes de la limpieza de logout.
+- Al salir, ser expulsado o perder conexión de un servidor, Title/Multiplayer vanilla se reconducen a `PantallaMultijugadorJobs`.
+- Un mundo local continúa regresando a `PantallaNivel`.
+- Cancelar o fallar antes del login sigue volviendo a la misma lista Jobs porque `ConnectScreen` conserva esa pantalla como padre.
+
+### Documentación y entrega
+
+- Se documenta la separación entre feedback corto de UI y lifecycle de música/ambiente.
+- Se limpia `docs/AUDITORIA_SEGUNDA.md` para marcarla como referencia histórica y no como contrato vigente.
+- Versión: **0.35.0**.
+- Artefacto: **`jobsmenu-0.35.0.jar`**.
+
 ## 0.34.0 — Navegación fiable y frontera de gameplay — 2026-09-05
 
 ### Multiplayer
@@ -268,4 +332,4 @@
 - Base Forge/config cliente.
 - Menú principal diegético, pausa tematizada, audio por capas, rotación de niveles, accesibilidad y herramientas de auditoría.
 
-Para el estado vigente mandan `CONTEXTO.md`, `README.md`, `KNOWN_ISSUES.md`, `docs/checklist-manual.md` y este archivo. Las auditorías históricas detalladas permanecen en `docs/` y en el historial Git.
+Para el estado vigente mandan `CONTEXTO.md`, `README.md`, `KNOWN_ISSUES.md`, `docs/README.md`, `docs/checklist-manual.md` y este archivo. Las auditorías históricas detalladas permanecen en `docs/` y en el historial Git.

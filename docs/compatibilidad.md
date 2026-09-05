@@ -1,4 +1,4 @@
-# Compatibilidad y despliegue — 0.36.0
+# Compatibilidad y despliegue — 0.37.0
 
 ## Perfil soportado
 
@@ -8,8 +8,8 @@
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente; el servidor no necesita Jobs Menu |
-| Versión del mod | **0.36.0** |
-| Artefacto | `build/libs/jobsmenu-0.36.0.jar` |
+| Versión del mod | **0.37.0** |
+| Artefacto | `build/libs/jobsmenu-0.37.0.jar` |
 
 Jobs Menu distingue entre **pantallas que controla**, **pantallas vanilla cuya lógica conserva** y **pantallas de otros mods que debe respetar**. La compatibilidad tiene prioridad sobre una reimplementación cosmética frágil.
 
@@ -169,12 +169,19 @@ Así ambas acciones terminan exactamente en el mismo padre Jobs sin depender del
 
 ### Actualizar/F5
 
-Actualizar ya no pulsa el botón vanilla oculto. `refrescarLista()` crea directamente una nueva `PantallaMultijugadorJobs(padreDestino())`, por lo que:
+Desde 0.37.0 Actualizar/F5 reconstruye directamente Jobs **sin perder la selección de un servidor guardado**:
 
+- `ipSeleccionada()` extrae únicamente la IP del `OnlineServerEntry` seleccionado;
+- antes de `setScreen()` se activa `cerrando`, de modo que una segunda pulsación no puede encolar otra reconstrucción sobre la misma pantalla;
+- la nueva `PantallaMultijugadorJobs` recibe padre + IP, no una referencia a la Entry anterior;
+- después de `updateOnlineServers`, `restaurarSeleccionPreferida()` recorre las Entries nuevas y selecciona la que tenga la misma IP;
+- `onSelectedChange()` sincroniza los estados vanilla tras la restauración;
+- una entrada LAN efímera no se fuerza artificialmente porque depende del nuevo ciclo del detector LAN;
 - no existe una `JoinMultiplayerScreen` vanilla intermedia;
-- se conserva el mismo padre;
-- `init()` vuelve a cargar `servers.dat`, detector LAN, pinger y widgets reales;
-- se reduce una redirección innecesaria y el riesgo de flash/pantalla incorrecta.
+- F5 por teclado emite `UI_ALTERNAR`; el botón Actualizar conserva su propio gesto de click y `refrescarLista()` no añade un segundo sonido;
+- el indicador inferior reutiliza la traducción vanilla `selectServer.refresh` y ya no contiene el literal `JOBS/SERVER`.
+
+`init()` sigue recreando `servers.dat`, detector LAN, pinger y widgets reales. La preservación por IP mejora continuidad sin acoplar objetos de listas distintas.
 
 La cabecera **Puestos de acceso** reserva una tarjeta para `JobsDosh.exaroton.me:56477`. El servidor se guarda con nombre localizado, se deduplica por IP, se mueve al primer renglón y no permite Edit/Delete desde los botones Jobs. La migración retira `Ghoul Outbreak` y entradas que suplanten el nombre oficial con otra IP; Jobs es el único servidor instalado automáticamente por el mod.
 
@@ -209,7 +216,7 @@ C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\
 El JAR de esta entrega debe quedar únicamente como:
 
 ```text
-C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.36.0.jar
+C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.37.0.jar
 ```
 
 No se mantiene un `.ps1` dentro del repositorio. El procedimiento está en [`DESPLIEGUE.md`](DESPLIEGUE.md).
@@ -226,7 +233,7 @@ No se mantiene un `.ps1` dentro del repositorio. El procedimiento está en [`DES
 - Embeddium/Oculus/addons exactos del modpack;
 - GPU/rendimiento de escenas procedurales 0–9;
 - SoundEngine con el conjunto completo de mods de audio;
-- detector LAN/pinger/favicons después de múltiples F5/Actualizar;
+- detector LAN/pinger/favicons y preservación de selección después de múltiples F5/Actualizar;
 - retorno tras kick/desconexión con mods que sustituyan `DisconnectedScreen`, `TitleScreen` o `JoinMultiplayerScreen`.
 
 ## Estado de certificación
@@ -235,11 +242,13 @@ CI certifica:
 
 1. Java 17;
 2. política de artefacto versionado;
-3. PNG 10–17;
+3. PNG 10–17 y JPEG 18–31;
 4. recursos/idiomas/ASCII/coherencia estática;
 5. contratos específicos de cierre directo de Multiplayer y ausencia de transiciones durante gameplay;
-6. build Forge;
-7. preparación de `jobsmenu-0.36.0.jar`.
+6. contrato 0.37 de selección preservada por IP, guard de recarga y feedback F5;
+7. sincronización mínima de documentación vigente e índice `docs/README.md`;
+8. build Forge;
+9. preparación de `jobsmenu-0.37.0.jar`.
 
 La publicación a `dev-latest` sólo ocurre desde `main`.
 

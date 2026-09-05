@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 
 | Campo | Valor |
 |---|---|
-| Version | **0.36.0** |
-| Artefacto | **`jobsmenu-0.36.0.jar`** |
+| Version | **0.37.0** |
+| Artefacto | **`jobsmenu-0.37.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,14 +13,15 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 | Rama entregable | **`main`** |
 | Niveles | **32 (0-31)** |
 
-## 0.36.0 · Cierre fiable y gameplay sin transiciones
+## 0.37.0 · Continuidad de Multiplayer y documentación ordenada
 
-- Multiplayer deja de delegar ESC/Cancelar a `Screen.onClose()`/`popGuiLayer`; ambas acciones vuelven directamente al padre Jobs en una sola operacion.
-- El guard de cierre sigue siendo idempotente para impedir aperturas duplicadas por un mismo gesto.
-- F5/Actualizar reconstruye directamente `PantallaMultijugadorJobs` con el mismo padre, sin crear primero una `JoinMultiplayerScreen` vanilla intermedia.
-- Mientras existe un mundo o servidor cargado, `TransicionInterfazJobs` no se crea, no se dibuja y se cancela defensivamente en tick/login/logout.
-- La animacion corta de entrada de `PulidoInterfazJobs` tampoco se registra durante gameplay: Pausa, Config Jobs y sus subpantallas aparecen directamente.
-- Chat, inventario, contenedores y Video Settings mantienen las exclusiones anteriores; la tematizacion permitida de pausa/configuracion sigue intacta.
+- F5/Actualizar conserva la IP del servidor seleccionado y la vuelve a seleccionar después de reconstruir la lista Jobs; ya no obliga a buscar de nuevo la misma entrada.
+- La recarga queda protegida por el mismo guard idempotente del cierre, evitando que varias pulsaciones rápidas encolen pantallas nuevas.
+- F5 recibe feedback sonoro Jobs propio; el pequeño indicador de recarga usa la traducción vanilla de `selectServer.refresh` en vez de texto duro `JOBS/SERVER`.
+- Escape y Cancelar mantienen el padre Jobs directo de 0.36.0 y conectar sigue usando esta pantalla como padre real de `ConnectScreen`.
+- Se añade un verificador específico de continuidad/documentación al pipeline y un índice `docs/README.md` que separa contrato vigente de auditorías históricas.
+- `CHANGELOG.md` recupera las entradas faltantes 0.35.0 y 0.36.0 y queda sincronizado con 0.37.0.
+- La frontera de gameplay no cambia: no hay transiciones, música ni ambiente Jobs durante un mundo/servidor; Video Settings sigue vanilla.
 
 ## Fondos 18-31
 
@@ -88,7 +89,7 @@ Nombre localizado: `Jobs Official Server` / `Servidor oficial de Jobs`.
 
 ## Build y entrega
 
-GitHub Actions ejecuta Java 17, politica de version, validacion de fondos, verificadores estaticos, contratos UI/musica y Forge build. Solo `main` verde publica `dev-latest`.
+GitHub Actions ejecuta Java 17, politica de version, validacion de fondos, verificadores estaticos, contratos UI/musica, continuidad de Multiplayer/documentacion y Forge build. Solo `main` verde publica `dev-latest`.
 
 El test normal instala el JAR certificado en:
 
@@ -98,6 +99,7 @@ El pipeline no sustituye una prueba visual dentro de Minecraft; GUI Scale, audio
 
 ## Documentacion
 
+- [`docs/README.md`](docs/README.md): índice de documentación vigente e histórica.
 - [`CONTEXTO.md`](CONTEXTO.md): contrato maestro vigente.
 - [`CHANGELOG.md`](CHANGELOG.md): historial de versiones.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y pruebas pendientes.

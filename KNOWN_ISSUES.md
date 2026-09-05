@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.36.0
+# Riesgos y pruebas pendientes — 0.37.0
 
 Este documento contiene riesgos vigentes. El historial está en `CHANGELOG.md` y en las auditorías de `docs/`.
 
@@ -14,14 +14,18 @@ Antes de publicar, GitHub Actions comprueba:
 - contratos UI/música y hard-stop de gameplay;
 - aislamiento completo de Video Settings vanilla;
 - salida única e idempotente de Multiplayer;
+- continuidad de selección por IP al usar F5/Actualizar;
+- bloqueo de recargas múltiples de Multiplayer durante el reemplazo de pantalla;
+- feedback F5 mediante gesto Jobs y ausencia del antiguo indicador duro `JOBS/SERVER`;
 - transiciones limitadas a pantallas propias Jobs;
 - frontera dura que excluye chat, inventario y UI de gameplay;
 - ausencia de `PantallaVideoJobs` y reflection de páginas Embeddium;
 - rango `nivel_fijo` coherente con los 32 niveles;
 - perfiles ambientales explícitos para los niveles 18-31;
 - lecturas semánticas en sliders de volumen, tiempo, nivel y pista;
+- presencia del índice de documentación vigente/histórica y sincronización básica de versión;
 - Forge build 1.20.1;
-- publicación de `jobsmenu-0.36.0.jar` en `dev-latest` sólo desde `main`.
+- publicación de `jobsmenu-0.37.0.jar` en `dev-latest` sólo desde `main`.
 
 Un pipeline fallido no debe actualizar la release.
 
@@ -39,11 +43,14 @@ CI no abre Minecraft con ventana real. Después del deploy hay que validar visua
 8. Gameplay corta inmediatamente música y ambiente Jobs.
 9. Mods y Resource Packs conservan sus listas reales.
 10. ESC y Cancelar en Multiplayer vuelven al padre Jobs con una sola acción.
-11. F5/Actualizar mantiene Multiplayer Jobs y no muestra una pantalla vanilla intermedia.
-12. Chat e inventario no muestran barridos, bandas ni pieles Jobs.
-13. Pausa y configuración conservan la tematización permitida pero no muestran ninguna transición de entrada/salida durante gameplay.
-14. Controles vanilla conservados dentro de pausa/configuración usan click y hover Jobs sin reactivar música.
-15. Salir o perder conexión de un servidor vuelve a Multijugador Jobs, y desde allí ESC vuelve al main en una sola acción.
+11. F5/Actualizar mantiene Multiplayer Jobs, conserva el servidor online seleccionado y no muestra una pantalla vanilla intermedia.
+12. Pulsar F5 varias veces rápido no genera saltos de pantalla ni dobles recargas perceptibles.
+13. El feedback de F5 suena una vez por pulsación y no duplica el sonido del botón Actualizar.
+14. Chat e inventario no muestran barridos, bandas ni pieles Jobs.
+15. Pausa y configuración conservan la tematización permitida pero no muestran ninguna transición de entrada/salida durante gameplay.
+16. Controles vanilla conservados dentro de pausa/configuración usan click y hover Jobs sin reactivar música.
+17. Salir o perder conexión de un servidor vuelve a Multijugador Jobs, y desde allí ESC vuelve al main en una sola acción.
+18. Descubrimiento LAN, ping, favicons y selección por teclado siguen funcionando después de varias recargas F5.
 
 ## Riesgos vigentes
 
@@ -71,8 +78,10 @@ CI no abre Minecraft con ventana real. Después del deploy hay que validar visua
 
 ### Multiplayer
 
-- ESC y Cancelar ya no delegan en `Screen.onClose()`/`popGuiLayer`; ambos usan el padre Jobs guardado por la propia pantalla.
-- F5/Actualizar reconstruye directamente la pantalla Jobs. Debe probarse con listas LAN y favicons para confirmar que el detector/pinger se recrea limpiamente en el modpack real.
+- ESC y Cancelar no delegan en `Screen.onClose()`/`popGuiLayer`; ambos usan el padre Jobs guardado por la propia pantalla.
+- F5/Actualizar reconstruye directamente la pantalla Jobs y transporta sólo la IP del servidor seleccionado. La nueva lista busca una Entry fresca; no se reutilizan objetos de la lista anterior.
+- La selección preservada cubre entradas online guardadas. Una entrada LAN es efímera y no se fuerza por IP al recrear el detector, para no acoplarse a objetos viejos.
+- El lifecycle de pinger/LAN pertenece a `JoinMultiplayerScreen`; debe probarse con listas LAN y favicons para confirmar que varias reconstrucciones consecutivas se comportan limpiamente en el modpack real.
 - Mods que reemplacen por completo `JoinMultiplayerScreen` pueden requerir compatibilidad específica.
 
 ### Audio
@@ -81,6 +90,7 @@ CI no abre Minecraft con ventana real. Después del deploy hay que validar visua
 - Los niveles 18-31 reutilizan camas y eventos autorizados de 0-9 con mezclas propias; la separación perceptiva entre fondos requiere prueba dentro del juego.
 - Los clicks vanilla se sustituyen en superficies Jobs. En pausa/configuración dentro de gameplay sólo se permite feedback corto de interfaz; música y ambiente permanecen detenidos.
 - Hover de controles vanilla preservados se deduplica por instancia y tiene además el debounce global de `UI_PASAR`; su sensación final requiere prueba con teclado y ratón.
+- F5 reproduce `UI_ALTERNAR` desde teclado; el botón Actualizar conserva su gesto normal de botón, evitando añadir un segundo sonido desde `refrescarLista()`.
 - Las pantallas de terceros fuera de la sesión conservan su audio original.
 - La mezcla perceptiva entre Absurdism, REQUIEM y Upon the Hill V2 sólo puede validarse dentro del juego.
 - F3+T, Alt+Tab y cambios rápidos de pantalla deben probarse para descartar instancias fantasma perceptibles.
@@ -89,6 +99,11 @@ CI no abre Minecraft con ventana real. Después del deploy hay que validar visua
 
 - El retorno se decide usando el contexto remoto guardado durante gameplay y `LoggingOut`: un servidor vuelve a Multijugador Jobs; un mundo local vuelve al main Jobs.
 - Mods que reemplacen completamente los destinos de desconexión después del evento de apertura pueden requerir compatibilidad específica.
+
+### Documentación
+
+- Las auditorías antiguas describen estados históricos y pueden contener decisiones luego reemplazadas. `docs/README.md` identifica qué documentos gobiernan el estado actual.
+- `CHANGELOG.md` vuelve a incluir 0.35.0 y 0.36.0; el verificador exige que 0.35/0.36/0.37 no desaparezcan por accidente.
 
 ### Release
 
@@ -104,6 +119,7 @@ CI no abre Minecraft con ventana real. Después del deploy hay que validar visua
 - Reproductor musical está ligado a la sesión y aplica hard-stop en gameplay.
 - El feedback corto de UI se evalúa por superficie Jobs y no abre `SesionMenu`.
 - Las transiciones tienen compuerta de creación, render y tick para impedir residuos dentro de gameplay.
+- `tools/verificar_continuidad.py` fija el contrato de selección F5 y coherencia documental.
 - JAR versionado y CI obligatorio antes de publicar.
 
 ## Reporte

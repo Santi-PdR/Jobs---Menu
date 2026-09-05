@@ -47,6 +47,8 @@ jobs:
         run: python3 tools/verificar.py
       - name: Verify neutral UI and music session
         run: python3 tools/verificar_ui_musica.py
+      - name: Verify multiplayer continuity and docs
+        run: python3 tools/verificar_continuidad.py
       - name: Prepare Gradle wrapper
         run: chmod +x gradlew
       - name: Build Forge mod

@@ -1,5 +1,7 @@
 package com.santipdr.jobsmenu.client.screen;
 
+import com.santipdr.jobsmenu.client.sound.MezclaAudio;
+import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.client.ui.BotonExpediente;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import com.santipdr.jobsmenu.client.ui.ListasExpediente;
@@ -27,14 +29,20 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
     private static final String SERVIDOR_IP = "JobsDosh.exaroton.me:56477";
 
     private final Screen pantallaPadre;
+    private final String servidorPreferido;
     private Button realSelect, realDirect, realAdd, realEdit, realDelete;
     private BotonExpediente select, edit, delete, refresh;
     private int panelX, panelY, panelW, panelH;
     private boolean cerrando;
 
     public PantallaMultijugadorJobs(Screen anterior) {
+        this(anterior, null);
+    }
+
+    private PantallaMultijugadorJobs(Screen anterior, String servidorPreferido) {
         super(anterior);
         this.pantallaPadre = anterior;
+        this.servidorPreferido = servidorPreferido;
     }
 
     @Override
@@ -47,6 +55,7 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         this.panelH = Math.max(100, this.height - 16);
 
         asegurarServidorOficial();
+        restaurarSeleccionPreferida();
 
         this.realSelect = buscar("selectServer.select");
         this.realDirect = buscar("selectServer.direct");
@@ -108,6 +117,29 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         }
         servidores.save();
         if (this.serverSelectionList != null) this.serverSelectionList.updateOnlineServers(servidores);
+    }
+
+    /** Restaura el servidor seleccionado despues de una recarga F5 sin guardar una Entry obsoleta. */
+    private void restaurarSeleccionPreferida() {
+        if (this.serverSelectionList == null || this.servidorPreferido == null
+                || this.servidorPreferido.isBlank()) return;
+        for (ServerSelectionList.Entry entrada : this.serverSelectionList.children()) {
+            if (entrada instanceof ServerSelectionList.OnlineServerEntry online
+                    && this.servidorPreferido.equalsIgnoreCase(online.getServerData().ip)) {
+                this.serverSelectionList.setSelected(entrada);
+                this.onSelectedChange();
+                return;
+            }
+        }
+    }
+
+    private String ipSeleccionada() {
+        if (this.serverSelectionList == null) return null;
+        ServerSelectionList.Entry entrada = this.serverSelectionList.getSelected();
+        if (entrada instanceof ServerSelectionList.OnlineServerEntry online) {
+            return online.getServerData().ip;
+        }
+        return null;
     }
 
     private Button buscar(String clave) {
@@ -277,7 +309,8 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         int ruleY = this.height - 74;
         g.fill(panelX + 18, ruleY, panelX + panelW - 18, ruleY + 1,
                 Paleta.conAlfa(Paleta.ARCHIVO_ACENTO, 0.16F));
-        String ayuda = "F5  //  " + (seleccionOficial ? "JOBS" : "SERVER");
+        String ayuda = "F5  //  " + Component.translatable("selectServer.refresh")
+                .getString().toUpperCase(Locale.ROOT);
         int aw = this.font.width(ayuda);
         if (panelW > aw + 80) {
             g.drawString(this.font, ayuda, panelX + panelW - aw - 22, ruleY + 4,
@@ -288,16 +321,21 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == GLFW.GLFW_KEY_F5) {
+            if (this.minecraft != null && !this.cerrando) {
+                MezclaAudio.gesto(SonidosNivel.UI_ALTERNAR, 0.34F);
+            }
             refrescarLista();
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
-    /** Recarga servidores sin crear primero una pantalla vanilla intermedia. */
+    /** Recarga servidores sin crear primero una pantalla vanilla intermedia ni perder la seleccion. */
     private void refrescarLista() {
         if (this.minecraft == null || this.cerrando) return;
-        this.minecraft.setScreen(new PantallaMultijugadorJobs(padreDestino()));
+        String seleccion = ipSeleccionada();
+        this.cerrando = true;
+        this.minecraft.setScreen(new PantallaMultijugadorJobs(padreDestino(), seleccion));
     }
 
     /**
