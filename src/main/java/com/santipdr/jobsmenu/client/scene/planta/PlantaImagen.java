@@ -10,6 +10,7 @@ import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.resources.ResourceLocation;
 
 import java.io.InputStream;
@@ -34,6 +35,7 @@ public final class PlantaImagen implements Planta {
     private int anchoTextura = 1;
     private int altoTextura = 1;
     private boolean falloRegistrado;
+    private AbstractTexture texturaFiltrada;
 
     public PlantaImagen(String archivo, int modo) {
         this.textura = Objects.requireNonNull(
@@ -145,7 +147,13 @@ public final class PlantaImagen implements Planta {
         int regionH = Math.max(1, Math.min(altoTextura, Math.round(visibleH)));
 
         RenderSystem.setShaderTexture(0, textura);
-        Minecraft.getInstance().getTextureManager().getTexture(textura).setFilter(true, false);
+        AbstractTexture actual = Minecraft.getInstance().getTextureManager().getTexture(textura);
+        // setFilter muta estado OpenGL. Mantenerlo fuera del camino caliente y
+        // repetirlo solo si una recarga de recursos creo otra instancia.
+        if (actual != this.texturaFiltrada) {
+            actual.setFilter(true, false);
+            this.texturaFiltrada = actual;
+        }
         g.blit(textura, 0, 0, w, h, u, v, regionW, regionH, anchoTextura, altoTextura);
     }
 
