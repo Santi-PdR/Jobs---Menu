@@ -119,7 +119,7 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         if (this.serverSelectionList != null) this.serverSelectionList.updateOnlineServers(servidores);
     }
 
-    /** Restaura el servidor seleccionado después de una recarga F5 sin guardar una Entry obsoleta. */
+    /** Restaura el servidor seleccionado despues de una recarga F5 sin guardar una Entry obsoleta. */
     private void restaurarSeleccionPreferida() {
         if (this.serverSelectionList == null || this.servidorPreferido == null
                 || this.servidorPreferido.isBlank()) return;
@@ -328,7 +328,7 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
-    /** Recarga servidores sin crear primero una pantalla vanilla intermedia ni perder la selección. */
+    /** Recarga servidores sin crear primero una pantalla vanilla intermedia ni perder la seleccion. */
     private void refrescarLista() {
         if (this.minecraft == null || this.cerrando) return;
         String seleccion = ipSeleccionada();
