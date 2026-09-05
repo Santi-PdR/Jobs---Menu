@@ -1,4 +1,4 @@
-# Compatibilidad y despliegue — 0.34.0
+# Compatibilidad y despliegue — 0.35.0
 
 ## Perfil soportado
 
@@ -8,8 +8,8 @@
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente; el servidor no necesita Jobs Menu |
-| Versión del mod | **0.34.0** |
-| Artefacto | `build/libs/jobsmenu-0.34.0.jar` |
+| Versión del mod | **0.35.0** |
+| Artefacto | `build/libs/jobsmenu-0.35.0.jar` |
 
 Jobs Menu distingue entre **pantallas que controla**, **pantallas vanilla cuya lógica conserva** y **pantallas de otros mods que debe respetar**. La compatibilidad tiene prioridad sobre una reimplementación cosmética frágil.
 
@@ -24,13 +24,15 @@ Las redirecciones principales se hacen por **clase exacta**.
 - `SelectWorldScreen` vanilla puede envolverse como `PantallaMundosJobs` conservando la lista/previews originales.
 - `ModListScreen` de Forge puede envolverse como `PantallaModsJobs` conservando su panel, búsqueda y acciones.
 
-Una subclase de otro mod no se sustituye automáticamente sólo por heredar de estas clases.
+Una subclase de otro mod no se sustituye automáticamente sólo por heredar de estas clases. El retorno desde gameplay es una excepción contextual: cuando Jobs sabe que acaba de salir de un servidor remoto, un destino vanilla de Title o Multiplayer se reconduce a `PantallaMultijugadorJobs`.
 
 ## Frontera entre menú y gameplay
 
 Las transiciones sólo se notifican cuando el origen o el destino es una pantalla propia de Jobs. Si el cambio no pertenece a ese flujo, la transición pendiente se cancela.
 
 Cuando existe un mundo cargado, cualquier pantalla no Jobs queda fuera del postprocesado global. Esto incluye chat, inventario, contenedores y pantallas de gameplay de otros mods: no reciben piel, banda contextual, transición ni reemplazo de clicks. La pausa Jobs y sus pantallas propias de configuración siguen admitidas.
+
+Desde 0.35.0 el feedback corto de interfaz se separa del lifecycle musical: una pantalla propia Jobs puede reemplazar clicks vanilla y emitir hover aun con un mundo cargado, pero eso no reactiva `SesionMenu`, música ni camas ambientales.
 
 ## Options y Config Jobs
 
@@ -63,13 +65,15 @@ Se conserva la lógica de Minecraft/Forge en:
 
 Las envolturas ejecutan primero la lógica original. Jobs retira fondos/bandas cuando es seguro, reserva espacio para su chrome y desactiva botones `Done` duplicados cuando los sustituye.
 
-## `PielVanillaJobs`
+## `PielVanillaJobs` y feedback preservado
 
 Durante una sesión Jobs, pantallas auxiliares cuyo paquete pertenece a `net.minecraft.*` pueden recibir una capa visual posterior al render:
 
 - botones de papel/tinta;
 - estados hover/foco visibles;
 - borde administrativo en campos de texto.
+
+Los botones y sliders vanilla que siguen vivos por compatibilidad reciben además `UI_PASAR` una sola vez al entrar con ratón o foco de teclado. Sus clicks `ui.button.click` se sustituyen por `UI_ELEGIR` en cualquier superficie Jobs válida. Los widgets Jobs propios se excluyen de ese seguimiento para no duplicar sus sonidos.
 
 La capa **no cambia**:
 
@@ -100,7 +104,7 @@ La integración usa reflection defensiva con nombres SRG. Si no puede resolverse
 
 ## Video Settings vanilla y mods de rendimiento
 
-`PantallaOpcionesJobs` abre directamente `VideoSettingsScreen`. Jobs no reconstruye páginas de Embeddium, no mueve la lista, no oculta Done y no dibuja pieles, marcos o transiciones encima.
+`PantallaOpcionesJobs` abre directamente `VideoSettingsScreen`. Jobs no reconstruye páginas de Embeddium, no mueve la lista, no oculta Done y no dibuja pieles, marcos, transiciones ni feedback de hover/click encima.
 
 Si Embeddium, Oculus u otro addon modifica la clase vanilla por sus propios mecanismos, Jobs no interfiere. Esa integración debe probarse en el modpack real porque pertenece al otro mod.
 
@@ -145,6 +149,10 @@ Probar ES ↔ EN, Español (Uruguay), F3+T, aplicar/quitar packs y volver al men
 
 La cabecera **Puestos de acceso** reserva una tarjeta para `JobsDosh.exaroton.me:56477`. El servidor se guarda con nombre localizado, se deduplica por IP, se mueve al primer renglón y no permite Edit/Delete desde los botones Jobs. La migración retira `Ghoul Outbreak` y entradas que suplanten el nombre oficial con otra IP; Jobs es el único servidor instalado automáticamente por el mod.
 
+`ConnectScreen` se abre con `PantallaMultijugadorJobs` como padre. Cancelar o fallar antes del login vuelve a esa misma lista.
+
+Para una sesión ya conectada, Jobs memoriza durante los ticks jugables si `Minecraft#getCurrentServer()` indica servidor remoto y vuelve a comprobarlo en `LoggingOut`. Forge dispara `LoggingOut` antes de continuar la limpieza de nivel, de modo que el contexto se captura aunque la desconexión vanilla termine después en `TitleScreen`. Si el retorno era remoto, tanto Title como `JoinMultiplayerScreen` se reconducen a una nueva `PantallaMultijugadorJobs` con `PantallaNivel` como padre. Un mundo local continúa al main Jobs.
+
 Los diálogos auxiliares pueden recibir `PielVanillaJobs`, pero siguen usando la lógica original.
 
 ## Selector de mundos y Mods
@@ -159,7 +167,9 @@ La visita al menú mantiene continuidad de música y camas ambientales al navega
 
 La música se distribuye dentro del JAR. `LimpiezaRecursosLegados` sólo retira el antiguo `resourcepacks/jobsmenu-musica-activa`; Jobs no crea un pack nuevo.
 
-Los eventos de login/logout y el tick defensivo con nivel activo detienen inmediatamente música y camas. No hay cola ni fundido audible dentro de un mundo o servidor. Al abandonar una sesión, el primer destino vanilla de título/multijugador/Realms se reconduce a `PantallaNivel`; una pantalla de desconexión conserva antes su mensaje.
+Los eventos de login/logout y el tick defensivo con nivel activo detienen inmediatamente música y camas. No hay cola ni fundido audible dentro de un mundo o servidor. Los gestos breves de UI son independientes de ese lifecycle: en pausa/configuración Jobs pueden sonar sin abrir una visita ni mantener camas.
+
+Al abandonar un mundo local, Title/Realms se reconduce a `PantallaNivel`. Al abandonar un servidor remoto, Title o Multiplayer se reconducen a `PantallaMultijugadorJobs`. Una pantalla de desconexión puede conservar antes su mensaje y, al continuar, cae en la lista Jobs.
 
 ## Instancia de referencia
 
@@ -170,7 +180,7 @@ C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\
 El JAR de esta entrega debe quedar únicamente como:
 
 ```text
-C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.34.0.jar
+C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods\jobsmenu-0.35.0.jar
 ```
 
 No se mantiene un `.ps1` dentro del repositorio. El procedimiento está en [`DESPLIEGUE.md`](DESPLIEGUE.md).
@@ -186,7 +196,8 @@ No se mantiene un `.ps1` dentro del repositorio. El procedimiento está en [`DES
 - narración y navegación de teclado;
 - Embeddium/Oculus/addons exactos del modpack;
 - GPU/rendimiento de escenas procedurales 0–9;
-- SoundEngine con el conjunto completo de mods de audio.
+- SoundEngine con el conjunto completo de mods de audio;
+- retorno tras kick/desconexión con mods que sustituyan `DisconnectedScreen`, `TitleScreen` o `JoinMultiplayerScreen`.
 
 ## Estado de certificación
 
@@ -197,7 +208,7 @@ CI certifica:
 3. PNG 10–17;
 4. recursos/idiomas/ASCII/coherencia estática;
 5. build Forge;
-6. preparación de `jobsmenu-0.34.0.jar`.
+6. preparación de `jobsmenu-0.35.0.jar`.
 
 La publicación a `dev-latest` sólo ocurre desde `main`.
 

@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.34.0
+# Checklist manual de aceptación — 0.35.0
 
 Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código, recursos y build; no certifica estética, input, audio perceptivo ni compatibilidad visual dentro de Minecraft.
 
@@ -6,7 +6,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.34.0.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.35.0.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Layout
@@ -28,7 +28,7 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 - [ ] Video abre la pantalla vanilla completa, sin marco, cabecera, transición ni recolocación Jobs;
 - [ ] aparecen todas las opciones vanilla esperadas y se puede recorrer la lista completa;
 - [ ] Done es el botón vanilla, está visible y vuelve al hub Jobs;
-- [ ] los clicks dentro de Video Settings son vanilla;
+- [ ] los clicks y hover dentro de Video Settings son vanilla;
 - [ ] FOV aparece sólo dentro de Video Settings, no duplicado en el hub;
 - [ ] Online ocupa la última fila completa del hub;
 - [ ] con Embeddium/Oculus instalados no hay crash ni opciones recortadas por Jobs.
@@ -51,14 +51,19 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 ## Pausa y navegación
 
 - [ ] el mundo real permanece visible detrás de la pausa Jobs.
-- [ ] abrir chat no muestra transición, banda ni piel Jobs.
-- [ ] abrir inventario o un contenedor no muestra transición, banda ni piel Jobs.
+- [ ] abrir chat no muestra transición, banda, piel ni hover/click Jobs.
+- [ ] abrir inventario o un contenedor no muestra transición, banda, piel ni hover/click Jobs.
 - [ ] Pausa y Config Jobs sí conservan la tematización.
+- [ ] botones/sliders vanilla conservados dentro de Pausa/Config usan hover y click Jobs.
+- [ ] esos sonidos breves no reactivan música ni ambiente dentro del mundo/servidor.
 - [ ] 1 reanuda y 2 abre Condiciones; 3 no desconecta.
 - [ ] ESC reanuda correctamente.
 - [ ] Mundos vuelve al main Jobs con una sola pulsación de ESC.
 - [ ] Multiplayer vuelve con una sola pulsación de ESC o Cancelar.
-- [ ] salir de mundo/servidor/kick recupera Jobs sin quedarse en TitleScreen vanilla.
+- [ ] salir de un mundo recupera `PantallaNivel` sin quedarse en TitleScreen vanilla.
+- [ ] salir manualmente de un servidor vuelve a Multijugador Jobs, no a Multiplayer vanilla.
+- [ ] un kick/pérdida de conexión puede mostrar su mensaje y, al continuar, vuelve a Multijugador Jobs.
+- [ ] desde ese Multijugador Jobs, ESC vuelve al main en una sola acción.
 
 ## Mods / Resource Packs / Idioma
 
@@ -74,6 +79,9 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 - [ ] `Ghoul Outbreak` no aparece.
 - [ ] el servidor oficial no se puede editar ni borrar desde Jobs.
 - [ ] Direct Connect/Add/Edit/Delete/Refresh funcionan para las demás entradas.
+- [ ] Cancelar durante conexión vuelve a la misma lista Jobs.
+- [ ] un error antes del login vuelve a la misma lista Jobs.
+- [ ] ESC/Cancelar no requieren pulsaciones repetidas.
 
 ## Música y sesión
 
@@ -82,7 +90,8 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 - [ ] en modo fijo no hay rotación automática ni N rompe la selección;
 - [ ] N cambia mediante crossfade a una pista distinta cuando está en Aleatoria;
 - [ ] N con pista fija conserva la selección y responde con el gesto negado;
-- [ ] click, hover, toggles y sliders usan gestos Jobs, nunca `ui.button.click` vanilla;
+- [ ] click, hover, toggles y sliders propios usan gestos Jobs, nunca `ui.button.click` vanilla;
+- [ ] botones/sliders vanilla tematizados también usan `UI_PASAR`/`UI_ELEGIR` en superficies Jobs;
 - [ ] apagar y volver a activar Sonidos de interfaz produce una confirmación audible;
 - [ ] recorrer 18-31 revela ambientes distintos, sin que todos suenen como Administración;
 - [ ] cada cambio entre 18-31 mantiene tres capas y crossfade, sin cortes ni capas huérfanas.
@@ -95,6 +104,7 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 - [ ] Main → Options → Mods → Recursos → volver no reinicia ni duplica música.
 - [ ] F3+T y Alt+Tab no crean instancias fantasma.
 - [ ] entrar a gameplay corta música y ambiente Jobs desde el primer tick jugable.
+- [ ] después del hard-stop, abrir pausa/configuración no vuelve a levantar música ni camas.
 
 ## Fondos 10–17
 
@@ -130,5 +140,5 @@ Si todo pasa:
 
 - [ ] conservar SHA-256 del JAR probado;
 - [ ] anotar resolución y GUI Scale;
-- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.34.0.jar`;
+- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.35.0.jar`;
 - [ ] reportar cualquier defecto visual con captura y `latest.log` cuando afecte recursos/audio/crash.

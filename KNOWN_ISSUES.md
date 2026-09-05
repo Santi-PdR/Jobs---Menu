@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.34.0
+# Riesgos y pruebas pendientes — 0.35.0
 
 Este documento contiene riesgos vigentes. El historial está en `CHANGELOG.md` y en las auditorías de `docs/`.
 
@@ -21,7 +21,7 @@ Antes de publicar, GitHub Actions comprueba:
 - perfiles ambientales explícitos para los niveles 18-31;
 - lecturas semánticas en sliders de volumen, tiempo, nivel y pista;
 - Forge build 1.20.1;
-- publicación de `jobsmenu-0.34.0.jar` en `dev-latest` sólo desde `main`.
+- publicación de `jobsmenu-0.35.0.jar` en `dev-latest` sólo desde `main`.
 
 Un pipeline fallido no debe actualizar la release.
 
@@ -41,6 +41,8 @@ CI no abre Minecraft con ventana real. Después del deploy hay que validar visua
 10. ESC/Volver en Mundos y Multiplayer regresa en una sola acción.
 11. Chat e inventario no muestran barridos, bandas ni pieles Jobs.
 12. Pausa y configuración conservan la tematización permitida.
+13. Controles vanilla conservados dentro de pausa/configuración usan click y hover Jobs sin reactivar música.
+14. Salir o perder conexión de un servidor vuelve a Multijugador Jobs, y desde allí ESC vuelve al main en una sola acción.
 
 ## Riesgos vigentes
 
@@ -59,8 +61,7 @@ CI no abre Minecraft con ventana real. Después del deploy hay que validar visua
 
 ### Interfaces
 
-- La composición adaptativa de 0.34.0 reserva zonas independientes para rótulo, estado y crédito; aun así debe revisarse visualmente con traducciones o resource packs que cambien mucho el ancho del texto.
-
+- La composición adaptativa reserva zonas independientes para rótulo, estado y crédito; aun así debe revisarse visualmente con traducciones o resource packs que cambien mucho el ancho del texto.
 - Las capas Jobs posteriores al render sólo actúan en el flujo de menús. Chat, inventario y pantallas no Jobs con un mundo cargado se excluyen de forma explícita.
 - Las pantallas propias de pausa/configuración pueden necesitar compatibilidad específica con mods/resource packs que reorganicen profundamente una Screen.
 - Scrollbars Jobs son visuales; rueda, click y drag pertenecen a la lista real.
@@ -68,12 +69,18 @@ CI no abre Minecraft con ventana real. Después del deploy hay que validar visua
 
 ### Audio
 
-- El modo fijo mantiene una sola pista hasta que el usuario vuelva a Aleatoria o elija otra; `N` se rechaza deliberadamente para no contradecir esa preferencia y ahora lo confirma con `UI_NEGADO`.
+- El modo fijo mantiene una sola pista hasta que el usuario vuelva a Aleatoria o elija otra; `N` se rechaza deliberadamente para no contradecir esa preferencia y lo confirma con `UI_NEGADO`.
 - Los niveles 18-31 reutilizan camas y eventos autorizados de 0-9 con mezclas propias; la separación perceptiva entre fondos requiere prueba dentro del juego.
-- Los clicks vanilla se sustituyen durante la sesión Jobs. Pantallas de terceros fuera de la sesión conservan su audio original.
-
+- Los clicks vanilla se sustituyen en superficies Jobs. En pausa/configuración dentro de gameplay sólo se permite feedback corto de interfaz; música y ambiente permanecen detenidos.
+- Hover de controles vanilla preservados se deduplica por instancia y tiene además el debounce global de `UI_PASAR`; su sensación final requiere prueba con teclado y ratón.
+- Las pantallas de terceros fuera de la sesión conservan su audio original.
 - La mezcla perceptiva entre Absurdism, REQUIEM y Upon the Hill V2 sólo puede validarse dentro del juego.
 - F3+T, Alt+Tab y cambios rápidos de pantalla deben probarse para descartar instancias fantasma perceptibles.
+
+### Navegación tras servidor
+
+- El retorno se decide por la primera superficie vanilla abierta tras `LoggingOut`: `JoinMultiplayerScreen` se convierte en Multijugador Jobs; Title/Realms vuelve al main Jobs.
+- Mods que reemplacen completamente esos destinos después del evento de apertura pueden requerir compatibilidad específica.
 
 ### Release
 
@@ -87,6 +94,7 @@ CI no abre Minecraft con ventana real. Después del deploy hay que validar visua
 - Movimiento reducido y Bajo consumo tienen prioridad.
 - Pantallas Forge/vanilla complejas conservan lógica real.
 - Reproductor musical está ligado a la sesión y aplica hard-stop en gameplay.
+- El feedback corto de UI se evalúa por superficie Jobs y no abre `SesionMenu`.
 - JAR versionado y CI obligatorio antes de publicar.
 
 ## Reporte

@@ -1,4 +1,4 @@
-# Música — Jobs Menu 0.34.0
+# Música — Jobs Menu 0.35.0
 
 ## Catálogo empaquetado
 
@@ -25,7 +25,13 @@ En `Ajustes del aviso > Audio` se puede elegir **Aleatoria**, **Absurdism**, **R
 - Options, Mods, Mundos, Multiplayer y Recursos no reinician la pista.
 - Transiciones, Suspensión y presencia aplican ducking.
 - F3+T reconstruye de forma defensiva la sesión de audio.
-- Entrar a mundo/servidor aplica hard-stop inmediato.
+- Entrar a mundo/servidor aplica hard-stop inmediato a música y ambiente.
+
+## Feedback de interfaz
+
+Desde 0.35.0 el feedback corto de UI no se confunde con la sesión musical. Botones y sliders de una pantalla propia Jobs pueden seguir usando `UI_PASAR`, `UI_ELEGIR`, confirmar, volver o negado dentro de pausa/configuración aunque haya un mundo cargado. Eso **no** abre `SesionMenu`, no reinicia una pista y no vuelve a levantar camas ambientales.
+
+Los controles vanilla preservados por compatibilidad sustituyen `minecraft:ui.button.click` sólo en superficies Jobs válidas. También reciben un hover Jobs al entrar con ratón o foco de teclado. Video Settings, chat, inventario y pantallas no Jobs conservan el audio que les corresponda y quedan fuera de esta sustitución.
 
 ## Créditos
 
@@ -39,6 +45,8 @@ En `Ajustes del aviso > Audio` se puede elegir **Aleatoria**, **Absurdism**, **R
 4. Comprobar que el HUD y el crédito cambian al tema dominante.
 5. Navegar por subpantallas: la música no reinicia.
 6. Probar `M`, F3+T y Alt+Tab.
-7. Entrar a un mundo/servidor: ningún audio Jobs debe sobrevivir.
+7. Entrar a un mundo/servidor: música y ambiente Jobs deben detenerse por completo.
+8. Abrir pausa/configuración Jobs dentro del mundo: click/hover Jobs pueden responder, pero música y ambiente deben seguir apagados.
+9. Abrir Video Settings, chat e inventario: no deben recibir sustitución de sonido Jobs.
 
 Absurdism source 0.26: music/Absurdism-_slowed-piano-part-only_.ogg -> assets/jobsmenu/sounds/musica/defecto.ogg

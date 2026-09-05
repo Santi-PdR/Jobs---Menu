@@ -22,6 +22,7 @@ import com.santipdr.jobsmenu.client.ui.TransicionInterfazJobs;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
@@ -41,6 +42,8 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.WeakHashMap;
+
 /** La puerta del aviso: lifecycle, redirecciones, sonido y continuidad visual. */
 @Mod.EventBusSubscriber(modid = JobsMenu.MOD_ID, value = Dist.CLIENT)
 public final class EscuchaCliente {
@@ -50,6 +53,10 @@ public final class EscuchaCliente {
 
     private static boolean presentado;
     private static boolean retornoDesdeJuego;
+    private static boolean retornoMultijugadorPendiente;
+    private static boolean enServidorRemoto;
+    private static final WeakHashMap<AbstractButton, Boolean> HOVER_VANILLA = new WeakHashMap<>();
+    private static Screen pantallaHoverVanilla;
 
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void alAbrirPantalla(ScreenEvent.Opening evento) {
@@ -58,6 +65,8 @@ public final class EscuchaCliente {
 
         ConfigTurno.guardarPendiente();
 
+        boolean destinoMultijugador = siguiente instanceof JoinMultiplayerScreen
+                || siguiente != null && siguiente.getClass() == TitleScreen.class;
         boolean destinoRetorno = siguiente != null && (
                 siguiente.getClass() == TitleScreen.class
                         || siguiente instanceof JoinMultiplayerScreen
@@ -68,8 +77,13 @@ public final class EscuchaCliente {
                 || anterior instanceof PantallaEstancia
                 || anterior instanceof PantallaOpcionesJobs;
 
-        if (ConfigTurno.menuPropio() && retornoDesdeJuego && destinoRetorno) {
-            retornoDesdeJuego = false;
+        if (ConfigTurno.menuPropio() && retornoDesdeJuego
+                && retornoMultijugadorPendiente && destinoMultijugador) {
+            limpiarRetornoJuego();
+            siguiente = new PantallaMultijugadorJobs(new PantallaNivel());
+            evento.setNewScreen(siguiente);
+        } else if (ConfigTurno.menuPropio() && retornoDesdeJuego && destinoRetorno) {
+            limpiarRetornoJuego();
             siguiente = new PantallaNivel();
             evento.setNewScreen(siguiente);
         } else if (ConfigTurno.menuPropio()
@@ -101,7 +115,10 @@ public final class EscuchaCliente {
         }
 
         if (siguiente instanceof PantallaNivel) {
-            retornoDesdeJuego = false;
+            limpiarRetornoJuego();
+        }
+        if (ConfigTurno.menuPropio() && esPantallaPropia(siguiente)
+                && Minecraft.getInstance().level == null) {
             SesionMenu.abrir();
         } else if (siguiente == null || !ConfigTurno.menuPropio()) {
             SesionMenu.cerrar();
@@ -131,6 +148,9 @@ public final class EscuchaCliente {
         // Inventario, chat y cualquier otra Screen con un mundo cargado son
         // gameplay: ninguna piel, banda ni transicion Jobs puede alcanzarlas.
         if (Minecraft.getInstance().level != null && !propia) return;
+
+        actualizarHoverVanilla(pantalla, evento.getMouseX(), evento.getMouseY());
+
         if (propia) {
             PielVanillaJobs.dibujar(pantalla, evento.getGuiGraphics(),
                     evento.getMouseX(), evento.getMouseY());
@@ -161,14 +181,14 @@ public final class EscuchaCliente {
 
     /**
      * Los controles vanilla que conservamos por compatibilidad no deben volver
-     * a introducir el click de fabrica en una interfaz Jobs.
+     * a introducir el click de fabrica en una superficie Jobs. La musica y el
+     * ambiente siguen ligados a SesionMenu; este feedback de UI tambien se
+     * permite en pausa/configuracion Jobs dentro de gameplay sin reabrir audio.
      */
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void alReproducirSonido(PlaySoundEvent evento) {
-        Minecraft cliente = Minecraft.getInstance();
-        Screen pantalla = cliente.screen;
-        if (cliente.level != null && !esPantallaPropia(pantalla)) return;
-        if (!SesionMenu.activa() || esVideoIntocable(pantalla)) return;
+        Screen pantalla = Minecraft.getInstance().screen;
+        if (!esSuperficieJobsActiva(pantalla)) return;
         if (!evento.getOriginalSound().getLocation()
                 .equals(SoundEvents.UI_BUTTON_CLICK.value().getLocation())) return;
         evento.setSound(ConfigTurno.sonidoBotones()
@@ -182,13 +202,19 @@ public final class EscuchaCliente {
 
     @SubscribeEvent
     public static void alEntrarJuego(ClientPlayerNetworkEvent.LoggingIn evento) {
-        retornoDesdeJuego = false;
+        limpiarRetornoJuego();
+        enServidorRemoto = Minecraft.getInstance().getCurrentServer() != null;
         SesionMenu.cerrar();
     }
 
     @SubscribeEvent
     public static void alSalirJuego(ClientPlayerNetworkEvent.LoggingOut evento) {
+        Minecraft cliente = Minecraft.getInstance();
         retornoDesdeJuego = true;
+        // Se usa tambien el estado capturado en ticks jugables por si otro mod
+        // limpia currentServer antes de que Forge entregue LoggingOut.
+        retornoMultijugadorPendiente = enServidorRemoto || cliente.getCurrentServer() != null;
+        enServidorRemoto = false;
         SesionMenu.cerrar();
     }
 
@@ -197,6 +223,9 @@ public final class EscuchaCliente {
         if (evento.phase != TickEvent.Phase.END) return;
         Minecraft cliente = Minecraft.getInstance();
         if (cliente.level != null || !ConfigTurno.menuPropio()) {
+            if (cliente.level != null) {
+                enServidorRemoto = cliente.getCurrentServer() != null;
+            }
             // Gameplay es frontera dura. Corta inmediatamente y no ejecuta
             // mantenimiento de audio del menu durante el resto de este tick.
             SesionMenu.cerrar();
@@ -214,6 +243,39 @@ public final class EscuchaCliente {
     private static boolean esPantallaPropia(Screen pantalla) {
         return pantalla != null
                 && pantalla.getClass().getName().startsWith("com.santipdr.jobsmenu.client.screen.");
+    }
+
+    /**
+     * Una superficie Jobs puede vivir dentro de gameplay (pausa/configuracion)
+     * sin que eso reactive la sesion de musica. Los dialogos vanilla auxiliares
+     * solo heredan feedback Jobs mientras la visita de menu sigue activa.
+     */
+    private static boolean esSuperficieJobsActiva(Screen pantalla) {
+        if (pantalla == null || !ConfigTurno.menuPropio() || esVideoIntocable(pantalla)) return false;
+        return esPantallaPropia(pantalla) || SesionMenu.activa();
+    }
+
+    /**
+     * Los widgets propios ya gestionan su hover. Para botones/sliders vanilla
+     * conservados por compatibilidad se mantiene estado debil por instancia y
+     * se dispara UI_PASAR una sola vez al entrar con raton o foco de teclado.
+     */
+    private static void actualizarHoverVanilla(Screen pantalla, int mouseX, int mouseY) {
+        if (!esSuperficieJobsActiva(pantalla)) return;
+        if (pantallaHoverVanilla != pantalla) {
+            HOVER_VANILLA.clear();
+            pantallaHoverVanilla = pantalla;
+        }
+        for (var child : pantalla.children()) {
+            if (!(child instanceof AbstractButton boton)) continue;
+            if (child.getClass().getName().startsWith("com.santipdr.jobsmenu.")) continue;
+            boolean foco = boton.visible && boton.active
+                    && (boton.isMouseOver(mouseX, mouseY) || boton.isFocused());
+            boolean anterior = Boolean.TRUE.equals(HOVER_VANILLA.put(boton, foco));
+            if (foco && !anterior) {
+                MezclaAudio.gesto(SonidosNivel.UI_PASAR, 0.22F);
+            }
+        }
     }
 
     /**
@@ -237,6 +299,11 @@ public final class EscuchaCliente {
         if (siguiente == null || siguiente.getClass() != PauseScreen.class) return false;
         Component titulo = siguiente.getTitle();
         return titulo != null && Component.translatable("menu.game").equals(titulo);
+    }
+
+    private static void limpiarRetornoJuego() {
+        retornoDesdeJuego = false;
+        retornoMultijugadorPendiente = false;
     }
 
     private static void gesto(Screen anterior, Screen siguiente) {

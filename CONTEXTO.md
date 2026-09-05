@@ -7,8 +7,8 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Version actual | **0.34.0** |
-| Artefacto esperado | **`jobsmenu-0.34.0.jar`** |
+| Version actual | **0.35.0** |
+| Artefacto esperado | **`jobsmenu-0.35.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -39,8 +39,10 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 19. Capas globales de UI no capturan input ni sustituyen controles reales.
 20. Una ayuda visual de teclado solo puede anunciar una tecla implementada de verdad.
 21. `PantallaNivel` reserva el pie para el nombre y la nota del nivel; la barra contextual generica no se dibuja en el main.
-22. Chat, inventario y demás pantallas de gameplay no reciben piel, banda, transición ni sustitución de clicks Jobs.
+22. Chat, inventario y demas pantallas de gameplay no reciben piel, banda, transicion ni sustitucion de clicks Jobs.
 23. Escape y Cancelar comparten una sola ruta vanilla e idempotente en Multiplayer.
+24. El hard-stop afecta musica y ambiente; el feedback breve de UI Jobs puede seguir activo en pausa/configuracion sin abrir una sesion musical.
+25. Un retorno desde servidor remoto nunca debe caer en Multiplayer o Title vanilla: conserva `PantallaMultijugadorJobs` como superficie contextual.
 
 ## 2. Identidad visual
 
@@ -53,34 +55,41 @@ Familias:
 
 La escena usa la paleta material/luz del nivel; la UI usa papel frio, grafito, gris verdoso y tinta neutra.
 
-## 3. Estado 0.34.0
+## 3. Estado 0.35.0
 
-0.34.0 corrige la salida de Multiplayer y convierte la separación entre menús y gameplay en un contrato explícito.
+0.35.0 separa el lifecycle de musica/ambiente del feedback corto de interfaz y conserva el contexto correcto al abandonar servidores.
 
-### Navegación y alcance visual
+### Audio de interfaz
 
-- `PantallaMultijugadorJobs` conserva exclusivamente el padre de `JoinMultiplayerScreen`;
-- Escape y Cancelar convergen en `super.onClose()` y un guard impide dobles cierres;
-- se eliminan `anteriorJobs`, `volverAlMenu()` y la captura manual de Escape;
-- una transición sólo nace si el origen o el destino pertenece a `client.screen`;
-- abrir chat, inventario u otra pantalla con un mundo cargado cancela cualquier transición pendiente;
-- las capas visuales y la sustitución de click también respetan esa frontera dura;
-- Video Settings permanece vanilla e intocable.
+- `PlaySoundEvent` sustituye `minecraft:ui.button.click` en cualquier superficie propia Jobs, incluso con un mundo cargado;
+- esa sustitucion no reactiva `SesionMenu`, por lo que pausa/configuracion pueden sonar Jobs sin devolver musica o ambiente al gameplay;
+- botones y sliders vanilla conservados por compatibilidad reciben `UI_PASAR` una sola vez al entrar con raton o foco;
+- widgets Jobs propios siguen gestionando su hover internamente y se excluyen del seguimiento global;
+- Video Settings, chat, inventario y pantallas de gameplay no Jobs quedan fuera.
+
+### Retorno tras juego
+
+- mientras hay un nivel cargado se memoriza si `Minecraft#getCurrentServer()` identifica un servidor remoto;
+- `LoggingOut` conserva ese contexto antes de que la limpieza vanilla pueda perderlo;
+- abandonar un servidor remoto reconduce tanto `TitleScreen` como `JoinMultiplayerScreen` a `PantallaMultijugadorJobs` con `PantallaNivel` como padre;
+- abandonar un mundo local o volver a Title/Realms sin contexto remoto reconduce a `PantallaNivel`;
+- Cancelar conexion o fallar antes del login sigue usando la lista Jobs original como padre de `ConnectScreen`;
+- Escape/Cancelar en Multiplayer conservan una sola ruta idempotente basada en `super.onClose()`.
 
 ### Ambiente de los 32 niveles
 
 - 0-9 conservan sus tres camas y repertorios originales;
-- 10-17 mantienen las combinaciones diseñadas en sus versiones de imagen;
-- 18-31 tienen selección explícita de base, carácter, actividad y eventos;
-- cada fondo 18-31 define además frecuencia, balance y afinación estables;
+- 10-17 mantienen las combinaciones disenadas en sus versiones de imagen;
+- 18-31 tienen seleccion explicita de base, caracter, actividad y eventos;
+- cada fondo 18-31 define ademas frecuencia, balance y afinacion estables;
 - no se incorporan muestras nuevas ni audio de terceros.
 
 ### Controles de ajustes
 
 - volumen muestra porcentaje;
-- estancia y duración de avisos muestran segundos;
-- nivel fijo muestra posición 0-31 y pista muestra posición 0-3;
-- reactivar Sonidos de interfaz produce confirmación Jobs;
+- estancia y duracion de avisos muestran segundos;
+- nivel fijo muestra posicion 0-31 y pista muestra posicion 0-3;
+- reactivar Sonidos de interfaz produce confirmacion Jobs;
 - `N` no altera una pista fija y usa `UI_NEGADO` cuando no puede saltar.
 
 ### Pie del menu principal
@@ -93,7 +102,7 @@ La escena usa la paleta material/luz del nivel; la UI usa papel frio, grafito, g
 
 ### Catalogo visual 18-31
 
-Los 14 JPG 1920x1080 se revisaron contra su contenido real. Los nombres y notas visibles viven en los `lang/*.json`, mientras `RotulosNivelesImagen` funciona solo como fachada de acceso. Así no hay dos catálogos ES/EN que puedan desincronizarse.
+Los 14 JPG 1920x1080 se revisaron contra su contenido real. Los nombres y notas visibles viven en los `lang/*.json`, mientras `RotulosNivelesImagen` funciona solo como fachada de acceso. Asi no hay dos catalogos ES/EN que puedan desincronizarse.
 
 Nombres ES vigentes:
 
@@ -158,7 +167,8 @@ Reglas:
 - `M` controla mute Jobs;
 - F3+T/recarga no debe duplicar audio;
 - cambiar entre subpantallas Jobs no reinicia la sesion;
-- gameplay ejecuta hard-stop de musica y ambiente Jobs.
+- gameplay ejecuta hard-stop de musica y ambiente Jobs;
+- sonidos breves de botones/hover no forman parte de la sesion musical y pueden responder en pausa/configuracion Jobs.
 
 ## 6. Navegacion e interfaz
 
@@ -199,7 +209,7 @@ GitHub Actions verifica:
 7. JAR versionado;
 8. publicacion a `dev-latest` solo desde `main`.
 
-CI no sustituye prueba visual. Despues del deploy revisar GUI Scale 2/3/4, fondos 18-31, movimiento reducido, Bajo consumo, audio y navegacion ESC.
+CI no sustituye prueba visual. Despues del deploy revisar GUI Scale 2/3/4, fondos 18-31, movimiento reducido, Bajo consumo, audio, hover de controles vanilla preservados y navegacion ESC/desconexion.
 
 ## 9. Despliegue
 
