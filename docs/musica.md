@@ -1,4 +1,4 @@
-# Música — Jobs Menu 0.36.0
+# Música — Jobs Menu 0.37.0
 
 ## Catálogo empaquetado
 
@@ -34,6 +34,8 @@ Desde 0.35.0 el feedback corto de UI no se confunde con la sesión musical. Boto
 
 Los controles vanilla preservados por compatibilidad sustituyen `minecraft:ui.button.click` sólo en superficies Jobs válidas. También reciben un hover Jobs al entrar con ratón o foco de teclado. Video Settings, chat, inventario y pantallas no Jobs conservan el audio que les corresponda y quedan fuera de esta sustitución.
 
+Desde 0.37.0 el atajo F5 de Multiplayer emite `UI_ALTERNAR` como feedback de teclado. Ese gesto tampoco pertenece a `SesionMenu`: refrescar servidores no reinicia, adelanta ni modifica la pista musical. El botón Actualizar conserva su gesto normal y `refrescarLista()` no añade un segundo sonido.
+
 ## Créditos
 
 `PantallaNivel` consulta la pista dominante real durante un crossfade. Por eso REQUIEM no puede aparecer como crédito mientras suena Absurdism o Upon the Hill. Absurdism conserva su nombre sin atribución inventada; REQUIEM muestra `Emmy Z - Forsaken OST`; Upon the Hill V2 muestra la mención `ft. @iCosmicCoffee` recibida con el archivo.
@@ -49,5 +51,6 @@ Los controles vanilla preservados por compatibilidad sustituyen `minecraft:ui.bu
 7. Entrar a un mundo/servidor: música y ambiente Jobs deben detenerse por completo.
 8. Abrir pausa/configuración Jobs dentro del mundo: click/hover Jobs pueden responder, pero música y ambiente deben seguir apagados y no debe aparecer ninguna transición de entrada/salida.
 9. Abrir Video Settings, chat e inventario: no deben recibir sustitución de sonido Jobs ni transición Jobs.
+10. En Multiplayer, pulsar F5: debe sonar un solo `UI_ALTERNAR` y la música actual debe continuar sin reinicio/cambio.
 
 Absurdism source 0.26: music/Absurdism-_slowed-piano-part-only_.ogg -> assets/jobsmenu/sounds/musica/defecto.ogg
