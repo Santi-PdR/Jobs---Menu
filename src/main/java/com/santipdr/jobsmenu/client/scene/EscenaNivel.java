@@ -29,20 +29,17 @@ public final class EscenaNivel {
         boolean fondoImagen = planta instanceof PlantaImagen;
 
         boolean viva = ConfigTurno.escenaViva();
+        boolean ahorro = ConfigTurno.bajoConsumo();
         boolean destellos = viva && !fondoImagen && !ConfigTurno.destellosReducidos()
                 && !estado.enSuspension();
-        // Los PNG 10-17 actuales, y cualquier PNG alto futuro, son material
-        // fotografico estatico: escena viva nunca mueve ni pulsa su contenido.
         boolean movimiento = viva && !fondoImagen && !ConfigTurno.movimientoReducido();
-        boolean bajoConsumo = viva && ConfigTurno.bajoConsumo();
+        boolean bajoConsumo = viva && ahorro;
         boolean respiracion = movimiento && ConfigTurno.respiracionCamara()
                 && !bajoConsumo;
         boolean atmosferaMovimiento = movimiento && !estado.enSuspension();
 
         float tiempo = movimiento ? (estado.ahora() % 600_000L) / 1000.0F : 3.0F;
         long restanteRonda = RelojAparicion.restanteMs(estado.ahora());
-        // En fondos de imagen la ronda no oscurece ni anima la vignette. Solo
-        // queda estado.luz(), que pertenece al cambio completo entre niveles.
         float penumbra = fondoImagen ? 0.0F : RelojAparicion.penumbra(restanteRonda);
 
         float luz = brilloFluorescente(tiempo, destellos)
@@ -68,9 +65,6 @@ public final class EscenaNivel {
 
         planta.dibujar(grafico, marco, nivel, luz, tiempo);
 
-        // Todas estas capas pertenecen exclusivamente a recintos procedurales.
-        // Un PNG no recibe materiales, tratamiento, foreground, motas, presencia,
-        // eventos, respiracion, flicker ni pulido animado.
         if (!fondoImagen) {
             MaterialesEscena.dibujar(grafico, ancho, alto, nivel, luz, tiempo, movimiento);
             TratamientoEscena.dibujar(grafico, ancho, alto, nivel, luz, tiempo, movimiento);
@@ -93,9 +87,9 @@ public final class EscenaNivel {
                     movimiento, bajoConsumo);
         }
 
-        // En PNG penumbra es cero, de modo que esta vignette es totalmente
-        // estatica. Solo separa los bordes del aviso del fondo fotografico.
-        vineta(grafico, ancho, alto, penumbra);
+        // En ahorro se conserva la misma intensidad, pero con bandas mas anchas:
+        // menos draw calls para una capa que ya es deliberadamente suave.
+        vineta(grafico, ancho, alto, penumbra, ahorro);
     }
 
     private static void motas(GuiGraphics grafico, int ancho, int alto,
@@ -118,10 +112,11 @@ public final class EscenaNivel {
         }
     }
 
-    private static void vineta(GuiGraphics grafico, int ancho, int alto, float penumbra) {
+    private static void vineta(GuiGraphics grafico, int ancho, int alto,
+                               float penumbra, boolean ahorro) {
         int franja = Math.max(8, ancho / 6);
         float intensidad = 0.36F + 0.43F * penumbra;
-        final int paso = 3;
+        int paso = ahorro ? 6 : 3;
 
         for (int x = 0; x < franja; x += paso) {
             float t = 1.0F - x / (float) franja;
