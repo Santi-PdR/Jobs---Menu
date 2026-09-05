@@ -26,18 +26,18 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
 
     private static final String SERVIDOR_IP = "JobsDosh.exaroton.me:56477";
 
-    private final Screen anteriorJobs;
     private Button realSelect, realDirect, realAdd, realEdit, realDelete, realRefresh, realCancel;
     private BotonExpediente select, edit, delete, refresh;
     private int panelX, panelY, panelW, panelH;
+    private boolean cerrando;
 
     public PantallaMultijugadorJobs(Screen anterior) {
         super(anterior);
-        this.anteriorJobs = anterior;
     }
 
     @Override
     protected void init() {
+        this.cerrando = false;
         super.init();
         this.panelX = 12;
         this.panelY = 8;
@@ -150,7 +150,7 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
     private BotonExpediente agregar(int x, int y, int w, String clave, String ayuda,
                                      BotonExpediente.Tipo tipo, Button real) {
         Runnable accion;
-        if ("gui.cancel".equals(clave)) accion = this::volverAlMenu;
+        if ("gui.cancel".equals(clave)) accion = this::onClose;
         else if ("selectServer.select".equals(clave)) accion = this::conectarSeleccionado;
         else accion = () -> pulsar(real);
         BotonExpediente b = new BotonExpediente(x, y, w, 21,
@@ -285,10 +285,6 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
-            volverAlMenu();
-            return true;
-        }
         if (keyCode == GLFW.GLFW_KEY_F5 && this.realRefresh != null && this.realRefresh.active) {
             this.realRefresh.onPress();
             return true;
@@ -296,13 +292,15 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
+    /**
+     * Una sola ruta de salida para ESC y Cancelar. JoinMultiplayerScreen conserva
+     * el padre vanilla; el guard evita que dos eventos del mismo gesto lo abran
+     * repetidamente.
+     */
     @Override
     public void onClose() {
-        volverAlMenu();
-    }
-
-    private void volverAlMenu() {
-        if (this.minecraft == null) return;
-        this.minecraft.setScreen(this.anteriorJobs != null ? this.anteriorJobs : new PantallaNivel());
+        if (this.cerrando) return;
+        this.cerrando = true;
+        super.onClose();
     }
 }

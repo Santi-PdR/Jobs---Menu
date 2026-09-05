@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 
 | Campo | Valor |
 |---|---|
-| Version | **0.33.0** |
-| Artefacto | **`jobsmenu-0.33.0.jar`** |
+| Version | **0.34.0** |
+| Artefacto | **`jobsmenu-0.34.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,14 +13,15 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 | Rama entregable | **`main`** |
 | Niveles | **32 (0-31)** |
 
-## 0.33.0 · Video Settings vanilla y compatibilidad
+## 0.34.0 · Navegación fiable y frontera de gameplay
 
-- Video Settings vuelve a ser `VideoSettingsScreen` vanilla directa: no se reconstruye, no se recoloca y no oculta opciones.
-- La pantalla queda excluida de pieles, marcos, transiciones y sustitución de clicks Jobs.
-- Se elimina `PantallaVideoJobs` y también la reflection que intentaba reconstruir páginas de Embeddium.
-- El FOV duplicado sale del hub Jobs; todos los ajustes de imagen vuelven a vivir en Video Settings.
-- Online ocupa la fila completa que queda libre, mejorando equilibrio y área de click del hub.
-- ES/EN, documentación y CI protegen este contrato para impedir futuras regresiones.
+- Escape y Cancelar en Multiplayer usan una única ruta vanilla hacia su pantalla padre.
+- La salida es idempotente: un gesto no puede disparar varias reaperturas de pantalla.
+- Se elimina el padre manual duplicado que competía con `JoinMultiplayerScreen`.
+- Las transiciones sólo se activan cuando participa una pantalla propia de Jobs.
+- Chat, inventario y cualquier pantalla con un mundo cargado quedan fuera de pieles, bandas, transiciones y sustitución de clicks.
+- Video Settings continúa completamente vanilla y sin interferencias Jobs.
+- Los verificadores y la documentación protegen estas fronteras automáticamente.
 
 ## Fondos 18-31
 

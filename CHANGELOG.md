@@ -1,5 +1,28 @@
 # Registro de cambios
 
+## 0.34.0 — Navegación fiable y frontera de gameplay — 2026-09-05
+
+### Multiplayer
+
+- Escape y Cancelar convergen en una única llamada idempotente a la navegación vanilla de `JoinMultiplayerScreen`.
+- Se elimina el padre manual duplicado y la captura paralela de Escape que podían reprocesar la salida.
+- Conectar sigue usando la pantalla Jobs como padre real, por lo que Cancelar y los errores regresan a Multiplayer.
+
+### Menús frente a gameplay
+
+- Las transiciones sólo se crean cuando participa una pantalla propia del paquete `client.screen`.
+- Cualquier cambio ajeno cancela la transición pendiente.
+- Con un mundo cargado, chat, inventario y demás pantallas no Jobs quedan fuera de piel, banda contextual, transición y reemplazo de clicks.
+- Pausa Jobs y sus pantallas de configuración siguen tematizadas; Video Settings continúa vanilla.
+
+### Calidad y entrega
+
+- Los dos verificadores fallan si reaparecen rutas duplicadas de Multiplayer o si se pierde la frontera de gameplay.
+- Versión: **0.34.0**.
+- Artefacto esperado: **`jobsmenu-0.34.0.jar`**.
+- Fondos, música, ambiente, servidor fijado y lógica de conexión permanecen intactos.
+
+
 ## 0.33.0 — Video Settings vanilla y aislamiento de compatibilidad — 2026-09-05
 
 ### Restauración de Video Settings

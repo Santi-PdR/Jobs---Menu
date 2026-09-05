@@ -107,7 +107,11 @@ public final class EscuchaCliente {
             SesionMenu.cerrar();
         }
 
-        TransicionInterfazJobs.notificar(anterior, siguiente);
+        if (usaTransicionJobs(anterior, siguiente)) {
+            TransicionInterfazJobs.notificar(anterior, siguiente);
+        } else {
+            TransicionInterfazJobs.cancelar();
+        }
         PulidoInterfazJobs.notificarApertura(siguiente);
         gesto(anterior, siguiente);
     }
@@ -123,7 +127,10 @@ public final class EscuchaCliente {
         if (pantalla == null || esVideoIntocable(pantalla)) return;
 
         String clase = pantalla.getClass().getName();
-        boolean propia = clase.startsWith("com.santipdr.jobsmenu.");
+        boolean propia = esPantallaPropia(pantalla);
+        // Inventario, chat y cualquier otra Screen con un mundo cargado son
+        // gameplay: ninguna piel, banda ni transicion Jobs puede alcanzarlas.
+        if (Minecraft.getInstance().level != null && !propia) return;
         if (propia) {
             PielVanillaJobs.dibujar(pantalla, evento.getGuiGraphics(),
                     evento.getMouseX(), evento.getMouseY());
@@ -158,7 +165,10 @@ public final class EscuchaCliente {
      */
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void alReproducirSonido(PlaySoundEvent evento) {
-        if (!SesionMenu.activa() || esVideoIntocable(Minecraft.getInstance().screen)) return;
+        Minecraft cliente = Minecraft.getInstance();
+        Screen pantalla = cliente.screen;
+        if (cliente.level != null && !esPantallaPropia(pantalla)) return;
+        if (!SesionMenu.activa() || esVideoIntocable(pantalla)) return;
         if (!evento.getOriginalSound().getLocation()
                 .equals(SoundEvents.UI_BUTTON_CLICK.value().getLocation())) return;
         evento.setSound(ConfigTurno.sonidoBotones()
@@ -201,6 +211,20 @@ public final class EscuchaCliente {
      * Se reconocen tambien las pantallas conocidas de Sodium/Embeddium para no
      * pintar encima si otro mod sustituye la instancia vanilla.
      */
+    private static boolean esPantallaPropia(Screen pantalla) {
+        return pantalla != null
+                && pantalla.getClass().getName().startsWith("com.santipdr.jobsmenu.client.screen.");
+    }
+
+    /**
+     * Las transiciones pertenecen al flujo de expedientes. Si ninguna de las
+     * pantallas es propia, el cambio es gameplay o una UI ajena y se cancela.
+     */
+    private static boolean usaTransicionJobs(Screen desde, Screen hasta) {
+        if (hasta == null || esVideoIntocable(desde) || esVideoIntocable(hasta)) return false;
+        return esPantallaPropia(desde) || esPantallaPropia(hasta);
+    }
+
     private static boolean esVideoIntocable(Screen pantalla) {
         if (pantalla == null) return false;
         if (pantalla instanceof VideoSettingsScreen) return true;

@@ -23,6 +23,10 @@ public final class TransicionInterfazJobs {
         sentido = a.compareTo(b) <= 0 ? 1 : -1;
     }
 
+    public static void cancelar() {
+        inicio = 0L;
+    }
+
     public static void dibujar(Screen pantalla, GuiGraphics g) {
         if (pantalla == null || inicio <= 0L) return;
         long transcurrido = System.currentTimeMillis() - inicio;
