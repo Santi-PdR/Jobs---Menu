@@ -7,8 +7,8 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Version actual | **0.32.0** |
-| Artefacto esperado | **`jobsmenu-0.32.0.jar`** |
+| Version actual | **0.33.0** |
+| Artefacto esperado | **`jobsmenu-0.33.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -51,9 +51,18 @@ Familias:
 
 La escena usa la paleta material/luz del nivel; la UI usa papel frio, grafito, gris verdoso y tinta neutra.
 
-## 3. Estado 0.32.0
+## 3. Estado 0.33.0
 
-0.32.0 completa la identidad sonora de los fondos 18-31 y corrige la lectura de los controles sin tocar imágenes ni ampliar la superficie de configuración.
+0.33.0 restaura Video Settings como pantalla vanilla intacta y mantiene las mejoras de audio y controles de 0.32.0.
+
+### Video Settings intocable
+
+- se abre `VideoSettingsScreen` directamente;
+- Jobs no recoloca la lista, oculta botones ni reconstruye opciones;
+- no se aplican piel, marco, transición ni sustitución de click dentro de esa pantalla;
+- `PantallaVideoJobs` y la reflection de Embeddium fueron eliminadas;
+- el FOV duplicado desaparece del hub Jobs y Online usa la fila completa;
+- la pantalla vuelve a su padre Jobs con el botón vanilla Done.
 
 ### Ambiente de los 32 niveles
 

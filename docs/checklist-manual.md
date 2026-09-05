@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.32.0
+# Checklist manual de aceptación — 0.33.0
 
 Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código, recursos y build; no certifica estética, input, audio perceptivo ni compatibilidad visual dentro de Minecraft.
 
@@ -6,7 +6,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.32.0.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.33.0.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Layout
@@ -22,6 +22,16 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 - [ ] el crédito musical se oculta de forma limpia en ventanas compactas y no sale de pantalla;
 - [ ] una pista sin autor no deja una segunda línea vacía;
 - [ ] volumen muestra porcentaje, los tiempos muestran segundos y nivel/pista no muestran porcentajes falsos.
+
+## Video Settings vanilla
+
+- [ ] Video abre la pantalla vanilla completa, sin marco, cabecera, transición ni recolocación Jobs;
+- [ ] aparecen todas las opciones vanilla esperadas y se puede recorrer la lista completa;
+- [ ] Done es el botón vanilla, está visible y vuelve al hub Jobs;
+- [ ] los clicks dentro de Video Settings son vanilla;
+- [ ] FOV aparece sólo dentro de Video Settings, no duplicado en el hub;
+- [ ] Online ocupa la última fila completa del hub;
+- [ ] con Embeddium/Oculus instalados no hay crash ni opciones recortadas por Jobs.
 
 ## Main
 
@@ -117,5 +127,5 @@ Si todo pasa:
 
 - [ ] conservar SHA-256 del JAR probado;
 - [ ] anotar resolución y GUI Scale;
-- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.32.0.jar`;
+- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.33.0.jar`;
 - [ ] reportar cualquier defecto visual con captura y `latest.log` cuando afecte recursos/audio/crash.

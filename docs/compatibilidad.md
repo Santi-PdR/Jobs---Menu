@@ -92,11 +92,11 @@ Después del render vanilla, Jobs cubre la barra gris y dibuja sobre el mismo hi
 
 La integración usa reflection defensiva con nombres SRG. Si no puede resolverse una lista modificada, se conserva una scrollbar utilizable/fallback en vez de abortar o inventar coordenadas.
 
-## Embeddium y video externo
+## Video Settings vanilla y mods de rendimiento
 
-`PantallaOpcionesJobs` intenta abrir la pantalla real de Embeddium mediante sus clases públicas conocidas. Si están disponibles, utiliza esa implementación completa. Si no, usa `PantallaVideoJobs` sobre video vanilla.
+`PantallaOpcionesJobs` abre directamente `VideoSettingsScreen`. Jobs no reconstruye páginas de Embeddium, no mueve la lista, no oculta Done y no dibuja pieles, marcos o transiciones encima.
 
-No se reconstruye internamente Embeddium mediante reflection profunda. Oculus, Embeddium Extra y addons deben probarse en el modpack real.
+Si Embeddium, Oculus u otro addon modifica la clase vanilla por sus propios mecanismos, Jobs no interfiere. Esa integración debe probarse en el modpack real porque pertenece al otro mod.
 
 ## Fondos PNG 10–17
 

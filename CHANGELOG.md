@@ -1,5 +1,28 @@
 # Registro de cambios
 
+## 0.33.0 — Video Settings vanilla y aislamiento de compatibilidad — 2026-09-05
+
+### Restauración de Video Settings
+
+- Se elimina `PantallaVideoJobs`: ya no se recoloca la lista vanilla ni se oculta su botón Done.
+- `PantallaOpcionesJobs` abre directamente `VideoSettingsScreen`, sin reflection ni reconstrucción parcial de Embeddium.
+- Video Settings queda excluida de pieles, marcos, transiciones y reemplazo de clicks Jobs durante toda la sesión.
+- El resultado conserva el catálogo completo de opciones que proporcione Minecraft en esa pantalla.
+
+### Mejoras del hub
+
+- Se elimina el slider FOV duplicado; FOV vuelve a tener una única fuente de verdad dentro de Video Settings.
+- Online ocupa el ancho completo de la última fila, evitando un hueco y ampliando su zona de interacción.
+- El tooltip de Video aclara en ES/EN que abre la pantalla vanilla completa.
+
+### Calidad y entrega
+
+- CI falla si reaparece `PantallaVideoJobs`, reflection de Embeddium o cualquier capa Jobs sobre Video Settings.
+- Versión: **0.33.0**.
+- Artefacto esperado: **`jobsmenu-0.33.0.jar`**.
+- Audio, música, fondos, multiplayer y configuración Jobs permanecen intactos.
+
+
 ## 0.32.0 — Ambientes completos y controles precisos — 2026-09-04
 
 ### Audio ambiental
