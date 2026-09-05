@@ -12,7 +12,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,31 +26,13 @@ import java.util.List;
  * que no los mira ni se entera de que se podia. Es la unica cosa de la pantalla
  * que cambia de contenido sin llevar a ninguna parte, y por eso suena distinto
  * de los renglones: no es una eleccion, es dar vuelta una hoja.
- *
- * DONDE VIVE EL ESTADO
- *
- * El indice y el momento de la ultima vuelta son estaticos a proposito. La
- * pantalla se reconstruye entera cada vez que cambia el tamano de la ventana, y
- * si el estado viviese en la instancia, redimensionar el juego mandaria el
- * aviso de vuelta al primero.
- *
- * Pasar uno a mano no solo adelanta el indice: tambien reinicia el reloj, asi
- * el aviso recien traido dura los siete segundos completos y no los tres que le
- * quedaban al anterior.
  */
 public class NotaAviso extends AbstractButton {
 
     /** Cantidad de avisos disponibles en los archivos de idioma. */
     public static final int AVISOS = 20;
 
-    /**
-     * Todas las notas especiales que la administracion puede colar por fecha u
-     * hora. Estan aca, y no solo en especialDeHoy(), porque la hoja necesita
-     * reservar alto para la mas larga de TODAS las notas -comunes y especiales-
-     * antes de saber que dia es: una nota especial que parta en mas lineas
-     * empujaria los renglones si la hoja no la hubiese tenido en cuenta. El
-     * orden de esta lista no decide cual gana; de eso se ocupa especialDeHoy().
-     */
+    /** Notas especiales que la hoja debe contemplar al medir su alto. */
     public static final String[] ESPECIALES = {
             "jobsmenu.aviso.especial.anonuevo",
             "jobsmenu.aviso.especial.navidad",
@@ -59,12 +43,6 @@ public class NotaAviso extends AbstractButton {
             "jobsmenu.aviso.especial.medianoche",
     };
 
-    /** Cada cuantos milisegundos pasa solo al siguiente (configurable). */
-    private static long rotacionMs() {
-        return ConfigTurno.duracionAvisos() * 1_000L;
-    }
-
-    /** Cuanto se acerca el foco a su destino en cada fotograma. */
     private static final float SUAVIZADO = 0.25F;
 
     /** Avisos adelantados a mano desde que arranco el juego. */
@@ -73,14 +51,22 @@ public class NotaAviso extends AbstractButton {
     /** Momento de la ultima vuelta, automatica o a mano. */
     private static long base = System.currentTimeMillis();
 
+    /** La fecha especial solo puede cambiar al cambiar de minuto. */
+    private static long minutoEspecialCache = Long.MIN_VALUE;
+    private static String especialCache;
+
     private float foco;
     private boolean sonaba;
     private float luzFrame = 1.0F;
 
-    /** Cache de la particion de texto: la nota cambia cada siete segundos. */
+    /** Cache de la particion de texto: la nota cambia cada varios segundos. */
     private List<FormattedCharSequence> lineasCache = Collections.emptyList();
     private Component textoMedido = Component.empty();
     private int anchoMedido = -1;
+
+    /** Evita crear Component.translatable para la misma nota en cada frame. */
+    private String claveTextoCache = "";
+    private Component textoCache = Component.empty();
 
     public NotaAviso(int x, int y, int ancho, int alto) {
         super(x, y, ancho, alto, Component.empty());
@@ -93,55 +79,55 @@ public class NotaAviso extends AbstractButton {
         this.luzFrame = Math.max(0.0F, Math.min(1.0F, luz));
     }
 
-    /** El aviso que toca ahora mismo. */
-    private static int indice() {
-        long vueltas = Math.floorDiv(System.currentTimeMillis() - base, rotacionMs());
+    private static long rotacionMs() {
+        return ConfigTurno.duracionAvisos() * 1_000L;
+    }
+
+    /** El aviso que toca en un instante ya capturado por el frame. */
+    private static int indice(long ahora) {
+        long vueltas = Math.floorDiv(ahora - base, rotacionMs());
         return (int) Math.floorMod(vueltas + corrimiento, AVISOS);
     }
 
-    /**
-     * La clave del aviso que se muestra: casi siempre el rotativo comun, pero
-     * en ciertas fechas y horas la administracion cuela una nota propia.
-     *
-     * ES UN GUINO, NO UN CARTEL. Solo aparece cuando la fecha real coincide, y
-     * ademas solo en una de cada cinco vueltas de la rotacion, para que quien
-     * este mirando justo esos dias tenga que tener algo de suerte para leerla.
-     * El que nunca abra el menu un 31 de octubre no se entera de que existe, y
-     * esa es la idea: se descubre, no se anuncia. Todo sale del reloj del
-     * sistema, sin estado.
-     *
-     * Los mensajes viven en lang, en la voz seca de siempre: nada de romper el
-     * tono con chistes. Ver jobsmenu.aviso.especial.*.
-     */
-    private static Component textoActual() {
-        int i = indice();
-        // La nota especial no se roba todas las vueltas: una de cada cinco.
+    private Component textoActual(long ahora) {
+        int i = indice(ahora);
+        String clave = null;
         if (i % 5 == 0) {
-            String especial = especialDeHoy();
-            if (especial != null) {
-                return Component.translatable(especial);
-            }
+            clave = especialDeAhora(ahora);
         }
-        return Component.translatable("jobsmenu.aviso." + i);
+        if (clave == null) {
+            clave = "jobsmenu.aviso." + i;
+        }
+        if (!clave.equals(this.claveTextoCache)) {
+            this.claveTextoCache = clave;
+            this.textoCache = Component.translatable(clave);
+        }
+        return this.textoCache;
     }
 
     /**
-     * La nota especial que corresponde a la fecha y hora de hoy, o null.
-     *
-     * El orden importa: primero lo mas raro (una fecha concreta, que pasa una
-     * vez al ano) y al final lo mas comun (una hora del dia, que vuelve cada
-     * jornada). Asi un viernes 13 a las tres de la manana gana el viernes 13, y
-     * la Navidad a medianoche gana la Navidad. Lo senalado siempre le gana a lo
-     * cotidiano.
+     * Resolver calendario es bastante mas caro que elegir un indice. Como las
+     * ventanas especiales tienen precision de minutos, se calcula una vez por
+     * minuto de reloj y todos los frames reutilizan el resultado.
      */
-    private static String especialDeHoy() {
-        LocalDateTime ahora = LocalDateTime.now();
+    private static String especialDeAhora(long ahoraMs) {
+        long minuto = Math.floorDiv(ahoraMs, 60_000L);
+        if (minuto == minutoEspecialCache) {
+            return especialCache;
+        }
+        minutoEspecialCache = minuto;
+        LocalDateTime ahora = LocalDateTime.ofInstant(
+                Instant.ofEpochMilli(ahoraMs), ZoneId.systemDefault());
+        especialCache = especialDe(ahora);
+        return especialCache;
+    }
+
+    private static String especialDe(LocalDateTime ahora) {
         int mes = ahora.getMonthValue();
         int dia = ahora.getDayOfMonth();
         int hora = ahora.getHour();
         int minuto = ahora.getMinute();
 
-        // --- Fechas concretas: lo mas raro, gana siempre. ---
         if (mes == 1 && dia == 1) {
             return "jobsmenu.aviso.especial.anonuevo";
         }
@@ -151,20 +137,15 @@ public class NotaAviso extends AbstractButton {
         if (mes == 10 && dia == 31) {
             return "jobsmenu.aviso.especial.difuntos";
         }
-        // El Dia del Trabajador: guino directo al nombre del server.
         if (mes == 5 && dia == 1) {
             return "jobsmenu.aviso.especial.trabajador";
         }
         if (dia == 13 && ahora.getDayOfWeek() == DayOfWeek.FRIDAY) {
             return "jobsmenu.aviso.especial.viernes13";
         }
-
-        // --- Horas del dia: lo mas comun, solo si no cayo ninguna fecha. ---
-        // La hora de las brujas: una ventana corta, no una hora entera diaria.
         if (hora == 3 && minuto >= 13 && minuto < 18) {
             return "jobsmenu.aviso.especial.madrugada";
         }
-        // El cambio de turno solo durante los primeros cinco minutos.
         if (hora == 0 && minuto < 5) {
             return "jobsmenu.aviso.especial.medianoche";
         }
@@ -197,11 +178,10 @@ public class NotaAviso extends AbstractButton {
     @Override
     public void renderWidget(GuiGraphics grafico, int ratonX, int ratonY, float parcial) {
         Minecraft cliente = Minecraft.getInstance();
+        long ahora = System.currentTimeMillis();
 
         boolean encima = this.isHoveredOrFocused();
         if (encima && !this.sonaba) {
-            // Mas bajo que el de los renglones: esto no es una opcion del
-            // listado y no tiene que sonar como si lo fuese.
             MezclaAudio.gesto(SonidosNivel.UI_PASAR, 0.40F);
         }
         this.sonaba = encima;
@@ -216,14 +196,12 @@ public class NotaAviso extends AbstractButton {
             }
         }
 
-        Component texto = textoActual();
-
+        Component texto = textoActual(ahora);
         int x = this.getX();
         int y = this.getY();
         int ancho = this.getWidth();
         List<FormattedCharSequence> lineas = lineas(cliente, texto);
 
-        // Con la luz cortada, la letra chica es lo primero que deja de leerse.
         float tinta = 0.10F + 0.90F * this.luzFrame;
         float escala = ConfigTurno.textoGrande() ? 1.15F : 1.0F;
         int color = Paleta.conAlfa(
@@ -242,9 +220,6 @@ public class NotaAviso extends AbstractButton {
             alto += Math.round(10.0F * escala);
         }
 
-        // Al pasar el cursor, una raya de lapiz por debajo que se dibuja sola
-        // de izquierda a derecha. Tres pixeles de alto en total; no se mira,
-        // se nota.
         if (this.foco > 0.0F) {
             int largo = Math.round(ancho * this.foco);
             grafico.fill(x, y + alto, x + largo, y + alto + 1,
@@ -255,6 +230,6 @@ public class NotaAviso extends AbstractButton {
     @Override
     public void updateWidgetNarration(NarrationElementOutput salida) {
         salida.add(net.minecraft.client.gui.narration.NarratedElementType.TITLE,
-                textoActual());
+                textoActual(System.currentTimeMillis()));
     }
 }
