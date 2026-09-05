@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.37.0
+# Riesgos y pruebas pendientes — 0.38.0
 
 Este documento contiene riesgos vigentes. El historial está en `CHANGELOG.md` y en las auditorías de `docs/`.
 
@@ -6,124 +6,113 @@ Este documento contiene riesgos vigentes. El historial está en `CHANGELOG.md` y
 
 Antes de publicar, GitHub Actions comprueba:
 
-- Java 17;
-- JAR versionado;
-- integridad de PNG 10–17;
-- presencia, firma y dimensiones 1920×1080 de JPEG 18–31;
+- Java 17 y Forge build 1.20.1;
+- JAR versionado y política de `dev-latest`;
+- integridad de PNG 10–17 y JPEG 18–31;
 - paridad ES/EN, recursos y coherencia estática;
 - contratos UI/música y hard-stop de gameplay;
 - aislamiento completo de Video Settings vanilla;
-- salida única e idempotente de Multiplayer;
-- continuidad de selección por IP al usar F5/Actualizar;
-- bloqueo de recargas múltiples de Multiplayer durante el reemplazo de pantalla;
-- feedback F5 mediante gesto Jobs y ausencia del antiguo indicador duro `JOBS/SERVER`;
-- transiciones limitadas a pantallas propias Jobs;
+- salida única/idempotente y continuidad de selección de Multiplayer;
+- feedback F5 Jobs y ausencia del antiguo `JOBS/SERVER`;
 - frontera dura que excluye chat, inventario y UI de gameplay;
 - ausencia de `PantallaVideoJobs` y reflection de páginas Embeddium;
-- rango `nivel_fijo` coherente con los 32 niveles;
-- perfiles ambientales explícitos para los niveles 18-31;
-- lecturas semánticas en sliders de volumen, tiempo, nivel y pista;
-- presencia del índice de documentación vigente/histórica y sincronización básica de versión;
-- Forge build 1.20.1;
-- publicación de `jobsmenu-0.37.0.jar` en `dev-latest` sólo desde `main`.
+- rango `nivel_fijo` coherente con 32 niveles;
+- perfiles ambientales y lecturas semánticas de sliders;
+- índice/documentación vigente sincronizada;
+- caché de fields/listas de `ListasExpediente` y deduplicación de scrollbar por frame;
+- liberación de cachés al cerrar Screen;
+- filtro de `PlantaImagen` por instancia de textura, no por frame;
+- caché de texto/calendario de `NotaAviso`;
+- reloj único y recorrido unificado de widgets en `PulidoInterfazJobs`;
+- snapshot de `RotacionNiveles` compartido dentro del mismo milisegundo;
+- Alto contraste resuelto una vez por pasada de `PielVanillaJobs`;
+- reducción de capas/draw calls en Bajo consumo;
+- `preserveFileTimestamps=false`, `reproducibleFileOrder=true` y ausencia de `Implementation-Timestamp`;
+- publicación de `jobsmenu-0.38.0.jar` en `dev-latest` sólo desde `main` verde.
 
 Un pipeline fallido no debe actualizar la release.
 
 ## Lo que CI no certifica
 
-CI no abre Minecraft con ventana real. Después del deploy hay que validar visualmente:
+CI no abre Minecraft con ventana real ni mide FPS/GPU. Después del deploy hay que validar:
 
-1. Los niveles 18–31 cargan su JPG correcto, sin textura morado/negro.
-2. El encuadre cover no corta zonas importantes en GUI Scale 2/3/4 y distintas relaciones de aspecto.
-3. La respiración de cámara de 18–31 es sutil y no resulta molesta.
-4. Movimiento reducido, Bajo consumo o escena quieta congelan los JPG nuevos.
-5. PNG 10–17 siguen completamente estáticos.
-6. `nivel_fijo` puede seleccionar cualquier nivel hasta 31.
-7. `N`, `M`, F3+T, Alt+Tab y navegación por subpantallas no duplican audio.
+1. Los niveles 10–17 siguen completamente estáticos y los 18–31 cargan el JPG correcto.
+2. El encuadre/respiración de 18–31 sigue igual en modo normal y se congela con Movimiento reducido/Bajo consumo.
+3. F3+T vuelve a mostrar los fondos con filtrado correcto, sin textura morado/negro ni pérdida del filtro.
+4. Bajo consumo mantiene la identidad visual aunque use menos bandas/capas.
+5. Comparar fluidez de Mundos, Mods, Resource Packs, Idioma y Multiplayer con listas largas.
+6. Scrollbar Jobs aparece una sola vez, sigue alineada y no afecta wheel/click/drag de la lista real.
+7. `N`, `M`, F3+T, Alt+Tab y navegación no duplican audio.
 8. Gameplay corta inmediatamente música y ambiente Jobs.
-9. Mods y Resource Packs conservan sus listas reales.
-10. ESC y Cancelar en Multiplayer vuelven al padre Jobs con una sola acción.
-11. F5/Actualizar mantiene Multiplayer Jobs, conserva el servidor online seleccionado y no muestra una pantalla vanilla intermedia.
-12. Pulsar F5 varias veces rápido no genera saltos de pantalla ni dobles recargas perceptibles.
-13. El feedback de F5 suena una vez por pulsación y no duplica el sonido del botón Actualizar.
-14. Chat e inventario no muestran barridos, bandas ni pieles Jobs.
-15. Pausa y configuración conservan la tematización permitida pero no muestran ninguna transición de entrada/salida durante gameplay.
-16. Controles vanilla conservados dentro de pausa/configuración usan click y hover Jobs sin reactivar música.
-17. Salir o perder conexión de un servidor vuelve a Multijugador Jobs, y desde allí ESC vuelve al main en una sola acción.
-18. Descubrimiento LAN, ping, favicons y selección por teclado siguen funcionando después de varias recargas F5.
+9. ESC/Cancelar/F5 de Multiplayer conservan el comportamiento 0.37.0 y F5 conserva selección online por IP.
+10. Varias recargas F5 conservan LAN, ping, favicons, MOTD y selección por teclado.
+11. Chat/inventario/containers siguen sin piel, bandas, transición ni click Jobs.
+12. Pausa/Config Jobs durante gameplay conservan tema y feedback breve pero ninguna transición ni música/ambiente.
+13. Salir/kick/perder conexión de un servidor vuelve a Multijugador Jobs.
+14. Los avisos rotan en el mismo ritmo y las ventanas especiales siguen apareciendo en la fecha/hora correspondiente.
+15. Alto contraste continúa aplicándose a todos los widgets vanilla tematizados.
 
 ## Riesgos vigentes
 
-### Fondos 18–31
+### Rendimiento y cachés
 
-- Los JPG son 1920×1080 y se renderizan directamente desde recursos; el coste depende de GPU, resolución y otros mods gráficos.
-- El movimiento de cámara de 18–31 es un recorte/zoom mínimo en runtime. No reescribe ni deforma el archivo, pero su sensación final requiere prueba visual.
-- Algunos fondos tienen composición cerca de los bordes; una ventana no 16:9 puede recortar laterales o parte superior/inferior por el comportamiento cover.
-- No existe profiler GPU automático.
+- Las optimizaciones reducen trabajo redundante, pero CI no puede cuantificar una mejora de FPS; la ganancia depende de resolución, cantidad de widgets/listas y otros mods.
+- `ListasExpediente` cachea sólo la Screen viva y se invalida en `estilizar()`/cierre. Un mod que reconstruya internamente una lista después de `init()` sin pasar por esas rutas podría requerir compatibilidad específica.
+- `RotacionNiveles` comparte el record únicamente si varias consultas caen en el mismo milisegundo; no es un cache de larga duración.
+- `PlantaImagen` compara identidad del `AbstractTexture`; resource reload debe crear/reentregar la textura y activar de nuevo el filtro, por eso F3+T forma parte del checklist manual.
 
-### Fondos 10–17
+### Bajo consumo
 
-- Permanecen rasterizados a su resolución histórica.
-- Filtrado lineal suaviza el escalado, pero no inventa detalle.
-- No reciben zoom, paneo, parallax, flicker, partículas, foreground dinámico ni deformación.
+- Reduce bandas de vignette, capas de profundidad/rebote y líneas de humedad. La intensidad global se conserva, pero el acabado puede verse algo menos fino a resoluciones grandes, lo cual es deliberado para este perfil.
+- No debe alterar el modo normal. Cualquier diferencia visual con Bajo consumo desactivado es una regresión.
+
+### Fondos
+
+- Los JPG 18–31 son 1920×1080; el coste depende de GPU, resolución y mods gráficos.
+- `NativeImage` sigue validando cada recurso en su primer uso y existe fallback procedural si falla.
+- Los PNG 10–17 mantienen resolución histórica; filtrado lineal suaviza escalado pero no inventa detalle.
 
 ### Interfaces
 
-- La composición adaptativa reserva zonas independientes para rótulo, estado y crédito; aun así debe revisarse visualmente con traducciones o resource packs que cambien mucho el ancho del texto.
-- Las capas Jobs posteriores al render sólo actúan en el flujo de menús. Chat, inventario y pantallas no Jobs con un mundo cargado se excluyen de forma explícita.
-- Las pantallas propias de pausa/configuración pueden necesitar compatibilidad específica con mods/resource packs que reorganicen profundamente una Screen.
-- Durante gameplay se conserva el tema de pausa/configuración, pero `TransicionInterfazJobs` y la entrada animada de `PulidoInterfazJobs` quedan anuladas.
-- Scrollbars Jobs son visuales; rueda, click y drag pertenecen a la lista real.
-- Jobs abre Video Settings vanilla y no fuerza ni reconstruye la interfaz de Embeddium. La integración que otros mods hagan sobre la clase vanilla debe validarse en el modpack real.
+- Scrollbars Jobs siguen siendo visuales; posición, wheel, click y drag pertenecen a `AbstractSelectionList` real.
+- Mods/resource packs que reconstruyan profundamente Screens/listas pueden necesitar compatibilidad específica.
+- Jobs abre Video Settings vanilla y no reimplementa Embeddium/Oculus.
+- La piel posterior de controles conserva listeners, foco e hitboxes vanilla.
 
 ### Multiplayer
 
-- ESC y Cancelar no delegan en `Screen.onClose()`/`popGuiLayer`; ambos usan el padre Jobs guardado por la propia pantalla.
-- F5/Actualizar reconstruye directamente la pantalla Jobs y transporta sólo la IP del servidor seleccionado. La nueva lista busca una Entry fresca; no se reutilizan objetos de la lista anterior.
-- La selección preservada cubre entradas online guardadas. Una entrada LAN es efímera y no se fuerza por IP al recrear el detector, para no acoplarse a objetos viejos.
-- El lifecycle de pinger/LAN pertenece a `JoinMultiplayerScreen`; debe probarse con listas LAN y favicons para confirmar que varias reconstrucciones consecutivas se comportan limpiamente en el modpack real.
-- Mods que reemplacen por completo `JoinMultiplayerScreen` pueden requerir compatibilidad específica.
+- F5 transporta sólo la IP de una entrada online guardada y busca una Entry nueva en la lista reconstruida.
+- Entradas LAN son efímeras y no se fuerzan por IP; se dejan renacer con el detector nuevo.
+- Mods que sustituyan por completo `JoinMultiplayerScreen` pueden requerir compatibilidad específica.
 
 ### Audio
 
-- El modo fijo mantiene una sola pista hasta que el usuario vuelva a Aleatoria o elija otra; `N` se rechaza deliberadamente para no contradecir esa preferencia y lo confirma con `UI_NEGADO`.
-- Los niveles 18-31 reutilizan camas y eventos autorizados de 0-9 con mezclas propias; la separación perceptiva entre fondos requiere prueba dentro del juego.
-- Los clicks vanilla se sustituyen en superficies Jobs. En pausa/configuración dentro de gameplay sólo se permite feedback corto de interfaz; música y ambiente permanecen detenidos.
-- Hover de controles vanilla preservados se deduplica por instancia y tiene además el debounce global de `UI_PASAR`; su sensación final requiere prueba con teclado y ratón.
-- F5 reproduce `UI_ALTERNAR` desde teclado; el botón Actualizar conserva su gesto normal de botón, evitando añadir un segundo sonido desde `refrescarLista()`.
-- Las pantallas de terceros fuera de la sesión conservan su audio original.
-- La mezcla perceptiva entre Absurdism, REQUIEM y Upon the Hill V2 sólo puede validarse dentro del juego.
-- F3+T, Alt+Tab y cambios rápidos de pantalla deben probarse para descartar instancias fantasma perceptibles.
+- El modo fijo conserva una sola pista; `N` se rechaza con `UI_NEGADO` para no contradecir la preferencia.
+- Los niveles 18–31 reutilizan camas/eventos autorizados; separación perceptiva requiere prueba dentro del juego.
+- Click/hover Jobs dentro de pausa/configuración no deben reactivar música ni ambiente.
+- La mezcla perceptiva de las tres pistas y los cambios F3+T/Alt+Tab siguen siendo pruebas manuales.
 
 ### Navegación tras servidor
 
-- El retorno se decide usando el contexto remoto guardado durante gameplay y `LoggingOut`: un servidor vuelve a Multijugador Jobs; un mundo local vuelve al main Jobs.
-- Mods que reemplacen completamente los destinos de desconexión después del evento de apertura pueden requerir compatibilidad específica.
+- Servidor remoto vuelve a Multijugador Jobs; mundo local vuelve al main Jobs.
+- Mods que sustituyan destinos de desconexión después del evento pueden requerir compatibilidad específica.
 
-### Documentación
+### Build/release
 
-- Las auditorías antiguas describen estados históricos y pueden contener decisiones luego reemplazadas. `docs/README.md` identifica qué documentos gobiernan el estado actual.
-- `CHANGELOG.md` vuelve a incluir 0.35.0 y 0.36.0; el verificador exige que 0.35/0.36/0.37 no desaparezcan por accidente.
-
-### Release
-
-- `dev-latest` es rodante. El asset lleva versión, pero el tag no representa una release histórica inmutable.
+- Quitar timestamps variables mejora reproducibilidad, pero ForgeGradle/reobf y la versión exacta de herramientas también participan del binario; el hash publicado sigue siendo la autoridad de la entrega.
+- `dev-latest` es rodante y no representa una release histórica inmutable.
 
 ## Mitigaciones
 
-- Los 14 JPG nuevos están versionados directamente en la ruta de recursos; no hay ZIP/Base64 ni extracción de build.
-- `tools/verificar_fondos.py` valida los 22 fondos de imagen (10–31).
-- `NativeImage` valida el recurso en runtime y existe fallback procedural ante fallo.
-- Movimiento reducido y Bajo consumo tienen prioridad.
-- Pantallas Forge/vanilla complejas conservan lógica real.
-- Reproductor musical está ligado a la sesión y aplica hard-stop en gameplay.
-- El feedback corto de UI se evalúa por superficie Jobs y no abre `SesionMenu`.
-- Las transiciones tienen compuerta de creación, render y tick para impedir residuos dentro de gameplay.
-- `tools/verificar_continuidad.py` fija el contrato de selección F5 y coherencia documental.
+- `tools/verificar_fondos.py` valida los 22 fondos de imagen.
+- `tools/verificar_ui_musica.py` protege Video Settings, UI neutral y lifecycle musical.
+- `tools/verificar_continuidad.py` protege retorno/F5/documentación.
+- `tools/verificar_optimizacion.py` protege los caminos calientes introducidos en 0.38.0.
+- Movimiento reducido y Bajo consumo tienen prioridad sobre decoración.
 - JAR versionado y CI obligatorio antes de publicar.
 
 ## Reporte
 
-Un fallo visto en Minecraft debe incluir versión/JAR, SHA-256 si está disponible, nivel/pantalla, resolución, GUI Scale, opciones de Movimiento reducido/Bajo consumo, mods de UI/vídeo relevantes y captura. Adjuntar `latest.log` si afecta crash, recursos o audio.
+Un fallo visto en Minecraft debe incluir versión/JAR, SHA-256 si está disponible, pantalla/nivel, resolución, GUI Scale, opciones de Movimiento reducido/Bajo consumo, mods de UI/vídeo relevantes y captura. Adjuntar `latest.log` si afecta crash, recursos o audio.
 
-Un defecto visual o sonoro no se considera corregido sólo porque compile.
+Un defecto visual, sonoro o de rendimiento no se considera corregido sólo porque compile.
