@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 
 | Campo | Valor |
 |---|---|
-| Version | **0.32.0** |
-| Artefacto | **`jobsmenu-0.32.0.jar`** |
+| Version | **0.33.0** |
+| Artefacto | **`jobsmenu-0.33.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,14 +13,14 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 | Rama entregable | **`main`** |
 | Niveles | **32 (0-31)** |
 
-## 0.32.0 · Identidad ambiental completa y controles precisos
+## 0.33.0 · Video Settings vanilla y compatibilidad
 
-- Los niveles 18-31 dejan de caer en el ambiente genérico del nivel 0: cada uno tiene base, carácter, actividad, repertorio, frecuencia, balance y afinación propios.
-- Las mezclas reutilizan únicamente los sonidos Jobs ya autorizados; no se añaden muestras externas ni se modifican los fondos.
-- Los sliders muestran la unidad real de cada ajuste: porcentaje para volumen, segundos para tiempos y posición del catálogo para nivel/pista.
-- Reactivar los sonidos de interfaz confirma el cambio con `UI_ALTERNAR`; antes el propio estado apagado impedía oírlo.
-- `N` mantiene la pista fija intacta y responde con el gesto Jobs de acción negada cuando el salto no está disponible.
-- Los verificadores protegen automáticamente la identidad de los 32 ambientes y evitan que regresen porcentajes falsos.
+- Video Settings vuelve a ser `VideoSettingsScreen` vanilla directa: no se reconstruye, no se recoloca y no oculta opciones.
+- La pantalla queda excluida de pieles, marcos, transiciones y sustitución de clicks Jobs.
+- Se elimina `PantallaVideoJobs` y también la reflection que intentaba reconstruir páginas de Embeddium.
+- El FOV duplicado sale del hub Jobs; todos los ajustes de imagen vuelven a vivir en Video Settings.
+- Online ocupa la fila completa que queda libre, mejorando equilibrio y área de click del hub.
+- ES/EN, documentación y CI protegen este contrato para impedir futuras regresiones.
 
 ## Fondos 18-31
 

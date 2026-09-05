@@ -2,13 +2,12 @@ package com.santipdr.jobsmenu.client.screen;
 
 import com.santipdr.jobsmenu.client.ui.BotonExpediente;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
-import com.santipdr.jobsmenu.client.ui.SliderExpediente;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.VideoSettingsScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.repository.PackRepository;
 
@@ -63,25 +62,12 @@ public final class PantallaOpcionesJobs extends Screen {
         boton(x1, sy + paso * 2, bw, bh, "options.chat.title", "jobsmenu.tooltip.chat", this::abrirChat);
         boton(x0, sy + paso * 3, bw, bh, "resourcePack.title", "jobsmenu.tooltip.recursos", this::abrirPaquetes);
         boton(x1, sy + paso * 3, bw, bh, "options.accessibility.title", "jobsmenu.tooltip.accesibilidad", this::abrirAccesibilidad);
-        boton(x0, sy + paso * 4, bw, bh, "options.online.title", "jobsmenu.tooltip.online", this::abrirOnline);
+        boton(x0, sy + paso * 4, anchoUtil, bh,
+                "options.online.title", "jobsmenu.tooltip.online", this::abrirOnline);
 
         int volverH = compacta ? 19 : 22;
         int volverY = this.panelY + this.panelH - volverH - 8;
         int volverW = Math.min(160, anchoUtil);
-
-        int fovY = sy + paso * 4;
-        if (fovY + bh <= volverY - 5) {
-            int fov = this.opciones.fov().get();
-            SliderExpediente fovSlider = this.addRenderableWidget(new SliderExpediente(
-                    x1, fovY, bw, bh, 30, 110, fov,
-                    v -> Component.translatable("jobsmenu.interfaz.fov",
-                            Component.translatable("options.fov"), v),
-                    v -> {
-                        this.opciones.fov().set(v);
-                        this.opciones.save();
-                    }));
-            fovSlider.setTooltip(Tooltip.create(Component.translatable("jobsmenu.tooltip.fov")));
-        }
 
         BotonExpediente volver = this.addRenderableWidget(new BotonExpediente(
                 this.width / 2 - volverW / 2, volverY, volverW, volverH,
@@ -117,19 +103,9 @@ public final class PantallaOpcionesJobs extends Screen {
     }
 
     private void abrirVideo() {
-        try {
-            Class<?> pagesCls = Class.forName("me.jellysquid.mods.sodium.client.gui.SodiumGameOptionPages");
-            Class<?> screenCls = Class.forName("org.embeddedt.embeddium.gui.EmbeddiumVideoOptionsScreen");
-            java.util.List<Object> pages = new java.util.ArrayList<>();
-            pages.add(pagesCls.getMethod("general").invoke(null));
-            pages.add(pagesCls.getMethod("quality").invoke(null));
-            pages.add(pagesCls.getMethod("performance").invoke(null));
-            pages.add(pagesCls.getMethod("advanced").invoke(null));
-            java.lang.reflect.Constructor<?> ctor = screenCls.getConstructor(Screen.class, java.util.List.class);
-            this.minecraft.setScreen((Screen) ctor.newInstance(this, pages));
-        } catch (Throwable ignored) {
-            this.minecraft.setScreen(new PantallaVideoJobs(this, this.opciones));
-        }
+        // Esta pantalla es deliberadamente vanilla. No se reconstruye, no se
+        // recoloca su lista y no se adivinan APIs de mods mediante reflection.
+        this.minecraft.setScreen(new VideoSettingsScreen(this, this.opciones));
     }
 
     private void abrirControles() {

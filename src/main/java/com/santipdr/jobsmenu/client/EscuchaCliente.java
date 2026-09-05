@@ -26,6 +26,7 @@ import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.gui.screens.VideoSettingsScreen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import net.minecraft.sounds.SoundEvents;
@@ -119,7 +120,7 @@ public final class EscuchaCliente {
     @SubscribeEvent
     public static void alRenderizarPantalla(ScreenEvent.Render.Post evento) {
         Screen pantalla = evento.getScreen();
-        if (pantalla == null) return;
+        if (pantalla == null || esVideoIntocable(pantalla)) return;
 
         String clase = pantalla.getClass().getName();
         boolean propia = clase.startsWith("com.santipdr.jobsmenu.");
@@ -157,7 +158,7 @@ public final class EscuchaCliente {
      */
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void alReproducirSonido(PlaySoundEvent evento) {
-        if (!SesionMenu.activa()) return;
+        if (!SesionMenu.activa() || esVideoIntocable(Minecraft.getInstance().screen)) return;
         if (!evento.getOriginalSound().getLocation()
                 .equals(SoundEvents.UI_BUTTON_CLICK.value().getLocation())) return;
         evento.setSound(ConfigTurno.sonidoBotones()
@@ -193,6 +194,19 @@ public final class EscuchaCliente {
         }
         GestorMusica.atender();
         GestorAmbiente.mantenerCamas();
+    }
+
+    /**
+     * Video Settings queda fuera de toda piel, marco, transicion y gesto Jobs.
+     * Se reconocen tambien las pantallas conocidas de Sodium/Embeddium para no
+     * pintar encima si otro mod sustituye la instancia vanilla.
+     */
+    private static boolean esVideoIntocable(Screen pantalla) {
+        if (pantalla == null) return false;
+        if (pantalla instanceof VideoSettingsScreen) return true;
+        String clase = pantalla.getClass().getName().toLowerCase(java.util.Locale.ROOT);
+        return (clase.contains("embeddium") || clase.contains("sodium"))
+                && clase.contains("video") && clase.contains("screen");
     }
 
     private static boolean esPausaReal(Screen siguiente) {

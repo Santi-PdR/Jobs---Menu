@@ -1,4 +1,4 @@
-# Música — Jobs Menu 0.32.0
+# Música — Jobs Menu 0.33.0
 
 ## Catálogo empaquetado
 

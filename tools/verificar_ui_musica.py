@@ -119,6 +119,24 @@ def verify_robustness() -> None:
     if 'Math.round(this.value * 100.0D) + "%"' in slider:
         fail("SliderExpediente volvio a mostrar porcentajes falsos en todos los controles.")
 
+    options = read(JAVA / "client/screen/PantallaOpcionesJobs.java")
+    listener = read(JAVA / "client/EscuchaCliente.java")
+    legacy_video = JAVA / "client/screen/PantallaVideoJobs.java"
+    for token in ("new VideoSettingsScreen(this, this.opciones)",
+                  "anchoUtil, bh,\n                \"options.online.title\""):
+        if token not in options:
+            fail(f"Options perdio la apertura vanilla o el layout limpio: {token}")
+    for forbidden in ("PantallaVideoJobs", "Class.forName(\"me.jellysquid",
+                      "EmbeddiumVideoOptionsScreen"):
+        if forbidden in options:
+            fail(f"Options volvio a reconstruir Video Settings: {forbidden}")
+    if legacy_video.exists():
+        fail("PantallaVideoJobs sigue presente: Video Settings debe ser vanilla.")
+    for token in ("esVideoIntocable", "pantalla instanceof VideoSettingsScreen",
+                  "esVideoIntocable(Minecraft.getInstance().screen)"):
+        if token not in listener:
+            fail(f"EscuchaCliente dejo de aislar Video Settings: {token}")
+
     multiplayer = read(JAVA / "client/screen/PantallaMultijugadorJobs.java")
     for token in ("conectarSeleccionado", "ConnectScreen.startConnecting(this, this.minecraft",
                   "ServerAddress.parseString(servidor.ip)"):

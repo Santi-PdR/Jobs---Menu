@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.32.0
+# Riesgos y pruebas pendientes — 0.33.0
 
 Este documento contiene riesgos vigentes. El historial está en `CHANGELOG.md` y en las auditorías de `docs/`.
 
@@ -12,11 +12,13 @@ Antes de publicar, GitHub Actions comprueba:
 - presencia, firma y dimensiones 1920×1080 de JPEG 18–31;
 - paridad ES/EN, recursos y coherencia estática;
 - contratos UI/música y hard-stop de gameplay;
+- aislamiento completo de Video Settings vanilla;
+- ausencia de `PantallaVideoJobs` y reflection de páginas Embeddium;
 - rango `nivel_fijo` coherente con los 32 niveles;
 - perfiles ambientales explícitos para los niveles 18-31;
 - lecturas semánticas en sliders de volumen, tiempo, nivel y pista;
 - Forge build 1.20.1;
-- publicación de `jobsmenu-0.32.0.jar` en `dev-latest` sólo desde `main`.
+- publicación de `jobsmenu-0.33.0.jar` en `dev-latest` sólo desde `main`.
 
 Un pipeline fallido no debe actualizar la release.
 
@@ -52,11 +54,11 @@ CI no abre Minecraft con ventana real. Después del deploy hay que validar visua
 
 ### Interfaces
 
-- La composición adaptativa de 0.32.0 reserva zonas independientes para rótulo, estado y crédito; aun así debe revisarse visualmente con traducciones o resource packs que cambien mucho el ancho del texto.
+- La composición adaptativa de 0.33.0 reserva zonas independientes para rótulo, estado y crédito; aun así debe revisarse visualmente con traducciones o resource packs que cambien mucho el ancho del texto.
 
 - Las capas Jobs posteriores al render pueden necesitar compatibilidad específica con mods/resource packs que reorganicen profundamente una Screen.
 - Scrollbars Jobs son visuales; rueda, click y drag pertenecen a la lista real.
-- Embeddium conserva su pantalla real de vídeo.
+- Jobs abre Video Settings vanilla y no fuerza ni reconstruye la interfaz de Embeddium. La integración que otros mods hagan sobre la clase vanilla debe validarse en el modpack real.
 
 ### Audio
 
