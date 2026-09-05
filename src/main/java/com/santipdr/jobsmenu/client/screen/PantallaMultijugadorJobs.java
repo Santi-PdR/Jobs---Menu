@@ -26,13 +26,15 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
 
     private static final String SERVIDOR_IP = "JobsDosh.exaroton.me:56477";
 
-    private Button realSelect, realDirect, realAdd, realEdit, realDelete, realRefresh, realCancel;
+    private final Screen pantallaPadre;
+    private Button realSelect, realDirect, realAdd, realEdit, realDelete;
     private BotonExpediente select, edit, delete, refresh;
     private int panelX, panelY, panelW, panelH;
     private boolean cerrando;
 
     public PantallaMultijugadorJobs(Screen anterior) {
         super(anterior);
+        this.pantallaPadre = anterior;
     }
 
     @Override
@@ -51,8 +53,6 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         this.realAdd = buscar("selectServer.add");
         this.realEdit = buscar("selectServer.edit");
         this.realDelete = buscar("selectServer.delete");
-        this.realRefresh = buscar("selectServer.refresh");
-        this.realCancel = buscar("gui.cancel");
 
         for (var child : this.children()) {
             if (child instanceof Button b) b.visible = false;
@@ -141,17 +141,18 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         this.delete = agregar(xBottom + bottomW + gap, bottomY, bottomW, "selectServer.delete", "jobsmenu.tooltip.servidor.eliminar",
                 BotonExpediente.Tipo.TERMINAL, this.realDelete);
         this.refresh = agregar(xBottom + (bottomW + gap) * 2, bottomY, bottomW, "selectServer.refresh", "jobsmenu.tooltip.servidor.actualizar",
-                BotonExpediente.Tipo.NORMAL, this.realRefresh);
+                BotonExpediente.Tipo.NORMAL, null);
         agregar(xBottom + (bottomW + gap) * 3, bottomY, bottomW, "gui.cancel", "jobsmenu.tooltip.volver",
-                BotonExpediente.Tipo.NORMAL, this.realCancel);
+                BotonExpediente.Tipo.NORMAL, null);
         sincronizarEstados();
     }
 
     private BotonExpediente agregar(int x, int y, int w, String clave, String ayuda,
                                      BotonExpediente.Tipo tipo, Button real) {
         Runnable accion;
-        if ("gui.cancel".equals(clave)) accion = this::onClose;
+        if ("gui.cancel".equals(clave)) accion = this::cerrarAlPadre;
         else if ("selectServer.select".equals(clave)) accion = this::conectarSeleccionado;
+        else if ("selectServer.refresh".equals(clave)) accion = this::refrescarLista;
         else accion = () -> pulsar(real);
         BotonExpediente b = new BotonExpediente(x, y, w, 21,
                 Component.translatable(clave), tipo, accion);
@@ -185,6 +186,7 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         if (this.select != null) this.select.active = this.realSelect != null && this.realSelect.active;
         if (this.edit != null) this.edit.active = !oficial && this.realEdit != null && this.realEdit.active;
         if (this.delete != null) this.delete.active = !oficial && this.realDelete != null && this.realDelete.active;
+        if (this.refresh != null) this.refresh.active = !this.cerrando;
         if (oficial) {
             Component ayuda = Component.translatable("jobsmenu.tooltip.servidor.protegido");
             if (this.edit != null) this.edit.setTooltip(Tooltip.create(ayuda));
@@ -285,22 +287,36 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == GLFW.GLFW_KEY_F5 && this.realRefresh != null && this.realRefresh.active) {
-            this.realRefresh.onPress();
+        if (keyCode == GLFW.GLFW_KEY_F5) {
+            refrescarLista();
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
+    /** Recarga servidores sin crear primero una pantalla vanilla intermedia. */
+    private void refrescarLista() {
+        if (this.minecraft == null || this.cerrando) return;
+        this.minecraft.setScreen(new PantallaMultijugadorJobs(padreDestino()));
+    }
+
     /**
-     * Una sola ruta de salida para ESC y Cancelar. JoinMultiplayerScreen conserva
-     * el padre vanilla; el guard evita que dos eventos del mismo gesto lo abran
-     * repetidamente.
+     * Escape y Cancelar terminan exactamente en el mismo padre Jobs. No delegar
+     * en super.onClose(): en Forge 1.20.1 esa ruta usa popGuiLayer() y no la
+     * navegacion del boton Cancelar vanilla de JoinMultiplayerScreen.
      */
     @Override
     public void onClose() {
+        cerrarAlPadre();
+    }
+
+    private void cerrarAlPadre() {
         if (this.cerrando) return;
         this.cerrando = true;
-        super.onClose();
+        if (this.minecraft != null) this.minecraft.setScreen(padreDestino());
+    }
+
+    private Screen padreDestino() {
+        return this.pantallaPadre != null ? this.pantallaPadre : new PantallaNivel();
     }
 }
