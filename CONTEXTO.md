@@ -42,7 +42,7 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 22. Chat, inventario y demas pantallas de gameplay no reciben piel, banda, transicion ni sustitucion de clicks Jobs.
 23. Escape y Cancelar comparten una sola ruta vanilla e idempotente en Multiplayer.
 24. El hard-stop afecta musica y ambiente; el feedback breve de UI Jobs puede seguir activo en pausa/configuracion sin abrir una sesion musical.
-25. Un retorno desde servidor nunca debe caer en Multiplayer vanilla: conserva `PantallaMultijugadorJobs` como superficie contextual.
+25. Un retorno desde servidor remoto nunca debe caer en Multiplayer o Title vanilla: conserva `PantallaMultijugadorJobs` como superficie contextual.
 
 ## 2. Identidad visual
 
@@ -69,8 +69,10 @@ La escena usa la paleta material/luz del nivel; la UI usa papel frio, grafito, g
 
 ### Retorno tras juego
 
-- abandonar un mundo o volver a Title/Realms reconduce a `PantallaNivel`;
-- abandonar o perder conexion de un servidor y recibir `JoinMultiplayerScreen` reconduce a `PantallaMultijugadorJobs` con `PantallaNivel` como padre;
+- mientras hay un nivel cargado se memoriza si `Minecraft#getCurrentServer()` identifica un servidor remoto;
+- `LoggingOut` conserva ese contexto antes de que la limpieza vanilla pueda perderlo;
+- abandonar un servidor remoto reconduce tanto `TitleScreen` como `JoinMultiplayerScreen` a `PantallaMultijugadorJobs` con `PantallaNivel` como padre;
+- abandonar un mundo local o volver a Title/Realms sin contexto remoto reconduce a `PantallaNivel`;
 - Cancelar conexion o fallar antes del login sigue usando la lista Jobs original como padre de `ConnectScreen`;
 - Escape/Cancelar en Multiplayer conservan una sola ruta idempotente basada en `super.onClose()`.
 
