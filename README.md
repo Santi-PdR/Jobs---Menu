@@ -19,7 +19,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 - El hard-stop sigue siendo estricto: entrar a un mundo/servidor corta musica y ambiente; el feedback breve de UI no reabre la sesion sonora.
 - Botones y sliders vanilla tematizados reciben `UI_PASAR` al entrar con raton o foco de teclado, sin duplicar el hover de widgets Jobs propios.
 - Video Settings y cualquier pantalla de gameplay no Jobs siguen completamente fuera de este tratamiento.
-- Al abandonar un servidor, el retorno a `JoinMultiplayerScreen` se convierte en `PantallaMultijugadorJobs`; al abandonar un mundo/titulo se conserva `PantallaNivel`.
+- Al abandonar un servidor remoto, Jobs conserva ese contexto antes de `clearLevel`: aunque vanilla intente abrir Title o Multiplayer, el destino final es `PantallaMultijugadorJobs`.
+- Al abandonar un mundo local se conserva `PantallaNivel`.
 - Cancelar o fallar una conexion sigue regresando a la lista Jobs porque `ConnectScreen` conserva esa pantalla como padre.
 
 ## Fondos 18-31
