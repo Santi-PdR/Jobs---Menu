@@ -92,6 +92,28 @@ def verify_robustness() -> None:
     fragment = "SesionMenu.cerrar();\n            return;"
     if fragment not in lifecycle:
         fail("EscuchaCliente no corta mantenimiento tras cerrar la sesion en gameplay.")
+    for token in ("PlaySoundEvent", "MezclaAudio.reemplazoClickVanilla()", "evento.setSound"):
+        if token not in lifecycle:
+            fail(f"EscuchaCliente perdio sustitucion de click vanilla: {token}")
+
+    mix = read(JAVA / "client/sound/MezclaAudio.java")
+    if "SoundEvents.UI_BUTTON_CLICK" in mix:
+        fail("MezclaAudio volvio a usar el click vanilla como fallback de interfaz.")
+    for token in ("resolverPersonalizado", "tonoGesto", "reemplazoClickVanilla"):
+        if token not in mix:
+            fail(f"MezclaAudio perdio identidad de gestos Jobs: {token}")
+
+    settings = read(JAVA / "client/screen/PantallaAjustesAviso.java")
+    for token in ('"jobsmenu.ajustes.nivelfijo.detalle", 0, 31',
+                  '"jobsmenu.ajustes.pista.detalle", 0, 3', "toggleCuatro"):
+        if token not in settings:
+            fail(f"Ajustes perdio selector completo: {token}")
+
+    multiplayer = read(JAVA / "client/screen/PantallaMultijugadorJobs.java")
+    for token in ("conectarSeleccionado", "ConnectScreen.startConnecting(this, this.minecraft",
+                  "ServerAddress.parseString(servidor.ip)"):
+        if token not in multiplayer:
+            fail(f"Multijugador perdio retorno contextual de conexion: {token}")
 
 
 
@@ -121,10 +143,17 @@ def verify_music_session() -> None:
         "SUAVIZADO_SUBIDA", "SUAVIZADO_BAJADA", "SUAVIZADO_CROSSFADE",
         "atenderCrossfade()", "gananciaObjetivo", "canStartSilent()",
         "detenerAhora()", "cliente.getMusicManager().stopPlaying()",
+        "ConfigTurno.pistaMusica()", "sincronizarSeleccion()", "indiceFijado",
+        "boolean permiteRotacion",
     )
     for token in required:
         if token not in manager:
             fail(f"GestorMusica perdio el contrato musical: {token}")
+
+    config = read(JAVA / "config/ConfigTurno.java")
+    for token in ('defineInRange("pista_musica", 0, 0, 3)', "fijarPistaMusica", "pistaMusica()"):
+        if token not in config:
+            fail(f"ConfigTurno perdio seleccion persistente de pista: {token}")
 
     sounds = json.loads(read(RES / "sounds.json"))
     event = sounds.get("musica.tema")

@@ -133,7 +133,7 @@ public class PantallaAjustesAviso extends Screen {
         Grid grid = new Grid(margen, gap);
         grid.togglePar("jobsmenu.ajustes.rotar", ConfigTurno::rotarNivelesBruto, ConfigTurno::fijarRotarNiveles,
                 "jobsmenu.ajustes.cuenta", ConfigTurno::mostrarCuentaRegresivaBruto, ConfigTurno::fijarMostrarCuentaRegresiva);
-        grid.slider("jobsmenu.ajustes.nivelfijo.detalle", 0, 17,
+        grid.slider("jobsmenu.ajustes.nivelfijo.detalle", 0, 31,
                 ConfigTurno.nivelFijo(), ConfigTurno::fijarNivelFijo,
                 v -> Component.translatable("jobsmenu.ajustes.nivelvalor",
                         Component.translatable("jobsmenu.ajustes.nivelfijo"), v));
@@ -164,10 +164,23 @@ public class PantallaAjustesAviso extends Screen {
                 ConfigTurno.volumenAmbientePorcentaje(), ConfigTurno::fijarVolumenAmbiente,
                 v -> Component.translatable("jobsmenu.ajustes.porciento",
                         Component.translatable("jobsmenu.ajustes.volambiente"), v));
-        grid.togglePar("jobsmenu.ajustes.musica", ConfigTurno::musicaMenu, ConfigTurno::fijarMusicaMenu,
-                "jobsmenu.ajustes.ambiente", ConfigTurno::sonidoAmbiente, ConfigTurno::fijarSonidoAmbiente);
-        grid.togglePar("jobsmenu.ajustes.botones", ConfigTurno::sonidoBotones, ConfigTurno::fijarSonidoBotones,
+        grid.slider("jobsmenu.ajustes.pista.detalle", 0, 3,
+                ConfigTurno.pistaMusica(), ConfigTurno::fijarPistaMusica,
+                v -> Component.translatable("jobsmenu.ajustes.pista.valor", nombrePista(v)));
+        grid.toggleCuatro(
+                "jobsmenu.ajustes.musica", ConfigTurno::musicaMenu, ConfigTurno::fijarMusicaMenu,
+                "jobsmenu.ajustes.ambiente", ConfigTurno::sonidoAmbiente, ConfigTurno::fijarSonidoAmbiente,
+                "jobsmenu.ajustes.botones", ConfigTurno::sonidoBotones, ConfigTurno::fijarSonidoBotones,
                 "jobsmenu.ajustes.credito", ConfigTurno::creditoMusica, ConfigTurno::fijarCreditoMusica);
+    }
+
+    private static Component nombrePista(int pista) {
+        return Component.translatable(switch (pista) {
+            case 1 -> "jobsmenu.ajustes.pista.absurdism";
+            case 2 -> "jobsmenu.ajustes.pista.requiem";
+            case 3 -> "jobsmenu.ajustes.pista.upon";
+            default -> "jobsmenu.ajustes.pista.aleatoria";
+        });
     }
 
     private void construirAccesibilidad(int margen, int gap) {
@@ -346,6 +359,31 @@ public class PantallaAjustesAviso extends Screen {
                     Component.translatable(claveA), leerA, fijarA)), claveA + ".detalle");
             registrarAyuda(addRenderableWidget(new ToggleExpediente(x1, y, colW, alto,
                     Component.translatable(claveB), leerB, fijarB)), claveB + ".detalle");
+            fila++;
+        }
+
+        void toggleCuatro(
+                String claveA, java.util.function.BooleanSupplier leerA, java.util.function.Consumer<Boolean> fijarA,
+                String claveB, java.util.function.BooleanSupplier leerB, java.util.function.Consumer<Boolean> fijarB,
+                String claveC, java.util.function.BooleanSupplier leerC, java.util.function.Consumer<Boolean> fijarC,
+                String claveD, java.util.function.BooleanSupplier leerD, java.util.function.Consumer<Boolean> fijarD) {
+            int y = contentY + fila * paso;
+            int total = colW * 2 + gap;
+            int gapCorto = Math.max(2, gap - 2);
+            int w = Math.max(44, (total - gapCorto * 3) / 4);
+            String[] claves = {claveA, claveB, claveC, claveD};
+            java.util.function.BooleanSupplier[] lecturas = {leerA, leerB, leerC, leerD};
+            @SuppressWarnings("unchecked")
+            java.util.function.Consumer<Boolean>[] setters =
+                    (java.util.function.Consumer<Boolean>[]) new java.util.function.Consumer<?>[] {
+                            fijarA, fijarB, fijarC, fijarD
+                    };
+            for (int i = 0; i < 4; i++) {
+                int x = x0 + i * (w + gapCorto);
+                registrarAyuda(addRenderableWidget(new ToggleExpediente(x, y, w, alto,
+                        Component.translatable(claves[i]), lecturas[i], setters[i])),
+                        claves[i] + ".detalle");
+            }
             fila++;
         }
 

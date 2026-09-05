@@ -7,8 +7,8 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Version actual | **0.30.0** |
-| Artefacto esperado | **`jobsmenu-0.30.0.jar`** |
+| Version actual | **0.31.0** |
+| Artefacto esperado | **`jobsmenu-0.31.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -51,9 +51,9 @@ Familias:
 
 La escena usa la paleta material/luz del nivel; la UI usa papel frio, grafito, gris verdoso y tinta neutra.
 
-## 3. Estado 0.30.0
+## 3. Estado 0.31.0
 
-0.30.0 rehace la revisión visual de 18-31 usando los JPG reales del artefacto, corrige nombres/notas que no coincidían con la escena y mejora su lectura y encuadre sin tocar los archivos de imagen.
+0.31.0 rehace la revisión visual de 18-31 usando los JPG reales del artefacto, corrige nombres/notas que no coincidían con la escena y mejora su lectura y encuadre sin tocar los archivos de imagen.
 
 ### Pie del menu principal
 

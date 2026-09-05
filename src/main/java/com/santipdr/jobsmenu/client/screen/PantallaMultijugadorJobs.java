@@ -10,9 +10,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.ConnectScreen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.multiplayer.ServerSelectionList;
 import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.multiplayer.resolver.ServerAddress;
 import net.minecraft.client.multiplayer.ServerList;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
@@ -147,12 +149,31 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
 
     private BotonExpediente agregar(int x, int y, int w, String clave, String ayuda,
                                      BotonExpediente.Tipo tipo, Button real) {
-        Runnable accion = "gui.cancel".equals(clave) ? this::volverAlMenu : () -> pulsar(real);
+        Runnable accion;
+        if ("gui.cancel".equals(clave)) accion = this::volverAlMenu;
+        else if ("selectServer.select".equals(clave)) accion = this::conectarSeleccionado;
+        else accion = () -> pulsar(real);
         BotonExpediente b = new BotonExpediente(x, y, w, 21,
                 Component.translatable(clave), tipo, accion);
         this.addRenderableWidget(b);
         b.setTooltip(Tooltip.create(Component.translatable(ayuda)));
         return b;
+    }
+
+    /**
+     * Inicia la conexion con esta pantalla como padre. Asi tanto Cancelar como
+     * DisconnectedScreen regresan a la lista Jobs y no al menu principal.
+     */
+    private void conectarSeleccionado() {
+        if (this.minecraft == null || this.serverSelectionList == null) return;
+        ServerSelectionList.Entry entrada = this.serverSelectionList.getSelected();
+        if (entrada instanceof ServerSelectionList.OnlineServerEntry online) {
+            ServerData servidor = online.getServerData();
+            ConnectScreen.startConnecting(this, this.minecraft,
+                    ServerAddress.parseString(servidor.ip), servidor, false);
+            return;
+        }
+        pulsar(this.realSelect);
     }
 
     private static void pulsar(Button boton) {

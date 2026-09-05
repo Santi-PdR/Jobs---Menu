@@ -378,5 +378,11 @@
   "jobsmenu.nivel31.nombre": "LEVEL 31 · The Void Colossus",
   "jobsmenu.nivel31.nota0": "The central mass gathers red rings and suspended fragments.",
   "jobsmenu.nivel31.nota1": "The white and red cubes do not belong to the sector inventory.",
-  "jobsmenu.nivel31.nota2": "If the silhouette covers the stars, end the observation."
+  "jobsmenu.nivel31.nota2": "If the silhouette covers the stars, end the observation.",
+  "jobsmenu.ajustes.pista.detalle": "Choose one fixed track or let all three rotate without immediate repeats.",
+  "jobsmenu.ajustes.pista.valor": "Track: %s",
+  "jobsmenu.ajustes.pista.aleatoria": "Random · 3 tracks",
+  "jobsmenu.ajustes.pista.absurdism": "Absurdism",
+  "jobsmenu.ajustes.pista.requiem": "REQUIEM",
+  "jobsmenu.ajustes.pista.upon": "Upon the Hill V2"
 }
