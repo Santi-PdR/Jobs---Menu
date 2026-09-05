@@ -1,4 +1,4 @@
-# Música — Jobs Menu 0.37.0
+# Música — Jobs Menu 0.38.0
 
 ## Catálogo empaquetado
 
@@ -28,6 +28,12 @@ En `Ajustes del aviso > Audio` se puede elegir **Aleatoria**, **Absurdism**, **R
 - Entrar a mundo/servidor aplica hard-stop inmediato a música y ambiente.
 - Desde 0.36.0 no se crean ni dibujan transiciones Jobs mientras existe un nivel cargado; esto no altera el hard-stop ni el feedback breve de UI permitido en pausa/configuración.
 
+## Optimización 0.38.0
+
+Los consumidores de escena, música y camas ambientales consultan `RotacionNiveles.capturar()`. Desde 0.38.0, si varias consultas ocurren en el **mismo milisegundo**, reciben el mismo `Estado` ya calculado en vez de crear records equivalentes repetidos. Al cambiar un milisegundo el estado se calcula de nuevo, y un salto manual de nivel invalida el cache inmediatamente.
+
+Esto no modifica intervalos, crossfades, pitch, volumen, selección de pista ni hard-stop. La finalidad es reducir cálculos/asignaciones redundantes y, además, hacer que audio y escena que coinciden en el mismo instante compartan exactamente el mismo snapshot.
+
 ## Feedback de interfaz
 
 Desde 0.35.0 el feedback corto de UI no se confunde con la sesión musical. Botones y sliders de una pantalla propia Jobs pueden seguir usando `UI_PASAR`, `UI_ELEGIR`, confirmar, volver o negado dentro de pausa/configuración aunque haya un mundo cargado. Eso **no** abre `SesionMenu`, no reinicia una pista y no vuelve a levantar camas ambientales.
@@ -52,5 +58,6 @@ Desde 0.37.0 el atajo F5 de Multiplayer emite `UI_ALTERNAR` como feedback de tec
 8. Abrir pausa/configuración Jobs dentro del mundo: click/hover Jobs pueden responder, pero música y ambiente deben seguir apagados y no debe aparecer ninguna transición de entrada/salida.
 9. Abrir Video Settings, chat e inventario: no deben recibir sustitución de sonido Jobs ni transición Jobs.
 10. En Multiplayer, pulsar F5: debe sonar un solo `UI_ALTERNAR` y la música actual debe continuar sin reinicio/cambio.
+11. Cambiar repetidamente de nivel y confirmar que escena, apagón y camas ambientales siguen entrando juntos; el cache de 0.38.0 no debe introducir desfase perceptible.
 
 Absurdism source 0.26: music/Absurdism-_slowed-piano-part-only_.ogg -> assets/jobsmenu/sounds/musica/defecto.ogg
