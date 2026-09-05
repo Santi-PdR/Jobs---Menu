@@ -153,7 +153,7 @@ public final class EscuchaCliente {
         boolean propia = esPantallaPropia(pantalla);
         // Inventario, chat y cualquier otra Screen con un mundo cargado son
         // gameplay: ninguna piel, banda ni transicion Jobs puede alcanzarlas.
-        if (cliente.level != null && !propia) return;
+        if (Minecraft.getInstance().level != null && !propia) return;
 
         actualizarHoverVanilla(pantalla, evento.getMouseX(), evento.getMouseY());
 
