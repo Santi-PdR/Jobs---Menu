@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 
 | Campo | Valor |
 |---|---|
-| Version | **0.34.0** |
-| Artefacto | **`jobsmenu-0.34.0.jar`** |
+| Version | **0.35.0** |
+| Artefacto | **`jobsmenu-0.35.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,15 +13,14 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 | Rama entregable | **`main`** |
 | Niveles | **32 (0-31)** |
 
-## 0.34.0 · Navegación fiable y frontera de gameplay
+## 0.35.0 · Feedback Jobs y retorno contextual
 
-- Escape y Cancelar en Multiplayer usan una única ruta vanilla hacia su pantalla padre.
-- La salida es idempotente: un gesto no puede disparar varias reaperturas de pantalla.
-- Se elimina el padre manual duplicado que competía con `JoinMultiplayerScreen`.
-- Las transiciones sólo se activan cuando participa una pantalla propia de Jobs.
-- Chat, inventario y cualquier pantalla con un mundo cargado quedan fuera de pieles, bandas, transiciones y sustitución de clicks.
-- Video Settings continúa completamente vanilla y sin interferencias Jobs.
-- Los verificadores y la documentación protegen estas fronteras automáticamente.
+- Los clicks vanilla conservados dentro de superficies Jobs se sustituyen por `UI_ELEGIR` incluso en pausa/configuracion durante gameplay.
+- El hard-stop sigue siendo estricto: entrar a un mundo/servidor corta musica y ambiente; el feedback breve de UI no reabre la sesion sonora.
+- Botones y sliders vanilla tematizados reciben `UI_PASAR` al entrar con raton o foco de teclado, sin duplicar el hover de widgets Jobs propios.
+- Video Settings y cualquier pantalla de gameplay no Jobs siguen completamente fuera de este tratamiento.
+- Al abandonar un servidor, el retorno a `JoinMultiplayerScreen` se convierte en `PantallaMultijugadorJobs`; al abandonar un mundo/titulo se conserva `PantallaNivel`.
+- Cancelar o fallar una conexion sigue regresando a la lista Jobs porque `ConnectScreen` conserva esa pantalla como padre.
 
 ## Fondos 18-31
 
