@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.35.0
+# Checklist manual de aceptación — 0.36.0
 
 Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código, recursos y build; no certifica estética, input, audio perceptivo ni compatibilidad visual dentro de Minecraft.
 
@@ -6,7 +6,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.35.0.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.36.0.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Layout
@@ -54,6 +54,8 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 - [ ] abrir chat no muestra transición, banda, piel ni hover/click Jobs.
 - [ ] abrir inventario o un contenedor no muestra transición, banda, piel ni hover/click Jobs.
 - [ ] Pausa y Config Jobs sí conservan la tematización.
+- [ ] Pausa, Config Jobs y sus subpantallas aparecen sin barrido, fundido ni animación de entrada mientras hay mundo/servidor cargado.
+- [ ] cerrar esas pantallas durante gameplay tampoco deja una transición residual en la siguiente pantalla.
 - [ ] botones/sliders vanilla conservados dentro de Pausa/Config usan hover y click Jobs.
 - [ ] esos sonidos breves no reactivan música ni ambiente dentro del mundo/servidor.
 - [ ] 1 reanuda y 2 abre Condiciones; 3 no desconecta.
@@ -78,10 +80,14 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 - [ ] `JobsDosh.exaroton.me:56477` aparece primero y una sola vez.
 - [ ] `Ghoul Outbreak` no aparece.
 - [ ] el servidor oficial no se puede editar ni borrar desde Jobs.
-- [ ] Direct Connect/Add/Edit/Delete/Refresh funcionan para las demás entradas.
+- [ ] Direct Connect/Add/Edit/Delete funcionan para las demás entradas.
+- [ ] F5 y Actualizar reconstruyen directamente Multijugador Jobs, sin flash ni pantalla Multiplayer vanilla intermedia.
+- [ ] F5 y Actualizar siguen detectando LAN, favicons, ping y MOTD correctamente después de la recarga.
 - [ ] Cancelar durante conexión vuelve a la misma lista Jobs.
 - [ ] un error antes del login vuelve a la misma lista Jobs.
-- [ ] ESC/Cancelar no requieren pulsaciones repetidas.
+- [ ] ESC vuelve al padre Jobs con una sola pulsación.
+- [ ] el botón Cancelar vuelve al mismo padre Jobs con un solo click.
+- [ ] alternar rápidamente ESC/Cancelar no reabre Multiplayer ni exige pulsaciones repetidas.
 
 ## Música y sesión
 
@@ -110,7 +116,7 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 
 - [ ] los ocho PNG cargan sin morado/negro.
 - [ ] permanecen totalmente estáticos: sin zoom, paneo, parallax, flicker, niebla móvil o deformación.
-- [ ] fades, apagones y transiciones globales funcionan sin alterar la imagen.
+- [ ] fades, apagones y transiciones globales funcionan sin alterar la imagen cuando no hay gameplay.
 
 ## Fondos 18–31
 
@@ -140,5 +146,5 @@ Si todo pasa:
 
 - [ ] conservar SHA-256 del JAR probado;
 - [ ] anotar resolución y GUI Scale;
-- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.35.0.jar`;
+- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.36.0.jar`;
 - [ ] reportar cualquier defecto visual con captura y `latest.log` cuando afecte recursos/audio/crash.

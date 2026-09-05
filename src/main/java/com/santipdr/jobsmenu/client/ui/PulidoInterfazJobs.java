@@ -24,6 +24,7 @@ public final class PulidoInterfazJobs {
     }
 
     public static void notificarApertura(Screen pantalla) {
+        if (Minecraft.getInstance().level != null) return;
         if (pantalla != null) APERTURAS.put(pantalla, System.currentTimeMillis());
     }
 
@@ -172,6 +173,10 @@ public final class PulidoInterfazJobs {
     }
 
     private static void entrada(GuiGraphics g, Screen pantalla) {
+        if (Minecraft.getInstance().level != null) {
+            APERTURAS.remove(pantalla);
+            return;
+        }
         Long abierta = APERTURAS.get(pantalla);
         if (abierta == null) return;
         long dt = System.currentTimeMillis() - abierta;

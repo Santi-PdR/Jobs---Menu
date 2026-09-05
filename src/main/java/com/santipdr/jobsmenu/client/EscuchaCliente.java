@@ -129,7 +129,12 @@ public final class EscuchaCliente {
         } else {
             TransicionInterfazJobs.cancelar();
         }
-        PulidoInterfazJobs.notificarApertura(siguiente);
+        // La animacion corta de entrada tambien es una transicion visual. No se
+        // registra mientras existe gameplay: pausa y configuracion aparecen ya
+        // estabilizadas sobre el mundo, sin barridos ni fundidos de entrada.
+        if (Minecraft.getInstance().level == null) {
+            PulidoInterfazJobs.notificarApertura(siguiente);
+        }
         gesto(anterior, siguiente);
     }
 
@@ -143,6 +148,7 @@ public final class EscuchaCliente {
         Screen pantalla = evento.getScreen();
         if (pantalla == null || esVideoIntocable(pantalla)) return;
 
+        Minecraft cliente = Minecraft.getInstance();
         String clase = pantalla.getClass().getName();
         boolean propia = esPantallaPropia(pantalla);
         // Inventario, chat y cualquier otra Screen con un mundo cargado son
@@ -170,13 +176,19 @@ public final class EscuchaCliente {
                         evento.getMouseX(), evento.getMouseY());
             }
             ChromeExpediente.bandaContextual(evento.getGuiGraphics(),
-                    Minecraft.getInstance().font, pantalla.width, pantalla.height);
+                    cliente.font, pantalla.width, pantalla.height);
         }
         if (propia) {
             PulidoInterfazJobs.dibujar(pantalla, evento.getGuiGraphics(),
                     evento.getMouseX(), evento.getMouseY());
         }
-        TransicionInterfazJobs.dibujar(pantalla, evento.getGuiGraphics());
+        // Doble compuerta: incluso si una transicion quedara pendiente justo al
+        // entrar al mundo, nunca se dibuja sobre pausa/configuracion de gameplay.
+        if (cliente.level == null) {
+            TransicionInterfazJobs.dibujar(pantalla, evento.getGuiGraphics());
+        } else {
+            TransicionInterfazJobs.cancelar();
+        }
     }
 
     /**
@@ -204,6 +216,7 @@ public final class EscuchaCliente {
     public static void alEntrarJuego(ClientPlayerNetworkEvent.LoggingIn evento) {
         limpiarRetornoJuego();
         enServidorRemoto = Minecraft.getInstance().getCurrentServer() != null;
+        TransicionInterfazJobs.cancelar();
         SesionMenu.cerrar();
     }
 
@@ -215,6 +228,7 @@ public final class EscuchaCliente {
         // limpia currentServer antes de que Forge entregue LoggingOut.
         retornoMultijugadorPendiente = enServidorRemoto || cliente.getCurrentServer() != null;
         enServidorRemoto = false;
+        TransicionInterfazJobs.cancelar();
         SesionMenu.cerrar();
     }
 
@@ -227,7 +241,8 @@ public final class EscuchaCliente {
                 enServidorRemoto = cliente.getCurrentServer() != null;
             }
             // Gameplay es frontera dura. Corta inmediatamente y no ejecuta
-            // mantenimiento de audio del menu durante el resto de este tick.
+            // mantenimiento de audio/transiciones durante el resto de este tick.
+            TransicionInterfazJobs.cancelar();
             SesionMenu.cerrar();
             return;
         }
@@ -279,10 +294,12 @@ public final class EscuchaCliente {
     }
 
     /**
-     * Las transiciones pertenecen al flujo de expedientes. Si ninguna de las
-     * pantallas es propia, el cambio es gameplay o una UI ajena y se cancela.
+     * Las transiciones pertenecen exclusivamente al flujo fuera de gameplay.
+     * Aunque la pausa/configuracion sean pantallas Jobs, con un nivel cargado
+     * aparecen y desaparecen sin barridos ni fundidos de transicion.
      */
     private static boolean usaTransicionJobs(Screen desde, Screen hasta) {
+        if (Minecraft.getInstance().level != null) return false;
         if (hasta == null || esVideoIntocable(desde) || esVideoIntocable(hasta)) return false;
         return esPantallaPropia(desde) || esPantallaPropia(hasta);
     }

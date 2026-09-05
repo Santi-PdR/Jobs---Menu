@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 
 | Campo | Valor |
 |---|---|
-| Version | **0.35.0** |
-| Artefacto | **`jobsmenu-0.35.0.jar`** |
+| Version | **0.36.0** |
+| Artefacto | **`jobsmenu-0.36.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,15 +13,14 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 | Rama entregable | **`main`** |
 | Niveles | **32 (0-31)** |
 
-## 0.35.0 · Feedback Jobs y retorno contextual
+## 0.36.0 · Cierre fiable y gameplay sin transiciones
 
-- Los clicks vanilla conservados dentro de superficies Jobs se sustituyen por `UI_ELEGIR` incluso en pausa/configuracion durante gameplay.
-- El hard-stop sigue siendo estricto: entrar a un mundo/servidor corta musica y ambiente; el feedback breve de UI no reabre la sesion sonora.
-- Botones y sliders vanilla tematizados reciben `UI_PASAR` al entrar con raton o foco de teclado, sin duplicar el hover de widgets Jobs propios.
-- Video Settings y cualquier pantalla de gameplay no Jobs siguen completamente fuera de este tratamiento.
-- Al abandonar un servidor remoto, Jobs conserva ese contexto antes de `clearLevel`: aunque vanilla intente abrir Title o Multiplayer, el destino final es `PantallaMultijugadorJobs`.
-- Al abandonar un mundo local se conserva `PantallaNivel`.
-- Cancelar o fallar una conexion sigue regresando a la lista Jobs porque `ConnectScreen` conserva esa pantalla como padre.
+- Multiplayer deja de delegar ESC/Cancelar a `Screen.onClose()`/`popGuiLayer`; ambas acciones vuelven directamente al padre Jobs en una sola operacion.
+- El guard de cierre sigue siendo idempotente para impedir aperturas duplicadas por un mismo gesto.
+- F5/Actualizar reconstruye directamente `PantallaMultijugadorJobs` con el mismo padre, sin crear primero una `JoinMultiplayerScreen` vanilla intermedia.
+- Mientras existe un mundo o servidor cargado, `TransicionInterfazJobs` no se crea, no se dibuja y se cancela defensivamente en tick/login/logout.
+- La animacion corta de entrada de `PulidoInterfazJobs` tampoco se registra durante gameplay: Pausa, Config Jobs y sus subpantallas aparecen directamente.
+- Chat, inventario, contenedores y Video Settings mantienen las exclusiones anteriores; la tematizacion permitida de pausa/configuracion sigue intacta.
 
 ## Fondos 18-31
 
@@ -76,7 +75,8 @@ Reglas permanentes:
 - rojo reservado a Executores;
 - accesibilidad y compatibilidad tienen prioridad sobre decoracion;
 - ayudas de teclado solo anuncian atajos realmente implementados;
-- el main reserva su pie para el nombre y la nota del nivel, no para una barra global de atajos.
+- el main reserva su pie para el nombre y la nota del nivel, no para una barra global de atajos;
+- gameplay nunca recibe animaciones de transicion Jobs, aunque la pantalla abierta sea Pausa o Config Jobs.
 
 ## Servidor oficial
 

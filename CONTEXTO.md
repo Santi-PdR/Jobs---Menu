@@ -7,8 +7,8 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Version actual | **0.35.0** |
-| Artefacto esperado | **`jobsmenu-0.35.0.jar`** |
+| Version actual | **0.36.0** |
+| Artefacto esperado | **`jobsmenu-0.36.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -40,9 +40,11 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 20. Una ayuda visual de teclado solo puede anunciar una tecla implementada de verdad.
 21. `PantallaNivel` reserva el pie para el nombre y la nota del nivel; la barra contextual generica no se dibuja en el main.
 22. Chat, inventario y demas pantallas de gameplay no reciben piel, banda, transicion ni sustitucion de clicks Jobs.
-23. Escape y Cancelar comparten una sola ruta vanilla e idempotente en Multiplayer.
+23. Escape y Cancelar en Multiplayer terminan directamente en el padre Jobs; no dependen de `Screen.onClose()` ni de `popGuiLayer()`.
 24. El hard-stop afecta musica y ambiente; el feedback breve de UI Jobs puede seguir activo en pausa/configuracion sin abrir una sesion musical.
 25. Un retorno desde servidor remoto nunca debe caer en Multiplayer o Title vanilla: conserva `PantallaMultijugadorJobs` como superficie contextual.
+26. Mientras exista un mundo o servidor cargado no se crea, registra ni dibuja ninguna animacion de transicion Jobs, incluida la entrada corta de `PulidoInterfazJobs`.
+27. Actualizar Multiplayer no crea una `JoinMultiplayerScreen` vanilla intermedia: reconstruye directamente la superficie Jobs con el mismo padre.
 
 ## 2. Identidad visual
 
@@ -55,9 +57,28 @@ Familias:
 
 La escena usa la paleta material/luz del nivel; la UI usa papel frio, grafito, gris verdoso y tinta neutra.
 
-## 3. Estado 0.35.0
+## 3. Estado 0.36.0
 
-0.35.0 separa el lifecycle de musica/ambiente del feedback corto de interfaz y conserva el contexto correcto al abandonar servidores.
+0.36.0 corrige la ruta real de cierre de Multiplayer y convierte la ausencia de transiciones durante gameplay en un contrato absoluto.
+
+### Multiplayer
+
+- `PantallaMultijugadorJobs` guarda explicitamente su `pantallaPadre`;
+- ESC llega a `onClose()` desde la logica normal de `Screen`, pero `onClose()` ya no delega en `super.onClose()`;
+- Cancelar llama a la misma funcion `cerrarAlPadre()`;
+- `cerrarAlPadre()` aplica guard idempotente y hace `minecraft.setScreen(padreDestino())` una sola vez;
+- esto replica la intencion del boton Cancelar vanilla, que vuelve directamente a `lastScreen`, sin depender del stack de capas Forge;
+- F5/Actualizar usa `refrescarLista()` y crea directamente otra `PantallaMultijugadorJobs` con el mismo padre;
+- conectar sigue usando esta pantalla como padre de `ConnectScreen`, por lo que Cancelar/error antes del login regresan a la lista Jobs.
+
+### Gameplay sin transiciones
+
+- `usaTransicionJobs()` devuelve false siempre que `Minecraft.level != null`;
+- cualquier transicion pendiente se cancela en login, logout y tick de gameplay;
+- `TransicionInterfazJobs.dibujar()` solo se llama cuando no existe nivel cargado;
+- `PulidoInterfazJobs.notificarApertura()` tampoco se llama durante gameplay, eliminando su animacion corta de entrada;
+- Pausa Jobs, Config Jobs y sus subpantallas pueden conservar tema, foco y sonidos breves, pero aparecen directamente, sin barrido/fundido de entrada;
+- chat, inventario, contenedores y Video Settings mantienen sus exclusiones anteriores.
 
 ### Audio de interfaz
 
@@ -72,9 +93,7 @@ La escena usa la paleta material/luz del nivel; la UI usa papel frio, grafito, g
 - mientras hay un nivel cargado se memoriza si `Minecraft#getCurrentServer()` identifica un servidor remoto;
 - `LoggingOut` conserva ese contexto antes de que la limpieza vanilla pueda perderlo;
 - abandonar un servidor remoto reconduce tanto `TitleScreen` como `JoinMultiplayerScreen` a `PantallaMultijugadorJobs` con `PantallaNivel` como padre;
-- abandonar un mundo local o volver a Title/Realms sin contexto remoto reconduce a `PantallaNivel`;
-- Cancelar conexion o fallar antes del login sigue usando la lista Jobs original como padre de `ConnectScreen`;
-- Escape/Cancelar en Multiplayer conservan una sola ruta idempotente basada en `super.onClose()`.
+- abandonar un mundo local o volver a Title/Realms sin contexto remoto reconduce a `PantallaNivel`.
 
 ### Ambiente de los 32 niveles
 
@@ -209,7 +228,7 @@ GitHub Actions verifica:
 7. JAR versionado;
 8. publicacion a `dev-latest` solo desde `main`.
 
-CI no sustituye prueba visual. Despues del deploy revisar GUI Scale 2/3/4, fondos 18-31, movimiento reducido, Bajo consumo, audio, hover de controles vanilla preservados y navegacion ESC/desconexion.
+CI no sustituye prueba visual. Despues del deploy revisar GUI Scale 2/3/4, fondos 18-31, movimiento reducido, Bajo consumo, audio, Multiplayer con ESC/Cancelar/F5 y ausencia total de transiciones mientras existe gameplay.
 
 ## 9. Despliegue
 

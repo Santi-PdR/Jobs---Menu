@@ -138,20 +138,32 @@ def verify_robustness() -> None:
             fail(f"EscuchaCliente dejo de aislar Video Settings: {token}")
 
     multiplayer = read(JAVA / "client/screen/PantallaMultijugadorJobs.java")
-    for token in ("conectarSeleccionado", "ConnectScreen.startConnecting(this, this.minecraft",
-                  "ServerAddress.parseString(servidor.ip)", "super.onClose()",
-                  "if (this.cerrando) return;", "this.cerrando = false;"):
+    for token in (
+        "conectarSeleccionado", "ConnectScreen.startConnecting(this, this.minecraft",
+        "ServerAddress.parseString(servidor.ip)", "private final Screen pantallaPadre;",
+        "cerrarAlPadre()", "this.minecraft.setScreen(padreDestino())",
+        "private Screen padreDestino()", "refrescarLista()",
+        "if (this.cerrando) return;", "this.cerrando = false;",
+    ):
         if token not in multiplayer:
-            fail(f"Multijugador perdio retorno contextual o salida unica: {token}")
-    for forbidden in ("anteriorJobs", "volverAlMenu()", "GLFW.GLFW_KEY_ESCAPE"):
+            fail(f"Multijugador perdio cierre directo, retorno contextual o refresh Jobs: {token}")
+    for forbidden in (
+        "super.onClose();", "this.realRefresh.onPress()", "pulsar(this.realRefresh)",
+        "anteriorJobs", "volverAlMenu()", "GLFW.GLFW_KEY_ESCAPE",
+    ):
         if forbidden in multiplayer:
-            fail(f"Multijugador recupero una ruta de salida duplicada: {forbidden}")
+            fail(f"Multijugador recupero una ruta de salida/refresh fragil: {forbidden}")
 
     transition = read(JAVA / "client/ui/TransicionInterfazJobs.java")
-    for token in ("usaTransicionJobs", "TransicionInterfazJobs.cancelar()",
-                  "Minecraft.getInstance().level != null && !propia"):
+    for token in (
+        "usaTransicionJobs", "TransicionInterfazJobs.cancelar()",
+        "Minecraft.getInstance().level != null && !propia",
+        "if (Minecraft.getInstance().level != null) return false;",
+        "if (Minecraft.getInstance().level == null) {\n            PulidoInterfazJobs.notificarApertura(siguiente);",
+        "if (cliente.level == null) {\n            TransicionInterfazJobs.dibujar(pantalla, evento.getGuiGraphics());",
+    ):
         if token not in listener:
-            fail(f"EscuchaCliente perdio la frontera menu/gameplay: {token}")
+            fail(f"EscuchaCliente perdio la frontera absoluta de transicion/gameplay: {token}")
     if "public static void cancelar()" not in transition:
         fail("TransicionInterfazJobs no puede limpiar una transicion fuera del menu.")
 
@@ -270,7 +282,8 @@ def main() -> int:
         verify_music_session()
         verify_ambient_catalog()
         verify_audio_sources()
-        print("UI neutra, bajo consumo y robustez 0.19: OK")
+        print("UI neutra, bajo consumo y robustez 0.36: OK")
+        print("Cierre directo de Multiplayer y gameplay sin transiciones: OK")
         print("Composicion adaptativa del main: OK")
         print("Reproductor musical de sesion: OK")
         print("Catalogo musical de tres pistas: OK")
