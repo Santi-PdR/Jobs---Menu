@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.31.0
+# Checklist manual de aceptación — 0.32.0
 
 Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certifica código, recursos y build; no certifica estética, input, audio perceptivo ni compatibilidad visual dentro de Minecraft.
 
@@ -6,7 +6,7 @@ Este checklist se ejecuta dentro de una instancia Forge 1.20.1 real. CI certific
 
 - [ ] Java 17, Forge 47.x y Minecraft 1.20.1.
 - [ ] Instancia `test-1` cerrada antes de sustituir el JAR.
-- [ ] Sólo un `jobsmenu-0.31.0.jar` activo en `mods`.
+- [ ] Sólo un `jobsmenu-0.32.0.jar` activo en `mods`.
 - [ ] Guardar `latest.log` ante crash, pantalla vacía, textura morado/negro o audio huérfano.
 
 ## Layout
@@ -20,7 +20,8 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 - [ ] barra inferior y metadatos no pisan el contenido principal;
 - [ ] el rótulo del nivel no se solapa con el estado de instalación;
 - [ ] el crédito musical se oculta de forma limpia en ventanas compactas y no sale de pantalla;
-- [ ] una pista sin autor no deja una segunda línea vacía.
+- [ ] una pista sin autor no deja una segunda línea vacía;
+- [ ] volumen muestra porcentaje, los tiempos muestran segundos y nivel/pista no muestran porcentajes falsos.
 
 ## Main
 
@@ -67,7 +68,11 @@ Probar al menos 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/
 - [ ] Audio permite elegir Aleatoria, Absurdism, REQUIEM o Upon the Hill V2 y conserva la elección al reiniciar;
 - [ ] en modo fijo no hay rotación automática ni N rompe la selección;
 - [ ] N cambia mediante crossfade a una pista distinta cuando está en Aleatoria;
-- [ ] click, hover, toggles y sliders usan gestos Jobs, nunca `ui.button.click` vanilla.
+- [ ] N con pista fija conserva la selección y responde con el gesto negado;
+- [ ] click, hover, toggles y sliders usan gestos Jobs, nunca `ui.button.click` vanilla;
+- [ ] apagar y volver a activar Sonidos de interfaz produce una confirmación audible;
+- [ ] recorrer 18-31 revela ambientes distintos, sin que todos suenen como Administración;
+- [ ] cada cambio entre 18-31 mantiene tres capas y crossfade, sin cortes ni capas huérfanas.
 - [ ] pulsar N durante el crossfade no crea una tercera instancia.
 - [ ] el crédito visible corresponde a la pista dominante.
 - [ ] REQUIEM acredita `Emmy Z - Forsaken OST`.
@@ -112,5 +117,5 @@ Si todo pasa:
 
 - [ ] conservar SHA-256 del JAR probado;
 - [ ] anotar resolución y GUI Scale;
-- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.31.0.jar`;
+- [ ] confirmar que `test-1\mods` contiene un único `jobsmenu-0.32.0.jar`;
 - [ ] reportar cualquier defecto visual con captura y `latest.log` cuando afecte recursos/audio/crash.

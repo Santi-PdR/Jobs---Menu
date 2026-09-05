@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.31.0
+# Riesgos y pruebas pendientes — 0.32.0
 
 Este documento contiene riesgos vigentes. El historial está en `CHANGELOG.md` y en las auditorías de `docs/`.
 
@@ -13,8 +13,10 @@ Antes de publicar, GitHub Actions comprueba:
 - paridad ES/EN, recursos y coherencia estática;
 - contratos UI/música y hard-stop de gameplay;
 - rango `nivel_fijo` coherente con los 32 niveles;
+- perfiles ambientales explícitos para los niveles 18-31;
+- lecturas semánticas en sliders de volumen, tiempo, nivel y pista;
 - Forge build 1.20.1;
-- publicación de `jobsmenu-0.31.0.jar` en `dev-latest` sólo desde `main`.
+- publicación de `jobsmenu-0.32.0.jar` en `dev-latest` sólo desde `main`.
 
 Un pipeline fallido no debe actualizar la release.
 
@@ -50,7 +52,7 @@ CI no abre Minecraft con ventana real. Después del deploy hay que validar visua
 
 ### Interfaces
 
-- La composición adaptativa de 0.31.0 reserva zonas independientes para rótulo, estado y crédito; aun así debe revisarse visualmente con traducciones o resource packs que cambien mucho el ancho del texto.
+- La composición adaptativa de 0.32.0 reserva zonas independientes para rótulo, estado y crédito; aun así debe revisarse visualmente con traducciones o resource packs que cambien mucho el ancho del texto.
 
 - Las capas Jobs posteriores al render pueden necesitar compatibilidad específica con mods/resource packs que reorganicen profundamente una Screen.
 - Scrollbars Jobs son visuales; rueda, click y drag pertenecen a la lista real.
@@ -58,7 +60,8 @@ CI no abre Minecraft con ventana real. Después del deploy hay que validar visua
 
 ### Audio
 
-- El modo fijo mantiene una sola pista hasta que el usuario vuelva a Aleatoria o elija otra; `N` se rechaza deliberadamente para no contradecir esa preferencia.
+- El modo fijo mantiene una sola pista hasta que el usuario vuelva a Aleatoria o elija otra; `N` se rechaza deliberadamente para no contradecir esa preferencia y ahora lo confirma con `UI_NEGADO`.
+- Los niveles 18-31 reutilizan camas y eventos autorizados de 0-9 con mezclas propias; la separación perceptiva entre fondos requiere prueba dentro del juego.
 - Los clicks vanilla se sustituyen durante la sesión Jobs. Pantallas de terceros fuera de la sesión conservan su audio original.
 
 - La mezcla perceptiva entre Absurdism, REQUIEM y Upon the Hill V2 sólo puede validarse dentro del juego.

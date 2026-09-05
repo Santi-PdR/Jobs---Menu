@@ -7,8 +7,8 @@ Documento maestro del estado vigente. El historial detallado vive en `CHANGELOG.
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Version actual | **0.31.0** |
-| Artefacto esperado | **`jobsmenu-0.31.0.jar`** |
+| Version actual | **0.32.0** |
+| Artefacto esperado | **`jobsmenu-0.32.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -51,9 +51,25 @@ Familias:
 
 La escena usa la paleta material/luz del nivel; la UI usa papel frio, grafito, gris verdoso y tinta neutra.
 
-## 3. Estado 0.31.0
+## 3. Estado 0.32.0
 
-0.31.0 rehace la revisión visual de 18-31 usando los JPG reales del artefacto, corrige nombres/notas que no coincidían con la escena y mejora su lectura y encuadre sin tocar los archivos de imagen.
+0.32.0 completa la identidad sonora de los fondos 18-31 y corrige la lectura de los controles sin tocar imágenes ni ampliar la superficie de configuración.
+
+### Ambiente de los 32 niveles
+
+- 0-9 conservan sus tres camas y repertorios originales;
+- 10-17 mantienen las combinaciones diseñadas en sus versiones de imagen;
+- 18-31 tienen selección explícita de base, carácter, actividad y eventos;
+- cada fondo 18-31 define además frecuencia, balance y afinación estables;
+- no se incorporan muestras nuevas ni audio de terceros.
+
+### Controles de ajustes
+
+- volumen muestra porcentaje;
+- estancia y duración de avisos muestran segundos;
+- nivel fijo muestra posición 0-31 y pista muestra posición 0-3;
+- reactivar Sonidos de interfaz produce confirmación Jobs;
+- `N` no altera una pista fija y usa `UI_NEGADO` cuando no puede saltar.
 
 ### Pie del menu principal
 

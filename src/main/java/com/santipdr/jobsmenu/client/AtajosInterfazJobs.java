@@ -4,6 +4,8 @@ import com.santipdr.jobsmenu.JobsMenu;
 import com.santipdr.jobsmenu.client.screen.PantallaEstancia;
 import com.santipdr.jobsmenu.client.screen.PantallaNivel;
 import com.santipdr.jobsmenu.client.sound.GestorMusica;
+import com.santipdr.jobsmenu.client.sound.MezclaAudio;
+import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.client.ui.RenglonTablon;
 
 import net.minecraft.client.gui.components.EditBox;
@@ -37,7 +39,10 @@ public final class AtajosInterfazJobs {
 
         // N es un atajo real del main, no una ayuda decorativa.
         if (pantalla instanceof PantallaNivel && key == GLFW.GLFW_KEY_N) {
-            if (GestorMusica.adelantarPista()) evento.setCanceled(true);
+            evento.setCanceled(true);
+            if (!GestorMusica.adelantarPista()) {
+                MezclaAudio.gesto(SonidosNivel.UI_NEGADO, 0.42F);
+            }
             return;
         }
 

@@ -35,6 +35,10 @@ Todos los nuevos archivos son JPG **1920x1080, 16:9**.
 - No se agregan objetos falsos, foreground dinamico o flicker agresivo.
 - Fades, apagones y transiciones globales siguen funcionando por encima.
 
+## Audio 0.32.0
+
+Cada JPG 18-31 tiene una mezcla explícita construida con el catálogo Jobs autorizado: cama base, capa de carácter, actividad distante, repertorio de sucesos, frecuencia, balance y afinación. No se añadieron muestras externas y los archivos de imagen permanecen intactos.
+
 ## Verificacion
 
 `tools/verificar_fondos.py` valida directamente:

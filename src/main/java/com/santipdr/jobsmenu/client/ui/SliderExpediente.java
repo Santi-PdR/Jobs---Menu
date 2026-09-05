@@ -20,6 +20,7 @@ public final class SliderExpediente extends AbstractSliderButton {
     private final int maximo;
     private final IntConsumer fijar;
     private final IntFunction<Component> rotulo;
+    private final IntFunction<Component> lecturaCorta;
     private int ultimoAplicado;
     private long ultimoSonido;
     private long cambioHasta;
@@ -30,11 +31,21 @@ public final class SliderExpediente extends AbstractSliderButton {
     public SliderExpediente(int x, int y, int ancho, int alto,
                             int minimo, int maximo, int inicial,
                             IntFunction<Component> rotulo, IntConsumer fijar) {
+        this(x, y, ancho, alto, minimo, maximo, inicial, rotulo, fijar,
+                v -> Component.literal(Integer.toString(v)));
+    }
+
+    public SliderExpediente(int x, int y, int ancho, int alto,
+                            int minimo, int maximo, int inicial,
+                            IntFunction<Component> rotulo, IntConsumer fijar,
+                            IntFunction<Component> lecturaCorta) {
         super(x, y, ancho, alto, Component.empty(), normalizar(inicial, minimo, maximo));
         this.minimo = minimo;
         this.maximo = Math.max(minimo + 1, maximo);
         this.rotulo = rotulo;
         this.fijar = fijar;
+        this.lecturaCorta = lecturaCorta != null ? lecturaCorta
+                : v -> Component.literal(Integer.toString(v));
         this.ultimoAplicado = valorEntero();
         this.valorVisual = (float) this.value;
         updateMessage();
@@ -108,8 +119,8 @@ public final class SliderExpediente extends AbstractSliderButton {
 
         Font font = Minecraft.getInstance().font;
         String txt = getMessage().getString();
-        String porcentaje = Math.round(this.value * 100.0D) + "%";
-        int badgeW = w >= 118 ? Math.max(31, font.width(porcentaje) + 10) : 0;
+        String lectura = this.lecturaCorta.apply(valorEntero()).getString();
+        int badgeW = w >= 118 ? Math.max(31, font.width(lectura) + 10) : 0;
         int max = Math.max(8, w - 28 - badgeW);
         if (font.width(txt) > max) {
             txt = font.plainSubstrByWidth(txt, Math.max(0, max - font.width("..."))) + "...";
@@ -128,8 +139,8 @@ public final class SliderExpediente extends AbstractSliderButton {
                     Paleta.conAlfa(Paleta.VANO, 0.07F + 0.05F * this.focoSuave));
             g.fill(bx, by + bh - 1, bx + badgeW, by + bh,
                     Paleta.conAlfa(Paleta.UI_ACENTO, 0.20F + 0.18F * this.focoSuave));
-            int pw = font.width(porcentaje);
-            g.drawString(font, porcentaje, bx + (badgeW - pw) / 2, by + 1,
+            int pw = font.width(lectura);
+            g.drawString(font, lectura, bx + (badgeW - pw) / 2, by + 1,
                     Paleta.conAlfa(Paleta.tintaPrincipal(), this.active ? 0.82F : 0.46F), false);
         }
 
