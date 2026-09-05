@@ -131,7 +131,7 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
     /**
      * Aplica cambios del selector sin reiniciar el ambiente. Una pista fija
      * entra por crossfade; volver a Aleatoria conserva la actual y reactiva la
-     * rotación para el siguiente intervalo.
+     * rotacion para el siguiente intervalo.
      */
     private static void sincronizarSeleccion() {
         int seleccion = ConfigTurno.pistaMusica();

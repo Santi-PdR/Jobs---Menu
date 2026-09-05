@@ -161,8 +161,8 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
     }
 
     /**
-     * Inicia la conexión con esta pantalla como padre. Así tanto Cancelar como
-     * DisconnectedScreen regresan a la lista Jobs y no al menú principal.
+     * Inicia la conexion con esta pantalla como padre. Asi tanto Cancelar como
+     * DisconnectedScreen regresan a la lista Jobs y no al menu principal.
      */
     private void conectarSeleccionado() {
         if (this.minecraft == null || this.serverSelectionList == null) return;
