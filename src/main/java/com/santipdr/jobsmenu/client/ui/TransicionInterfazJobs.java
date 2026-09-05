@@ -2,6 +2,7 @@ package com.santipdr.jobsmenu.client.ui;
 
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 
@@ -16,6 +17,10 @@ public final class TransicionInterfazJobs {
     }
 
     public static void notificar(Screen desde, Screen hasta) {
+        if (Minecraft.getInstance().level != null) {
+            cancelar();
+            return;
+        }
         if (hasta == null || desde == hasta) return;
         inicio = System.currentTimeMillis();
         String a = desde == null ? "" : desde.getClass().getName();
@@ -28,6 +33,10 @@ public final class TransicionInterfazJobs {
     }
 
     public static void dibujar(Screen pantalla, GuiGraphics g) {
+        if (Minecraft.getInstance().level != null) {
+            cancelar();
+            return;
+        }
         if (pantalla == null || inicio <= 0L) return;
         long transcurrido = System.currentTimeMillis() - inicio;
         if (transcurrido < 0L || transcurrido >= DURACION_MS) return;
