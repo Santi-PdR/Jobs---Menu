@@ -3,8 +3,8 @@
 ## Catálogo empaquetado
 
 1. **Absurdism** — `assets/jobsmenu/sounds/musica/defecto.ogg` — evento `musica.tema`.
-2. **REQUIEM** — `assets/jobsmenu/sounds/musica/requiem.ogg` — evento `musica.requiem` — crédito **Emmy Z - Forsaken OST**.
-3. **Upon the Hill V2** — `assets/jobsmenu/sounds/musica/upon_the_hill_v2.ogg` — evento `musica.upon_hill` — crédito **ft. @iCosmicCoffee**.
+2. **REQUIEM** — `assets/jobsmenu/sounds/musica/requiem.ogg` — evento `musica.requiem` — crédito **Emmy Z - Forsaken OST**. Fuente autorizada archivada: `music/REQUIEM-Forsaken-OST.ogg`.
+3. **Upon the Hill V2** — `assets/jobsmenu/sounds/musica/upon_the_hill_v2.ogg` — evento `musica.upon_hill` — crédito **ft. @iCosmicCoffee**. Fuente autorizada archivada: `music/upon_the_hill_v2_q4.ogg`.
 
 Los tres eventos usan `stream: true` en `sounds.json`. El build no descarga canciones ni depende de servicios externos.
 
