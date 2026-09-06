@@ -20,6 +20,9 @@ import java.lang.reflect.Field;
 /** Sonido vanilla completo, presentado como expediente de instalacion Jobs. */
 public final class PantallaSonidoJobs extends SoundOptionsScreen {
 
+    private static Field campoLista;
+    private static boolean campoListaResuelto;
+
     private OptionsList lista;
     private GeometriaExpediente.Panel panel;
 
@@ -41,17 +44,35 @@ public final class PantallaSonidoJobs extends SoundOptionsScreen {
     }
 
     private OptionsList resolverLista() {
+        Field campo = campoLista();
+        if (campo == null) return null;
         try {
-            for (Field f : SoundOptionsScreen.class.getDeclaredFields()) {
-                if (f.getType().equals(OptionsList.class)) {
-                    f.setAccessible(true);
-                    Object o = f.get(this);
-                    if (o instanceof OptionsList l) return l;
-                }
-            }
-        } catch (Throwable ignored) {
+            Object valor = campo.get(this);
+            return valor instanceof OptionsList listaResuelta ? listaResuelta : null;
+        } catch (IllegalAccessException | RuntimeException ignored) {
+            return null;
         }
-        return null;
+    }
+
+    /**
+     * La estructura de SoundOptionsScreen es estable durante toda la JVM. No
+     * tiene sentido recorrer y abrir sus fields cada vez que resize recrea la
+     * pantalla; el resultado se resuelve una sola vez.
+     */
+    private static Field campoLista() {
+        if (campoListaResuelto) return campoLista;
+        campoListaResuelto = true;
+        try {
+            for (Field campo : SoundOptionsScreen.class.getDeclaredFields()) {
+                if (!campo.getType().equals(OptionsList.class)) continue;
+                campo.setAccessible(true);
+                campoLista = campo;
+                break;
+            }
+        } catch (RuntimeException ignored) {
+            campoLista = null;
+        }
+        return campoLista;
     }
 
     private void reemplazarDone() {
