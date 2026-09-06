@@ -300,12 +300,22 @@ public final class EscuchaCliente {
         return esPantallaPropia(desde) || esPantallaPropia(hasta);
     }
 
+    /**
+     * Video Settings y cualquier GUI grafica suministrada por Embeddium/Sodium
+     * son propiedad del proveedor grafico. Jobs no les dibuja chrome, no cambia
+     * sus clicks y no intenta recolocar sus widgets. Las comprobaciones por
+     * prefijo cubren tanto SodiumOptionsGUI de Embeddium 1.20.1 como las GUI
+     * nuevas de Embeddium sin depender de sus clases en compile time.
+     */
     private static boolean esVideoIntocable(Screen pantalla) {
         if (pantalla == null) return false;
         if (pantalla instanceof VideoSettingsScreen) return true;
-        String clase = pantalla.getClass().getName().toLowerCase(java.util.Locale.ROOT);
-        return (clase.contains("embeddium") || clase.contains("sodium"))
-                && clase.contains("video") && clase.contains("screen");
+        String clase = pantalla.getClass().getName();
+        return clase.startsWith("me.jellysquid.mods.sodium.client.gui.")
+                || clase.startsWith("org.embeddedt.embeddium.gui.")
+                || clase.startsWith("org.embeddedt.embeddium.impl.gui.")
+                || clase.startsWith("net.coderbot.iris.gui.screen.")
+                || clase.startsWith("net.irisshaders.iris.gui.screen.");
     }
 
     private static boolean esPausaReal(Screen siguiente) {
