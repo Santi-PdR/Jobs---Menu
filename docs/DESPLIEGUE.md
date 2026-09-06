@@ -1,6 +1,6 @@
 # Despliegue de Jobs Menu
 
-Procedimiento único de prueba local para la entrega **0.40.0**.
+Procedimiento único de prueba local para la entrega **0.41.0**.
 
 ## Destino
 
@@ -20,19 +20,19 @@ No se compila localmente para una prueba normal. Se instala el JAR que GitHub Ac
 
 ## Versión actual
 
-`jobsmenu-0.40.0.jar`
+`jobsmenu-0.41.0.jar`
 
 `jobsmenu-latest.jar` está prohibido. `dev-latest` es sólo el tag rodante; el asset siempre lleva versión.
 
 ## PowerShell canónico
 
-El script consulta `dev-latest`, exige exactamente el JAR 0.40.0, comprueba el digest SHA-256 publicado por GitHub y sólo después reemplaza Jobs Menu.
+El script consulta `dev-latest`, exige exactamente el JAR 0.41.0, comprueba el digest SHA-256 publicado por GitHub y sólo después reemplaza Jobs Menu.
 
 ```powershell
 $ErrorActionPreference = "Stop"
 
 $mods = "C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods"
-$version = "0.40.0"
+$version = "0.41.0"
 $name = "jobsmenu-$version.jar"
 $releaseApi = "https://api.github.com/repos/Santi-PdR/Jobs---Menu/releases/tags/dev-latest"
 
@@ -83,7 +83,7 @@ Write-Host "Destino: $dest"
 Write-Host "SHA-256: $sha"
 ```
 
-## CI 0.40
+## CI 0.41
 
 El workflow ejecuta:
 
@@ -95,11 +95,12 @@ El workflow ejecuta:
 - `tools/verificar_optimizacion.py`;
 - `tools/verificar_reload_creditos.py`;
 - `tools/verificar_audio_identidad.py`;
+- `tools/verificar_runtime_041.py`;
 - Forge build con Java 17;
-- preparación/upload de `jobsmenu-0.40.0.jar`;
+- preparación/upload de `jobsmenu-0.41.0.jar`;
 - limpieza de JARs Jobs obsoletos en `dev-latest`;
 - publicación sólo desde `main`.
 
 ## Prueba manual posterior
 
-Después del deploy revisar especialmente identidad musical sin fallback vanilla, hard-stop durante pista/crossfade, créditos, reloads consecutivos, Multiplayer ESC/Cancelar/F5, Video Settings completo, PNG 10–17 estáticos, JPG 18–31 y GUI Scale 2/3/4.
+Revisar especialmente hard-stop de FX puntuales, bloqueo de música vanilla sin polling, reloads consecutivos, config persistente, F5 con selección+scroll, servidor oficial, Video Settings completo, PNG 10–17 estáticos, JPG 18–31 y GUI Scale 2/3/4.
