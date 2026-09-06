@@ -1,5 +1,7 @@
 package com.santipdr.jobsmenu.client.screen;
 
+import com.santipdr.jobsmenu.client.sound.MezclaAudio;
+import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.client.ui.BotonExpediente;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import net.minecraft.client.Minecraft;
@@ -26,6 +28,8 @@ public final class PantallaOpcionesJobs extends OptionsScreen {
     private final Options opciones;
     private AbstractButton botonVideoNatural;
     private boolean integracionNaturalFinalizada;
+    private boolean ranuraVideoConocida;
+    private int videoX, videoY, videoW, videoH;
     private int panelX, panelY, panelW, panelH;
     private boolean compacta;
 
@@ -39,9 +43,11 @@ public final class PantallaOpcionesJobs extends OptionsScreen {
     protected void init() {
         this.botonVideoNatural = null;
         this.integracionNaturalFinalizada = false;
+        this.ranuraVideoConocida = false;
 
-        // Construye primero el OptionsScreen real. Mixins que sustituyen la
-        // accion de Graficos trabajan sobre esta misma instancia Jobs.
+        // Construye primero el OptionsScreen real. Mixins y eventos del
+        // modpack trabajan sobre esta misma instancia antes de que Jobs use su
+        // comportamiento como backend.
         super.init();
         sincronizarControlesNaturales();
 
@@ -93,31 +99,59 @@ public final class PantallaOpcionesJobs extends OptionsScreen {
 
     /**
      * Conserva los controles naturales como fuente de comportamiento, pero no
-     * los deja visibles ni clickeables debajo del chrome Jobs. Se repite en el
-     * primer render porque Forge permite que otros mods alteren OptionsScreen
-     * despues de que init() haya terminado.
+     * los deja visibles debajo del chrome Jobs. La primera pasada memoriza la
+     * ranura vanilla de Graficos; una pasada posterior puede reconocer un boton
+     * sustituto aunque otro mod le haya cambiado el texto.
      */
     private void sincronizarControlesNaturales() {
         String video = Component.translatable("options.video").getString();
-        AbstractButton encontrado = null;
+        AbstractButton porTexto = null;
+        AbstractButton porRanura = null;
+        boolean actualSiguePresente = false;
 
         for (var child : this.children()) {
             String clase = child.getClass().getName();
             boolean jobs = clase.startsWith("com.santipdr.jobsmenu.");
             if (jobs) continue;
 
-            if (child instanceof AbstractButton boton
-                    && video.equals(boton.getMessage().getString())) {
-                encontrado = boton;
+            if (child == this.botonVideoNatural) {
+                actualSiguePresente = true;
+            }
+            if (child instanceof AbstractButton boton) {
+                if (video.equals(boton.getMessage().getString())) {
+                    porTexto = boton;
+                } else if (this.ranuraVideoConocida && coincideRanuraVideo(boton)) {
+                    porRanura = boton;
+                }
             }
             if (child instanceof AbstractWidget widget) {
                 widget.visible = false;
             }
         }
 
-        if (encontrado != null) {
-            this.botonVideoNatural = encontrado;
+        if (porTexto != null) {
+            recordarVideo(porTexto);
+        } else if (!actualSiguePresente && porRanura != null) {
+            this.botonVideoNatural = porRanura;
+        } else if (!actualSiguePresente) {
+            this.botonVideoNatural = null;
         }
+    }
+
+    private void recordarVideo(AbstractButton boton) {
+        this.botonVideoNatural = boton;
+        this.videoX = boton.getX();
+        this.videoY = boton.getY();
+        this.videoW = boton.getWidth();
+        this.videoH = boton.getHeight();
+        this.ranuraVideoConocida = true;
+    }
+
+    private boolean coincideRanuraVideo(AbstractButton boton) {
+        return Math.abs(boton.getX() - this.videoX) <= 4
+                && Math.abs(boton.getY() - this.videoY) <= 4
+                && Math.abs(boton.getWidth() - this.videoW) <= 8
+                && Math.abs(boton.getHeight() - this.videoH) <= 4;
     }
 
     private void boton(int x, int y, int w, int h, String clave, String ayuda, Runnable accion) {
@@ -164,10 +198,13 @@ public final class PantallaOpcionesJobs extends OptionsScreen {
     private void abrirVideo() {
         // Nunca construye una pantalla grafica por su cuenta. Ejecuta el boton
         // que el OptionsScreen real termino teniendo despues de los hooks del
-        // modpack. Esto conserva Embeddium y cualquier otra integracion.
+        // modpack. Si el proveedor sustituyo el control y cambio su etiqueta,
+        // la ranura memorizada permite conservar igualmente su callback.
         sincronizarControlesNaturales();
         if (this.botonVideoNatural != null && this.botonVideoNatural.active) {
             this.botonVideoNatural.onPress();
+        } else {
+            MezclaAudio.gesto(SonidosNivel.UI_NEGADO, 0.42F);
         }
     }
 
