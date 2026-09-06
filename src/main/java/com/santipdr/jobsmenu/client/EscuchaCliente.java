@@ -120,13 +120,14 @@ public final class EscuchaCliente {
             siguiente = new PantallaNivel();
             evento.setNewScreen(siguiente);
         } else if (ConfigTurno.menuPropio()
+                && !flujoExternoActual
                 && siguiente != null
                 && siguiente.getClass() == TitleScreen.class
                 && !(siguiente instanceof PantallaNivel)) {
             LimpiezaRecursosLegados.ejecutar();
             siguiente = new PantallaNivel();
             evento.setNewScreen(siguiente);
-        } else if (ConfigTurno.pausaPropia() && esPausaReal(siguiente)) {
+        } else if (!flujoExternoActual && ConfigTurno.pausaPropia() && esPausaReal(siguiente)) {
             siguiente = new PantallaEstancia();
             evento.setNewScreen(siguiente);
         } else if (ConfigTurno.menuPropio() && flujoAdministrativo
