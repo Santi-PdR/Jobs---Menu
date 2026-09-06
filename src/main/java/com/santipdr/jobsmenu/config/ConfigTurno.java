@@ -338,6 +338,9 @@ public final class ConfigTurno {
     private static final long GUARDAR_MS = 250L;
 
     private static long ultimoGuardadoMs;
+    private static long cambiosAplicados;
+    private static long cambiosOmitidos;
+    private static long guardadosRealizados;
     private static boolean guardadoPendiente;
     private static ForgeConfigSpec.ConfigValue<?> valorPendiente;
 
@@ -345,7 +348,12 @@ public final class ConfigTurno {
         if (!SPEC.isLoaded()) {
             return;
         }
+        if (destino.get() == valor) {
+            cambiosOmitidos++;
+            return;
+        }
         destino.set(valor);
+        cambiosAplicados++;
         marcarGuardado(destino);
     }
 
@@ -353,7 +361,12 @@ public final class ConfigTurno {
         if (!SPEC.isLoaded()) {
             return;
         }
+        if (destino.get() == valor) {
+            cambiosOmitidos++;
+            return;
+        }
         destino.set(valor);
+        cambiosAplicados++;
         marcarGuardado(destino);
     }
 
@@ -379,6 +392,28 @@ public final class ConfigTurno {
         ForgeConfigSpec.ConfigValue<?> valor = valorPendiente;
         valorPendiente = null;
         valor.save();
+        guardadosRealizados++;
+    }
+
+    public static boolean guardadoPendienteParaDiagnostico() {
+        return guardadoPendiente;
+    }
+
+    public static long cambiosAplicadosParaDiagnostico() {
+        return cambiosAplicados;
+    }
+
+    public static long cambiosOmitidosParaDiagnostico() {
+        return cambiosOmitidos;
+    }
+
+    public static long guardadosRealizadosParaDiagnostico() {
+        return guardadosRealizados;
+    }
+
+    public static long ultimoGuardadoHaceMsParaDiagnostico() {
+        if (ultimoGuardadoMs <= 0L) return -1L;
+        return Math.max(0L, System.currentTimeMillis() - ultimoGuardadoMs);
     }
 
     public static boolean rotarNivelesBruto() {
@@ -565,16 +600,37 @@ public final class ConfigTurno {
     }
 
     public static void fijarPerfilAccesible(boolean valor) {
-        if (SPEC.isLoaded()) {
+        if (!SPEC.isLoaded()) return;
+
+        boolean cambio = false;
+        if (INSTANCE.perfilAccesible.get() != valor) {
             INSTANCE.perfilAccesible.set(valor);
-            if (valor) {
-                INSTANCE.movimientoReducido.set(true);
-                INSTANCE.destellosReducidos.set(true);
-                INSTANCE.altoContraste.set(true);
-                INSTANCE.textoGrande.set(true);
-            }
-            marcarGuardado(INSTANCE.perfilAccesible);
+            cambio = true;
         }
+        if (valor) {
+            if (!INSTANCE.movimientoReducido.get()) {
+                INSTANCE.movimientoReducido.set(true);
+                cambio = true;
+            }
+            if (!INSTANCE.destellosReducidos.get()) {
+                INSTANCE.destellosReducidos.set(true);
+                cambio = true;
+            }
+            if (!INSTANCE.altoContraste.get()) {
+                INSTANCE.altoContraste.set(true);
+                cambio = true;
+            }
+            if (!INSTANCE.textoGrande.get()) {
+                INSTANCE.textoGrande.set(true);
+                cambio = true;
+            }
+        }
+        if (!cambio) {
+            cambiosOmitidos++;
+            return;
+        }
+        cambiosAplicados++;
+        marcarGuardado(INSTANCE.perfilAccesible);
     }
 
     public static void fijarVolumenMusica(int porcentaje) {
