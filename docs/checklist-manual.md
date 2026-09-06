@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.43.0
+# Checklist manual de aceptación — 0.44.0
 
 CI certifica código, recursos y build; este checklist certifica la experiencia real dentro de Forge 1.20.1.
 
@@ -6,79 +6,73 @@ CI certifica código, recursos y build; este checklist certifica la experiencia 
 
 - [ ] Java 17 + Forge 47.x + Minecraft 1.20.1.
 - [ ] cerrar `test-1` antes de sustituir el JAR.
-- [ ] dejar un único `jobsmenu-0.43.0.jar` en `mods`.
+- [ ] dejar un único `jobsmenu-0.44.0.jar` en `mods`.
 - [ ] conservar `latest.log` si aparece crash, audio huérfano o recurso faltante.
 
-## Perfiles / estado CUSTOM — 0.43
+## Gráficos — 0.44
 
-- [ ] aplicar **Equilibrado** marca el perfil Equilibrado;
-- [ ] cambiar después un valor controlado por ese preset (por ejemplo volumen ambiente) cambia el indicador a CUSTOM;
-- [ ] volver a aplicar Equilibrado restaura su identificación;
-- [ ] repetir lo mismo con Inmersivo, Rendimiento, Accesible y Mínimo;
-- [ ] cambiar sólo una opción que el preset no controla, como pista musical fija o nivel fijo, no invalida el perfil;
-- [ ] Perfil accesible sigue activando Movimiento reducido, Destellos reducidos, Alto contraste y Texto grande;
-- [ ] tocar manualmente una de esas cuatro opciones desactiva el flag del Perfil accesible como antes.
+Con Embeddium instalado:
 
-## Mundos / Mods — 0.43
+- [ ] abrir **Opciones → Gráficos**;
+- [ ] se abre la interfaz original de Embeddium;
+- [ ] no aparece marco, cabecera, banda, transición, overlay ni recolocación Jobs;
+- [ ] los botones, pestañas, tooltips y controles son los originales de Embeddium/modpack;
+- [ ] no se escucha reemplazo Jobs del click/hover dentro de Gráficos;
+- [ ] ESC/Done vuelve una sola vez a Opciones Jobs;
+- [ ] abrir/cerrar Gráficos varias veces no duplica widgets ni cambia su diseño;
+- [ ] cambiar resolución/GUI Scale y volver a entrar mantiene la interfaz gráfica original.
+
+Sin Embeddium:
+
+- [ ] Gráficos abre `VideoSettingsScreen` vanilla;
+- [ ] esa pantalla tampoco recibe skin/transición/click Jobs;
+- [ ] ESC/Done vuelve a Opciones Jobs.
+
+## MODPACK eliminado / salida de configuración — 0.44
+
+- [ ] **no existe botón MODPACK** en Opciones Jobs;
+- [ ] no existe un hueco/hitbox invisible donde estaba MODPACK;
+- [ ] entrar/salir de Opciones Jobs con ESC funciona siempre con una sola salida;
+- [ ] el botón Volver funciona una sola vez;
+- [ ] repetir abrir/cerrar Opciones muchas veces no crea bucle ni obliga a pulsar ESC repetidamente;
+- [ ] volver desde Gráficos, Sonido, Controles, Idioma, Chat, Recursos, Accesibilidad y Online deja Opciones Jobs usable;
+- [ ] aplicar/cerrar resource packs no reconstruye Opciones dos veces.
+
+## Navegación externa — 0.44
+
+- [ ] una Screen de otro mod no recibe chrome, transición, hover/click ni recolocación Jobs;
+- [ ] si esa Screen abre otra Screen propia, Jobs no interviene;
+- [ ] si abre un submenú vanilla, Jobs no lo sustituye sólo porque la sesión del menú siga activa;
+- [ ] una `OptionsScreen`, `SelectWorldScreen`, `JoinMultiplayerScreen` o `ModListScreen` abierta fuera de un padre Jobs no se captura por el simple hecho de que `SesionMenu` esté activa;
+- [ ] volver desde una Screen externa al padre Jobs funciona sin pantalla intermedia ni doble ESC.
+
+## Perfiles / estado CUSTOM — 0.43 heredado
+
+- [ ] aplicar Equilibrado marca Equilibrado;
+- [ ] cambiar un valor controlado por el preset pasa a CUSTOM;
+- [ ] volver a aplicar el preset restaura su identificación;
+- [ ] repetir con Inmersivo, Rendimiento, Accesible y Mínimo;
+- [ ] cambiar una opción que el preset no controla no invalida el perfil;
+- [ ] Perfil accesible sigue activando Movimiento reducido, Destellos reducidos, Alto contraste y Texto grande.
+
+## Mundos / Mods — 0.43 heredado
 
 En ambas pantallas:
 
 - [ ] `Ctrl+F` enfoca el campo de búsqueda;
-- [ ] con texto escrito, primer `ESC` vacía el filtro y **no sale**;
-- [ ] con filtro vacío pero campo aún enfocado, segundo `ESC` sólo suelta el foco;
-- [ ] el siguiente `ESC` vuelve al padre Jobs con una única transición;
-- [ ] cerrar por botón/ESC repetido no produce pantalla intermedia, doble retorno ni necesidad de pulsar varias veces;
-- [ ] redimensionar/maximizar no deja el guard de cierre bloqueado.
+- [ ] con texto escrito, primer `ESC` vacía el filtro y no sale;
+- [ ] con filtro vacío pero campo enfocado, segundo `ESC` suelta el foco;
+- [ ] el siguiente `ESC` vuelve al padre Jobs;
+- [ ] botón/ESC repetido no produce doble retorno;
+- [ ] resize/maximizar no deja el guard de cierre bloqueado.
 
-## Gráficos / flujo natural — 0.42 heredado
-
-Con el modpack real de `test-1`:
-
-- [ ] abrir un `OptionsScreen` normal de referencia si es posible y observar qué abre su botón Gráficos;
-- [ ] **Gráficos de Jobs abre la misma interfaz y conserva las mismas categorías/opciones añadidas por mods**;
-- [ ] Embeddium mantiene todas sus opciones y pestañas;
-- [ ] opciones/inyecciones de Oculus u otros mods gráficos presentes en el flujo normal siguen presentes;
-- [ ] si un mod cambia el texto del botón gráfico pero conserva aproximadamente su ranura, Jobs sigue abriendo el callback sustituido;
-- [ ] ESC/Done/Cerrar desde la GUI gráfica vuelve correctamente a Opciones Jobs;
-- [ ] la GUI gráfica externa no recibe marco, banda, transición, recolocación ni click/hover Jobs;
-- [ ] Opciones Jobs no muestra título/fondo vanilla encima del chrome Jobs;
-- [ ] no existen controles vanilla/modded visibles ni hitboxes invisibles debajo del panel Jobs;
-- [ ] abrir/cerrar Gráficos varias veces no duplica widgets ni rompe el foco.
-
-Sin mods que sustituyan Gráficos:
-
-- [ ] la misma ruta natural termina en `VideoSettingsScreen` vanilla;
-- [ ] volver desde vanilla regresa a Opciones Jobs;
-- [ ] la pantalla vanilla de vídeo tampoco recibe tematización ni transición Jobs.
-
-## MODPACK / Opciones completas — 0.42 heredado
-
-- [ ] el botón `MODPACK` aparece en Opciones Jobs sin solaparse con Online/Cerrar expediente;
-- [ ] `MODPACK` abre el `OptionsScreen` completo y natural del modpack;
-- [ ] cualquier botón, categoría o inyección que otro mod agregue al Options normal también aparece allí;
-- [ ] entrar en un submenú desde MODPACK no añade chrome, transición, click ni hover Jobs;
-- [ ] volver desde un submenú externo regresa al Options natural y no a una reconstrucción Jobs inesperada;
-- [ ] cerrar finalmente el Options natural vuelve a Opciones Jobs con una sola acción.
-
-## Pantallas de otros mods — 0.43
-
-- [ ] abrir una pantalla de configuración de cualquier mod desde Mods/Options no añade chrome Jobs;
-- [ ] esa Screen externa conserva sus clicks, hover, sliders, tooltips y navegación propios;
-- [ ] si la Screen externa abre otra Screen propia, Jobs no interviene;
-- [ ] si la Screen externa abre un `OptionsScreen`, `SelectWorldScreen`, `JoinMultiplayerScreen` o `ModListScreen` vanilla como subflujo, Jobs no lo reemplaza por una pantalla Jobs sólo porque la sesión del menú siga activa;
-- [ ] un subflujo externo que pasa temporalmente por una Screen `net.minecraft.*` sigue sin recibir banda/click Jobs;
-- [ ] si un subflujo externo abre `TitleScreen`, Jobs no lo reemplaza mientras ese flujo siga marcado como externo;
-- [ ] volver desde una Screen externa al padre Jobs funciona sin pantalla intermedia ni doble ESC;
-- [ ] una Screen Forge estándar (`net.minecraftforge.*`) que Jobs sí tematiza históricamente conserva su lógica completa.
-
-## Audio / lifecycle — 0.41 heredado
+## Audio / lifecycle
 
 - [ ] Aleatoria reproduce sólo Absurdism, REQUIEM o Upon the Hill V2;
 - [ ] nunca aparece música de menú vanilla;
-- [ ] eventos, apagones y FX ambientales suenan como Jobs, nunca como `ambient.cave` vanilla;
-- [ ] entrar a mundo/servidor durante una pista, crossfade o FX puntual corta **todo** el audio de menú inmediatamente;
+- [ ] eventos/apagones/FX no usan `ambient.cave`;
+- [ ] entrar a mundo/servidor corta todo el audio de menú inmediatamente;
 - [ ] volver al menú no duplica música, camas ni FX;
-- [ ] permanecer varios minutos en gameplay no produce audio residual ni tirones periódicos por cierre repetido;
 - [ ] F3+T/reload reconstruye audio una sola vez;
 - [ ] Alt+Tab no crea instancias fantasma.
 
@@ -88,34 +82,29 @@ Sin mods que sustituyan Gráficos:
 - [ ] REQUIEM muestra `Emmy Z - Forsaken OST`;
 - [ ] Upon the Hill V2 muestra `ft. @iCosmicCoffee`;
 - [ ] `N` sólo cambia pista en Aleatoria;
-- [ ] `M` silencia/restaura sin cambiar pista;
-- [ ] una pista entrante inválida nunca corta prematuramente la válida.
+- [ ] `M` silencia/restaura sin cambiar pista.
 
 ## Config Jobs
 
 - [ ] toggles aplican el cambio una sola vez;
-- [ ] sliders arrastrados rápido no producen stutter por escritura continua;
-- [ ] salir de Config conserva el último valor;
+- [ ] sliders rápidos no producen stutter por escritura continua;
+- [ ] salir conserva el último valor;
 - [ ] reiniciar Minecraft conserva música, volúmenes, nivel fijo y accesibilidad;
-- [ ] aplicar dos veces el mismo perfil no causa efectos secundarios ni reinicios de audio.
+- [ ] aplicar dos veces el mismo perfil no causa efectos secundarios.
 
-## Multiplayer — 0.41 heredado
+## Multiplayer
 
 - [ ] `JobsDosh.exaroton.me:56477` aparece primero y una sola vez;
 - [ ] `Ghoul Outbreak` no aparece;
 - [ ] servidor oficial no se puede editar/borrar;
 - [ ] Direct Connect/Add/Edit/Delete funcionan para el resto;
-- [ ] seleccionar un servidor, bajar bastante en la lista y pulsar F5 conserva **selección y scroll**;
-- [ ] botón Actualizar hace lo mismo;
-- [ ] maximizar/restaurar la ventana conserva selección y scroll;
-- [ ] redimensionar varias veces conserva selección y scroll;
-- [ ] cambiar GUI Scale no manda la lista al inicio durante el resize;
-- [ ] varias recargas seguidas no saltan al inicio de lista;
+- [ ] F5/Actualizar conserva selección y scroll;
+- [ ] maximizar/restaurar, resize y GUI Scale conservan selección y scroll;
 - [ ] LAN, ping, MOTD y favicons siguen funcionando;
 - [ ] F5 suena una sola vez;
 - [ ] ESC vuelve al padre Jobs con una pulsación;
 - [ ] Cancelar conexión/error pre-login vuelve a la lista Jobs;
-- [ ] salida/kick de servidor remoto vuelve a Multiplayer Jobs;
+- [ ] salida/kick remoto vuelve a Multiplayer Jobs;
 - [ ] salir de mundo local vuelve al main Jobs.
 
 ## Main / layout
@@ -126,7 +115,6 @@ Probar 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/3/4.
 - [ ] nombre/nota/crédito no chocan;
 - [ ] no reaparece la barra visible `1-4/F/M/N/TAB/ENTER`;
 - [ ] botones/sliders/campos mantienen hitboxes correctas;
-- [ ] hover/foco en controles vanilla preservados sigue sonando una sola vez al entrar;
 - [ ] no se nota retraso adicional al mover el mouse por pantallas con muchos widgets.
 
 ## Gameplay
@@ -144,11 +132,11 @@ Probar 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/3/4.
 
 ## Publicación
 
-- [ ] la release `dev-latest` contiene exactamente `jobsmenu-0.43.0.jar`;
+- [ ] la release `dev-latest` contiene exactamente `jobsmenu-0.44.0.jar`;
 - [ ] el SHA-256 descargado coincide con el digest de GitHub;
 - [ ] `refs/tags/dev-latest` apunta exactamente al mismo SHA que `main` publicado;
-- [ ] el workflow completó en orden `Publish rolling development release` → `Move rolling development tag` → `Remove obsolete release JARs`.
+- [ ] el workflow completó `Publish` → `Move rolling development tag` → `Remove obsolete release JARs`.
 
 ## Diagnóstico de fallos
 
-Guardar `latest.log` y anotar pista, selector, secuencia de reload, nivel, estado mundo/servidor, selección/scroll Multiplayer, estado del buscador, perfil indicado, mod dueño de la Screen externa, si se entró por Gráficos o MODPACK, qué opciones faltaron y valores de config modificados.
+Guardar `latest.log` y anotar pantalla, secuencia exacta de navegación, resolución, GUI Scale, selección/scroll Multiplayer, estado del buscador, perfil indicado y qué GUI exacta abrió Gráficos.
