@@ -19,6 +19,7 @@ public final class PantallaModsJobs extends ModListScreen {
 
     private final Screen anteriorJobs;
     private EditBox busqueda;
+    private boolean cerrando;
 
     public PantallaModsJobs(Screen anterior) {
         super(anterior);
@@ -27,6 +28,8 @@ public final class PantallaModsJobs extends ModListScreen {
 
     @Override
     public void init() {
+        this.cerrando = false;
+        this.busqueda = null;
         super.init();
 
         // No redimensionar la lista de Forge. ModListScreen calcula su propio
@@ -51,11 +54,26 @@ public final class PantallaModsJobs extends ModListScreen {
             this.busqueda.setFocused(true);
             return true;
         }
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE && atenderEscapeBusqueda()) {
+            return true;
+        }
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             volverAlMenu();
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    /** Mismo contrato de busqueda que Mundos: limpiar, soltar foco y luego salir. */
+    private boolean atenderEscapeBusqueda() {
+        if (this.busqueda == null || !this.busqueda.isFocused()) return false;
+        if (!this.busqueda.getValue().isEmpty()) {
+            this.busqueda.setValue("");
+            return true;
+        }
+        this.busqueda.setFocused(false);
+        this.setFocused(null);
+        return true;
     }
 
     @Override
@@ -64,7 +82,8 @@ public final class PantallaModsJobs extends ModListScreen {
     }
 
     private void volverAlMenu() {
-        if (this.minecraft == null) return;
+        if (this.cerrando || this.minecraft == null) return;
+        this.cerrando = true;
         this.minecraft.setScreen(this.anteriorJobs != null ? this.anteriorJobs : new PantallaNivel());
     }
 
