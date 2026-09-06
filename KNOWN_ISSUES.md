@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.43.0
+# Riesgos y pruebas pendientes — 0.44.0
 
 Este archivo contiene sólo riesgos vigentes. El historial vive en `CHANGELOG.md` y en las auditorías de `docs/`.
 
@@ -8,107 +8,84 @@ Antes de publicar, GitHub Actions comprueba:
 
 - Java 17 + Forge build 1.20.1 y JAR versionado;
 - integridad de fondos e idiomas;
-- `PantallaOpcionesJobs` hereda de `OptionsScreen` y delega Gráficos al control natural;
-- la ranura original de vídeo puede reconocer un control sustituto aunque cambie su texto;
-- Jobs no usa `CompatGraficos`, `ConfigScreenFactory`, reflection ni construcción directa de Video Settings;
-- las Screens de terceros se aíslan de forma genérica, sin depender de paquetes Embeddium/Sodium/Iris;
+- `PantallaOpcionesJobs` vuelve a ser una `Screen` propia y no hereda de `OptionsScreen`;
+- no existen `MODPACK`, `abrirOpcionesModpack`, `permitirOptionsNaturalUnaVez`, captura por ranura ni widgets gráficos ocultos;
+- con Embeddium, Gráficos usa su `ConfigScreenHandler.ConfigScreenFactory` oficial;
+- Jobs no enlaza `SodiumOptionsGUI`, `EmbeddiumVideoOptionsScreen` ni usa reflection para Gráficos;
+- sin Embeddium existe fallback a `VideoSettingsScreen` vanilla;
+- la GUI gráfica devuelta queda fuera de chrome/transiciones/click Jobs;
+- las Screens de terceros se aíslan de forma genérica;
 - una Screen de terceros no habilita redirecciones administrativas Jobs en sus subflujos;
-- los subflujos externos tampoco son capturados si terminan en `TitleScreen` o pausa vanilla;
-- `VideoSettingsScreen` vanilla sigue fuera de chrome/transiciones/click Jobs;
-- los perfiles sólo se consideran activos si coinciden con todos los valores que controla el preset;
-- Mundos y Mods limpian búsqueda/abandonan foco antes de cerrar con ESC y usan cierre idempotente;
+- `SesionMenu.activa()` ya no basta para interceptar Options/Multiplayer/Mundos/Mods;
+- Opciones, Mundos y Mods usan cierres idempotentes donde corresponde;
+- los perfiles sólo se consideran activos si coinciden con todos los valores controlados por el preset;
 - frontera dura de gameplay;
-- continuidad Multiplayer, selección por IP y scroll en F5 **y resize**;
+- continuidad Multiplayer, selección por IP y scroll en F5 y resize;
 - guard de `servers.dat` para no guardar si no hubo cambios;
-- optimizaciones históricas 0.38;
-- créditos/reload 0.39;
-- identidad musical/hard-stop 0.40;
-- rastreo/hard-stop de FX puntuales 0.41;
-- ausencia de fallback `AMBIENT_CAVE` para FX Jobs;
-- cierre de sesión idempotente;
-- setters de config que omiten valores idénticos;
-- cache de botones vanilla para hover;
-- bloqueo de `SoundSource.MUSIC` durante sesión Jobs sin `stopPlaying()` por tick;
-- el workflow contiene el movimiento explícito de `dev-latest` a `GITHUB_SHA`;
+- audio/reload/hard-stop y optimizaciones heredadas;
+- el workflow mueve explícitamente `dev-latest` a `GITHUB_SHA`;
 - build y publicación sólo desde `main` verde.
 
 ## Lo que CI no puede certificar
 
 En `test-1` comprobar:
 
-1. con el modpack real, Gráficos abre exactamente la misma GUI/opciones que abriría el OptionsScreen normal;
-2. opciones, pestañas o inyecciones añadidas por Embeddium/Oculus/otros mods siguen presentes;
-3. si un mod cambia el texto del botón gráfico pero conserva su ranura, Jobs sigue abriendo su flujo correcto;
-4. sin mods gráficos, la ruta natural sigue terminando en Video Settings vanilla;
-5. ESC/Done desde Gráficos vuelve a Opciones Jobs y la GUI externa no recibe decoración/click Jobs;
-6. abrir una pantalla de configuración de cualquier otro mod no añade bandas, transiciones ni sonidos Jobs;
-7. desde una pantalla externa, abrir un submenú vanilla o `TitleScreen` no provoca que Jobs secuestre ese subflujo;
-8. no reaparece fondo/título vanilla dentro de Opciones Jobs;
-9. no existen botones/hitboxes invisibles debajo del panel Jobs;
-10. aplicar Equilibrado/Inmersivo/Rendimiento/Accesible/Mínimo marca el perfil correcto y tocar luego una opción relevante pasa a CUSTOM;
-11. en Mundos y Mods: ESC con búsqueda escrita limpia; segundo ESC suelta foco; tercero vuelve al padre;
-12. las tres pistas y créditos son correctos, sin música vanilla;
-13. eventos/apagones/FX puntuales se cortan al entrar a mundo/servidor;
-14. idioma → F3+T → resource pack no duplica música, camas ni FX;
-15. F5 y resize conservan selección+scroll Multiplayer;
-16. LAN, ping, MOTD y favicons siguen funcionando;
-17. servidor oficial sigue primero/único/protegido y `Ghoul Outbreak` no vuelve;
-18. sliders/toggles persisten tras reinicio;
-19. chat/inventario/contenedores siguen fuera de Jobs;
-20. PNG 10–17 siguen estáticos y JPG 18–31 conservan movimiento mínimo;
-21. GUI Scale 2/3/4 no provoca solapes.
+1. con Embeddium instalado, **Gráficos abre la interfaz original de Embeddium sin marco, título, transición, sonidos de hover/click ni recolocación Jobs**;
+2. las pestañas/opciones de Embeddium y las integraciones visibles del modpack siguen presentes;
+3. ESC/Done desde Gráficos vuelve a Opciones Jobs una sola vez;
+4. abrir/cerrar Gráficos varias veces no acumula widgets ni cambia su aspecto;
+5. sin Embeddium, Gráficos abre Video Settings vanilla intacto y vuelve a Opciones Jobs;
+6. **no existe botón MODPACK** en ninguna resolución/GUI Scale;
+7. entrar y salir repetidamente de Opciones Jobs no queda atrapado en un bucle;
+8. una pantalla externa y sus submenús no reciben bandas, transiciones ni sonidos Jobs;
+9. aplicar un preset y modificar luego una opción relevante cambia el indicador a CUSTOM;
+10. en Mundos y Mods: ESC con búsqueda escrita limpia; segundo ESC suelta foco; tercero vuelve al padre;
+11. las tres pistas y créditos son correctos, sin música vanilla;
+12. eventos/apagones/FX se cortan al entrar a mundo/servidor;
+13. F3+T/resource packs no duplican música, camas ni FX;
+14. F5 y resize conservan selección+scroll Multiplayer;
+15. LAN, ping, MOTD y favicons siguen funcionando;
+16. servidor oficial sigue primero/único/protegido y `Ghoul Outbreak` no vuelve;
+17. sliders/toggles persisten tras reinicio;
+18. chat/inventario/contenedores siguen fuera de Jobs;
+19. PNG 10–17 siguen estáticos y JPG 18–31 conservan movimiento mínimo;
+20. GUI Scale 2/3/4 no provoca solapes.
 
 ## Riesgos vigentes
 
-### Gráficos / modpack
+### Gráficos
 
-- La detección alternativa por ranura usa tolerancias pequeñas de posición/tamaño. Un mod que rediseñe por completo `OptionsScreen`, moviendo el control gráfico a otra zona y cambiando además su etiqueta, puede no ser reconocible sin una API propia del proveedor. Jobs prefiere no inventar una ruta en ese caso.
-- Integraciones que sustituyan el botón después del primer render y justo entre sincronización/click son casos extremos que deben probarse en el modpack real.
-- Las pantallas de terceros se detectan por namespace de clase. Un mod que inyecte comportamiento dentro de una `Screen` cuyo tipo siga siendo `net.minecraft.*` conserva el tratamiento Minecraft de esa Screen; esto es intencional para no romper mixins vanilla.
+- La ruta Embeddium depende de que ese mod siga registrando `ConfigScreenHandler.ConfigScreenFactory` en Forge 1.20.1. Si falta o falla, Jobs cae de forma segura a Video Settings vanilla.
+- Jobs no intenta adivinar proveedores gráficos distintos de Embeddium. La prioridad actual es que la pantalla abierta no sea modificada por Jobs.
+- Una integración que sólo exista al entrar por un `OptionsScreen` completo pero no esté presente en la propia Screen registrada por Embeddium debe validarse manualmente en el modpack real.
+
+### Navegación
+
+- Las redirecciones administrativas están deliberadamente acotadas a padres Jobs concretos. Un mod que sustituya totalmente las clases vanilla de navegación puede necesitar compatibilidad específica.
+- Las pantallas externas se detectan por namespace; un mod que inyecte comportamiento dentro de una clase `net.minecraft.*` conserva el tratamiento Minecraft de esa clase.
 
 ### Perfiles
 
-- La detección exacta compara sólo campos que el preset escribe. Cambiar una preferencia que ese preset deja deliberadamente libre —por ejemplo pista musical fija o nivel fijo mientras rota— no convierte el perfil en CUSTOM.
-- Mínimo oculta el estado de instalación por efecto de `interfaz_minima`; ese estado oculto no se usa para invalidar el preset mientras no tenga efecto visual.
+- La detección exacta compara sólo campos que el preset escribe. Cambiar una preferencia deliberadamente libre no convierte el perfil en CUSTOM.
 
-### Audio
+### Audio / Config / Multiplayer
 
-- Mods que sustituyan por completo `SoundEngine`, `SoundManager` o el pipeline `PlaySoundEvent` pueden requerir compatibilidad específica.
-- Durante una visita Jobs se bloquea `SoundSource.MUSIC` para que la banda sonora del menú sea exclusiva.
-- Los FX puntuales se purgan usando `SoundManager.isActive`; la percepción final del corte debe comprobarse con audio real.
-
-### Config
-
-- El guard de valores idénticos evita trabajo inútil, pero los cambios reales siguen dependiendo de la persistencia de Forge y deben probarse tras reiniciar Minecraft.
-- Los sliders conservan guardado diferido; cerrar/cambiar Screen fuerza `guardarPendiente()`.
-
-### Multiplayer
-
-- El scroll se restaura después de reconstruir la lista; listas alteradas por otro mod pueden cambiar su rango máximo y Minecraft puede ajustarlo.
-- Otro mod que reemplace completamente `JoinMultiplayerScreen` puede requerir compatibilidad.
+- Mods que sustituyan por completo el motor de sonido pueden requerir compatibilidad específica.
+- Los cambios reales de config siguen dependiendo de persistencia Forge y deben probarse tras reiniciar.
+- El scroll Multiplayer puede ser limitado por listas alteradas por terceros.
 - Entradas LAN siguen siendo efímeras y se recrean con el detector nuevo.
 
 ### Pipeline
 
-- CI verifica que el workflow contenga el movimiento explícito del tag. La comprobación definitiva sigue siendo posterior a publicar: `refs/tags/dev-latest` debe resolver exactamente al SHA de `main` que generó el JAR.
-
-### Interfaces y fondos
-
-- Resource packs de GUI agresivos pueden requerir ajustes.
-- No existe profiler GPU automático; rendimiento perceptivo se mide en el modpack real.
+- La comprobación definitiva tras publicar sigue siendo que `refs/tags/dev-latest` resuelva exactamente al SHA de `main` que generó el JAR.
 
 ## Mitigaciones
 
-- `tools/verificar_ux_043.py`: perfiles exactos, ESC/búsqueda y cierre idempotente, frontera externa completa.
-- `tools/verificar_compatibilidad_042.py`: flujo gráfico natural, aislamiento genérico de terceros y ausencia de dependencias por proveedor.
-- `tools/verificar_runtime_041.py`: runtime/audio/config/Multiplayer 0.41.
-- `tools/verificar_audio_identidad.py`: identidad musical/hard-stop 0.40.
-- `tools/verificar_reload_creditos.py`: créditos/reload 0.39.
-- `tools/verificar_optimizacion.py`: caminos calientes 0.38.
-- `tools/verificar_ui_musica.py` y `tools/verificar_continuidad.py`: UI/audio/navegación.
-- `tools/verificar_version.py`: JAR versionado, limpieza de release y movimiento obligatorio de `dev-latest`.
-- `dev-latest` sólo se publica después de build Forge real.
+- `tools/verificar_graficos_044.py`: Gráficos intocable, ausencia de MODPACK y redirecciones acotadas.
+- `tools/verificar_ux_043.py`: perfiles exactos y ESC/búsqueda.
+- `tools/verificar_compatibilidad_042.py`: aislamiento genérico de terceros.
+- verificadores históricos de runtime, audio, reload, optimización, continuidad y versión siguen activos.
 
 ## Reporte útil
 
-Ante un fallo, guardar versión/JAR, SHA-256, `latest.log`, pista, pantalla/nivel, resolución, GUI Scale, secuencia de reload, posición/selección Multiplayer, estado del buscador, perfil indicado, nombre del mod que abrió la Screen externa, qué GUI abrió Gráficos y qué opciones faltaron.
+Ante un fallo, guardar versión/JAR, SHA-256, `latest.log`, pantalla/nivel, resolución, GUI Scale, secuencia de navegación, estado del buscador, perfil indicado, nombre del mod dueño de la Screen externa y qué GUI exacta abrió Gráficos.

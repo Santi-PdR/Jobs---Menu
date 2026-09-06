@@ -1,5 +1,35 @@
 # Registro de cambios
 
+## 0.44.0 — Gráficos intocable y salida de configuración corregida — 2026-09-06
+
+### Gráficos
+
+- `PantallaOpcionesJobs` deja de heredar de `OptionsScreen` y vuelve a ser una `Screen` Jobs independiente.
+- Se eliminan `super.init()`, `botonVideoNatural`, la detección por ranura, la sincronización tardía y el ocultado de widgets vanilla/modded.
+- El botón Gráficos ya no usa controles invisibles como backend.
+- Se restaura `CompatGraficos` como puente mínimo: pide a Forge la `ConfigScreenHandler.ConfigScreenFactory` registrada por Embeddium y abre la Screen devuelta sin modificarla.
+- No se enlazan clases internas de Embeddium/Sodium y no se usa reflection.
+- Sin Embeddium o ante fallo seguro de su factory, se abre `VideoSettingsScreen` vanilla.
+- Tanto la Screen de Embeddium como Video Settings vanilla quedan fuera de chrome, transiciones, hover/click y recolocación Jobs.
+
+### MODPACK / navegación
+
+- Se elimina por completo el botón **MODPACK**.
+- Se eliminan `abrirOpcionesModpack()`, `permitirOptionsNaturalUnaVez`, `optionsNaturalSolicitado` y el permiso de un solo uso asociado.
+- Se corrige el bucle por el que el flujo de Options natural podía volver repetidamente a configuración y dificultar la salida.
+- `SesionMenu.activa()` deja de autorizar por sí sola redirecciones administrativas. Options/Multiplayer/Mundos/Mods sólo se convierten a Jobs cuando el padre es `PantallaNivel`, `PantallaEstancia` o `PantallaOpcionesJobs`.
+- `PantallaOpcionesJobs.onClose()` añade guard idempotente.
+- El callback de resource packs evita `setScreen(this)` si esa Screen ya es la actual.
+
+### Calidad
+
+- Nuevo `tools/verificar_graficos_044.py` protege ausencia de MODPACK, arquitectura de Opciones simple, factory gráfica original y redirecciones acotadas.
+- `tools/verificar_ui_musica.py` y `tools/verificar_compatibilidad_042.py` se actualizan al contrato vigente.
+- CI añade `Verify untouched graphics and Options 0.44` antes del build Forge.
+- README, CONTEXTO, KNOWN_ISSUES, checklist y compatibilidad se actualizan a 0.44.0.
+- Versión: **0.44.0**.
+- Artefacto esperado: **`jobsmenu-0.44.0.jar`**.
+
 ## 0.43.0 — Perfiles exactos, búsqueda y navegación robusta — 2026-09-06
 
 ### Perfiles / configuración
@@ -37,56 +67,36 @@
 - `EscuchaCliente` deja de enumerar paquetes concretos de Sodium, Embeddium, Iris u Oculus para decidir qué GUI respetar.
 - Nueva regla genérica de propiedad: toda `Screen` que no pertenezca a Jobs, `net.minecraft.*` o `net.minecraftforge.*` se considera de terceros y queda fuera de chrome, bandas, transiciones, hover y reemplazo de clicks Jobs.
 - `VideoSettingsScreen` vanilla sigue siendo explícitamente intocable aunque pertenezca a Minecraft.
-- Una pantalla de terceros ya no puede activar redirecciones Jobs en sus subflujos sólo porque `SesionMenu` continúe activa. Si un mod abre Options/Worlds/Multiplayer/Mods desde su propia GUI, conserva ese flujo.
-- Se añade seguimiento de **subflujo externo**: una GUI vanilla abierta desde una superficie de terceros sigue siendo ajena hasta volver explícitamente a una Screen Jobs.
-- `ListasExpediente`, pulido, hover y liberación de listas se omiten también en superficies externas para no hacer trabajo ni mutar estado de GUI ajenas.
+- Una pantalla de terceros ya no puede activar redirecciones Jobs en sus subflujos sólo porque `SesionMenu` continúe activa.
+- Se añade seguimiento de subflujo externo: una GUI vanilla abierta desde una superficie de terceros sigue siendo ajena hasta volver explícitamente a una Screen Jobs.
+- `ListasExpediente`, pulido, hover y liberación de listas se omiten también en superficies externas.
 
-### Gráficos / opciones naturales reforzadas
+### Gráficos / opciones naturales — histórico, reemplazado por 0.44
 
-- `PantallaOpcionesJobs` sigue usando el `OptionsScreen` real y el `onPress()` del botón natural de vídeo.
-- Además del texto `options.video`, se memoriza la ranura original del control (`x/y/ancho/alto`).
-- Si un mod sustituye el botón y cambia también su etiqueta, una sincronización posterior puede reconocer el reemplazo por esa ranura y conservar su callback.
-- Si no existe un control natural resoluble o está deshabilitado, Jobs emite `UI_NEGADO` y no inventa un fallback gráfico que pueda perder opciones de mods.
-- Se añade el botón **MODPACK** en Opciones Jobs. Abre un `OptionsScreen` completo y natural con permiso de un solo uso para que todas las inyecciones/botones de otros mods sigan accesibles sin ser reconstruidos por Jobs.
-- El flujo que nace desde MODPACK se mantiene fuera de chrome, transiciones, clicks y redirecciones Jobs hasta regresar a una pantalla propia.
+- `PantallaOpcionesJobs` pasó a usar un `OptionsScreen` real y el `onPress()` del botón natural de vídeo.
+- Se memorizó la ranura original del control para intentar reconocer reemplazos.
+- Se añadió el botón MODPACK y un permiso de un solo uso.
+- **Este diseño queda retirado en 0.44.0 por complejidad y por el bug de retorno de configuración.**
 
 ### Pipeline / dev-latest
 
-- Se corrige la inconsistencia por la que la release `dev-latest` podía actualizar su asset sin mover el ref Git del tag.
 - El workflow fuerza `dev-latest` a `$GITHUB_SHA` sólo desde `main`.
-- La publicación se vuelve más segura: **primero se publica el JAR, luego se mueve el tag y al final se eliminan assets Jobs obsoletos**.
-- Si la publicación falla, el tag no se adelanta a un build que no llegó a publicarse.
-- `tools/verificar_version.py` exige el paso, los comandos exactos y el orden transaccional.
-- `dev-latest` debe terminar con release, tag, ZIP/tarball y commit alineados.
+- La publicación usa orden: publicar JAR → mover tag → eliminar assets Jobs obsoletos.
+- `tools/verificar_version.py` exige el paso y su orden.
 
-### Verificación / documentación
-
-- Nuevo `tools/verificar_compatibilidad_042.py` para proteger flujo natural, aislamiento genérico, subflujos de terceros y acceso MODPACK.
-- Se retira `tools/verificar_graficos_041.py`, ya demasiado específico para el contrato vigente.
-- `tools/verificar_ui_musica.py` se actualiza al modelo proveedor-agnóstico y al nuevo acceso natural.
-- `tools/verificar_optimizacion.py` exige que el hot-path de listas salga antes de procesar pantallas externas.
-- README, CONTEXTO, KNOWN_ISSUES, checklist, compatibilidad y despliegue se sincronizan con 0.42.0.
 - Versión: **0.42.0**.
 - Artefacto esperado: **`jobsmenu-0.42.0.jar`**.
 
 ## 0.41.1 — Flujo gráfico natural del modpack — 2026-09-06
 
-### Gráficos / compatibilidad
+### Gráficos / compatibilidad — histórico
 
-- Se corrige la regresión de 0.41.0 que abría la GUI gráfica mediante un puente específico de Embeddium y podía saltarse modificaciones de otros mods.
-- `PantallaOpcionesJobs` pasa a heredar de `OptionsScreen` y ejecuta su `init()` real antes de construir el chrome Jobs.
-- El botón **Gráficos** de Jobs conserva y ejecuta el `onPress()` del botón natural `options.video` después de los hooks del modpack.
-- La captura se repite en el primer render y justo antes de abrir Gráficos para recoger sustituciones tardías realizadas por Forge/mixins.
-- Los widgets externos usados como backend quedan invisibles para evitar controles/hitboxes visuales debajo del panel Jobs.
-- Jobs no llama `OptionsScreen.render()`, porque esa ruta volvería a dibujar fondo/título vanilla; sólo renderiza sus widgets propios.
-- Se elimina `CompatGraficos`: no hay `ConfigScreenFactory`, lookup directo de `embeddium`, reflection ni construcción directa de `VideoSettingsScreen` desde Jobs.
-- El aislamiento externo de 0.41.1 era específico de GUI gráficas conocidas; 0.42.0 lo generaliza a cualquier Screen de terceros.
+- `PantallaOpcionesJobs` pasó temporalmente a heredar de `OptionsScreen` y ejecutar su `init()` real.
+- Jobs conservaba y ejecutaba el `onPress()` del botón natural `options.video`.
+- Los widgets externos usados como backend quedaban invisibles.
+- Se eliminó temporalmente `CompatGraficos`.
+- **0.44.0 retira esta arquitectura.**
 
-### Verificación / documentación
-
-- `tools/verificar_graficos_041.py` exigía delegación al `OptionsScreen` natural; 0.42.0 lo reemplaza por un verificador de compatibilidad general.
-- `tools/verificar_ui_musica.py` se simplifica y actualiza para proteger los contratos vigentes sin depender de la antigua regla “Video Settings vanilla”.
-- README, CONTEXTO, KNOWN_ISSUES, checklist y compatibilidad se actualizan a 0.41.1.
 - Versión: **0.41.1**.
 - Artefacto esperado: **`jobsmenu-0.41.1.jar`**.
 
@@ -94,17 +104,17 @@
 
 ### Gráficos / Embeddium
 
-- El botón **Gráficos** dejó de forzar `VideoSettingsScreen` cuando Embeddium estaba instalado.
-- Se introdujo `CompatGraficos` para consumir directamente el `ConfigScreenHandler.ConfigScreenFactory` de Embeddium.
-- Esta integración resolvía Embeddium, pero 0.41.1 la reemplaza porque podía saltarse hooks/opciones añadidos por otros mods al flujo natural de `OptionsScreen`.
+- El botón Gráficos dejó de forzar `VideoSettingsScreen` cuando Embeddium estaba instalado.
+- Se introdujo `CompatGraficos` para consumir `ConfigScreenHandler.ConfigScreenFactory`.
+- 0.44 recupera la idea del puente mínimo, pero mantiene el aislamiento genérico de terceros añadido después.
 
 ### Audio / lifecycle
 
 - Se añade `RastreadorAudioJobs` para conservar los FX puntuales Jobs mientras están activos y aplicarles `SoundManager.stop` al cerrar la visita o entrar a gameplay.
 - El rastreador purga referencias finalizadas mediante `SoundManager.isActive` antes de añadir nuevas instancias.
-- `MezclaAudio.ambiental()` deja de usar `SoundEvents.AMBIENT_CAVE` como respaldo: un registro Jobs faltante se omite en silencio.
+- `MezclaAudio.ambiental()` deja de usar `SoundEvents.AMBIENT_CAVE` como respaldo.
 - `RecargaRecursosCliente` invalida también FX puntuales y estado de mezcla después de reconstruir recursos.
-- `SesionMenu.cerrar()` se vuelve idempotente: no repite un cierre completo en cada tick de gameplay si ya no existe estado Jobs vivo.
+- `SesionMenu.cerrar()` se vuelve idempotente.
 
 ### Música vanilla
 

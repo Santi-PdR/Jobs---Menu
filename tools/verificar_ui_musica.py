@@ -106,24 +106,32 @@ def verify_robustness() -> None:
         fail("SliderExpediente recupero porcentajes falsos para todos los controles.")
 
     options = read(JAVA / "client/screen/PantallaOpcionesJobs.java")
-    require(options, ("extends OptionsScreen", "super.init();", "private AbstractButton botonVideoNatural;",
-                      'Component.translatable("options.video").getString()',
-                      "this.botonVideoNatural.onPress();", "coincideRanuraVideo",
-                      "recordarVideo", "ranuraVideoConocida",
-                      "anchoUtil, bh,\n                \"options.online.title\"",
-                      "EscuchaCliente.permitirOptionsNaturalUnaVez();",
-                      "new OptionsScreen(this, this.opciones)",
-                      'Component.literal("MODPACK")'),
+    require(options, ("public final class PantallaOpcionesJobs extends Screen",
+                      "CompatGraficos.crearPantallaEmbeddium(this.minecraft, this)",
+                      "new VideoSettingsScreen(this, this.opciones)",
+                      "private boolean cerrando;",
+                      "if (this.cerrando || this.minecraft == null) return;",
+                      "this.minecraft.screen != this",
+                      "anchoUtil, bh,\n                \"options.online.title\""),
             "PantallaOpcionesJobs")
-    for token in ("CompatGraficos", "ConfigScreenHandler", "new VideoSettingsScreen",
-                  "Class.forName", "EmbeddiumVideoOptionsScreen"):
+    for token in ("extends OptionsScreen", "super.init();", "botonVideoNatural",
+                  "sincronizarControlesNaturales", "coincideRanuraVideo", "recordarVideo",
+                  "integracionNaturalFinalizada", "MODPACK", "abrirOpcionesModpack",
+                  "permitirOptionsNaturalUnaVez"):
         if token in options:
-            fail(f"Options vuelve a abrir/reconstruir Graficos por fuera del flujo natural: {token}")
+            fail(f"PantallaOpcionesJobs recupero el flujo eliminado: {token}")
 
     if (JAVA / "client/screen/PantallaVideoJobs.java").exists():
-        fail("PantallaVideoJobs no debe existir.")
-    if (JAVA / "client/CompatGraficos.java").exists():
-        fail("CompatGraficos no debe existir.")
+        fail("PantallaVideoJobs no debe existir: la GUI grafica no se tematiza.")
+
+    compat = read(JAVA / "client/CompatGraficos.java")
+    require(compat, ("ConfigScreenHandler.ConfigScreenFactory.class",
+                     "getModContainerById(EMBEDDIUM_ID)",
+                     "factory.screenFunction().apply(minecraft, anterior)",
+                     "pantalla != null && pantalla != anterior"), "CompatGraficos")
+    for token in ("Class.forName", "SodiumOptionsGUI", "EmbeddiumVideoOptionsScreen"):
+        if token in compat:
+            fail(f"CompatGraficos enlaza una clase interna del proveedor: {token}")
 
     require(listener, ("esPantallaTerceros", "esSuperficieAjenaIntocable",
                        "pantalla instanceof VideoSettingsScreen",
@@ -131,11 +139,13 @@ def verify_robustness() -> None:
                        '!clase.startsWith("net.minecraftforge.")',
                        "esSuperficieAjenaIntocable(pantalla)",
                        "private static boolean flujoExternoActivo;",
-                       "public static void permitirOptionsNaturalUnaVez()"), "EscuchaCliente")
-    for token in ("me.jellysquid.mods.sodium", "org.embeddedt.embeddium",
+                       "boolean flujoExternoActual = flujoExternoActivo || esPantallaTerceros(anterior);"),
+            "EscuchaCliente")
+    for token in ("permitirOptionsNaturalUnaVez", "optionsNaturalSolicitado",
+                  "me.jellysquid.mods.sodium", "org.embeddedt.embeddium",
                   "net.coderbot.iris", "net.irisshaders.iris"):
         if token in listener:
-            fail(f"EscuchaCliente vuelve a depender de un proveedor grafico concreto: {token}")
+            fail(f"EscuchaCliente recupero una dependencia/ruta grafica obsoleta: {token}")
 
     require(multiplayer, ("conectarSeleccionado", "ConnectScreen.startConnecting(this, this.minecraft",
                           "ServerAddress.parseString(servidor.ip)", "private final Screen pantallaPadre;",
@@ -241,7 +251,7 @@ def main() -> int:
         verify_music_session()
         verify_ambient_catalog()
         verify_audio_sources()
-        print("UI, navegacion natural, aislamiento de terceros y audio Jobs: OK")
+        print("UI, graficos intocables, aislamiento de terceros y audio Jobs: OK")
         print("Composicion adaptativa y catalogo musical/ambiental: OK")
         return 0
     except Exception as exc:

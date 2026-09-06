@@ -60,21 +60,11 @@ public final class EscuchaCliente {
     private static boolean retornoMultijugadorPendiente;
     private static boolean enServidorRemoto;
     private static boolean flujoExternoActivo;
-    private static boolean permitirOptionsNaturalUnaVez;
     private static final Set<AbstractButton> HOVER_VANILLA =
             Collections.newSetFromMap(new WeakHashMap<>());
     private static final List<AbstractButton> BOTONES_HOVER_VANILLA = new ArrayList<>();
     private static Screen pantallaHoverVanilla;
     private static int hijosHoverVistos = -1;
-
-    /**
-     * Permite abrir una unica instancia de OptionsScreen sin que Jobs la
-     * sustituya. Se usa para exponer el Options natural completo del modpack,
-     * incluidas inyecciones que Jobs no conoce ni debe reconstruir.
-     */
-    public static void permitirOptionsNaturalUnaVez() {
-        permitirOptionsNaturalUnaVez = true;
-    }
 
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void alAbrirPantalla(ScreenEvent.Opening evento) {
@@ -83,20 +73,7 @@ public final class EscuchaCliente {
 
         ConfigTurno.guardarPendiente();
 
-        boolean optionsNaturalSolicitado = permitirOptionsNaturalUnaVez
-                && siguiente != null && siguiente.getClass() == OptionsScreen.class;
-        if (optionsNaturalSolicitado) {
-            permitirOptionsNaturalUnaVez = false;
-            flujoExternoActivo = true;
-        } else if (permitirOptionsNaturalUnaVez) {
-            // El permiso es de un solo uso y no debe contaminar una apertura
-            // inesperada si otro mod cambia de Screen antes de Options.
-            permitirOptionsNaturalUnaVez = false;
-        }
-
-        boolean flujoExternoActual = flujoExternoActivo
-                || esPantallaTerceros(anterior)
-                || optionsNaturalSolicitado;
+        boolean flujoExternoActual = flujoExternoActivo || esPantallaTerceros(anterior);
         boolean destinoMultijugador = siguiente instanceof JoinMultiplayerScreen
                 || siguiente != null && siguiente.getClass() == TitleScreen.class;
         boolean destinoRetorno = siguiente != null && (
@@ -104,9 +81,12 @@ public final class EscuchaCliente {
                         || siguiente instanceof JoinMultiplayerScreen
                         || siguiente.getClass().getName().equals(
                                 "net.minecraft.client.gui.screens.realms.RealmsMainScreen"));
+
+        // Una sesion Jobs abierta ya no basta para secuestrar cualquier Screen
+        // vanilla/Forge. Las sustituciones administrativas solo nacen desde
+        // padres Jobs que realmente controlan esa navegacion.
         boolean flujoAdministrativo = !flujoExternoActual && (
-                SesionMenu.activa()
-                        || anterior instanceof PantallaNivel
+                anterior instanceof PantallaNivel
                         || anterior instanceof PantallaEstancia
                         || anterior instanceof PantallaOpcionesJobs);
 
@@ -148,7 +128,7 @@ public final class EscuchaCliente {
             evento.setNewScreen(siguiente);
         }
 
-        actualizarFlujoExterno(flujoExternoActual, siguiente, optionsNaturalSolicitado);
+        actualizarFlujoExterno(flujoExternoActual, siguiente);
 
         if (siguiente instanceof PantallaNivel) {
             limpiarRetornoJuego();
@@ -316,20 +296,18 @@ public final class EscuchaCliente {
         return esPantallaPropia(pantalla) || SesionMenu.activa();
     }
 
-    private static void actualizarFlujoExterno(boolean veniaExterno, Screen siguiente,
-                                                boolean optionsNaturalSolicitado) {
+    private static void actualizarFlujoExterno(boolean veniaExterno, Screen siguiente) {
         if (siguiente == null || esPantallaPropia(siguiente)) {
             flujoExternoActivo = false;
             return;
         }
-        if (optionsNaturalSolicitado || esPantallaTerceros(siguiente) || veniaExterno) {
+        if (esPantallaTerceros(siguiente) || veniaExterno) {
             flujoExternoActivo = true;
         }
     }
 
     private static void limpiarFlujoExterno() {
         flujoExternoActivo = false;
-        permitirOptionsNaturalUnaVez = false;
     }
 
     private static void actualizarHoverVanilla(Screen pantalla, int mouseX, int mouseY) {
