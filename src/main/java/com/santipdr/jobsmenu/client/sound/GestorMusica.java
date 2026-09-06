@@ -192,7 +192,6 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         boolean sesionMusical = SesionMenu.activa() && ConfigTurno.musicaMenu();
         if (!sesionMusical) return;
 
-        cliente.getMusicManager().stopPlaying();
         sincronizarSeleccion();
         asegurar();
         ticksSesion++;
@@ -288,6 +287,7 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
 
     public static void nuevaVisita() {
         detenerInstancias(true);
+        Minecraft.getInstance().getMusicManager().stopPlaying();
         reintento = 0;
         marcador = -1;
         avisoPistaFaltante = false;
