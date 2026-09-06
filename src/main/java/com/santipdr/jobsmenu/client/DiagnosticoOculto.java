@@ -87,10 +87,6 @@ public final class DiagnosticoOculto {
                 RastreadorAudioJobs.cierresParaDiagnostico());
         JobsMenu.LOG.info("recursos     : generacion={}",
                 RecargaRecursosCliente.generacionParaDiagnostico());
-        JobsMenu.LOG.info("graficos     : embeddium={} aperturas={} fallbackVanilla={}",
-                CompatGraficos.embeddiumPresenteParaDiagnostico(),
-                CompatGraficos.aperturasEmbeddiumParaDiagnostico(),
-                CompatGraficos.fallbacksVanillaParaDiagnostico());
         JobsMenu.LOG.info("config       : pendiente={} aplicados={} omitidos={} guardados={} ultimoHaceMs={}",
                 ConfigTurno.guardadoPendienteParaDiagnostico(),
                 ConfigTurno.cambiosAplicadosParaDiagnostico(),
