@@ -8,27 +8,33 @@
 - Nueva regla genérica de propiedad: toda `Screen` que no pertenezca a Jobs, `net.minecraft.*` o `net.minecraftforge.*` se considera de terceros y queda fuera de chrome, bandas, transiciones, hover y reemplazo de clicks Jobs.
 - `VideoSettingsScreen` vanilla sigue siendo explícitamente intocable aunque pertenezca a Minecraft.
 - Una pantalla de terceros ya no puede activar redirecciones Jobs en sus subflujos sólo porque `SesionMenu` continúe activa. Si un mod abre Options/Worlds/Multiplayer/Mods desde su propia GUI, conserva ese flujo.
-- `ListasExpediente` y el pulido de apertura tampoco se aplican a superficies externas.
+- Se añade seguimiento de **subflujo externo**: una GUI vanilla abierta desde una superficie de terceros sigue siendo ajena hasta volver explícitamente a una Screen Jobs.
+- `ListasExpediente`, pulido, hover y liberación de listas se omiten también en superficies externas para no hacer trabajo ni mutar estado de GUI ajenas.
 
-### Gráficos natural reforzado
+### Gráficos / opciones naturales reforzadas
 
 - `PantallaOpcionesJobs` sigue usando el `OptionsScreen` real y el `onPress()` del botón natural de vídeo.
 - Además del texto `options.video`, se memoriza la ranura original del control (`x/y/ancho/alto`).
 - Si un mod sustituye el botón y cambia también su etiqueta, una sincronización posterior puede reconocer el reemplazo por esa ranura y conservar su callback.
 - Si no existe un control natural resoluble o está deshabilitado, Jobs emite `UI_NEGADO` y no inventa un fallback gráfico que pueda perder opciones de mods.
+- Se añade el botón **MODPACK** en Opciones Jobs. Abre un `OptionsScreen` completo y natural con permiso de un solo uso para que todas las inyecciones/botones de otros mods sigan accesibles sin ser reconstruidos por Jobs.
+- El flujo que nace desde MODPACK se mantiene fuera de chrome, transiciones, clicks y redirecciones Jobs hasta regresar a una pantalla propia.
 
 ### Pipeline / dev-latest
 
 - Se corrige la inconsistencia por la que la release `dev-latest` podía actualizar su asset sin mover el ref Git del tag.
-- El workflow añade `Move rolling development tag`, que fuerza `dev-latest` a `$GITHUB_SHA` sólo desde `main` después del build y preparación del JAR.
-- `tools/verificar_version.py` exige ese paso y sus comandos exactos.
+- El workflow fuerza `dev-latest` a `$GITHUB_SHA` sólo desde `main`.
+- La publicación se vuelve más segura: **primero se publica el JAR, luego se mueve el tag y al final se eliminan assets Jobs obsoletos**.
+- Si la publicación falla, el tag no se adelanta a un build que no llegó a publicarse.
+- `tools/verificar_version.py` exige el paso, los comandos exactos y el orden transaccional.
 - `dev-latest` debe terminar con release, tag, ZIP/tarball y commit alineados.
 
 ### Verificación / documentación
 
-- Nuevo `tools/verificar_compatibilidad_042.py` para proteger flujo natural, aislamiento genérico y navegación de terceros.
+- Nuevo `tools/verificar_compatibilidad_042.py` para proteger flujo natural, aislamiento genérico, subflujos de terceros y acceso MODPACK.
 - Se retira `tools/verificar_graficos_041.py`, ya demasiado específico para el contrato vigente.
-- `tools/verificar_ui_musica.py` se actualiza al modelo proveedor-agnóstico.
+- `tools/verificar_ui_musica.py` se actualiza al modelo proveedor-agnóstico y al nuevo acceso natural.
+- `tools/verificar_optimizacion.py` exige que el hot-path de listas salga antes de procesar pantallas externas.
 - README, CONTEXTO, KNOWN_ISSUES, checklist, compatibilidad y despliegue se sincronizan con 0.42.0.
 - Versión: **0.42.0**.
 - Artefacto esperado: **`jobsmenu-0.42.0.jar`**.
