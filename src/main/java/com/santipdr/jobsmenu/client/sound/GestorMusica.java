@@ -133,11 +133,6 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         return Math.min(pistas.length - 1, seleccion - 1);
     }
 
-    /**
-     * Aplica cambios del selector sin reiniciar el ambiente. Una pista fija
-     * entra por crossfade; volver a Aleatoria conserva la actual y reactiva la
-     * rotacion para el siguiente intervalo.
-     */
     private static void sincronizarSeleccion() {
         int seleccion = ConfigTurno.pistaMusica();
         if (seleccion == selectorVisto) return;
@@ -287,7 +282,7 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
 
     public static void nuevaVisita() {
         detenerInstancias(true);
-        Minecraft.getInstance().getMusicManager().stopPlaying();
+        cortarMusicaVanilla(Minecraft.getInstance());
         reintento = 0;
         marcador = -1;
         avisoPistaFaltante = false;
@@ -299,6 +294,11 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         ticksSesion = 0;
         proximoCambio = CAMBIO_MIN_TICKS
                 + (int) (Math.random() * CAMBIO_VARIACION_TICKS);
+    }
+
+    /** Corte unico al adquirir la sesion; nuevas MUSIC se bloquean por evento. */
+    private static void cortarMusicaVanilla(Minecraft cliente) {
+        cliente.getMusicManager().stopPlaying();
     }
 
     /** Gameplay es frontera dura: el corte es inmediato, sin fade residual. */
