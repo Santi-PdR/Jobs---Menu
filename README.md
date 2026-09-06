@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 
 | Campo | Valor |
 |---|---|
-| Versión | **0.41.0** |
-| Artefacto | **`jobsmenu-0.41.0.jar`** |
+| Versión | **0.41.1** |
+| Artefacto | **`jobsmenu-0.41.1.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,21 +13,32 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 | Rama entregable | **`main`** |
 | Niveles | **32 (0–31)** |
 
-## 0.41.0 · Runtime, audio, Embeddium y continuidad
+## 0.41.1 · Flujo gráfico natural del modpack
 
-0.41.0 reduce trabajo repetido, cierra huecos de lifecycle y mejora compatibilidad sin ampliar Jobs hacia gameplay.
+0.41.1 corrige una regresión de 0.41.0: Jobs ya **no abre Embeddium ni ninguna pantalla gráfica directamente**.
 
-- **Gráficos respeta Embeddium:** si `embeddium` está instalado, Jobs obtiene la pantalla gráfica desde el `ConfigScreenFactory` oficial registrado en Forge. No hay reflection ni dependencia directa de clases internas. Si no existe proveedor o falla al construir la pantalla, se usa `VideoSettingsScreen` vanilla como fallback.
-- Las GUI de Embeddium/Sodium quedan completamente fuera del chrome, transiciones y sustitución de clicks Jobs. El aislamiento cubre tanto `SodiumOptionsGUI` de Embeddium 1.20.1 como las pantallas nuevas de Embeddium y las pantallas gráficas de Iris/Oculus.
-- Los sonidos puntuales Jobs —eventos, apagones y FX de transición— ahora se registran mientras están activos y reciben hard-stop explícito al cerrar la visita/entrar a gameplay. Las referencias terminadas se purgan mediante el estado real del `SoundManager`.
-- Esos FX ya no caen en `minecraft:ambient.cave` si falta un registro: sonido Jobs o silencio, igual que la identidad musical 0.40.
-- `SesionMenu.cerrar()` es idempotente: después del primer corte no recorre música/camas en cada tick de gameplay, pero vuelve a actuar si detecta audio Jobs residual.
-- La música vanilla deja de recibir `stopPlaying()` 20 veces por segundo. Se corta una vez al abrir visita y cualquier nueva instancia `SoundSource.MUSIC` queda bloqueada mientras Jobs posee el menú.
-- F5/Actualizar en Multiplayer conserva **servidor seleccionado y posición de scroll**. Ese mismo contexto también se conserva al maximizar, redimensionar la ventana o cambiar la escala GUI. `servers.dat` sólo se guarda si realmente hubo alta, baja, renombre, deduplicación o movimiento del servidor oficial.
-- Los setters de Config Jobs ignoran valores idénticos y evitan escrituras TOML innecesarias; los sliders mantienen el guardado diferido existente.
-- El hover de controles vanilla preservados usa una caché de botones y deja de recorrer toda la jerarquía de hijos en cada frame.
-- El diagnóstico oculto añade cierres efectivos de sesión, FX puntuales, purgas, métricas de config y estado del proveedor gráfico.
-- CI añade `tools/verificar_graficos_041.py`, mantiene `tools/verificar_runtime_041.py` y usa `actions/checkout@v7`.
+- `PantallaOpcionesJobs` hereda del `OptionsScreen` real y ejecuta primero su `init()`, por lo que mixins y modificaciones de otros mods trabajan sobre la misma pantalla que usaría Minecraft normalmente.
+- Jobs conserva el botón real `options.video` como fuente de comportamiento y su botón visual **Gráficos** ejecuta exactamente ese `onPress()` natural.
+- La captura se vuelve a sincronizar en el primer render, después de los eventos de inicialización de Forge, para recoger sustituciones hechas por otros mods después de `init()`.
+- Los controles vanilla/modded usados como backend quedan ocultos, sin hitboxes visibles debajo de Jobs; sólo se renderizan los widgets Jobs.
+- No existe `CompatGraficos`, no se consulta `ConfigScreenFactory`, no hay reflection y Jobs no importa clases de Embeddium/Sodium.
+- Si Embeddium, Oculus u otro mod cambia la ruta de Gráficos de forma natural, Jobs hereda esa ruta. Si no la cambia nadie, se conserva el comportamiento vanilla.
+- La pantalla gráfica resultante continúa completamente fuera de chrome, transiciones, hover/click y recolocación Jobs.
+
+## 0.41.0 · Runtime, audio y continuidad
+
+Se mantienen todas las mejoras de 0.41.0:
+
+- FX puntuales Jobs rastreados y con hard-stop al cerrar visita o entrar a gameplay;
+- sin fallback a `minecraft:ambient.cave`;
+- cierre de sesión idempotente;
+- música vanilla sin `stopPlaying()` por tick;
+- F5/Actualizar conserva servidor seleccionado y scroll;
+- resize/maximizar/cambio de GUI Scale conserva selección y scroll de Multiplayer;
+- `servers.dat` sólo se guarda si realmente cambió;
+- setters de Config omiten valores idénticos;
+- hover de controles vanilla preservados usa caché;
+- diagnóstico interno y verificadores de runtime ampliados.
 
 ## Audio
 
@@ -41,7 +52,7 @@ La música pertenece a `SesionMenu`, no a una Screen. No existe fallback a `mine
 
 ## Interfaz y gameplay
 
-- **Gráficos usa la interfaz real de Embeddium cuando Embeddium está instalado; vanilla sólo es fallback.** Jobs no tematiza ni recoloca esa GUI externa.
+- **Gráficos usa la misma ruta que usaría el `OptionsScreen` real del modpack.** Jobs no decide qué proveedor abrir.
 - chat, inventario, contenedores y UI normal de gameplay no reciben piel, banda, transición ni sustitución global de clicks Jobs;
 - mientras `Minecraft.level != null` no se crea ni dibuja ninguna transición Jobs;
 - Pausa/Config Jobs pueden mantener tema y feedback breve sin reactivar música/ambiente;
@@ -67,7 +78,7 @@ Servidor fijado único: `JobsDosh.exaroton.me:56477`.
 
 ## Build y entrega
 
-GitHub Actions ejecuta política de versión, fondos, verificador general, UI/música, continuidad Multiplayer/docs, optimización, créditos/reload, identidad musical/hard-stop, runtime 0.41 e integración gráfica Embeddium antes del build Forge real con Java 17. `dev-latest` sólo se publica desde `main` verde.
+GitHub Actions ejecuta política de versión, fondos, verificador general, UI/música, continuidad Multiplayer/docs, optimización, créditos/reload, identidad musical/hard-stop, runtime 0.41 y el contrato de navegación gráfica natural antes del build Forge real con Java 17. `dev-latest` sólo se publica desde `main` verde.
 
 Instancia de prueba:
 
@@ -83,4 +94,4 @@ Instancia de prueba:
 - [`docs/compatibilidad.md`](docs/compatibilidad.md): fronteras con vanilla/Forge/mods.
 - [`docs/musica.md`](docs/musica.md): catálogo y lifecycle de audio.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): publicación e instalación.
-- [`docs/AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md`](docs/AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md): detalle técnico de esta tanda.
+- [`docs/AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md`](docs/AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md): detalle técnico de runtime 0.41.
