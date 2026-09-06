@@ -20,15 +20,19 @@ public final class SesionMenu {
     }
 
     public static void abrir() {
-        // Una visita nueva reinicia solo la instrumentacion de sesion. Volver
-        // desde Options/Mods/etc. conserva el mismo reloj y el mismo audio.
-        if (!activa) {
-            GestorMusica.nuevaVisita();
-            inicioVisita = System.currentTimeMillis();
-            numeroVisita++;
-            pantallasVisitadas = 0;
-            ultimaPantalla = null;
+        // Navegar entre pantallas Jobs forma parte de la misma visita. Antes se
+        // llamaba tambien a GestorAmbiente.abrir() en cada Screen nueva; aunque
+        // el gestor es idempotente, eso hacia mantenimiento extra justo durante
+        // cada transicion. Una visita ya activa no necesita reinicializacion.
+        if (activa) {
+            return;
         }
+
+        GestorMusica.nuevaVisita();
+        inicioVisita = System.currentTimeMillis();
+        numeroVisita++;
+        pantallasVisitadas = 0;
+        ultimaPantalla = null;
         activa = true;
         GestorAmbiente.abrir();
     }
