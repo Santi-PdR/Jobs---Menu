@@ -58,10 +58,12 @@ jobs:
         run: python3 tools/verificar_audio_identidad.py
       - name: Verify runtime, config and Multiplayer 0.41
         run: python3 tools/verificar_runtime_041.py
-      - name: Verify third-party compatibility 0.42
+      - name: Verify third-party compatibility
         run: python3 tools/verificar_compatibilidad_042.py
       - name: Verify UX and navigation 0.43
         run: python3 tools/verificar_ux_043.py
+      - name: Verify untouched graphics and Options 0.44
+        run: python3 tools/verificar_graficos_044.py
       - name: Prepare Gradle wrapper
         run: chmod +x gradlew
       - name: Build Forge mod
