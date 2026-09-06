@@ -22,6 +22,7 @@ public final class PantallaPielJobs extends Screen {
     private final Map<PlayerModelPart, BotonExpediente> botones = new EnumMap<>(PlayerModelPart.class);
     private BotonExpediente brazo;
     private int panelX, panelY, panelW, panelH;
+    private boolean cerrando;
 
     public PantallaPielJobs(Screen anterior, Options opciones) {
         super(Component.translatable("options.skinCustomisation"));
@@ -31,6 +32,7 @@ public final class PantallaPielJobs extends Screen {
 
     @Override
     protected void init() {
+        this.cerrando = false;
         this.botones.clear();
         this.panelW = Math.min(356, Math.max(250, this.width - 24));
         this.panelH = Math.min(258, Math.max(220, this.height - 20));
@@ -105,6 +107,8 @@ public final class PantallaPielJobs extends Screen {
 
     @Override
     public void onClose() {
+        if (this.cerrando || this.minecraft == null) return;
+        this.cerrando = true;
         this.minecraft.setScreen(this.anterior);
     }
 
