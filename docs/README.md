@@ -18,6 +18,12 @@ Para trabajar sobre `main`, leer en este orden:
 
 ## Contratos que no deben regredir
 
+- Config Jobs ofrece búsqueda transversal con `Ctrl+F`, recuerda la última categoría de la sesión y muestra `CUSTOM` explícitamente.
+- Ajustes, Idioma, Mundos y Mods conservan filtros/foco/scroll relevantes durante resize.
+- Idioma aplica cambios de forma transaccional y restaura el valor anterior si falla resource reload.
+- Callbacks tardíos de Resource Packs no pueden devolver al usuario a Opciones Jobs si ya abandonó esa pantalla.
+- Apariencia, Controles y Config usan cierres protegidos donde corresponde.
+- Sonido cachea el `Field` reflectivo de `OptionsList` y no recorre fields en cada `init()`.
 - **Gráficos no se tematiza ni se reconstruye con Jobs.**
 - `PantallaOpcionesJobs` es una `Screen` propia, no un `OptionsScreen` con controles ocultos.
 - Con Embeddium, Gráficos abre la `ConfigScreenFactory` registrada por el propio mod; sin Embeddium usa `VideoSettingsScreen` vanilla.
@@ -27,7 +33,6 @@ Para trabajar sobre `main`, leer en este orden:
 - La navegación iniciada por una Screen de terceros no se redirige sólo porque la sesión siga activa.
 - `SesionMenu.activa()` no autoriza por sí sola sustituciones administrativas; el origen debe ser una pantalla Jobs concreta.
 - Los perfiles sólo se identifican como preset cuando todos los valores controlados coinciden; de lo contrario se muestra `CUSTOM`.
-- En Mundos/Mods, ESC limpia búsqueda y foco antes de salir, y el cierre es idempotente.
 - Chat, inventario, contenedores y UI normal de gameplay quedan fuera de Jobs.
 - Con mundo cargado no existen transiciones Jobs ni música/ambiente de menú.
 - Multiplayer mantiene padre Jobs para ESC/Cancelar, conexión, error y retorno tras servidor.
@@ -45,6 +50,7 @@ Para trabajar sobre `main`, leer en este orden:
 
 ## Auditoría vigente de la entrega
 
+- [`AUDITORIA_0.45.0_CALIDAD_GLOBAL.md`](AUDITORIA_0.45.0_CALIDAD_GLOBAL.md) — búsqueda transversal, rollback de idioma, continuidad de resize, cierres y callbacks tardíos.
 - [`AUDITORIA_0.44.0_GRAFICOS_Y_NAVEGACION.md`](AUDITORIA_0.44.0_GRAFICOS_Y_NAVEGACION.md) — Gráficos intocable, eliminación de MODPACK y redirecciones administrativas acotadas.
 - [`AUDITORIA_0.43.0_UX_NAVEGACION.md`](AUDITORIA_0.43.0_UX_NAVEGACION.md) — perfiles exactos, búsqueda/ESC y cierre idempotente.
 - [`AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md`](AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md) — origen del aislamiento genérico y publicación consistente.
