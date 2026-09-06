@@ -21,7 +21,21 @@ Con mundo/servidor cargado:
 - música, camas ambientales y FX puntuales del menú reciben hard-stop;
 - Pausa/Config Jobs pueden mantener tema/feedback breve sin reactivar la sesión.
 
-Video Settings queda fuera de Jobs incluso durante una visita de menú.
+## Gráficos / Embeddium
+
+El botón **Gráficos** no fuerza ya la GUI vanilla. Jobs consulta el contenedor `embeddium` y utiliza el `ConfigScreenHandler.ConfigScreenFactory` que Embeddium registra en Forge. En la línea 1.20.1 esto entrega la GUI real de Embeddium; si Embeddium no está cargado, no ofrece factory o falla durante la construcción, Jobs usa `VideoSettingsScreen` vanilla como fallback.
+
+No existe reflection ni import binario a clases internas de Embeddium. La integración queda desacoplada y permite arrancar Jobs con o sin Embeddium.
+
+La exclusión visual/sonora reconoce:
+
+- `VideoSettingsScreen` vanilla;
+- `me.jellysquid.mods.sodium.client.gui.*` (`SodiumOptionsGUI` de Embeddium 1.20.1);
+- `org.embeddedt.embeddium.gui.*`;
+- `org.embeddedt.embeddium.impl.gui.*`;
+- pantallas gráficas de Iris/Oculus conocidas.
+
+Esas GUI no reciben chrome Jobs, transición, recolocación de widgets ni reemplazo de clicks.
 
 ## Audio — 0.41
 
@@ -56,7 +70,8 @@ Los setters boolean/int comprueban el valor actual antes de llamar `set()`. Valo
 - ESC/Cancelar usan padre Jobs directo y guard idempotente.
 - F5/Actualizar reconstruye Jobs directamente.
 - se conserva la selección online por IP buscando una Entry nueva;
-- 0.41 conserva también `getScrollAmount()` y lo restaura con `setScrollAmount()`;
+- se conserva también `getScrollAmount()` y se restaura con `setScrollAmount()`;
+- `resize()` captura selección+scroll antes de que Minecraft reconstruya widgets, por lo que maximizar, redimensionar o cambiar GUI Scale conserva el contexto;
 - normalizar el servidor oficial sólo llama `ServerList.save()` si hubo un cambio real;
 - conectar usa la propia pantalla Jobs como padre de `ConnectScreen`;
 - cancelar/error pre-login vuelve a la lista Jobs;
@@ -78,6 +93,6 @@ Servidor fijado único: `JobsDosh.exaroton.me:56477`.
 
 ## Compatibilidad manual
 
-Probar especialmente Embeddium/Oculus, mods que sustituyan `JoinMultiplayerScreen`, mods de audio/MusicManager/SoundEngine, resource packs de GUI, múltiples F3+T, listas de servidores largas, LAN/ping/favicons, GUI Scale extremos y salida/kick con reemplazos de `DisconnectedScreen`.
+Probar especialmente Embeddium/Oculus, abrir/cerrar Gráficos repetidamente, volver por ESC/Done a Opciones Jobs, mods que sustituyan `JoinMultiplayerScreen`, mods de audio/MusicManager/SoundEngine, resource packs de GUI, múltiples F3+T, listas de servidores largas, LAN/ping/favicons, GUI Scale extremos, resize/maximizar y salida/kick con reemplazos de `DisconnectedScreen`.
 
-Regla general: **si tematizar exige duplicar la lógica de Minecraft/Forge, se conserva la lógica real y se reduce la intervención visual**.
+Regla general: **si tematizar exige duplicar la lógica de Minecraft/Forge o de un proveedor gráfico, se conserva la lógica real y se reduce la intervención visual**.
