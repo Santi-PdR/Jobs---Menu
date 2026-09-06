@@ -40,7 +40,7 @@ def main() -> None:
         "private void abrirOpcionesModpack()",
         "EscuchaCliente.permitirOptionsNaturalUnaVez();",
         "new OptionsScreen(this, this.opciones)",
-        'Component.translatable("options.title")',
+        'Component.literal("MODPACK")',
     ):
         require(options, token, "PantallaOpcionesJobs")
     for token in (
