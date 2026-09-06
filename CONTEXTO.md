@@ -7,8 +7,8 @@ Documento maestro del estado vigente. Las auditorías antiguas son históricas y
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Versión actual | **0.39.0** |
-| Artefacto esperado | **`jobsmenu-0.39.0.jar`** |
+| Versión actual | **0.40.0** |
+| Artefacto esperado | **`jobsmenu-0.40.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -43,39 +43,30 @@ Documento maestro del estado vigente. Las auditorías antiguas son históricas y
 23. El build no descarga música ni fondos externos.
 24. El catálogo musical acreditado requiere `assets/jobsmenu/musica_creditada.txt` y ese marcador debe corresponder a las tres pistas empaquetadas.
 25. Los callbacks de resource reload nunca manipulan `SoundInstance` directamente desde el executor de recursos.
+26. **La música Jobs nunca usa `minecraft:music.menu` como fallback**: registro propio o silencio/reintento.
+27. El catálogo musical se construye una sola vez por JVM; consultas de HUD/crossfade no deben recrearlo.
+28. El hard-stop musical ordena también el corte directo al `SoundManager`.
+
+## Estado 0.40.0
+
+### Identidad musical
+
+`GestorMusica` deja de resolver pistas propias contra `SoundEvents.MUSIC_MENU`. Si un `RegistryObject` no está disponible, la pista entrante no se crea y la actual no se retira por error. El gestor programa reintento y registra una sola advertencia por visita/reload.
+
+### Catálogo estable
+
+Las tres entradas viven en `CATALOGO`, creado una vez. `catalogo()` devuelve esa misma estructura y título/autor/cantidad consultan directamente el catálogo estático.
+
+### Hard-stop reforzado
+
+Al cortar una instancia musical se ponen sus ganancias/volumen a cero, se marca `stop()` y se ordena `SoundManager.stop(instance)`. El objetivo es que gameplay y resource reload no dependan únicamente del siguiente tick del motor.
 
 ## Estado 0.39.0
 
-### Créditos musicales
-
-`GestorMusica.creditoAlfa()` ya dependía de `musica_creditada.txt`, pero ese marcador había sido eliminado durante una etapa anterior. 0.39.0 lo restaura como evidencia interna del catálogo acreditado actual:
-
-- `absurdism`;
-- `requiem`;
-- `upon_the_hill_v2`.
-
-Esto vuelve coherentes el código, los créditos del HUD y la documentación. No añade ni reemplaza archivos OGG.
-
-### Resource reload
-
-`RecargaRecursosCliente` usa una generación atómica además del guard de tarea pendiente. Una ráfaga de recargas puede compartir la misma pasada, pero si una nueva generación llega mientras se cierran instancias se agenda otra vuelta en el hilo cliente.
-
-Objetivo: que combinaciones rápidas de idioma, F3+T y resource packs no dejen una recarga posterior representada por estado viejo.
-
-### Sesión
-
-`SesionMenu.abrir()` ya no vuelve a invocar el arranque ambiental cuando la visita ya estaba activa. Navegar Main → Options → Mods → Recursos sigue siendo una sola visita y el mantenimiento normal continúa por tick.
-
-### Diagnóstico interno
-
-El diagnóstico oculto registra ahora:
-
-- pista musical dominante;
-- contador/generación de resource reload;
-- capas ambientales activas;
-- reintento musical y opciones principales.
-
-No se añade ningún control visible ni se documenta el atajo como función de usuario.
+- `musica_creditada.txt` vuelve a representar las tres pistas acreditadas actuales;
+- resource reload usa generación atómica y reprograma si llega otra generación;
+- `SesionMenu.abrir()` no reinicializa una visita ya activa;
+- diagnóstico oculto incluye pista dominante y generación de reload.
 
 ## Estado heredado importante
 
@@ -100,31 +91,15 @@ No se añade ningún control visible ni se documenta el atajo como función de u
 
 ## Música
 
-Catálogo real:
-
 1. Absurdism
 2. REQUIEM — `Emmy Z - Forsaken OST`
 3. Upon the Hill V2 — `ft. @iCosmicCoffee`
 
-Reglas:
-
-- inicio aleatorio por visita si el selector está en Aleatoria;
-- pista fija persistente 1–3;
-- crossfade sin repetición inmediata en Aleatoria;
-- `N` sólo adelanta en Aleatoria;
-- `M` controla silencio Jobs;
-- F3+T/reload invalida instancias ligadas al SoundEngine anterior;
-- gameplay corta música y ambiente inmediatamente.
+Reglas: inicio aleatorio o pista fija persistente; crossfade sin repetición inmediata; `N` sólo en Aleatoria; `M` controla silencio Jobs; F3+T invalida instancias del motor anterior; gameplay corta inmediatamente; no existe fallback musical vanilla.
 
 ## Multiplayer
 
-- servidor oficial primero, único y protegido;
-- `Ghoul Outbreak` no reaparece;
-- Direct Connect/Add/Edit/Delete permanecen sobre lógica real de Minecraft;
-- conectar usa `PantallaMultijugadorJobs` como padre de `ConnectScreen`;
-- Cancelar/error pre-login vuelve a la misma lista;
-- F5/Actualizar reconstruye Jobs directamente y restaura selección online por IP;
-- LAN, ping, MOTD y favicons siguen siendo responsabilidad de `JoinMultiplayerScreen`.
+Servidor oficial primero, único y protegido; `Ghoul Outbreak` no reaparece; conectar usa `PantallaMultijugadorJobs` como padre de `ConnectScreen`; F5/Actualizar reconstruye Jobs directamente y restaura selección online por IP; logout/kick/pérdida de conexión remota vuelve a Multiplayer Jobs.
 
 ## Fondos
 
@@ -132,21 +107,8 @@ Reglas:
 - 10–17: PNG históricos estrictamente estáticos.
 - 18–31: JPG 1920×1080 directos, movimiento de cámara mínimo opcional.
 
-Movimiento reducido, Bajo consumo o escena quieta desactivan el movimiento de 18–31.
-
 ## Verificación
 
-CI ejecuta:
-
-1. política de versión;
-2. fondos 10–31;
-3. verificador estático general;
-4. UI/música;
-5. continuidad Multiplayer/documentación;
-6. contratos de optimización;
-7. créditos + generaciones de reload;
-8. build Forge real con Java 17;
-9. artefacto versionado;
-10. publicación a `dev-latest` sólo desde `main`.
+CI ejecuta política de versión, fondos, verificador general, UI/música, continuidad Multiplayer/documentación, optimización 0.38, créditos/reload 0.39, identidad musical/hard-stop 0.40, build Forge Java 17 y publicación versionada sólo desde `main` verde.
 
 La validación visual, input, audio perceptivo y compatibilidad final con el modpack siguen siendo manuales en `test-1`.
