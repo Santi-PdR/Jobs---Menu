@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Contrato 0.42: flujo natural y aislamiento generico de pantallas de terceros."""
+"""Contrato heredado: aislamiento generico de pantallas y subflujos de terceros."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -12,57 +12,24 @@ def read(path: Path) -> str:
 
 def require(text: str, token: str, where: str) -> None:
     if token not in text:
-        raise RuntimeError(f"{where} perdio el contrato 0.42: {token}")
+        raise RuntimeError(f"{where} perdio el contrato de aislamiento: {token}")
 
 
 def forbid(text: str, token: str, where: str) -> None:
     if token in text:
-        raise RuntimeError(f"{where} reintrodujo una dependencia fragil: {token}")
+        raise RuntimeError(f"{where} reintrodujo una ruta obsoleta: {token}")
 
 
 def main() -> None:
-    if (JAVA / "client/CompatGraficos.java").exists():
-        raise RuntimeError("CompatGraficos no debe existir.")
-
-    options = read(JAVA / "client/screen/PantallaOpcionesJobs.java")
-    for token in (
-        "public final class PantallaOpcionesJobs extends OptionsScreen",
-        "super(anterior, opciones);",
-        "super.init();",
-        "private AbstractButton botonVideoNatural;",
-        'Component.translatable("options.video").getString()',
-        "ranuraVideoConocida",
-        "recordarVideo",
-        "coincideRanuraVideo",
-        "this.botonVideoNatural.onPress();",
-        "widget.visible = false;",
-        "if (!this.integracionNaturalFinalizada)",
-        "private void abrirOpcionesModpack()",
-        "EscuchaCliente.permitirOptionsNaturalUnaVez();",
-        "new OptionsScreen(this, this.opciones)",
-        'Component.literal("MODPACK")',
-    ):
-        require(options, token, "PantallaOpcionesJobs")
-    for token in (
-        "CompatGraficos",
-        "ConfigScreenHandler",
-        "getModContainerById",
-        "Class.forName",
-        "new VideoSettingsScreen",
-        "SodiumOptionsGUI",
-        "EmbeddiumVideoOptionsScreen",
-    ):
-        forbid(options, token, "PantallaOpcionesJobs")
-
     listener = read(JAVA / "client/EscuchaCliente.java")
     for token in (
         "private static boolean flujoExternoActivo;",
-        "private static boolean permitirOptionsNaturalUnaVez;",
-        "public static void permitirOptionsNaturalUnaVez()",
-        "boolean optionsNaturalSolicitado = permitirOptionsNaturalUnaVez",
-        "boolean flujoExternoActual = flujoExternoActivo",
+        "boolean flujoExternoActual = flujoExternoActivo || esPantallaTerceros(anterior);",
         "boolean flujoAdministrativo = !flujoExternoActual && (",
-        "actualizarFlujoExterno(flujoExternoActual, siguiente, optionsNaturalSolicitado);",
+        "anterior instanceof PantallaNivel",
+        "anterior instanceof PantallaEstancia",
+        "anterior instanceof PantallaOpcionesJobs",
+        "actualizarFlujoExterno(flujoExternoActual, siguiente);",
         "private static boolean esPantallaTerceros(Screen pantalla)",
         "private static boolean esSuperficieAjenaIntocable(Screen pantalla)",
         '!clase.startsWith("net.minecraft.")',
@@ -75,10 +42,15 @@ def main() -> None:
         "esSuperficieAjenaIntocable(hasta)",
         "Minecraft.getInstance().level == null && !esSuperficieAjenaIntocable(siguiente)",
         "siguiente.getClass() == OptionsScreen.class",
+        "if (esPantallaTerceros(siguiente) || veniaExterno)",
         "private static void limpiarFlujoExterno()",
     ):
         require(listener, token, "EscuchaCliente")
+
     for token in (
+        "permitirOptionsNaturalUnaVez",
+        "optionsNaturalSolicitado",
+        "SesionMenu.activa()\n                        || anterior instanceof PantallaNivel",
         "me.jellysquid.mods.sodium",
         "org.embeddedt.embeddium",
         "net.coderbot.iris",
@@ -86,7 +58,7 @@ def main() -> None:
     ):
         forbid(listener, token, "EscuchaCliente")
 
-    print("OK compatibilidad 0.42: flujo natural + terceros/subflujos intocables + Options completo")
+    print("OK aislamiento generico de terceros y redirecciones acotadas")
 
 
 if __name__ == "__main__":
