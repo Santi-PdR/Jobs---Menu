@@ -135,7 +135,10 @@ public final class PantallaOpcionesJobs extends Screen {
         PackRepository repo = this.minecraft.getResourcePackRepository();
         java.util.function.Consumer<PackRepository> callback = r -> {
             this.minecraft.options.updateResourcePacks(r);
-            if (this.minecraft.screen != this) {
+            // El callback puede terminar despues de una navegacion externa. Solo
+            // recupera el padre si esta instancia de Resource Packs sigue siendo
+            // la superficie activa; nunca secuestra una Screen posterior.
+            if (this.minecraft.screen instanceof PantallaPaquetesJobs) {
                 this.minecraft.setScreen(this);
             }
         };
