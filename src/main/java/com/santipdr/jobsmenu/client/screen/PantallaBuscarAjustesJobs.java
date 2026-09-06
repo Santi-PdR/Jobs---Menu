@@ -80,6 +80,8 @@ public final class PantallaBuscarAjustesJobs extends Screen {
     private boolean focoConservado = true;
     private double scrollConservado;
     private int resultadosVisibles;
+    private String contadorResultados = "00";
+    private boolean cerrando;
 
     public PantallaBuscarAjustesJobs(PantallaAjustesAviso anterior) {
         super(Component.translatable("jobsmenu.ajustes.titulo"));
@@ -92,6 +94,7 @@ public final class PantallaBuscarAjustesJobs extends Screen {
 
     @Override
     protected void init() {
+        this.cerrando = false;
         this.panelW = Math.max(190, Math.min(450, this.width - 12));
         this.panelH = Math.max(190, Math.min(310, this.height - 12));
         this.panelW = Math.min(this.panelW, Math.max(1, this.width - 4));
@@ -176,9 +179,8 @@ public final class PantallaBuscarAjustesJobs extends Screen {
                     Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.18F));
         }
 
-        String contador = String.format(Locale.ROOT, "%02d", this.resultadosVisibles);
-        int cw = this.font.width(contador);
-        g.drawString(this.font, contador,
+        int cw = this.font.width(this.contadorResultados);
+        g.drawString(this.font, this.contadorResultados,
                 this.panelX + this.panelW - cw - 17, this.panelY + 34,
                 Paleta.conAlfa(Paleta.UI_TINTA_TENUE, 0.52F), false);
 
@@ -214,7 +216,9 @@ public final class PantallaBuscarAjustesJobs extends Screen {
 
     @Override
     public void onClose() {
-        if (this.minecraft != null) this.minecraft.setScreen(this.anterior);
+        if (this.cerrando || this.minecraft == null) return;
+        this.cerrando = true;
+        this.minecraft.setScreen(this.anterior);
     }
 
     @Override
@@ -223,10 +227,10 @@ public final class PantallaBuscarAjustesJobs extends Screen {
     }
 
     private void abrir(Ajuste ajuste) {
-        if (ajuste == null || this.minecraft == null) return;
+        if (ajuste == null || this.cerrando || this.minecraft == null) return;
+        this.cerrando = true;
         MezclaAudio.gesto(SonidosNivel.UI_ELEGIR, 0.34F);
-        this.minecraft.setScreen(this.anterior);
-        this.anterior.keyPressed(GLFW.GLFW_KEY_1 + ajuste.categoria(), 0, 0);
+        this.anterior.abrirCategoriaDesdeBusqueda(ajuste.categoria());
     }
 
     private static String claveCategoria(int categoria) {
@@ -263,12 +267,13 @@ public final class PantallaBuscarAjustesJobs extends Screen {
                 String categoria = Component.translatable(claveCategoria(ajuste.categoria())).getString();
                 String bolsa = (titulo + " " + detalle + " " + categoria).toLowerCase(Locale.ROOT);
                 if (!aguja.isEmpty() && !bolsa.contains(aguja)) continue;
-                EntradaResultado entrada = new EntradaResultado(ajuste);
+                EntradaResultado entrada = new EntradaResultado(ajuste, titulo, detalle, categoria);
                 this.addEntry(entrada);
                 if (primera == null) primera = entrada;
                 cantidad++;
             }
             PantallaBuscarAjustesJobs.this.resultadosVisibles = cantidad;
+            PantallaBuscarAjustesJobs.this.contadorResultados = String.format(Locale.ROOT, "%02d", cantidad);
             if (primera != null) {
                 this.setSelected(primera);
             } else {
@@ -290,10 +295,16 @@ public final class PantallaBuscarAjustesJobs extends Screen {
 
     private final class EntradaResultado extends ObjectSelectionList.Entry<EntradaResultado> {
         private final Ajuste ajuste;
+        private final String titulo;
+        private final String detalle;
+        private final String categoria;
         private long ultimoClick;
 
-        EntradaResultado(Ajuste ajuste) {
+        EntradaResultado(Ajuste ajuste, String titulo, String detalle, String categoria) {
             this.ajuste = ajuste;
+            this.titulo = titulo;
+            this.detalle = detalle;
+            this.categoria = categoria;
         }
 
         @Override
@@ -312,23 +323,22 @@ public final class PantallaBuscarAjustesJobs extends Screen {
                         Paleta.conAlfa(Paleta.UI_ACENTO, 0.08F));
             }
 
-            String categoria = Component.translatable(claveCategoria(this.ajuste.categoria())).getString();
-            int catW = PantallaBuscarAjustesJobs.this.font.width(categoria);
+            int catW = PantallaBuscarAjustesJobs.this.font.width(this.categoria);
             int maxTitulo = Math.max(30, rowWidth - catW - 34);
-            String titulo = ChromeExpediente.ajustar(PantallaBuscarAjustesJobs.this.font,
-                    Component.translatable(this.ajuste.clave()).getString(), maxTitulo);
-            String detalle = ChromeExpediente.ajustar(PantallaBuscarAjustesJobs.this.font,
-                    Component.translatable(this.ajuste.detalle()).getString(), Math.max(40, rowWidth - 22));
+            String tituloVisible = ChromeExpediente.ajustar(
+                    PantallaBuscarAjustesJobs.this.font, this.titulo, maxTitulo);
+            String detalleVisible = ChromeExpediente.ajustar(
+                    PantallaBuscarAjustesJobs.this.font, this.detalle, Math.max(40, rowWidth - 22));
 
             int tx = left + 9;
-            g.drawString(PantallaBuscarAjustesJobs.this.font, titulo, tx, top + 5,
+            g.drawString(PantallaBuscarAjustesJobs.this.font, tituloVisible, tx, top + 5,
                     seleccionada ? Paleta.tintaPrincipal() : Paleta.tintaSecundaria(), false);
-            g.drawString(PantallaBuscarAjustesJobs.this.font, detalle, tx, top + 17,
+            g.drawString(PantallaBuscarAjustesJobs.this.font, detalleVisible, tx, top + 17,
                     Paleta.conAlfa(Paleta.UI_TINTA_TENUE, seleccionada ? 0.62F : 0.42F), false);
 
             if (rowWidth > 130) {
                 int badgeX = left + rowWidth - catW - 10;
-                g.drawString(PantallaBuscarAjustesJobs.this.font, categoria, badgeX, top + 5,
+                g.drawString(PantallaBuscarAjustesJobs.this.font, this.categoria, badgeX, top + 5,
                         Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, seleccionada ? 0.72F : 0.42F), false);
             }
         }
@@ -348,7 +358,7 @@ public final class PantallaBuscarAjustesJobs extends Screen {
 
         @Override
         public Component getNarration() {
-            return Component.translatable(this.ajuste.clave());
+            return Component.literal(this.titulo);
         }
     }
 }
