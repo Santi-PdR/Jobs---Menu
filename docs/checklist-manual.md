@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.44.0
+# Checklist manual de aceptación — 0.45.0
 
 CI certifica código, recursos y build; este checklist certifica la experiencia real dentro de Forge 1.20.1.
 
@@ -6,21 +6,73 @@ CI certifica código, recursos y build; este checklist certifica la experiencia 
 
 - [ ] Java 17 + Forge 47.x + Minecraft 1.20.1.
 - [ ] cerrar `test-1` antes de sustituir el JAR.
-- [ ] dejar un único `jobsmenu-0.44.0.jar` en `mods`.
+- [ ] dejar un único `jobsmenu-0.45.0.jar` en `mods`.
 - [ ] conservar `latest.log` si aparece crash, audio huérfano o recurso faltante.
 
-## Gráficos — 0.44
+## Config Jobs / búsqueda — 0.45
+
+- [ ] `Ctrl+F` desde Config Jobs abre el buscador transversal;
+- [ ] buscar por nombre de opción devuelve resultados correctos;
+- [ ] buscar por palabras de la descripción también devuelve resultados;
+- [ ] Enter abre la categoría del resultado seleccionado;
+- [ ] doble clic hace lo mismo sin doble navegación;
+- [ ] primer ESC con texto escrito limpia el filtro;
+- [ ] segundo ESC con filtro vacío quita foco;
+- [ ] siguiente ESC vuelve a Config Jobs;
+- [ ] resize/maximizar conserva filtro, foco razonable y scroll;
+- [ ] Config recuerda la última pestaña usada durante la sesión;
+- [ ] editar un valor controlado por un preset muestra `CUSTOM` arriba;
+- [ ] aplicar de nuevo un preset restaura su nombre;
+- [ ] cerrar Config repetidamente con ESC/Volver no produce doble `setScreen()`.
+
+## Idioma — 0.45
+
+- [ ] `Ctrl+F` sigue enfocando búsqueda;
+- [ ] elegir otro idioma y redimensionar conserva selección pendiente;
+- [ ] filtro y scroll sobreviven a resize/maximizar;
+- [ ] aplicar idioma exitosamente recarga y vuelve al padre una sola vez;
+- [ ] si un reload falla, la pantalla queda abierta y muestra feedback de error;
+- [ ] tras ese fallo, el idioma efectivo vuelve al anterior en vez de quedar parcialmente aplicado;
+- [ ] un segundo intento puede realizarse sin reiniciar Minecraft.
+
+## Mundos / Mods — continuidad 0.45
+
+En ambas pantallas:
+
+- [ ] `Ctrl+F` enfoca el campo de búsqueda;
+- [ ] resize/maximizar conserva el filtro escrito;
+- [ ] si el campo estaba enfocado, la reconstrucción no rompe el flujo de edición;
+- [ ] con texto escrito, primer `ESC` vacía el filtro y no sale;
+- [ ] con filtro vacío pero campo enfocado, segundo `ESC` suelta el foco;
+- [ ] el siguiente `ESC` vuelve al padre Jobs;
+- [ ] botón/ESC repetido no produce doble retorno.
+
+## Navegación / callbacks — 0.45
+
+- [ ] Apariencia abre/cierra repetidamente sin salto doble;
+- [ ] Controles abre/cierra repetidamente sin salto doble;
+- [ ] Resource Packs aplica/cierra y vuelve a Opciones Jobs una sola vez;
+- [ ] si se abandona Resource Packs y se navega a otra pantalla, un callback tardío no vuelve inesperadamente a Opciones Jobs;
+- [ ] cambiar GUI Scale dentro de estos flujos no deja pantallas bloqueadas.
+
+## Sonido / rendimiento — 0.45
+
+- [ ] abrir/cerrar Sonido muchas veces no genera stutter creciente;
+- [ ] sliders y categorías vanilla siguen completos y funcionales;
+- [ ] no desaparecen controles por fallo de reflection;
+- [ ] hover/click Jobs permitido sigue sonando una sola vez donde corresponde.
+
+## Gráficos — contrato 0.44 heredado
 
 Con Embeddium instalado:
 
 - [ ] abrir **Opciones → Gráficos**;
 - [ ] se abre la interfaz original de Embeddium;
 - [ ] no aparece marco, cabecera, banda, transición, overlay ni recolocación Jobs;
-- [ ] los botones, pestañas, tooltips y controles son los originales de Embeddium/modpack;
+- [ ] botones, pestañas, tooltips y controles son los originales de Embeddium/modpack;
 - [ ] no se escucha reemplazo Jobs del click/hover dentro de Gráficos;
 - [ ] ESC/Done vuelve una sola vez a Opciones Jobs;
-- [ ] abrir/cerrar Gráficos varias veces no duplica widgets ni cambia su diseño;
-- [ ] cambiar resolución/GUI Scale y volver a entrar mantiene la interfaz gráfica original.
+- [ ] abrir/cerrar Gráficos varias veces no duplica widgets ni cambia su diseño.
 
 Sin Embeddium:
 
@@ -28,43 +80,19 @@ Sin Embeddium:
 - [ ] esa pantalla tampoco recibe skin/transición/click Jobs;
 - [ ] ESC/Done vuelve a Opciones Jobs.
 
-## MODPACK eliminado / salida de configuración — 0.44
+## MODPACK eliminado / salida de configuración
 
-- [ ] **no existe botón MODPACK** en Opciones Jobs;
-- [ ] no existe un hueco/hitbox invisible donde estaba MODPACK;
-- [ ] entrar/salir de Opciones Jobs con ESC funciona siempre con una sola salida;
-- [ ] el botón Volver funciona una sola vez;
-- [ ] repetir abrir/cerrar Opciones muchas veces no crea bucle ni obliga a pulsar ESC repetidamente;
-- [ ] volver desde Gráficos, Sonido, Controles, Idioma, Chat, Recursos, Accesibilidad y Online deja Opciones Jobs usable;
-- [ ] aplicar/cerrar resource packs no reconstruye Opciones dos veces.
+- [ ] **no existe botón MODPACK**;
+- [ ] no existe hueco/hitbox invisible de MODPACK;
+- [ ] repetir abrir/cerrar Opciones no crea bucle;
+- [ ] volver desde Gráficos, Sonido, Controles, Idioma, Chat, Recursos, Accesibilidad y Online deja Opciones Jobs usable.
 
-## Navegación externa — 0.44
+## Navegación externa
 
 - [ ] una Screen de otro mod no recibe chrome, transición, hover/click ni recolocación Jobs;
 - [ ] si esa Screen abre otra Screen propia, Jobs no interviene;
 - [ ] si abre un submenú vanilla, Jobs no lo sustituye sólo porque la sesión del menú siga activa;
-- [ ] una `OptionsScreen`, `SelectWorldScreen`, `JoinMultiplayerScreen` o `ModListScreen` abierta fuera de un padre Jobs no se captura por el simple hecho de que `SesionMenu` esté activa;
 - [ ] volver desde una Screen externa al padre Jobs funciona sin pantalla intermedia ni doble ESC.
-
-## Perfiles / estado CUSTOM — 0.43 heredado
-
-- [ ] aplicar Equilibrado marca Equilibrado;
-- [ ] cambiar un valor controlado por el preset pasa a CUSTOM;
-- [ ] volver a aplicar el preset restaura su identificación;
-- [ ] repetir con Inmersivo, Rendimiento, Accesible y Mínimo;
-- [ ] cambiar una opción que el preset no controla no invalida el perfil;
-- [ ] Perfil accesible sigue activando Movimiento reducido, Destellos reducidos, Alto contraste y Texto grande.
-
-## Mundos / Mods — 0.43 heredado
-
-En ambas pantallas:
-
-- [ ] `Ctrl+F` enfoca el campo de búsqueda;
-- [ ] con texto escrito, primer `ESC` vacía el filtro y no sale;
-- [ ] con filtro vacío pero campo enfocado, segundo `ESC` suelta el foco;
-- [ ] el siguiente `ESC` vuelve al padre Jobs;
-- [ ] botón/ESC repetido no produce doble retorno;
-- [ ] resize/maximizar no deja el guard de cierre bloqueado.
 
 ## Audio / lifecycle
 
@@ -84,7 +112,7 @@ En ambas pantallas:
 - [ ] `N` sólo cambia pista en Aleatoria;
 - [ ] `M` silencia/restaura sin cambiar pista.
 
-## Config Jobs
+## Config Jobs / persistencia
 
 - [ ] toggles aplican el cambio una sola vez;
 - [ ] sliders rápidos no producen stutter por escritura continua;
@@ -132,11 +160,11 @@ Probar 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/3/4.
 
 ## Publicación
 
-- [ ] la release `dev-latest` contiene exactamente `jobsmenu-0.44.0.jar`;
+- [ ] la release `dev-latest` contiene exactamente `jobsmenu-0.45.0.jar`;
 - [ ] el SHA-256 descargado coincide con el digest de GitHub;
 - [ ] `refs/tags/dev-latest` apunta exactamente al mismo SHA que `main` publicado;
 - [ ] el workflow completó `Publish` → `Move rolling development tag` → `Remove obsolete release JARs`.
 
 ## Diagnóstico de fallos
 
-Guardar `latest.log` y anotar pantalla, secuencia exacta de navegación, resolución, GUI Scale, selección/scroll Multiplayer, estado del buscador, perfil indicado y qué GUI exacta abrió Gráficos.
+Guardar `latest.log` y anotar pantalla, secuencia exacta de navegación, resolución, GUI Scale, filtro/foco/scroll antes y después, idioma anterior/pendiente, selección/scroll Multiplayer, perfil indicado y qué GUI exacta abrió Gráficos.

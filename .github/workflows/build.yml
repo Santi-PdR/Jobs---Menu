@@ -64,6 +64,8 @@ jobs:
         run: python3 tools/verificar_ux_043.py
       - name: Verify untouched graphics and Options 0.44
         run: python3 tools/verificar_graficos_044.py
+      - name: Verify global quality 0.45
+        run: python3 tools/verificar_calidad_045.py
       - name: Prepare Gradle wrapper
         run: chmod +x gradlew
       - name: Build Forge mod

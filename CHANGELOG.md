@@ -1,5 +1,48 @@
 # Registro de cambios
 
+## 0.45.0 — Búsqueda global, continuidad y robustez transversal — 2026-09-06
+
+### Ajustes Jobs
+
+- Nueva `PantallaBuscarAjustesJobs` accesible con `Ctrl+F` desde Config Jobs.
+- Busca nombre, detalle y categoría de las preferencias propias del mod.
+- Enter o doble clic abre la categoría correspondiente sin duplicar la lógica de los controles.
+- Búsqueda, foco y scroll se conservan durante resize/maximizar.
+- Config Jobs recuerda la última categoría usada durante la sesión.
+- El estado superior muestra `CUSTOM` cuando ningún preset coincide, en lugar de desaparecer.
+- Config Jobs añade guard idempotente de cierre.
+
+### Idioma
+
+- El idioma pendiente, filtro, foco y scroll sobreviven a `resize()`.
+- Aplicar idioma se vuelve transaccional: se conserva el idioma anterior antes de cambiar `Options.languageCode` y `LanguageManager`.
+- Si `reloadResourcePacks()` falla, ambos estados se restauran y se muestra feedback de error en lugar de dejar una selección fantasma.
+- Una recarga fallida no cierra la pantalla ni obliga a reiniciar para recuperar coherencia.
+
+### Mundos / Mods
+
+- Ambos filtros conservan valor y foco durante resize/maximizar/cambio de escala GUI.
+- La reconstrucción deja de borrar silenciosamente la búsqueda activa.
+
+### Navegación / robustez
+
+- Apariencia y Controles usan cierre idempotente y comprueban `minecraft != null` antes de volver al padre.
+- El callback de Resource Packs sólo vuelve a Opciones Jobs si `PantallaPaquetesJobs` continúa siendo la pantalla activa; un callback tardío ya no puede secuestrar otra navegación.
+- Se mantiene intacto el contrato de Gráficos 0.44: Embeddium/Video Settings siguen fuera de chrome y lógica visual Jobs.
+
+### Rendimiento
+
+- `PantallaSonidoJobs` cachea una sola vez por JVM el `Field` reflectivo que resuelve `OptionsList`.
+- Los `init()` posteriores sólo leen el campo ya resuelto, evitando volver a recorrer `SoundOptionsScreen.getDeclaredFields()`.
+
+### Calidad
+
+- Nuevo `tools/verificar_calidad_045.py` protege búsqueda global, estado `CUSTOM`, última categoría, rollback de idioma, continuidad de filtros, cierres seguros, caché de reflection y callback de Resource Packs.
+- CI añade `Verify global quality 0.45` antes del build Forge.
+- README, CONTEXTO, KNOWN_ISSUES, checklist y auditoría se sincronizan con 0.45.0.
+- Versión: **0.45.0**.
+- Artefacto esperado: **`jobsmenu-0.45.0.jar`**.
+
 ## 0.44.0 — Gráficos intocable y salida de configuración corregida — 2026-09-06
 
 ### Gráficos

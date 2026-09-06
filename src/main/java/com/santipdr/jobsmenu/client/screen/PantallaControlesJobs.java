@@ -19,6 +19,7 @@ public final class PantallaControlesJobs extends Screen {
     private final Screen anterior;
     private final Options opciones;
     private int panelX, panelY, panelW, panelH;
+    private boolean cerrando;
 
     public PantallaControlesJobs(Screen anterior, Options opciones) {
         super(Component.translatable("controls.title"));
@@ -28,6 +29,7 @@ public final class PantallaControlesJobs extends Screen {
 
     @Override
     protected void init() {
+        this.cerrando = false;
         this.panelW = Math.max(1, Math.min(360, this.width - 12));
         this.panelH = Math.max(1, Math.min(238, this.height - 12));
         this.panelX = (this.width - panelW) / 2;
@@ -42,12 +44,10 @@ public final class PantallaControlesJobs extends Screen {
 
         this.addRenderableWidget(new BotonExpediente(
                 x0, y, bw, h, Component.translatable("options.mouse_settings"),
-                BotonExpediente.Tipo.PRINCIPAL,
-                () -> this.minecraft.setScreen(new PantallaMouseJobs(this, this.opciones))));
+                BotonExpediente.Tipo.PRINCIPAL, this::abrirMouse));
         this.addRenderableWidget(new BotonExpediente(
                 x1, y, bw, h, Component.translatable("controls.keybinds"),
-                BotonExpediente.Tipo.PRINCIPAL,
-                () -> this.minecraft.setScreen(new PantallaTeclasJobs(this, this.opciones))));
+                BotonExpediente.Tipo.PRINCIPAL, this::abrirTeclas));
 
         int y1 = y + 32;
         Function<Boolean, Component> holdToggle = v ->
@@ -72,6 +72,14 @@ public final class PantallaControlesJobs extends Screen {
                 this.width / 2 - volverW / 2, panelY + panelH - 31, volverW, 22,
                 Component.translatable("jobsmenu.interfaz.volver"),
                 BotonExpediente.Tipo.PRINCIPAL, this::onClose));
+    }
+
+    private void abrirMouse() {
+        if (this.minecraft != null) this.minecraft.setScreen(new PantallaMouseJobs(this, this.opciones));
+    }
+
+    private void abrirTeclas() {
+        if (this.minecraft != null) this.minecraft.setScreen(new PantallaTeclasJobs(this, this.opciones));
     }
 
     private ToggleExpediente toggle(int x, int y, int w, int h, String clave,
@@ -100,6 +108,8 @@ public final class PantallaControlesJobs extends Screen {
 
     @Override
     public void onClose() {
+        if (this.cerrando || this.minecraft == null) return;
+        this.cerrando = true;
         this.minecraft.setScreen(this.anterior);
     }
 

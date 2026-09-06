@@ -40,6 +40,8 @@ public class PantallaAjustesAviso extends Screen {
         }
     }
 
+    private static Categoria ultimaCategoria = Categoria.VISUAL;
+
     private final Screen anterior;
     private final Options opciones;
     private final Categoria categoria;
@@ -51,9 +53,10 @@ public class PantallaAjustesAviso extends Screen {
     private boolean compacta;
     private int contentY;
     private int tabsX, tabsY, tabW, tabH, tabGap;
+    private boolean cerrando;
 
     public PantallaAjustesAviso(Screen anterior, Options opciones) {
-        this(anterior, opciones, Categoria.VISUAL);
+        this(anterior, opciones, ultimaCategoria);
     }
 
     private PantallaAjustesAviso(Screen anterior, Options opciones, Categoria categoria) {
@@ -61,10 +64,12 @@ public class PantallaAjustesAviso extends Screen {
         this.anterior = anterior;
         this.opciones = opciones;
         this.categoria = categoria == null ? Categoria.VISUAL : categoria;
+        ultimaCategoria = this.categoria;
     }
 
     @Override
     protected void init() {
+        this.cerrando = false;
         this.panelW = Math.max(1, Math.min(500, this.width - 18));
         this.panelH = Math.max(1, Math.min(312, this.height - 16));
         this.panelX = (this.width - this.panelW) / 2;
@@ -243,7 +248,8 @@ public class PantallaAjustesAviso extends Screen {
     }
 
     private void abrirCategoria(Categoria nueva) {
-        if (nueva == this.categoria) return;
+        if (nueva == this.categoria || this.minecraft == null) return;
+        ultimaCategoria = nueva;
         ConfigTurno.guardarPendiente();
         this.minecraft.setScreen(new PantallaAjustesAviso(this.anterior, this.opciones, nueva));
     }
@@ -277,6 +283,7 @@ public class PantallaAjustesAviso extends Screen {
                 Paleta.conAlfa(Paleta.tintaSecundaria(), 0.66F), false);
 
         dibujarEstadoGlobal(g, margen);
+        dibujarAyudaBusqueda(g, margen);
         if (this.categoria == Categoria.PERFILES) dibujarAyudaPerfiles(g, margen);
 
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
@@ -286,8 +293,9 @@ public class PantallaAjustesAviso extends Screen {
 
     private void dibujarEstadoGlobal(GuiGraphics g, int margen) {
         PerfilesJobs.Perfil actual = PerfilesJobs.actual();
-        if (actual == null) return;
-        String estado = Component.translatable(actual.claveNombre()).getString();
+        String estado = actual == null
+                ? "CUSTOM"
+                : Component.translatable(actual.claveNombre()).getString();
         estado = ChromeExpediente.ajustar(this.font, estado, Math.max(48, panelW / 4));
         int w = Math.min(panelW / 3, this.font.width(estado) + 12);
         int x = panelX + margen;
@@ -296,6 +304,14 @@ public class PantallaAjustesAviso extends Screen {
         g.fill(x, y, x + 2, y + 14, Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.44F));
         g.drawString(this.font, ChromeExpediente.ajustar(this.font, estado, w - 8), x + 6, y + 3,
                 Paleta.conAlfa(Paleta.tintaSecundaria(), 0.68F), false);
+    }
+
+    private void dibujarAyudaBusqueda(GuiGraphics g, int margen) {
+        if (this.panelW < 330) return;
+        int y = panelY + panelH - (compacta ? 41 : 44);
+        String ayuda = "CTRL+F";
+        g.drawString(this.font, ayuda, panelX + margen, y + 5,
+                Paleta.conAlfa(Paleta.tintaSecundaria(), 0.48F), false);
     }
 
     private void dibujarAyudaPerfiles(GuiGraphics g, int margen) {
@@ -336,8 +352,10 @@ public class PantallaAjustesAviso extends Screen {
 
     @Override
     public void onClose() {
+        if (this.cerrando || this.minecraft == null) return;
+        this.cerrando = true;
         ConfigTurno.guardarPendiente();
-        if (this.minecraft != null) this.minecraft.setScreen(this.anterior);
+        this.minecraft.setScreen(this.anterior);
     }
 
     @Override

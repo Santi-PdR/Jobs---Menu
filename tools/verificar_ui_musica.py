@@ -111,7 +111,7 @@ def verify_robustness() -> None:
                       "new VideoSettingsScreen(this, this.opciones)",
                       "private boolean cerrando;",
                       "if (this.cerrando || this.minecraft == null) return;",
-                      "this.minecraft.screen != this",
+                      "this.minecraft.screen instanceof PantallaPaquetesJobs",
                       "anchoUtil, bh,\n                \"options.online.title\""),
             "PantallaOpcionesJobs")
     for token in ("extends OptionsScreen", "super.init();", "botonVideoNatural",

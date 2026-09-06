@@ -7,8 +7,8 @@ Documento maestro del estado vigente. Las auditorías antiguas son históricas y
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Versión actual | **0.44.0** |
-| Artefacto esperado | **`jobsmenu-0.44.0.jar`** |
+| Versión actual | **0.45.0** |
+| Artefacto esperado | **`jobsmenu-0.45.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -48,50 +48,54 @@ Documento maestro del estado vigente. Las auditorías antiguas son históricas y
 28. Un servidor remoto vuelve a Multiplayer Jobs tras salida/kick/pérdida de conexión; un mundo local vuelve al main Jobs.
 29. Mundos y Mods usan cierre idempotente; ESC limpia filtro, después suelta foco y recién luego sale.
 30. Un preset sólo se muestra como activo si todos los valores que controla coinciden; cualquier desviación relevante muestra `CUSTOM`.
-31. Las tres pistas musicales son Absurdism, REQUIEM y Upon the Hill V2.
-32. El build no descarga música ni fondos externos.
-33. `assets/jobsmenu/musica_creditada.txt` representa las tres pistas empaquetadas.
-34. Los callbacks de resource reload nunca manipulan `SoundInstance` desde el executor de recursos.
-35. La música Jobs nunca usa `minecraft:music.menu` como fallback.
-36. Los FX ambientales Jobs nunca usan `minecraft:ambient.cave` como fallback.
-37. El hard-stop musical ordena también `SoundManager.stop(instance)`.
-38. Multiplayer sólo guarda `servers.dat` cuando su normalización realmente modifica datos.
-39. Config Jobs no programa guardado cuando el valor solicitado ya coincide con el actual.
-40. El hover vanilla preservado cachea botones por Screen/init en vez de recorrer todos los hijos por frame.
+31. Config Jobs recuerda la última categoría usada durante la sesión y `Ctrl+F` abre la búsqueda global de preferencias.
+32. Ajustes, Idioma, Mundos y Mods deben conservar sus filtros/foco/scroll relevantes al reconstruirse por resize.
+33. Aplicar idioma debe ser transaccional: ante fallo de reload se restauran `Options.languageCode` y `LanguageManager` al valor anterior.
+34. Callbacks tardíos de Resource Packs no pueden devolver a Opciones Jobs si el usuario ya salió de `PantallaPaquetesJobs`.
+35. Apariencia, Controles, Config, Multiplayer, Mundos y Mods usan cierres protegidos donde una ruta duplicada pueda disparar más de un `setScreen()`.
+36. Las tres pistas musicales son Absurdism, REQUIEM y Upon the Hill V2.
+37. El build no descarga música ni fondos externos.
+38. `assets/jobsmenu/musica_creditada.txt` representa las tres pistas empaquetadas.
+39. Los callbacks de resource reload nunca manipulan `SoundInstance` desde el executor de recursos.
+40. La música Jobs nunca usa `minecraft:music.menu` como fallback.
+41. Los FX ambientales Jobs nunca usan `minecraft:ambient.cave` como fallback.
+42. El hard-stop musical ordena también `SoundManager.stop(instance)`.
+43. Multiplayer sólo guarda `servers.dat` cuando su normalización realmente modifica datos.
+44. Config Jobs no programa guardado cuando el valor solicitado ya coincide con el actual.
+45. El hover vanilla preservado cachea botones por Screen/init en vez de recorrer todos los hijos por frame.
+46. `PantallaSonidoJobs` resuelve el `Field` reflectivo de `OptionsList` una vez por JVM y lo reutiliza.
 
-## Estado 0.44.0
+## Estado 0.45.0
 
-### Gráficos sin intervención Jobs
+### Búsqueda transversal de Ajustes
 
-El experimento 0.41.1/0.42 de heredar `OptionsScreen`, ocultar sus widgets y reutilizar un botón gráfico natural se elimina por completo. Esa arquitectura seguía acoplando Jobs al flujo gráfico y complicaba la navegación.
+`PantallaBuscarAjustesJobs` centraliza el descubrimiento de preferencias sin duplicar controles. `Ctrl+F` desde Config Jobs abre el buscador; nombre, descripción y categoría participan del filtro. Enter o doble clic navega a la categoría real del ajuste. Filtro, foco y scroll sobreviven a `resize()`.
 
-Ahora `PantallaOpcionesJobs` vuelve a una `Screen` independiente. El botón Gráficos hace sólo una de dos cosas:
+Config Jobs recuerda además la última categoría utilizada durante la sesión y el indicador de perfil muestra `CUSTOM` explícitamente cuando ningún preset coincide.
 
-- si existe Embeddium, `CompatGraficos` pide a Forge su `ConfigScreenHandler.ConfigScreenFactory` y devuelve la Screen original registrada por el mod;
-- si Embeddium no existe o la factory falla de forma segura, se abre `VideoSettingsScreen` vanilla.
+### Idioma transaccional
 
-Jobs no dibuja chrome, bandas, transición, hover ni sustitución de clicks sobre ninguna de esas pantallas.
+`PantallaIdiomaJobs` conserva idioma pendiente, filtro, foco y scroll durante resize. Antes de aplicar un idioma guarda el valor anterior. Si `reloadResourcePacks()` falla, restaura tanto `Options.languageCode` como `LanguageManager`, mantiene la pantalla abierta y muestra feedback de error.
 
-### MODPACK eliminado
+### Continuidad y callbacks
 
-Se elimina el botón MODPACK, `abrirOpcionesModpack()`, `permitirOptionsNaturalUnaVez`, `optionsNaturalSolicitado` y el estado asociado. Esto corrige el flujo que podía quedar atrapado regresando una y otra vez al menú de configuración.
+Mundos y Mods conservan búsqueda/foco en resize. Apariencia y Controles añaden cierres idempotentes. El callback de Resource Packs sólo vuelve a Opciones Jobs mientras `PantallaPaquetesJobs` siga siendo la Screen activa; un callback tardío no puede secuestrar una navegación posterior.
 
-### Redirecciones administrativas acotadas
+### Rendimiento
 
-`SesionMenu.activa()` deja de ser una autorización global para interceptar `OptionsScreen`, `JoinMultiplayerScreen`, `SelectWorldScreen` o `ModListScreen`. Esas sustituciones sólo ocurren cuando la navegación nace de `PantallaNivel`, `PantallaEstancia` o `PantallaOpcionesJobs`.
+`PantallaSonidoJobs` deja de recorrer `SoundOptionsScreen.getDeclaredFields()` en cada `init()`: el `Field` de `OptionsList` se resuelve y cachea una sola vez por JVM.
 
-Opciones Jobs también usa cierre idempotente y el callback de resource packs evita `setScreen(this)` si ya se encuentra en esa misma Screen.
+## Estado 0.44 que sigue vigente
 
-## Estado heredado 0.43
-
-- Perfiles exactos: una configuración personalizada muestra `CUSTOM`.
-- Mundos/Mods: `Ctrl+F`, ESC por etapas y cierre idempotente.
-- Los subflujos externos no son capturados por TitleScreen/pausa Jobs mientras siguen marcados externos.
-
-## Estado heredado 0.41–0.42 que sigue vigente
-
+- Gráficos original/intocable: Embeddium vía `ConfigScreenFactory`; fallback `VideoSettingsScreen` vanilla.
+- No existe MODPACK ni `permitirOptionsNaturalUnaVez`.
+- `PantallaOpcionesJobs` es una `Screen` Jobs independiente.
+- Redirecciones administrativas acotadas a padres Jobs concretos.
 - Screens externas y sus subflujos no reciben skin, bandas, transiciones, hover, clicks ni trabajo de `ListasExpediente`.
-- `VideoSettingsScreen` vanilla es intocable.
+
+## Estado heredado 0.41–0.43 que sigue vigente
+
+- Perfiles exactos; modificaciones relevantes muestran `CUSTOM`.
 - `RastreadorAudioJobs` corta FX puntuales al cerrar visita/gameplay.
 - `GestorMusica` no hace `stopPlaying()` por tick y bloquea nueva música vanilla por evento.
 - `SesionMenu.cerrar()` es idempotente.
@@ -121,6 +125,6 @@ Servidor oficial primero, único y protegido; `Ghoul Outbreak` no reaparece; con
 
 ## Verificación
 
-CI ejecuta política de versión/tag, fondos, verificador general, UI/música, continuidad Multiplayer/documentación, optimización, créditos/reload, identidad musical/hard-stop, runtime 0.41, aislamiento externo, UX 0.43 y `tools/verificar_graficos_044.py`, seguido del build Forge Java 17 y publicación versionada sólo desde `main` verde.
+CI ejecuta política de versión/tag, fondos, verificador general, UI/música, continuidad Multiplayer/documentación, optimización, créditos/reload, identidad musical/hard-stop, runtime 0.41, aislamiento externo, UX 0.43, Gráficos 0.44 y `tools/verificar_calidad_045.py`, seguido del build Forge Java 17 y publicación versionada sólo desde `main` verde.
 
 La validación visual, input, audio perceptivo y compatibilidad final con el modpack siguen siendo manuales en `test-1`.

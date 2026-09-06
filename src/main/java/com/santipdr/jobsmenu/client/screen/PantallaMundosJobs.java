@@ -5,6 +5,7 @@ import com.santipdr.jobsmenu.client.ui.ListasExpediente;
 import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -20,6 +21,8 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
     private final Screen anteriorJobs;
     private EditBox busqueda;
     private boolean cerrando;
+    private String filtroPreferido = "";
+    private boolean focoPreferido;
 
     public PantallaMundosJobs(Screen anterior) {
         super(anterior);
@@ -44,6 +47,30 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
                 this.busqueda = campo;
             }
         }
+        restaurarBusqueda();
+    }
+
+    @Override
+    public void resize(Minecraft minecraft, int width, int height) {
+        capturarBusqueda();
+        super.resize(minecraft, width, height);
+    }
+
+    private void capturarBusqueda() {
+        if (this.busqueda == null) return;
+        this.filtroPreferido = this.busqueda.getValue();
+        this.focoPreferido = this.busqueda.isFocused();
+    }
+
+    private void restaurarBusqueda() {
+        if (this.busqueda == null) return;
+        if (!this.filtroPreferido.isEmpty()) {
+            this.busqueda.setValue(this.filtroPreferido);
+        }
+        if (this.focoPreferido) {
+            this.setFocused(this.busqueda);
+            this.busqueda.setFocused(true);
+        }
     }
 
     @Override
@@ -51,6 +78,7 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
         if (Screen.hasControlDown() && keyCode == GLFW.GLFW_KEY_F && this.busqueda != null) {
             this.setFocused(this.busqueda);
             this.busqueda.setFocused(true);
+            this.focoPreferido = true;
             return true;
         }
         if (keyCode == GLFW.GLFW_KEY_ESCAPE && atenderEscapeBusqueda()) {
@@ -72,10 +100,12 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
         if (this.busqueda == null || !this.busqueda.isFocused()) return false;
         if (!this.busqueda.getValue().isEmpty()) {
             this.busqueda.setValue("");
+            this.filtroPreferido = "";
             return true;
         }
         this.busqueda.setFocused(false);
         this.setFocused(null);
+        this.focoPreferido = false;
         return true;
     }
 
