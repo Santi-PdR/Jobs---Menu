@@ -18,12 +18,13 @@ Para trabajar sobre `main`, leer en este orden:
 
 ## Contratos que no deben regredir
 
-- Video Settings permanece vanilla y sin capas Jobs.
+- **Gráficos delega al botón natural del `OptionsScreen` ya modificado por el modpack; Jobs no elige un proveedor gráfico.**
+- La GUI gráfica final permanece sin capas, transiciones ni reemplazo de clicks Jobs.
 - Chat, inventario, contenedores y UI normal de gameplay quedan fuera de Jobs.
 - Con mundo cargado no existen transiciones Jobs ni música/ambiente de menú.
 - Pausa/Config Jobs sólo conservan tematización/feedback breve permitido.
 - Multiplayer mantiene padre Jobs para ESC/Cancelar, conexión, error y retorno tras servidor.
-- F5/Actualizar conserva **selección por IP + scroll** sin reutilizar Entries viejas.
+- F5/Actualizar y resize conservan **selección por IP + scroll** sin reutilizar Entries viejas.
 - `servers.dat` no se guarda al abrir/recargar si el servidor oficial ya está correcto.
 - PNG 10–17 son estáticos; JPG 18–31 sólo admiten respiración sutil/desactivable.
 - `musica_creditada.txt` representa Absurdism, REQUIEM y Upon the Hill V2.
@@ -38,6 +39,7 @@ Para trabajar sobre `main`, leer en este orden:
 
 ## Auditoría vigente de la entrega
 
+- [`AUDITORIA_0.41.1_FLUJO_GRAFICO_NATURAL.md`](AUDITORIA_0.41.1_FLUJO_GRAFICO_NATURAL.md) — delegación de Gráficos al OptionsScreen natural del modpack.
 - [`AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md`](AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md) — audio puntual, sesión idempotente, config, hover y continuidad Multiplayer.
 - [`AUDITORIA_0.40.0_IDENTIDAD_MUSICAL.md`](AUDITORIA_0.40.0_IDENTIDAD_MUSICAL.md) — eliminación del fallback musical vanilla, catálogo estático y hard-stop musical.
 - [`AUDITORIA_0.39.0_CREDITOS_Y_RELOAD.md`](AUDITORIA_0.39.0_CREDITOS_Y_RELOAD.md) — créditos y generaciones de reload.
@@ -50,4 +52,4 @@ Para trabajar sobre `main`, leer en este orden:
 
 Los demás `AUDITORIA_*.md`, revisiones, catálogos y planes son evidencia histórica. Si contradicen `CONTEXTO.md`, `KNOWN_ISSUES.md`, `compatibilidad.md`, `musica.md` o una auditoría más reciente, manda el documento vigente más nuevo.
 
-En particular, menciones históricas a fallback `MUSIC_MENU` o `AMBIENT_CAVE` no describen el contrato actual.
+En particular, reglas históricas como “Video Settings siempre vanilla” o la integración directa con `ConfigScreenFactory` de Embeddium **no describen el contrato actual**.

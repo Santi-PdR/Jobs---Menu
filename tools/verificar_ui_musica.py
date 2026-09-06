@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Contratos vigentes: UI neutra, robustez y catalogo musical de tres pistas."""
+"""Contratos vigentes de UI, navegacion, audio y catalogo Jobs."""
 from __future__ import annotations
 
 import json
@@ -19,16 +19,19 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def require(text: str, tokens: tuple[str, ...], where: str) -> None:
+    for token in tokens:
+        if token not in text:
+            fail(f"{where} perdio el contrato: {token}")
+
+
 def verify_neutral_ui() -> None:
     palette = read(JAVA / "client/ui/Paleta.java")
-    required = (
+    require(palette, (
         "UI_PAPEL", "UI_PAPEL_FOCO", "UI_TINTA", "UI_TINTA_TENUE",
         "UI_ACENTO", "UI_ACENTO_FUERTE", "ARCHIVO_FONDO",
         "ARCHIVO_SUPERFICIE", "ARCHIVO_SUPERFICIE_FOCO",
-    )
-    for name in required:
-        if name not in palette:
-            fail(f"Paleta.java perdio la constante neutral {name}.")
+    ), "Paleta")
 
     files = (
         JAVA / "client/ui/ChromeExpediente.java",
@@ -41,200 +44,145 @@ def verify_neutral_ui() -> None:
         JAVA / "client/screen/PantallaIdiomaJobs.java",
         JAVA / "client/screen/PantallaAjustesAviso.java",
     )
-    forbidden = ("Paleta.PARED_ALTA", "Paleta.PARED", "Paleta.FLUOR")
     for path in files:
         text = read(path)
-        for token in forbidden:
+        for token in ("Paleta.PARED_ALTA", "Paleta.PARED", "Paleta.FLUOR"):
             if token in text:
-                fail(f"{path.relative_to(ROOT)} vuelve a usar color de escena: {token}")
+                fail(f"{path.relative_to(ROOT)} vuelve a mezclar paleta de escena en UI: {token}")
 
     skin = read(JAVA / "client/ui/PielVanillaJobs.java")
-    for token in ("ARCHIVO_SUPERFICIE", "ARCHIVO_SUPERFICIE_FOCO", "esArchivoOscuro"):
-        if token not in skin:
-            fail(f"PielVanillaJobs perdio el contrato de superficie oscura: {token}")
+    require(skin, ("ARCHIVO_SUPERFICIE", "ARCHIVO_SUPERFICIE_FOCO", "esArchivoOscuro"),
+            "PielVanillaJobs")
 
     polish = read(JAVA / "client/ui/PulidoInterfazJobs.java")
-    for token in ("ConfigTurno.movimientoReducido()", "ConfigTurno.bajoConsumo()", "Math.sin"):
-        if token not in polish:
-            fail(f"PulidoInterfazJobs perdio el pulido accesible: {token}")
+    require(polish, ("ConfigTurno.movimientoReducido()", "ConfigTurno.bajoConsumo()", "Math.sin"),
+            "PulidoInterfazJobs")
 
     transition = read(JAVA / "client/ui/TransicionInterfazJobs.java")
-    for token in ("t * t * (3.0F - 2.0F * t)", "ConfigTurno.bajoConsumo()", "Paleta.UI_PAPEL"):
-        if token not in transition:
-            fail(f"TransicionInterfazJobs perdio el contrato profesional: {token}")
+    require(transition, ("t * t * (3.0F - 2.0F * t)", "ConfigTurno.bajoConsumo()", "Paleta.UI_PAPEL"),
+            "TransicionInterfazJobs")
 
     for filename in ("BotonExpediente.java", "ToggleExpediente.java", "SliderExpediente.java"):
         widget = read(JAVA / "client/ui" / filename)
-        if "ConfigTurno.movimientoReducido() || ConfigTurno.bajoConsumo()" not in widget:
-            fail(f"{filename} no respeta Bajo consumo al animar foco.")
+        require(widget, ("ConfigTurno.movimientoReducido() || ConfigTurno.bajoConsumo()",), filename)
 
     config_ui = read(JAVA / "client/screen/PantallaAjustesAviso.java")
-    if "JOBS-0161" in config_ui:
-        fail("PantallaAjustesAviso conserva el formulario duro JOBS-0161.")
-    if "JOBS-CONFIG" not in config_ui:
-        fail("PantallaAjustesAviso perdio el identificador estable JOBS-CONFIG.")
+    if "JOBS-0161" in config_ui or "JOBS-CONFIG" not in config_ui:
+        fail("PantallaAjustesAviso perdio la identidad estable de configuracion.")
 
 
 def verify_robustness() -> None:
     language = read(JAVA / "client/screen/PantallaIdiomaJobs.java")
-    for token in ("reloadResourcePacks().whenComplete", "this.aplicando = false", "GLFW.GLFW_KEY_KP_ENTER"):
-        if token not in language:
-            fail(f"PantallaIdiomaJobs perdio robustez 0.19: {token}")
+    require(language, ("reloadResourcePacks().whenComplete", "this.aplicando = false",
+                       "GLFW.GLFW_KEY_KP_ENTER"), "PantallaIdiomaJobs")
 
     multiplayer = read(JAVA / "client/screen/PantallaMultijugadorJobs.java")
-    for token in ("int util = Math.max(1, this.panelW - margen * 2)", "ChromeExpediente.ajustar", "this.panelW < 300"):
-        if token not in multiplayer:
-            fail(f"PantallaMultijugadorJobs perdio responsividad 0.19: {token}")
+    require(multiplayer, ("int util = Math.max(1, this.panelW - margen * 2)",
+                          "ChromeExpediente.ajustar", "this.panelW < 300"),
+            "PantallaMultijugadorJobs")
     if "Math.max(240, this.panelW - margen * 2)" in multiplayer:
-        fail("Multijugador volvio al ancho minimo que desborda ventanas angostas.")
+        fail("Multiplayer recupero el ancho minimo que desborda ventanas angostas.")
 
-    lifecycle = read(JAVA / "client/EscuchaCliente.java")
-    fragment = "SesionMenu.cerrar();\n            return;"
-    if fragment not in lifecycle:
-        fail("EscuchaCliente no corta mantenimiento tras cerrar la sesion en gameplay.")
-    for token in ("PlaySoundEvent", "MezclaAudio.reemplazoClickVanilla()", "evento.setSound"):
-        if token not in lifecycle:
-            fail(f"EscuchaCliente perdio sustitucion de click vanilla: {token}")
+    listener = read(JAVA / "client/EscuchaCliente.java")
+    require(listener, ("SesionMenu.cerrar();\n            return;", "PlaySoundEvent",
+                       "MezclaAudio.reemplazoClickVanilla()", "evento.setSound"),
+            "EscuchaCliente")
 
     mix = read(JAVA / "client/sound/MezclaAudio.java")
     if "SoundEvents.UI_BUTTON_CLICK" in mix:
-        fail("MezclaAudio volvio a usar el click vanilla como fallback de interfaz.")
-    for token in ("resolverPersonalizado", "tonoGesto", "reemplazoClickVanilla"):
-        if token not in mix:
-            fail(f"MezclaAudio perdio identidad de gestos Jobs: {token}")
+        fail("MezclaAudio volvio a usar el click vanilla como fallback.")
+    require(mix, ("resolverPersonalizado", "tonoGesto", "reemplazoClickVanilla"), "MezclaAudio")
 
     settings = read(JAVA / "client/screen/PantallaAjustesAviso.java")
-    for token in ('"jobsmenu.ajustes.nivelfijo.detalle", 0, 31',
-                  '"jobsmenu.ajustes.pista.detalle", 0, 3', "toggleCuatro",
-                  "PantallaAjustesAviso::fijarSonidoBotones",
-                  'v -> Component.literal(v + "/31")',
-                  'v -> Component.literal(v + "/3")'):
-        if token not in settings:
-            fail(f"Ajustes perdio selector completo: {token}")
+    require(settings, ('"jobsmenu.ajustes.nivelfijo.detalle", 0, 31',
+                       '"jobsmenu.ajustes.pista.detalle", 0, 3', "toggleCuatro",
+                       "PantallaAjustesAviso::fijarSonidoBotones",
+                       'v -> Component.literal(v + "/31")',
+                       'v -> Component.literal(v + "/3")'), "PantallaAjustesAviso")
 
     slider = read(JAVA / "client/ui/SliderExpediente.java")
-    for token in ("lecturaCorta", "this.lecturaCorta.apply(valorEntero())"):
-        if token not in slider:
-            fail(f"SliderExpediente perdio su lectura semantica: {token}")
+    require(slider, ("lecturaCorta", "this.lecturaCorta.apply(valorEntero())"), "SliderExpediente")
     if 'Math.round(this.value * 100.0D) + "%"' in slider:
-        fail("SliderExpediente volvio a mostrar porcentajes falsos en todos los controles.")
+        fail("SliderExpediente recupero porcentajes falsos para todos los controles.")
 
     options = read(JAVA / "client/screen/PantallaOpcionesJobs.java")
-    listener = read(JAVA / "client/EscuchaCliente.java")
-    legacy_video = JAVA / "client/screen/PantallaVideoJobs.java"
-    for token in ("new VideoSettingsScreen(this, this.opciones)",
-                  "anchoUtil, bh,\n                \"options.online.title\""):
-        if token not in options:
-            fail(f"Options perdio la apertura vanilla o el layout limpio: {token}")
-    for forbidden in ("PantallaVideoJobs", "Class.forName(\"me.jellysquid",
-                      "EmbeddiumVideoOptionsScreen"):
-        if forbidden in options:
-            fail(f"Options volvio a reconstruir Video Settings: {forbidden}")
-    if legacy_video.exists():
-        fail("PantallaVideoJobs sigue presente: Video Settings debe ser vanilla.")
-    for token in ("esVideoIntocable", "pantalla instanceof VideoSettingsScreen",
-                  "esVideoIntocable(pantalla)"):
-        if token not in listener:
-            fail(f"EscuchaCliente dejo de aislar Video Settings: {token}")
+    require(options, ("extends OptionsScreen", "super.init();", "private AbstractButton botonVideoNatural;",
+                      'Component.translatable("options.video").getString()',
+                      "this.botonVideoNatural.onPress();",
+                      "anchoUtil, bh,\n                \"options.online.title\""),
+            "PantallaOpcionesJobs")
+    for token in ("CompatGraficos", "ConfigScreenHandler", "new VideoSettingsScreen",
+                  "Class.forName", "EmbeddiumVideoOptionsScreen"):
+        if token in options:
+            fail(f"Options vuelve a abrir/reconstruir Graficos por fuera del flujo natural: {token}")
 
-    multiplayer = read(JAVA / "client/screen/PantallaMultijugadorJobs.java")
-    for token in (
-        "conectarSeleccionado", "ConnectScreen.startConnecting(this, this.minecraft",
-        "ServerAddress.parseString(servidor.ip)", "private final Screen pantallaPadre;",
-        "cerrarAlPadre()", "this.minecraft.setScreen(padreDestino())",
-        "private Screen padreDestino()", "refrescarLista()",
-        "if (this.cerrando) return;", "this.cerrando = false;",
-    ):
-        if token not in multiplayer:
-            fail(f"Multijugador perdio cierre directo, retorno contextual o refresh Jobs: {token}")
-    for forbidden in (
-        "super.onClose();", "this.realRefresh.onPress()", "pulsar(this.realRefresh)",
-        "anteriorJobs", "volverAlMenu()", "GLFW.GLFW_KEY_ESCAPE",
-    ):
-        if forbidden in multiplayer:
-            fail(f"Multijugador recupero una ruta de salida/refresh fragil: {forbidden}")
+    if (JAVA / "client/screen/PantallaVideoJobs.java").exists():
+        fail("PantallaVideoJobs no debe existir.")
+    if (JAVA / "client/CompatGraficos.java").exists():
+        fail("CompatGraficos no debe existir.")
+
+    require(listener, ("esVideoIntocable", "pantalla instanceof VideoSettingsScreen",
+                       "esVideoIntocable(pantalla)"), "EscuchaCliente")
+
+    require(multiplayer, ("conectarSeleccionado", "ConnectScreen.startConnecting(this, this.minecraft",
+                          "ServerAddress.parseString(servidor.ip)", "private final Screen pantallaPadre;",
+                          "cerrarAlPadre()", "this.minecraft.setScreen(padreDestino())",
+                          "private Screen padreDestino()", "refrescarLista()",
+                          "if (this.cerrando) return;", "this.cerrando = false;"),
+            "PantallaMultijugadorJobs")
+    for token in ("super.onClose();", "this.realRefresh.onPress()", "pulsar(this.realRefresh)",
+                  "anteriorJobs", "volverAlMenu()", "GLFW.GLFW_KEY_ESCAPE"):
+        if token in multiplayer:
+            fail(f"Multiplayer recupero una ruta fragil: {token}")
 
     transition = read(JAVA / "client/ui/TransicionInterfazJobs.java")
-    for token in (
-        "usaTransicionJobs", "TransicionInterfazJobs.cancelar()",
-        "Minecraft.getInstance().level != null && !propia",
-        "if (Minecraft.getInstance().level != null) return false;",
-        "if (Minecraft.getInstance().level == null) {\n            PulidoInterfazJobs.notificarApertura(siguiente);",
-        "if (cliente.level == null) {\n            TransicionInterfazJobs.dibujar(pantalla, evento.getGuiGraphics());",
-    ):
-        if token not in listener:
-            fail(f"EscuchaCliente perdio la frontera absoluta de transicion/gameplay: {token}")
-    if "public static void cancelar()" not in transition:
-        fail("TransicionInterfazJobs no puede limpiar una transicion fuera del menu.")
-
+    require(listener, ("usaTransicionJobs", "TransicionInterfazJobs.cancelar()",
+                       "Minecraft.getInstance().level != null && !propia",
+                       "if (Minecraft.getInstance().level != null) return false;",
+                       "if (Minecraft.getInstance().level == null) {\n            PulidoInterfazJobs.notificarApertura(siguiente);",
+                       "if (cliente.level == null) {\n            TransicionInterfazJobs.dibujar(pantalla, evento.getGuiGraphics());"),
+            "EscuchaCliente")
+    require(transition, ("public static void cancelar()",), "TransicionInterfazJobs")
 
 
 def verify_main_overlay_layout() -> None:
     main_screen = read(JAVA / "client/screen/PantallaNivel.java")
-    required = (
-        "ALTO_ESTADO_RESERVADO",
-        "ANCHO_CREDITO_MINIMO",
-        "ALTO_CREDITO_MINIMO",
-        "this.compacta || this.width < ANCHO_CREDITO_MINIMO",
-        "autor.getString().isBlank()",
-        "int reservaEstado = ConfigTurno.mostrarEstadoInstalacion()",
-        "this.height - MARGEN_ROTULO - reservaEstado - altoBloque",
-    )
-    for token in required:
-        if token not in main_screen:
-            fail(f"PantallaNivel perdio el contrato de composicion adaptativa: {token}")
+    require(main_screen, ("ALTO_ESTADO_RESERVADO", "ANCHO_CREDITO_MINIMO", "ALTO_CREDITO_MINIMO",
+                          "this.compacta || this.width < ANCHO_CREDITO_MINIMO",
+                          "autor.getString().isBlank()",
+                          "int reservaEstado = ConfigTurno.mostrarEstadoInstalacion()",
+                          "this.height - MARGEN_ROTULO - reservaEstado - altoBloque"),
+            "PantallaNivel")
 
 
 def verify_music_session() -> None:
     manager = read(JAVA / "client/sound/GestorMusica.java")
-    required = (
-        'new Pista("absurdism", SonidosNivel.MUSICA_TEMA, "musica/defecto.ogg",',
-        'new Pista("requiem", SonidosNivel.MUSICA_REQUIEM, "musica/requiem.ogg",',
-        'new Pista("upon_the_hill_v2", SonidosNivel.MUSICA_UPON_HILL,',
-        "adelantarPista()", "siguienteIndice(Pista[] pistas)", "tituloPistaActual()",
-        "SUAVIZADO_SUBIDA", "SUAVIZADO_BAJADA", "SUAVIZADO_CROSSFADE",
-        "atenderCrossfade()", "gananciaObjetivo", "canStartSilent()",
-        "detenerAhora()", "cliente.getMusicManager().stopPlaying()",
-        "ConfigTurno.pistaMusica()", "sincronizarSeleccion()", "indiceFijado",
-        "boolean permiteRotacion",
-    )
-    for token in required:
-        if token not in manager:
-            fail(f"GestorMusica perdio el contrato musical: {token}")
+    require(manager, ('new Pista("absurdism", SonidosNivel.MUSICA_TEMA, "musica/defecto.ogg",',
+                      'new Pista("requiem", SonidosNivel.MUSICA_REQUIEM, "musica/requiem.ogg",',
+                      'new Pista("upon_the_hill_v2", SonidosNivel.MUSICA_UPON_HILL,',
+                      "adelantarPista()", "siguienteIndice(Pista[] pistas)", "tituloPistaActual()",
+                      "SUAVIZADO_SUBIDA", "SUAVIZADO_BAJADA", "SUAVIZADO_CROSSFADE",
+                      "atenderCrossfade()", "gananciaObjetivo", "canStartSilent()",
+                      "detenerAhora()", "cliente.getMusicManager().stopPlaying()",
+                      "ConfigTurno.pistaMusica()", "sincronizarSeleccion()", "indiceFijado",
+                      "boolean permiteRotacion"), "GestorMusica")
 
     config = read(JAVA / "config/ConfigTurno.java")
-    for token in ('defineInRange("pista_musica", 0, 0, 3)', "fijarPistaMusica", "pistaMusica()"):
-        if token not in config:
-            fail(f"ConfigTurno perdio seleccion persistente de pista: {token}")
+    require(config, ('defineInRange("pista_musica", 0, 0, 3)', "fijarPistaMusica", "pistaMusica()"),
+            "ConfigTurno")
 
     sounds = json.loads(read(RES / "sounds.json"))
-    event = sounds.get("musica.tema")
-    if not isinstance(event, dict):
-        fail("sounds.json no contiene musica.tema.")
-    entries = event.get("sounds", [])
-    names = []
-    for item in entries:
-        names.append(item if isinstance(item, str) else item.get("name") if isinstance(item, dict) else None)
-    if "jobsmenu:musica/defecto" not in names:
-        fail("musica.tema ya no apunta al OGG usado como Absurdism.")
-
-    ogg = RES / "sounds/musica/defecto.ogg"
-    if not ogg.is_file() or ogg.stat().st_size < 64:
-        fail("Falta la pista empaquetada sounds/musica/defecto.ogg.")
-
-    music_doc = read(ROOT / "docs/musica.md")
-    if "Absurdism" not in music_doc:
-        fail("docs/musica.md no identifica la pista incluida como Absurdism.")
-    for token in ("Absurdism", "REQUIEM", "Upon the Hill V2", "music/upon_the_hill_v2_q4.ogg"):
-        if token not in music_doc:
-            fail(f"docs/musica.md perdio el catalogo musical: {token}")
-
-    for event_name, resource in (("musica.requiem", "jobsmenu:musica/requiem"),
-                                 ("musica.upon_hill", "jobsmenu:musica/upon_the_hill_v2")):
+    expected = {
+        "musica.tema": "jobsmenu:musica/defecto",
+        "musica.requiem": "jobsmenu:musica/requiem",
+        "musica.upon_hill": "jobsmenu:musica/upon_the_hill_v2",
+    }
+    for event_name, resource in expected.items():
         event = sounds.get(event_name)
         if not isinstance(event, dict):
             fail(f"sounds.json no contiene {event_name}.")
-        names = [item if isinstance(item, str) else item.get("name") for item in event.get("sounds", [])]
+        names = [item if isinstance(item, str) else item.get("name")
+                 for item in event.get("sounds", []) if isinstance(item, (str, dict))]
         if resource not in names:
             fail(f"{event_name} no apunta a {resource}.")
 
@@ -243,6 +191,9 @@ def verify_music_session() -> None:
         if not ogg.is_file() or ogg.stat().st_size < 64:
             fail(f"Falta pista empaquetada: {filename}")
 
+    music_doc = read(ROOT / "docs/musica.md")
+    require(music_doc, ("Absurdism", "REQUIEM", "Upon the Hill V2",
+                        "music/upon_the_hill_v2_q4.ogg"), "docs/musica.md")
 
 
 def verify_ambient_catalog() -> None:
@@ -250,26 +201,20 @@ def verify_ambient_catalog() -> None:
     layer = read(JAVA / "client/sound/CapaAmbiente.java")
     for level in range(18, 32):
         if manager.count(f"case {level}:") < 3:
-            fail(f"Nivel {level} no tiene las tres camas ambientales explicitas.")
+            fail(f"Nivel {level} no tiene tres camas ambientales explicitas.")
         if manager.count(f"case {level} ->") < 2:
-            fail(f"Nivel {level} no tiene repertorio y espera ambiental explicitos.")
+            fail(f"Nivel {level} no tiene repertorio/espera ambiental explicitos.")
         if f"case {level} -> papel" not in layer:
             fail(f"Nivel {level} no tiene balance de capas propio.")
-    for token in ("tonoNivel(nivel, papel)", "private static float tonoNivel"):
-        if token not in layer:
-            fail(f"CapaAmbiente perdio afinacion por fondo: {token}")
+    require(layer, ("tonoNivel(nivel, papel)", "private static float tonoNivel"), "CapaAmbiente")
 
 
 def verify_audio_sources() -> None:
     for path in (ROOT / "music/REQUIEM-Forsaken-OST.ogg", ROOT / "music/upon_the_hill_v2_q4.ogg"):
         if not path.is_file() or path.stat().st_size < 64:
             fail(f"Falta fuente OGG autorizada: {path.relative_to(ROOT)}")
-    legacy = (
-        ROOT / ".github/workflows/integrar_pista_autorizada.yml",
-        ROOT / "tools/cobalt_transport.py",
-        ROOT / "tools/integrar_pista.trigger",
-    )
-    for path in legacy:
+    for path in (ROOT / ".github/workflows/integrar_pista_autorizada.yml",
+                 ROOT / "tools/cobalt_transport.py", ROOT / "tools/integrar_pista.trigger"):
         if path.exists():
             fail(f"Sigue presente infraestructura de audio obsoleta: {path.relative_to(ROOT)}")
 
@@ -282,16 +227,11 @@ def main() -> int:
         verify_music_session()
         verify_ambient_catalog()
         verify_audio_sources()
-        print("UI neutra, bajo consumo y robustez 0.36: OK")
-        print("Cierre directo de Multiplayer y gameplay sin transiciones: OK")
-        print("Composicion adaptativa del main: OK")
-        print("Reproductor musical de sesion: OK")
-        print("Catalogo musical de tres pistas: OK")
-        print("Identidad ambiental de 32 niveles: OK")
-        print("Lecturas semanticas de sliders: OK")
+        print("UI, navegacion natural, gameplay y audio Jobs: OK")
+        print("Composicion adaptativa y catalogo musical/ambiental: OK")
         return 0
     except Exception as exc:
-        print(f"ERROR catalogo musical: {exc}", file=sys.stderr)
+        print(f"ERROR verificacion UI/musica: {exc}", file=sys.stderr)
         return 1
 
 

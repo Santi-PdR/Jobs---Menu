@@ -1,14 +1,33 @@
 # Registro de cambios
 
+## 0.41.1 — Flujo gráfico natural del modpack — 2026-09-06
+
+### Gráficos / compatibilidad
+
+- Se corrige la regresión de 0.41.0 que abría la GUI gráfica mediante un puente específico de Embeddium y podía saltarse modificaciones de otros mods.
+- `PantallaOpcionesJobs` pasa a heredar de `OptionsScreen` y ejecuta su `init()` real antes de construir el chrome Jobs.
+- El botón **Gráficos** de Jobs conserva y ejecuta el `onPress()` del botón natural `options.video` después de los hooks del modpack.
+- La captura se repite en el primer render y justo antes de abrir Gráficos para recoger sustituciones tardías realizadas por Forge/mixins.
+- Los widgets externos usados como backend quedan invisibles para evitar controles/hitboxes visuales debajo del panel Jobs.
+- Jobs no llama `OptionsScreen.render()`, porque esa ruta volvería a dibujar fondo/título vanilla; sólo renderiza sus widgets propios.
+- Se elimina `CompatGraficos`: no hay `ConfigScreenFactory`, lookup directo de `embeddium`, reflection ni construcción directa de `VideoSettingsScreen` desde Jobs.
+- Se conserva `esVideoIntocable()` para que la GUI gráfica resultante quede fuera de chrome, transiciones y reemplazo de clicks Jobs.
+
+### Verificación / documentación
+
+- `tools/verificar_graficos_041.py` ahora exige delegación al `OptionsScreen` natural y prohíbe volver a introducir un proveedor gráfico directo.
+- `tools/verificar_ui_musica.py` se simplifica y actualiza para proteger los contratos vigentes sin depender de la antigua regla “Video Settings vanilla”.
+- README, CONTEXTO, KNOWN_ISSUES, checklist y compatibilidad se actualizan a 0.41.1.
+- Versión: **0.41.1**.
+- Artefacto esperado: **`jobsmenu-0.41.1.jar`**.
+
 ## 0.41.0 — Runtime, audio, Embeddium y continuidad Multiplayer — 2026-09-06
 
 ### Gráficos / Embeddium
 
-- El botón **Gráficos** deja de forzar `VideoSettingsScreen` cuando Embeddium está instalado.
-- Nuevo `CompatGraficos` consume el `ConfigScreenHandler.ConfigScreenFactory` que Embeddium registra oficialmente en Forge; no existe reflection ni dependencia directa de sus clases internas.
-- Si `embeddium` no está presente, no expone factory o falla al construir su GUI, se conserva `VideoSettingsScreen` vanilla como fallback seguro.
-- `EscuchaCliente.esVideoIntocable()` reconoce `SodiumOptionsGUI` de Embeddium 1.20.1, las GUI actuales de Embeddium y pantallas gráficas de Iris/Oculus; Jobs no les dibuja chrome/bandas/transiciones ni sustituye clicks.
-- El diagnóstico oculto muestra presencia de Embeddium, aperturas mediante su factory y cantidad de fallbacks vanilla.
+- El botón **Gráficos** dejó de forzar `VideoSettingsScreen` cuando Embeddium estaba instalado.
+- Se introdujo `CompatGraficos` para consumir directamente el `ConfigScreenHandler.ConfigScreenFactory` de Embeddium.
+- Esta integración resolvía Embeddium, pero 0.41.1 la reemplaza porque podía saltarse hooks/opciones añadidos por otros mods al flujo natural de `OptionsScreen`.
 
 ### Audio / lifecycle
 
@@ -22,33 +41,23 @@
 
 - `GestorMusica.atender()` deja de llamar `MusicManager.stopPlaying()` cada tick.
 - Una visita nueva corta el MusicManager una vez.
-- Nuevo `BloqueoMusicaVanillaJobs` cancela nuevas instancias `SoundSource.MUSIC` durante la sesión Jobs, manteniendo la banda sonora del menú exclusiva sin polling de stop.
+- `BloqueoMusicaVanillaJobs` cancela nuevas instancias `SoundSource.MUSIC` durante la sesión Jobs.
 
 ### Multiplayer
 
 - F5/Actualizar conserva selección por IP y posición de scroll de `ServerSelectionList`.
 - La lista reconstruida restaura una Entry nueva y después aplica `setScrollAmount()`.
-- `resize()` conserva ese mismo contexto antes de reconstruir widgets, de modo que maximizar, redimensionar o cambiar GUI Scale no manda la lista al inicio.
-- `ServerList.save()` sólo se ejecuta cuando la normalización del servidor oficial realmente cambia nombre, duplicados, posición o alta/baja.
+- `resize()` conserva ese mismo contexto antes de reconstruir widgets.
+- `ServerList.save()` sólo se ejecuta cuando la normalización del servidor oficial realmente cambia datos.
 
 ### Config / rendimiento UI
 
 - Setters boolean/int omiten valores idénticos y no programan escrituras TOML innecesarias.
 - Perfil accesible modifica sólo los campos que requieren cambio.
-- Se añaden contadores internos de cambios aplicados/omitidos/guardados para diagnóstico.
-- Hover de controles vanilla preservados usa una caché de `AbstractButton` reconstruida al inicializar/cambiar Screen, evitando recorrer todos los hijos por frame.
-- El detector de GUI gráfica deja de convertir el nombre de clase a minúsculas en cada consulta y usa prefijos conocidos, reduciendo trabajo y cubriendo correctamente `SodiumOptionsGUI`.
+- Hover de controles vanilla preservados usa una caché de `AbstractButton`.
+- Diagnóstico y verificadores runtime se amplían.
 
-### Diagnóstico y CI
-
-- Diagnóstico oculto añade estado interno/cierres de sesión, FX puntuales activos/registrados/purgados, métricas de config y proveedor gráfico.
-- `tools/verificar_runtime_041.py` protege audio puntual, cierre idempotente, bloqueo MUSIC, config, hover y Multiplayer.
-- Nuevo `tools/verificar_graficos_041.py` protege factory Embeddium, fallback vanilla y aislamiento de GUI externa.
-- GitHub Actions actualiza `actions/checkout` a v7 y mantiene build real con Java 17.
-- README, CONTEXTO, KNOWN_ISSUES, checklist, compatibilidad, música, despliegue e índice documental se sincronizan con 0.41.0.
-- Nueva auditoría `docs/AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md`.
-- Versión: **0.41.0**.
-- Artefacto esperado: **`jobsmenu-0.41.0.jar`**.
+- Versión: **0.41.0**; artefacto **`jobsmenu-0.41.0.jar`**.
 
 ## 0.40.0 — Identidad musical y hard-stop reforzado — 2026-09-05
 
@@ -56,7 +65,7 @@
 
 - `GestorMusica` deja de usar `SoundEvents.MUSIC_MENU` como fallback. Una pista Jobs faltante se omite/reintenta sin reproducir música vanilla.
 - El catálogo de Absurdism, REQUIEM y Upon the Hill V2 pasa a `CATALOGO`, construido una sola vez por JVM.
-- `catalogo()` devuelve la misma estructura y título/autor/cantidad consultan el catálogo estático, eliminando arrays repetidos durante sesión/HUD/crossfade.
+- `catalogo()` devuelve la misma estructura y título/autor/cantidad consultan el catálogo estático.
 - Los cambios fijo/manual/automático resuelven primero la pista entrante; la actual no empieza a retirarse si la nueva no pudo crearse.
 - El aviso de pista faltante se limita a una advertencia por visita/reload.
 
