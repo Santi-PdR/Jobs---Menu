@@ -6,7 +6,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraftforge.registries.RegistryObject;
 
 /**
@@ -175,12 +174,19 @@ public final class MezclaAudio {
         return null;
     }
 
-    /** Un sonido de ambiente suelto, sin posicion, con tono y volumen dados. */
-    public static void ambiental(RegistryObject<SoundEvent> evento, float volumen, float tono) {
-        SoundEvent sonido = resolver(evento, SoundEvents.AMBIENT_CAVE.value());
-        Minecraft.getInstance().getSoundManager()
-                .play(SimpleSoundInstance.forUI(sonido, tono,
+    /**
+     * Sonido puntual de ambiente Jobs. Si falta su registro, se omite: un FX
+     * Jobs nunca debe convertirse en una cueva vanilla. La instancia se guarda
+     * para poder detenerla al entrar a gameplay.
+     */
+    public static SoundInstance ambiental(RegistryObject<SoundEvent> evento, float volumen, float tono) {
+        SoundEvent sonido = resolver(evento, null);
+        if (sonido == null) return null;
+        SoundInstance instancia = RastreadorAudioJobs.registrar(
+                SimpleSoundInstance.forUI(sonido, tono,
                         volumen * ConfigTurno.volumenAviso()));
+        Minecraft.getInstance().getSoundManager().play(instancia);
+        return instancia;
     }
 
     /**
@@ -188,9 +194,8 @@ public final class MezclaAudio {
      *
      * Un JAR viejo, un registro de otro entorno o una carga parcial de recursos
      * puede dejar un RegistryObject sin valor. get() lanza en ese caso, y el
-     * camino de dibujo de un widget no debe propagarlo. Los gestos de interfaz
-     * nunca usan audio vanilla; los otros consumidores conservan un respaldo
-     * seguro o pueden omitir una capa ambiental.
+     * camino de dibujo de un widget no debe propagarlo. El consumidor decide si
+     * pasa un respaldo o si prefiere omitir el sonido con null.
      */
     public static SoundEvent resolver(RegistryObject<SoundEvent> evento, SoundEvent respaldo) {
         if (evento != null && evento.isPresent()) {
@@ -199,8 +204,14 @@ public final class MezclaAudio {
         if (!avisoRegistroFaltante) {
             avisoRegistroFaltante = true;
             com.santipdr.jobsmenu.JobsMenu.LOG.warn(
-                    "[jobsmenu] Falta un SoundEvent registrado; se usara un respaldo seguro.");
+                    "[jobsmenu] Falta un SoundEvent registrado; se aplicara el respaldo configurado.");
         }
         return respaldo;
+    }
+
+    /** Un reload abre una nueva ventana de diagnostico para registros faltantes. */
+    public static void recursosRecargados() {
+        avisoRegistroFaltante = false;
+        ultimoRoceNanos = 0L;
     }
 }
