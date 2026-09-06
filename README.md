@@ -4,14 +4,26 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 
 | Campo | Valor |
 |---|---|
-| Versión | **0.42.0** |
-| Artefacto | **`jobsmenu-0.42.0.jar`** |
+| Versión | **0.43.0** |
+| Artefacto | **`jobsmenu-0.43.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
 | Lado | **Cliente** |
 | Rama entregable | **`main`** |
 | Niveles | **32 (0–31)** |
+
+## 0.43.0 · UX, perfiles exactos y navegación endurecida
+
+0.43.0 pule flujos que ya funcionaban pero todavía podían dar estados engañosos o salidas poco naturales.
+
+- **Los perfiles ahora se detectan por coincidencia real.** EQUILIBRADO, INMERSIVO, RENDIMIENTO, ACCESIBLE y MÍNIMO sólo aparecen como activos si todos los valores que controla ese preset coinciden con él.
+- Si se cambia manualmente una opción relevante, el indicador pasa a **CUSTOM** en vez de seguir mostrando un perfil que ya no representa la configuración actual.
+- Los campos que un preset no modifica —por ejemplo pista musical o nivel fijo— no rompen su identidad.
+- En **Mundos** y **Mods**, `Ctrl+F` mantiene el foco de búsqueda; `ESC` limpia primero el filtro, luego suelta el foco y sólo después vuelve a la pantalla anterior.
+- Mundos y Mods tienen cierre **idempotente** para que ESC, botón de cierre y callbacks cercanos no intenten cambiar de Screen más de una vez.
+- El aislamiento externo de 0.42 se cierra por completo: un subflujo ajeno que termine en `TitleScreen` o intente abrir una pausa vanilla tampoco es capturado por Jobs mientras siga marcado como externo.
+- Nuevo `tools/verificar_ux_043.py` y nueva etapa CI para proteger estos contratos.
 
 ## 0.42.0 · Compatibilidad natural con el modpack
 
@@ -83,7 +95,7 @@ Servidor fijado único: `JobsDosh.exaroton.me:56477`.
 
 ## Build y entrega
 
-GitHub Actions ejecuta política de versión/tag, fondos, verificador general, UI/música, continuidad Multiplayer/docs, optimización, créditos/reload, identidad musical/hard-stop, runtime 0.41 y compatibilidad 0.42 antes del build Forge real con Java 17. `dev-latest` sólo se publica desde `main` verde. El orden final es **publicar JAR → mover tag → limpiar assets obsoletos** y el tag debe terminar apuntando al mismo commit publicado.
+GitHub Actions ejecuta política de versión/tag, fondos, verificador general, UI/música, continuidad Multiplayer/docs, optimización, créditos/reload, identidad musical/hard-stop, runtime 0.41, compatibilidad 0.42 y UX/navegación 0.43 antes del build Forge real con Java 17. `dev-latest` sólo se publica desde `main` verde. El orden final es **publicar JAR → mover tag → limpiar assets obsoletos** y el tag debe terminar apuntando al mismo commit publicado.
 
 Instancia de prueba:
 
@@ -99,4 +111,4 @@ Instancia de prueba:
 - [`docs/compatibilidad.md`](docs/compatibilidad.md): fronteras con vanilla/Forge/mods.
 - [`docs/musica.md`](docs/musica.md): catálogo y lifecycle de audio.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): publicación e instalación.
-- [`docs/AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md`](docs/AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md): detalle de esta tanda.
+- [`docs/AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md`](docs/AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md): compatibilidad externa de la tanda anterior.
