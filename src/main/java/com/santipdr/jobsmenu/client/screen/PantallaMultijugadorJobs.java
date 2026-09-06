@@ -8,6 +8,7 @@ import com.santipdr.jobsmenu.client.ui.ListasExpediente;
 import com.santipdr.jobsmenu.client.ui.Paleta;
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
@@ -39,8 +40,8 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
             Tooltip.create(Component.translatable("jobsmenu.tooltip.servidor.eliminar"));
 
     private final Screen pantallaPadre;
-    private final String servidorPreferido;
-    private final double scrollPreferido;
+    private String servidorPreferido;
+    private double scrollPreferido;
     private Button realSelect, realDirect, realAdd, realEdit, realDelete;
     private BotonExpediente select, edit, delete, refresh;
     private int panelX, panelY, panelW, panelH;
@@ -97,6 +98,24 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         restaurarScrollPreferido();
         prepararRotulos();
         crearBotones();
+    }
+
+    /**
+     * Screen.resize vuelve a ejecutar init(). Guardamos antes la posicion de la
+     * lista y el servidor seleccionado para que cambiar de escala GUI, maximizar
+     * o redimensionar la ventana no mande al usuario otra vez al principio.
+     */
+    @Override
+    public void resize(Minecraft minecraft, int width, int height) {
+        String seleccion = ipSeleccionada();
+        if (seleccion != null && !seleccion.isBlank()) {
+            this.servidorPreferido = seleccion;
+        }
+        double scroll = scrollActual();
+        if (scroll >= 0.0D) {
+            this.scrollPreferido = scroll;
+        }
+        super.resize(minecraft, width, height);
     }
 
     private void prepararRotulos() {
