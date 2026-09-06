@@ -55,6 +55,8 @@ jobs:
         run: python3 tools/verificar_reload_creditos.py
       - name: Verify music identity and hard-stop
         run: python3 tools/verificar_audio_identidad.py
+      - name: Verify runtime, config and Multiplayer 0.41
+        run: python3 tools/verificar_runtime_041.py
       - name: Prepare Gradle wrapper
         run: chmod +x gradlew
       - name: Build Forge mod
