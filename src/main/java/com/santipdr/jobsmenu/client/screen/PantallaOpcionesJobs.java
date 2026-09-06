@@ -1,36 +1,50 @@
 package com.santipdr.jobsmenu.client.screen;
 
-import com.santipdr.jobsmenu.client.CompatGraficos;
 import com.santipdr.jobsmenu.client.ui.BotonExpediente;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractButton;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.VideoSettingsScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.repository.PackRepository;
 
-/** Centro de control de Jobs: la configuracion del mod tiene jerarquia propia. */
-public final class PantallaOpcionesJobs extends Screen {
+/** Centro de control de Jobs: la configuracion conserva el flujo real de OptionsScreen. */
+public final class PantallaOpcionesJobs extends OptionsScreen {
 
     private static final int PANEL_MAX_W = 404;
     private static final int PANEL_MAX_H = 288;
+    private static final Component TITULO_JOBS =
+            Component.translatable("jobsmenu.interfaz.opciones.titulo");
 
     private final Screen anterior;
     private final Options opciones;
+    private AbstractButton botonVideoNatural;
+    private boolean integracionNaturalFinalizada;
+    private long aperturasVideoNaturales;
     private int panelX, panelY, panelW, panelH;
     private boolean compacta;
 
     public PantallaOpcionesJobs(Screen anterior, Options opciones) {
-        super(Component.translatable("jobsmenu.interfaz.opciones.titulo"));
+        super(anterior, opciones);
         this.anterior = anterior;
         this.opciones = opciones;
     }
 
     @Override
     protected void init() {
+        this.botonVideoNatural = null;
+        this.integracionNaturalFinalizada = false;
+
+        // Construye primero el OptionsScreen real. Mixins que sustituyen la
+        // accion de Graficos trabajan sobre esta misma instancia Jobs.
+        super.init();
+        sincronizarControlesNaturales();
+
         this.panelW = Math.max(1, Math.min(PANEL_MAX_W, this.width - 12));
         this.panelH = Math.max(1, Math.min(PANEL_MAX_H, this.height - 12));
         this.panelX = (this.width - this.panelW) / 2;
@@ -77,6 +91,35 @@ public final class PantallaOpcionesJobs extends Screen {
         volver.setTooltip(Tooltip.create(Component.translatable("jobsmenu.tooltip.volver")));
     }
 
+    /**
+     * Conserva los controles naturales como fuente de comportamiento, pero no
+     * los deja visibles ni clickeables debajo del chrome Jobs. Se repite en el
+     * primer render porque Forge permite que otros mods alteren OptionsScreen
+     * despues de que init() haya terminado.
+     */
+    private void sincronizarControlesNaturales() {
+        String video = Component.translatable("options.video").getString();
+        AbstractButton encontrado = null;
+
+        for (var child : this.children()) {
+            String clase = child.getClass().getName();
+            boolean jobs = clase.startsWith("com.santipdr.jobsmenu.");
+            if (jobs) continue;
+
+            if (child instanceof AbstractButton boton
+                    && video.equals(boton.getMessage().getString())) {
+                encontrado = boton;
+            }
+            if (child instanceof AbstractWidget widget) {
+                widget.visible = false;
+            }
+        }
+
+        if (encontrado != null) {
+            this.botonVideoNatural = encontrado;
+        }
+    }
+
     private void boton(int x, int y, int w, int h, String clave, String ayuda, Runnable accion) {
         BotonExpediente boton = this.addRenderableWidget(new BotonExpediente(
                 x, y, w, h, Component.translatable(clave), BotonExpediente.Tipo.NORMAL, accion));
@@ -85,9 +128,16 @@ public final class PantallaOpcionesJobs extends Screen {
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        // Init.Post de Forge ya termino cuando llega el primer render. Esta
+        // segunda captura recoge botones sustituidos/agregados por otros mods.
+        if (!this.integracionNaturalFinalizada) {
+            sincronizarControlesNaturales();
+            this.integracionNaturalFinalizada = true;
+        }
+
         ChromeExpediente.fondo(g, this.width, this.height);
         ChromeExpediente.panel(g, panelX, panelY, panelW, panelH);
-        ChromeExpediente.cabecera(g, this.font, this.title,
+        ChromeExpediente.cabecera(g, this.font, TITULO_JOBS,
                 Component.translatable("jobsmenu.interfaz.opciones.subtitulo"), panelX, panelY, panelW);
 
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
@@ -104,13 +154,22 @@ public final class PantallaOpcionesJobs extends Screen {
     }
 
     private void abrirVideo() {
-        // Embeddium registra su pantalla mediante el extension point oficial de
-        // Forge. Jobs la usa si esta disponible y solo cae a vanilla si no hay
-        // proveedor grafico externo o si este falla al construir su Screen.
-        Screen embeddium = CompatGraficos.crearPantallaEmbeddium(this.minecraft, this);
-        this.minecraft.setScreen(embeddium != null
-                ? embeddium
-                : new VideoSettingsScreen(this, this.opciones));
+        // Nunca construye una pantalla grafica por su cuenta. Ejecuta el boton
+        // que el OptionsScreen real termino teniendo despues de los hooks del
+        // modpack. Esto conserva Embeddium y cualquier otra integracion.
+        sincronizarControlesNaturales();
+        if (this.botonVideoNatural != null && this.botonVideoNatural.active) {
+            this.aperturasVideoNaturales++;
+            this.botonVideoNatural.onPress();
+        }
+    }
+
+    public boolean videoNaturalDisponibleParaDiagnostico() {
+        return this.botonVideoNatural != null;
+    }
+
+    public long aperturasVideoNaturalesParaDiagnostico() {
+        return this.aperturasVideoNaturales;
     }
 
     private void abrirControles() {
