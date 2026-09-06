@@ -94,7 +94,7 @@ public final class PantallaOpcionesJobs extends OptionsScreen {
 
         BotonExpediente natural = this.addRenderableWidget(new BotonExpediente(
                 this.width / 2 - volverW / 2, naturalY, volverW, volverH,
-                Component.translatable("options.title"),
+                Component.literal("MODPACK"),
                 BotonExpediente.Tipo.NORMAL, this::abrirOpcionesModpack));
         natural.setTooltip(Tooltip.create(Component.translatable("jobsmenu.interfaz.opciones.subtitulo")));
 
