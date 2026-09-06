@@ -84,15 +84,19 @@ public final class PantallaOpcionesJobs extends OptionsScreen {
         boton(x1, sy + paso * 2, bw, bh, "options.chat.title", "jobsmenu.tooltip.chat", this::abrirChat);
         boton(x0, sy + paso * 3, bw, bh, "resourcePack.title", "jobsmenu.tooltip.recursos", this::abrirPaquetes);
         boton(x1, sy + paso * 3, bw, bh, "options.accessibility.title", "jobsmenu.tooltip.accesibilidad", this::abrirAccesibilidad);
-        boton(x0, sy + paso * 4, bw, bh,
+        boton(x0, sy + paso * 4, anchoUtil, bh,
                 "options.online.title", "jobsmenu.tooltip.online", this::abrirOnline);
-        boton(x1, sy + paso * 4, bw, bh,
-                "jobsmenu.interfaz.opciones.modpack", "jobsmenu.tooltip.opciones.modpack",
-                this::abrirOpcionesModpack);
 
         int volverH = compacta ? 19 : 22;
         int volverY = this.panelY + this.panelH - volverH - 8;
         int volverW = Math.min(160, anchoUtil);
+        int naturalY = volverY - volverH - (compacta ? 3 : 5);
+
+        BotonExpediente natural = this.addRenderableWidget(new BotonExpediente(
+                this.width / 2 - volverW / 2, naturalY, volverW, volverH,
+                Component.translatable("options.title"),
+                BotonExpediente.Tipo.NORMAL, this::abrirOpcionesModpack));
+        natural.setTooltip(Tooltip.create(Component.translatable("jobsmenu.interfaz.opciones.subtitulo")));
 
         BotonExpediente volver = this.addRenderableWidget(new BotonExpediente(
                 this.width / 2 - volverW / 2, volverY, volverW, volverH,
