@@ -37,6 +37,9 @@ def verify_search() -> None:
         "this.lista.setScrollAmount(this.scrollConservado);",
         "GLFW.GLFW_KEY_ENTER",
         "GLFW.GLFW_KEY_ESCAPE",
+        "this.anterior.abrirCategoriaDesdeBusqueda(ajuste.categoria());",
+    ), "PantallaBuscarAjustesJobs")
+    forbid(search, (
         "this.anterior.keyPressed(GLFW.GLFW_KEY_1 + ajuste.categoria(), 0, 0);",
     ), "PantallaBuscarAjustesJobs")
 
