@@ -23,6 +23,8 @@ def forbid(text: str, token: str, where: str) -> None:
 def main() -> None:
     if (JAVA / "client/CompatGraficos.java").exists():
         raise RuntimeError("CompatGraficos no debe existir.")
+    if (ROOT / "tools/verificar_graficos_041.py").exists():
+        raise RuntimeError("El verificador grafico 0.41 ya no representa el contrato proveedor-agnostico.")
 
     options = read(JAVA / "client/screen/PantallaOpcionesJobs.java")
     for token in (
