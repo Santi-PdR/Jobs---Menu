@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 
 | Campo | Valor |
 |---|---|
-| Versión | **0.43.0** |
-| Artefacto | **`jobsmenu-0.43.0.jar`** |
+| Versión | **0.44.0** |
+| Artefacto | **`jobsmenu-0.44.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,47 +13,42 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 | Rama entregable | **`main`** |
 | Niveles | **32 (0–31)** |
 
+## 0.44.0 · Gráficos intocable y navegación de configuración corregida
+
+0.44.0 elimina la integración gráfica compleja introducida en 0.41.1/0.42 y corrige el bucle de navegación asociado al botón MODPACK.
+
+- **MODPACK fue eliminado por completo.** No existe botón, permiso de un solo uso ni `OptionsScreen` natural alternativo.
+- `PantallaOpcionesJobs` vuelve a ser una `Screen` Jobs normal. Ya no hereda de `OptionsScreen`, no ejecuta `super.init()`, no crea widgets vanilla/modded ocultos y no usa un botón gráfico invisible como backend.
+- **Gráficos no es dibujado, envuelto, recolocado ni modificado por Jobs.** Con Embeddium instalado se pide a Forge la `ConfigScreenFactory` registrada por el propio Embeddium y se abre la Screen devuelta tal cual.
+- Sin Embeddium, el fallback es `VideoSettingsScreen` vanilla, también declarado superficie intocable por el listener.
+- Jobs no enlaza clases internas de Embeddium/Sodium ni usa reflection para abrir Gráficos.
+- Se elimina el estado `permitirOptionsNaturalUnaVez` y la lógica que provocaba que al entrar por MODPACK el retorno pudiera quedar atrapado en Opciones.
+- Las sustituciones administrativas ya no se habilitan sólo porque `SesionMenu` esté activa. Ahora sólo se aplican cuando la navegación nace desde padres Jobs concretos (`PantallaNivel`, `PantallaEstancia` u `PantallaOpcionesJobs`).
+- Opciones Jobs tiene cierre idempotente para evitar dobles `setScreen()`.
+- El callback de resource packs evita reconstruir la misma Screen si ya está activa.
+- Nuevo `tools/verificar_graficos_044.py` protege este contrato.
+
 ## 0.43.0 · UX, perfiles exactos y navegación endurecida
 
-0.43.0 pule flujos que ya funcionaban pero todavía podían dar estados engañosos o salidas poco naturales.
+- Los perfiles EQUILIBRADO, INMERSIVO, RENDIMIENTO, ACCESIBLE y MÍNIMO sólo aparecen activos cuando la configuración coincide realmente con el preset.
+- Una edición manual relevante pasa a **CUSTOM**.
+- En Mundos y Mods, `Ctrl+F` enfoca búsqueda; ESC limpia filtro, luego suelta foco y después vuelve.
+- Mundos y Mods conservan cierre idempotente.
+- Los subflujos externos quedan fuera de TitleScreen/pausa Jobs mientras siguen siendo externos.
 
-- **Los perfiles ahora se detectan por coincidencia real.** EQUILIBRADO, INMERSIVO, RENDIMIENTO, ACCESIBLE y MÍNIMO sólo aparecen como activos si todos los valores que controla ese preset coinciden con él.
-- Si se cambia manualmente una opción relevante, el indicador pasa a **CUSTOM** en vez de seguir mostrando un perfil que ya no representa la configuración actual.
-- Los campos que un preset no modifica —por ejemplo pista musical o nivel fijo— no rompen su identidad.
-- En **Mundos** y **Mods**, `Ctrl+F` mantiene el foco de búsqueda; `ESC` limpia primero el filtro, luego suelta el foco y sólo después vuelve a la pantalla anterior.
-- Mundos y Mods tienen cierre **idempotente** para que ESC, botón de cierre y callbacks cercanos no intenten cambiar de Screen más de una vez.
-- El aislamiento externo de 0.42 se cierra por completo: un subflujo ajeno que termine en `TitleScreen` o intente abrir una pausa vanilla tampoco es capturado por Jobs mientras siga marcado como externo.
-- Nuevo `tools/verificar_ux_043.py` y nueva etapa CI para proteger estos contratos.
+## Compatibilidad de pantallas externas
 
-## 0.42.0 · Compatibilidad natural con el modpack
+Las pantallas cuyo código no pertenece a `net.minecraft.*`, `net.minecraftforge.*` o Jobs se consideran de terceros y quedan fuera de la intervención Jobs. Además, `VideoSettingsScreen` vanilla es intocable de forma explícita.
 
-0.42.0 extiende la idea iniciada en 0.41.1: Jobs deja de conocer proveedores concretos y trata las pantallas de otros mods como propiedad exclusiva de esos mods.
+En esas superficies Jobs no aplica:
 
-- **Gráficos sigue el botón real de `OptionsScreen`.** Jobs no construye Embeddium, Sodium, Oculus, Iris ni `VideoSettingsScreen` por su cuenta.
-- La delegación guarda también la **ranura original** del botón de vídeo. Si un mod reemplaza el control y además cambia su etiqueta, Jobs puede reconocer el sustituto por su posición/tamaño y conservar su callback natural.
-- Opciones Jobs añade **MODPACK**, una salida deliberada al `OptionsScreen` completo y natural. Sirve para acceder a botones, categorías e inyecciones que otros mods añadan y que Jobs no conoce.
-- Al entrar por MODPACK se marca un **subflujo externo**: si esa pantalla abre después una GUI de otro mod o incluso una Screen vanilla, Jobs no le agrega chrome, bandas, transiciones, hover, clicks ni redirecciones internas.
-- Las pantallas cuyo código no pertenece a `net.minecraft.*`, `net.minecraftforge.*` o Jobs se consideran **pantallas de terceros** y quedan fuera de la intervención Jobs.
-- `VideoSettingsScreen` vanilla sigue siendo intocable aunque pertenezca al paquete de Minecraft.
-- Se eliminan las listas de paquetes específicos de Embeddium/Sodium/Iris del listener: la compatibilidad ya no depende del nombre de clase de un proveedor concreto.
-- El trabajo de `ListasExpediente` se omite también en superficies externas, evitando scans/cachés innecesarios dentro de GUI ajenas.
-- El pipeline publica primero el JAR, después mueve el tag Git `dev-latest` al `GITHUB_SHA` y al final limpia assets Jobs obsoletos. Así el tag no se adelanta a una publicación fallida.
-- Nuevo `tools/verificar_compatibilidad_042.py`; el antiguo verificador gráfico específico de 0.41 se retira.
+- skin o chrome;
+- banda contextual;
+- transiciones;
+- hover/click reemplazado;
+- recolocación o estilizado de listas.
 
-## Estado heredado 0.41
-
-Se mantienen:
-
-- FX puntuales Jobs rastreados y con hard-stop al cerrar visita o entrar a gameplay;
-- sin fallback a `minecraft:ambient.cave` ni `minecraft:music.menu`;
-- cierre de sesión idempotente;
-- música vanilla sin `stopPlaying()` por tick;
-- F5/Actualizar conserva servidor seleccionado y scroll;
-- resize/maximizar/cambio de GUI Scale conserva selección y scroll de Multiplayer;
-- `servers.dat` sólo se guarda si realmente cambió;
-- setters de Config omiten valores idénticos;
-- hover de controles vanilla preservados usa caché;
-- flujo gráfico natural de `OptionsScreen` sin `CompatGraficos`.
+El marcador de flujo externo se conserva mientras una GUI ajena abra subpantallas y se limpia al volver a una Screen Jobs.
 
 ## Audio
 
@@ -67,14 +62,14 @@ La música pertenece a `SesionMenu`, no a una Screen. Entrar a mundo/servidor ap
 
 ## Interfaz y gameplay
 
-- **Gráficos usa la misma ruta que usaría el `OptionsScreen` real del modpack.**
-- **MODPACK** abre el Options completo y natural como garantía de acceso a configuraciones añadidas por terceros;
-- pantallas de terceros y sus subflujos quedan completamente fuera de la intervención visual/input de Jobs;
-- chat, inventario, contenedores y UI normal de gameplay tampoco reciben piel, banda, transición ni sustitución global de clicks Jobs;
-- mientras `Minecraft.level != null` no se crea ni dibuja ninguna transición Jobs;
-- Pausa/Config Jobs pueden mantener tema y feedback breve sin reactivar música/ambiente;
-- el main no muestra la antigua barra visible de atajos;
-- ningún control visible debe quedar cubierto por una hitbox invisible.
+- **Gráficos se abre original y queda fuera de la tematización Jobs.**
+- No existe botón MODPACK.
+- Pantallas de terceros y sus subflujos quedan fuera de la intervención visual/input Jobs.
+- Chat, inventario, contenedores y UI normal de gameplay tampoco reciben piel, banda, transición ni sustitución global de clicks Jobs.
+- Mientras `Minecraft.level != null` no se crea ni dibuja ninguna transición Jobs.
+- Pausa/Config Jobs pueden mantener tema y feedback breve sin reactivar música/ambiente.
+- El main no muestra la antigua barra visible de atajos.
+- Ningún control visible debe quedar cubierto por una hitbox invisible.
 
 ## Multiplayer
 
@@ -83,10 +78,10 @@ Servidor fijado único: `JobsDosh.exaroton.me:56477`.
 - `Ghoul Outbreak` y duplicados legacy no reaparecen.
 - ESC y Cancelar vuelven al padre Jobs con una sola acción.
 - Cancelar conexión/error pre-login vuelve a Multiplayer Jobs.
-- salir/kick/pérdida de conexión desde servidor remoto vuelve a Multiplayer Jobs; mundo local vuelve al main Jobs.
+- Salir/kick/pérdida de conexión desde servidor remoto vuelve a Multiplayer Jobs; mundo local vuelve al main Jobs.
 - F5/Actualizar reconstruye Jobs directamente y conserva selección por IP **más scroll de lista**.
-- resize/maximizar/cambio de escala GUI conserva también selección y scroll.
-- abrir Multiplayer no reescribe `servers.dat` si el servidor oficial ya está correcto.
+- Resize/maximizar/cambio de escala GUI conserva también selección y scroll.
+- Abrir Multiplayer no reescribe `servers.dat` si el servidor oficial ya está correcto.
 
 ## Fondos
 
@@ -95,7 +90,7 @@ Servidor fijado único: `JobsDosh.exaroton.me:56477`.
 
 ## Build y entrega
 
-GitHub Actions ejecuta política de versión/tag, fondos, verificador general, UI/música, continuidad Multiplayer/docs, optimización, créditos/reload, identidad musical/hard-stop, runtime 0.41, compatibilidad 0.42 y UX/navegación 0.43 antes del build Forge real con Java 17. `dev-latest` sólo se publica desde `main` verde. El orden final es **publicar JAR → mover tag → limpiar assets obsoletos** y el tag debe terminar apuntando al mismo commit publicado.
+GitHub Actions ejecuta política de versión/tag, fondos, verificador general, UI/música, continuidad Multiplayer/docs, optimización, créditos/reload, identidad musical/hard-stop, runtime 0.41, aislamiento de terceros, UX 0.43 y Gráficos/Opciones 0.44 antes del build Forge real con Java 17. `dev-latest` sólo se publica desde `main` verde.
 
 Instancia de prueba:
 
@@ -111,4 +106,4 @@ Instancia de prueba:
 - [`docs/compatibilidad.md`](docs/compatibilidad.md): fronteras con vanilla/Forge/mods.
 - [`docs/musica.md`](docs/musica.md): catálogo y lifecycle de audio.
 - [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): publicación e instalación.
-- [`docs/AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md`](docs/AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md): compatibilidad externa de la tanda anterior.
+- [`docs/AUDITORIA_0.44.0_GRAFICOS_Y_NAVEGACION.md`](docs/AUDITORIA_0.44.0_GRAFICOS_Y_NAVEGACION.md): cambios y riesgos de esta tanda.
