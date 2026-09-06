@@ -178,21 +178,145 @@ public final class PerfilesJobs {
         ConfigTurno.fijarVolumenAmbiente(40);
     }
 
+    /**
+     * Devuelve un perfil solo cuando el estado actual coincide con todos los
+     * valores que ese preset controla. Antes bastaban dos o tres senales y una
+     * configuracion personalizada podia seguir apareciendo como EQUILIBRADO o
+     * INMERSIVO aunque ya no correspondiera. Los campos que el preset no toca,
+     * como pista musical o nivel fijo, se ignoran a proposito.
+     */
     public static Perfil actual() {
-        if (ConfigTurno.perfilAccesible()) return Perfil.ACCESIBLE;
-        if (ConfigTurno.interfazMinima() && ConfigTurno.bajoConsumo()) return Perfil.MINIMO;
-        if (ConfigTurno.bajoConsumo() && ConfigTurno.movimientoReducido()) return Perfil.RENDIMIENTO;
-        if (!ConfigTurno.bajoConsumo()
+        if (coincideAccesible()) return Perfil.ACCESIBLE;
+        if (coincideMinimo()) return Perfil.MINIMO;
+        if (coincideRendimiento()) return Perfil.RENDIMIENTO;
+        if (coincideInmersivo()) return Perfil.INMERSIVO;
+        if (coincideEquilibrado()) return Perfil.EQUILIBRADO;
+        return null;
+    }
+
+    private static boolean baseComunActual(boolean exigirEstadoVisible) {
+        return ConfigTurno.menuPropio()
+                && ConfigTurno.pausaPropia()
+                && ConfigTurno.escenaViva()
+                && ConfigTurno.rotarNivelesBruto()
+                && ConfigTurno.mostrarCuentaRegresivaBruto()
+                && ConfigTurno.mostrarFechaBruto()
+                && (!exigirEstadoVisible || ConfigTurno.mostrarEstadoInstalacion())
+                && ConfigTurno.sonidoBotones()
+                && ConfigTurno.sonidoAmbiente()
+                && ConfigTurno.musicaMenu()
+                && ConfigTurno.creditoMusica();
+    }
+
+    private static boolean coincideEquilibrado() {
+        return baseComunActual(true)
+                && !ConfigTurno.movimientoReducido()
+                && !ConfigTurno.destellosReducidos()
+                && !ConfigTurno.altoContraste()
+                && !ConfigTurno.textoGrande()
+                && !ConfigTurno.papelLimpio()
+                && !ConfigTurno.interfazMinima()
+                && ConfigTurno.guiaLectura()
+                && ConfigTurno.avisosRotativosBruto()
                 && ConfigTurno.eventosAmbientales()
                 && ConfigTurno.presenciaFondo()
-                && ConfigTurno.volumenAmbientePorcentaje() >= 64) {
-            return Perfil.INMERSIVO;
-        }
-        if (!ConfigTurno.bajoConsumo()
+                && ConfigTurno.respiracionCamara()
+                && ConfigTurno.suspensionRara()
+                && !ConfigTurno.rotacionCalma()
+                && !ConfigTurno.bajoConsumo()
+                && ConfigTurno.duracionEstancia() == 24
+                && ConfigTurno.duracionAvisos() == 7
+                && ConfigTurno.volumenAvisoPorcentaje() == 100
+                && ConfigTurno.volumenMusicaPorcentaje() == 70
+                && ConfigTurno.volumenAmbientePorcentaje() == 55;
+    }
+
+    private static boolean coincideInmersivo() {
+        return baseComunActual(true)
                 && !ConfigTurno.movimientoReducido()
-                && !ConfigTurno.interfazMinima()) {
-            return Perfil.EQUILIBRADO;
-        }
-        return null;
+                && !ConfigTurno.destellosReducidos()
+                && !ConfigTurno.altoContraste()
+                && !ConfigTurno.textoGrande()
+                && !ConfigTurno.papelLimpio()
+                && !ConfigTurno.interfazMinima()
+                && ConfigTurno.guiaLectura()
+                && ConfigTurno.avisosRotativosBruto()
+                && ConfigTurno.eventosAmbientales()
+                && ConfigTurno.presenciaFondo()
+                && ConfigTurno.respiracionCamara()
+                && ConfigTurno.suspensionRara()
+                && !ConfigTurno.rotacionCalma()
+                && !ConfigTurno.bajoConsumo()
+                && ConfigTurno.duracionEstancia() == 20
+                && ConfigTurno.duracionAvisos() == 6
+                && ConfigTurno.volumenAvisoPorcentaje() == 100
+                && ConfigTurno.volumenMusicaPorcentaje() == 76
+                && ConfigTurno.volumenAmbientePorcentaje() == 68;
+    }
+
+    private static boolean coincideRendimiento() {
+        return baseComunActual(true)
+                && ConfigTurno.movimientoReducido()
+                && ConfigTurno.destellosReducidos()
+                && !ConfigTurno.altoContraste()
+                && !ConfigTurno.textoGrande()
+                && ConfigTurno.papelLimpio()
+                && !ConfigTurno.interfazMinima()
+                && ConfigTurno.guiaLectura()
+                && ConfigTurno.avisosRotativosBruto()
+                && !ConfigTurno.eventosAmbientales()
+                && !ConfigTurno.presenciaFondo()
+                && !ConfigTurno.respiracionCamara()
+                && !ConfigTurno.suspensionRara()
+                && ConfigTurno.rotacionCalma()
+                && ConfigTurno.bajoConsumo()
+                && ConfigTurno.duracionEstancia() == 36
+                && ConfigTurno.duracionAvisos() == 9
+                && ConfigTurno.volumenAvisoPorcentaje() == 100
+                && ConfigTurno.volumenMusicaPorcentaje() == 62
+                && ConfigTurno.volumenAmbientePorcentaje() == 48;
+    }
+
+    private static boolean coincideAccesible() {
+        return baseComunActual(true)
+                && ConfigTurno.perfilAccesible()
+                && ConfigTurno.papelLimpio()
+                && !ConfigTurno.interfazMinima()
+                && ConfigTurno.guiaLectura()
+                && ConfigTurno.avisosRotativosBruto()
+                && !ConfigTurno.eventosAmbientales()
+                && !ConfigTurno.presenciaFondo()
+                && !ConfigTurno.respiracionCamara()
+                && !ConfigTurno.suspensionRara()
+                && ConfigTurno.rotacionCalma()
+                && !ConfigTurno.bajoConsumo()
+                && ConfigTurno.duracionEstancia() == 38
+                && ConfigTurno.duracionAvisos() == 10
+                && ConfigTurno.volumenAvisoPorcentaje() == 90
+                && ConfigTurno.volumenMusicaPorcentaje() == 52
+                && ConfigTurno.volumenAmbientePorcentaje() == 42;
+    }
+
+    private static boolean coincideMinimo() {
+        return baseComunActual(false)
+                && ConfigTurno.movimientoReducido()
+                && ConfigTurno.destellosReducidos()
+                && !ConfigTurno.altoContraste()
+                && !ConfigTurno.textoGrande()
+                && ConfigTurno.papelLimpio()
+                && ConfigTurno.interfazMinima()
+                && ConfigTurno.guiaLectura()
+                && !ConfigTurno.avisosRotativosBruto()
+                && !ConfigTurno.eventosAmbientales()
+                && !ConfigTurno.presenciaFondo()
+                && !ConfigTurno.respiracionCamara()
+                && !ConfigTurno.suspensionRara()
+                && ConfigTurno.rotacionCalma()
+                && ConfigTurno.bajoConsumo()
+                && ConfigTurno.duracionEstancia() == 45
+                && ConfigTurno.duracionAvisos() == 10
+                && ConfigTurno.volumenAvisoPorcentaje() == 85
+                && ConfigTurno.volumenMusicaPorcentaje() == 50
+                && ConfigTurno.volumenAmbientePorcentaje() == 40;
     }
 }
