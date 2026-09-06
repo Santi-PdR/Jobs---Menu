@@ -7,6 +7,7 @@ import net.minecraft.client.Options;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
@@ -25,7 +26,6 @@ public final class PantallaOpcionesJobs extends OptionsScreen {
     private final Options opciones;
     private AbstractButton botonVideoNatural;
     private boolean integracionNaturalFinalizada;
-    private long aperturasVideoNaturales;
     private int panelX, panelY, panelW, panelH;
     private boolean compacta;
 
@@ -142,7 +142,15 @@ public final class PantallaOpcionesJobs extends OptionsScreen {
 
         ChromeExpediente.esquinas(g, panelX, panelY, panelW, panelH);
         ChromeExpediente.pie(g, this.font, panelX, panelY, panelW, panelH, "CFG-014");
-        super.render(g, mouseX, mouseY, partialTick);
+
+        // OptionsScreen.render() vuelve a dibujar fondo y titulo vanilla. No se
+        // llama aqui: solo se renderizan los widgets Jobs ya registrados.
+        for (var child : this.children()) {
+            if (!child.getClass().getName().startsWith("com.santipdr.jobsmenu.")) continue;
+            if (child instanceof Renderable renderable) {
+                renderable.render(g, mouseX, mouseY, partialTick);
+            }
+        }
     }
 
     private void abrirPiel() {
@@ -159,17 +167,8 @@ public final class PantallaOpcionesJobs extends OptionsScreen {
         // modpack. Esto conserva Embeddium y cualquier otra integracion.
         sincronizarControlesNaturales();
         if (this.botonVideoNatural != null && this.botonVideoNatural.active) {
-            this.aperturasVideoNaturales++;
             this.botonVideoNatural.onPress();
         }
-    }
-
-    public boolean videoNaturalDisponibleParaDiagnostico() {
-        return this.botonVideoNatural != null;
-    }
-
-    public long aperturasVideoNaturalesParaDiagnostico() {
-        return this.aperturasVideoNaturales;
     }
 
     private void abrirControles() {
