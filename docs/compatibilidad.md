@@ -1,4 +1,4 @@
-# Compatibilidad — Jobs Menu 0.45.0
+# Compatibilidad — Jobs Menu 0.46.0
 
 ## Perfil soportado
 
@@ -8,7 +8,7 @@
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente |
-| Artefacto | `jobsmenu-0.45.0.jar` |
+| Artefacto | `jobsmenu-0.46.0.jar` |
 
 Jobs distingue entre pantallas que controla y pantallas ajenas que debe respetar completamente.
 
@@ -18,117 +18,98 @@ Con mundo/servidor cargado:
 
 - no se crea ni dibuja `TransicionInterfazJobs`;
 - chat, inventario, contenedores y pantallas no Jobs quedan fuera de skin/banda/reemplazo global de click;
-- música, camas ambientales y FX puntuales del menú reciben hard-stop;
-- Pausa/Config Jobs pueden mantener tema/feedback breve sin reactivar la sesión.
+- música, camas ambientales y FX puntuales reciben hard-stop;
+- Pausa/Config Jobs pueden mantener tema/feedback breve sin reactivar la sesión sonora.
 
-## Gráficos — contrato 0.44 preservado en 0.45
+## Gráficos — contrato 0.44 preservado
 
-`PantallaOpcionesJobs` **no hereda de `OptionsScreen`**. No llama `super.init()`, no crea widgets vanilla/modded ocultos, no memoriza ranuras y no ejecuta un botón gráfico invisible.
+`PantallaOpcionesJobs` no hereda de `OptionsScreen`, no oculta widgets vanilla/modded y no usa controles invisibles como backend.
 
-El botón Gráficos de Jobs sólo decide qué Screen abrir:
-
-- con Embeddium, `CompatGraficos` consulta su `ConfigScreenHandler.ConfigScreenFactory` registrado en Forge y usa la Screen devuelta por el propio mod;
-- sin Embeddium o si la factory no entrega una Screen válida, se abre `VideoSettingsScreen` vanilla.
-
-Después de obtener esa Screen, Jobs no la modifica. No hay wrapper, chrome, overlay, recolocación, transición ni reemplazo de click/hover.
-
-`CompatGraficos` no usa reflection y no enlaza clases internas como `SodiumOptionsGUI` o `EmbeddiumVideoOptionsScreen`.
-
-## MODPACK eliminado
-
-El acceso MODPACK introducido en 0.42 sigue eliminado. No existen botón, `abrirOpcionesModpack()`, `permitirOptionsNaturalUnaVez`, `optionsNaturalSolicitado` ni un `OptionsScreen` completo alternativo abierto desde Opciones Jobs.
+- con Embeddium, `CompatGraficos` consume su `ConfigScreenHandler.ConfigScreenFactory` registrada en Forge;
+- sin Embeddium o si la factory no entrega una Screen válida, se abre `VideoSettingsScreen` vanilla;
+- la Screen devuelta queda intacta: sin wrapper, chrome, overlay, transición, recolocación ni reemplazo de hover/click;
+- `CompatGraficos` no usa reflection ni enlaza clases internas de Sodium/Embeddium;
+- MODPACK y sus permisos/rutas antiguas siguen eliminados.
 
 ## Propiedad de pantallas de terceros
 
-`EscuchaCliente.esPantallaTerceros()` aplica una regla general:
+`EscuchaCliente.esPantallaTerceros()` trata como ajena cualquier `Screen` cuyo namespace no sea Jobs, `net.minecraft.*` o `net.minecraftforge.*`. Una GUI externa y sus subflujos no reciben piel, bandas, pulido, transición, hover/click Jobs ni gestión visual de listas. `VideoSettingsScreen` vanilla también es intocable de forma explícita.
 
-- `com.santipdr.jobsmenu.client.screen.*` → Jobs;
-- `net.minecraft.*` → Minecraft;
-- `net.minecraftforge.*` → Forge;
-- cualquier otro namespace de `Screen` → tercero.
+Las conversiones administrativas sólo nacen desde padres Jobs concretos; `SesionMenu.activa()` no basta por sí sola.
 
-Una Screen de terceros no recibe `PielVanillaJobs`, bandas, pulido, transición, hover/click Jobs ni gestión visual de listas. `VideoSettingsScreen` vanilla se declara también intocable explícitamente.
-
-### Navegación interna de terceros
-
-`flujoExternoActivo` acompaña al usuario cuando una GUI externa abre otra Screen. Ese flujo no habilita sustituciones Jobs sólo porque la sesión del menú continúe activa.
-
-Las conversiones administrativas sólo nacen desde padres Jobs concretos: `PantallaNivel`, `PantallaEstancia` y `PantallaOpcionesJobs`.
-
-## Configuración Jobs — 0.45
+## Configuración / buscador — 0.46
 
 - `Ctrl+F` abre `PantallaBuscarAjustesJobs`.
-- El buscador filtra nombre, detalle y categoría y conserva filtro/foco/scroll en resize.
-- Enter/doble clic abre la categoría real del ajuste.
-- Config recuerda la última categoría utilizada durante la sesión del cliente.
-- Si ningún preset coincide, el indicador muestra `CUSTOM` explícitamente.
-- Config usa cierre idempotente.
+- Filtra nombre, detalle y categoría y conserva filtro/foco/scroll durante resize.
+- Enter/doble clic abre la categoría real mediante `PantallaAjustesAviso.abrirCategoriaDesdeBusqueda(int)`.
+- Ya no existe la ruta frágil de volver al padre y sintetizar una tecla 1–6.
+- El índice de categoría se valida antes de navegar.
+- Título, detalle, categoría y contador de resultados se calculan al reconstruir el filtro, no en cada frame.
+- Buscador y Config usan cierres protegidos.
+- Config recuerda la última categoría de la sesión y muestra `CUSTOM` si ningún preset coincide.
 
-## Idioma — 0.45
+## Idioma + Unicode — 0.46
 
-- idioma pendiente, filtro, foco y scroll sobreviven a resize/maximizar;
-- antes de aplicar se conserva el idioma anterior;
-- si `reloadResourcePacks()` falla, se restauran `Options.languageCode` y `LanguageManager`;
-- la pantalla permanece abierta y permite reintentar.
+`PantallaIdiomaJobs` administra idioma y Force Unicode Font como una sola transacción:
 
-Esto evita estados parcialmente aplicados cuando un mod/resource pack rompe la recarga.
+1. selección de idioma y Unicode quedan pendientes;
+2. `Aplicar y cerrar` compara ambos con el estado efectivo;
+3. si no hay cambios, cierra sin resource reload;
+4. si cambia cualquiera, escribe ambos valores y ejecuta una sola `reloadResourcePacks()`;
+5. éxito confirma ambos estados;
+6. fallo restaura `Options.languageCode`, `LanguageManager` y `forceUnicodeFont`, persiste el rollback y mantiene la pantalla abierta.
 
-## Mundos y Mods — 0.45
+El callback vuelve al padre sólo si `minecraft.screen == this`. Una finalización tardía no puede secuestrar otra navegación. Filtro, foco, scroll y selección pendiente sobreviven a resize.
 
-1. `Ctrl+F` enfoca búsqueda.
-2. Resize conserva filtro y foco relevante.
-3. ESC con texto limpia el filtro.
-4. ESC con filtro vacío pero foco activo abandona el campo.
-5. El siguiente ESC vuelve al padre.
+Esto corrige especialmente el caso de cambiar **sólo Force Unicode Font**, que antes podía quedar guardado sin una recarga inmediata de recursos.
 
-Ambas pantallas usan guard `cerrando` para evitar dos `setScreen()` por una misma salida.
+## Mundos / Mods / Resource Packs
 
-## Apariencia / Controles — 0.45
+- Mundos y Mods conservan filtro/foco relevante en resize y usan ESC por etapas.
+- Ambos tienen cierre idempotente.
+- Resource Packs sólo devuelve a Opciones Jobs si `PantallaPaquetesJobs` sigue siendo la Screen activa; un callback tardío no puede volver después de que el usuario haya salido.
 
-Ambas pantallas añaden guard de cierre y `minecraft != null` antes de volver al padre. El objetivo es evitar rutas dobles durante ESC/botón/resize sin cambiar las opciones vanilla que administran.
+## Apariencia / Controles / Sonido
 
-## Resource Packs — 0.45
-
-El callback de aplicación sólo devuelve a Opciones Jobs si la Screen activa sigue siendo `PantallaPaquetesJobs`. Si el usuario ya navegó a otra superficie, un callback tardío no puede secuestrar ese flujo.
-
-## Sonido — 0.45
-
-`PantallaSonidoJobs` sigue reutilizando la lista vanilla real, pero el `Field` de `OptionsList` se resuelve una sola vez por JVM y se cachea. No se recorre `SoundOptionsScreen.getDeclaredFields()` en cada `init()`.
+- Apariencia y Controles protegen cierre y retorno al padre.
+- Sonido reutiliza la lista vanilla real y resuelve/cachea el `Field` de `OptionsList` una sola vez por JVM.
 
 ## Perfiles
 
-`PerfilesJobs.actual()` compara cada preset de forma explícita. Si una edición manual rompe un valor controlado por el preset, el estado pasa a `CUSTOM`. Opciones deliberadamente libres —como pista musical o nivel fijo— no invalidan el perfil.
+`PerfilesJobs.actual()` exige coincidencia exacta de todos los valores que cada preset controla. Una modificación relevante muestra `CUSTOM`. Opciones deliberadamente libres, como pista musical o nivel fijo, no invalidan un preset.
 
 ## Audio / resource reload / sesión
 
 - `RastreadorAudioJobs` corta FX puntuales al cerrar visita.
 - No existe fallback a `AMBIENT_CAVE` ni `MUSIC_MENU`.
-- Resource reload usa generación atómica y vuelve al hilo cliente.
+- Resource reload de audio usa generaciones y vuelve al hilo cliente.
 - `SesionMenu.cerrar()` es idempotente.
 - `MusicManager.stopPlaying()` no se ejecuta por tick.
 
 ## Config / persistencia
 
-Los setters comprueban el valor actual antes de guardar. Los cambios reales mantienen throttle y `guardarPendiente()` al abandonar/cambiar pantalla.
+Setters Jobs comprueban el valor actual antes de guardar. Los cambios reales mantienen throttle y `guardarPendiente()` al abandonar/cambiar pantalla.
 
 ## Multiplayer
 
 - ESC/Cancelar usan padre Jobs directo y guard idempotente;
 - F5/Actualizar reconstruye Jobs directamente;
-- selección online se conserva por IP;
-- scroll se conserva en F5 y resize;
+- selección online se conserva por IP y scroll en F5/resize;
 - `ServerList.save()` sólo se ejecuta si la normalización cambió datos;
 - cancelar/error pre-login vuelve a Jobs;
 - logout/kick remoto vuelve a Multiplayer Jobs.
 
 Servidor fijado único: `JobsDosh.exaroton.me:56477`.
 
-## Pipeline de publicación
+## Pipeline
 
-1. verificar y compilar;
-2. publicar el JAR versionado;
-3. mover `dev-latest` al `$GITHUB_SHA` publicado;
-4. eliminar assets Jobs obsoletos.
+1. verificar contratos históricos + 0.46;
+2. compilar Forge Java 17;
+3. publicar JAR versionado desde `main`;
+4. mover `dev-latest` al `$GITHUB_SHA` publicado;
+5. eliminar assets Jobs obsoletos.
+
+La limpieza de branches históricas existe como mantenimiento guardado y sólo se ejecuta con marcador explícito `[cleanup-branches]` después de una entrega verde.
 
 ## Fondos
 
@@ -138,6 +119,6 @@ Servidor fijado único: `JobsDosh.exaroton.me:56477`.
 
 ## Compatibilidad manual prioritaria
 
-Probar búsqueda global de Config, rollback de Idioma, resize en Config/Idioma/Mundos/Mods, callback de Resource Packs, cierres repetidos de Apariencia/Controles, Embeddium real, fallback vanilla, ausencia total de MODPACK, configuraciones de otros mods, resource reload, Multiplayer con listas largas, GUI Scale extremos y resize/maximizar.
+Probar cambio sólo de Unicode, cambio combinado idioma+Unicode, fallo/reintento de reload, callback tardío, búsqueda global y navegación explícita, resize en Config/Idioma/Mundos/Mods, Resource Packs, Embeddium real, fallback vanilla, configuraciones de otros mods, Multiplayer con listas largas y GUI Scale extremos.
 
 Regla general: **si tematizar exige duplicar o adivinar lógica ajena, se conserva la Screen original y Jobs no la toca**.
