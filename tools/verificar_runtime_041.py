@@ -45,6 +45,24 @@ def main() -> None:
         require(mezcla, token, "MezclaAudio")
     forbid(mezcla, "SoundEvents.AMBIENT_CAVE", "MezclaAudio")
 
+    musica = read(JAVA / "client/sound/GestorMusica.java")
+    require(musica, "Minecraft.getInstance().getMusicManager().stopPlaying();", "GestorMusica")
+    atender = musica.split("public static void atender()", 1)[1].split("private static boolean fantasma", 1)[0]
+    forbid(atender, "getMusicManager().stopPlaying()", "GestorMusica.atender")
+
+    bloqueo_path = JAVA / "client/sound/BloqueoMusicaVanillaJobs.java"
+    if not bloqueo_path.is_file():
+        raise RuntimeError("Falta BloqueoMusicaVanillaJobs: MusicManager volveria a requerir polling por tick.")
+    bloqueo = read(bloqueo_path)
+    for token in (
+        "PlaySoundEvent",
+        "SesionMenu.activa()",
+        "getSource() != SoundSource.MUSIC",
+        "evento.setSound(null);",
+        "EventPriority.HIGHEST",
+    ):
+        require(bloqueo, token, "BloqueoMusicaVanillaJobs")
+
     sesion = read(JAVA / "client/SesionMenu.java")
     for token in (
         "boolean necesitaCierre = activa",
