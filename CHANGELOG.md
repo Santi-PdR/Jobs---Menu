@@ -1,6 +1,14 @@
 # Registro de cambios
 
-## 0.41.0 — Runtime, audio y continuidad Multiplayer — 2026-09-05
+## 0.41.0 — Runtime, audio, Embeddium y continuidad Multiplayer — 2026-09-06
+
+### Gráficos / Embeddium
+
+- El botón **Gráficos** deja de forzar `VideoSettingsScreen` cuando Embeddium está instalado.
+- Nuevo `CompatGraficos` consume el `ConfigScreenHandler.ConfigScreenFactory` que Embeddium registra oficialmente en Forge; no existe reflection ni dependencia directa de sus clases internas.
+- Si `embeddium` no está presente, no expone factory o falla al construir su GUI, se conserva `VideoSettingsScreen` vanilla como fallback seguro.
+- `EscuchaCliente.esVideoIntocable()` reconoce `SodiumOptionsGUI` de Embeddium 1.20.1, las GUI actuales de Embeddium y pantallas gráficas de Iris/Oculus; Jobs no les dibuja chrome/bandas/transiciones ni sustituye clicks.
+- El diagnóstico oculto muestra presencia de Embeddium, aperturas mediante su factory y cantidad de fallbacks vanilla.
 
 ### Audio / lifecycle
 
@@ -20,6 +28,7 @@
 
 - F5/Actualizar conserva selección por IP y posición de scroll de `ServerSelectionList`.
 - La lista reconstruida restaura una Entry nueva y después aplica `setScrollAmount()`.
+- `resize()` conserva ese mismo contexto antes de reconstruir widgets, de modo que maximizar, redimensionar o cambiar GUI Scale no manda la lista al inicio.
 - `ServerList.save()` sólo se ejecuta cuando la normalización del servidor oficial realmente cambia nombre, duplicados, posición o alta/baja.
 
 ### Config / rendimiento UI
@@ -28,11 +37,14 @@
 - Perfil accesible modifica sólo los campos que requieren cambio.
 - Se añaden contadores internos de cambios aplicados/omitidos/guardados para diagnóstico.
 - Hover de controles vanilla preservados usa una caché de `AbstractButton` reconstruida al inicializar/cambiar Screen, evitando recorrer todos los hijos por frame.
+- El detector de GUI gráfica deja de convertir el nombre de clase a minúsculas en cada consulta y usa prefijos conocidos, reduciendo trabajo y cubriendo correctamente `SodiumOptionsGUI`.
 
 ### Diagnóstico y CI
 
-- Diagnóstico oculto añade estado interno/cierres de sesión, FX puntuales activos/registrados/purgados y métricas de config.
-- Nuevo `tools/verificar_runtime_041.py` protege audio puntual, cierre idempotente, bloqueo MUSIC, config, hover y Multiplayer.
+- Diagnóstico oculto añade estado interno/cierres de sesión, FX puntuales activos/registrados/purgados, métricas de config y proveedor gráfico.
+- `tools/verificar_runtime_041.py` protege audio puntual, cierre idempotente, bloqueo MUSIC, config, hover y Multiplayer.
+- Nuevo `tools/verificar_graficos_041.py` protege factory Embeddium, fallback vanilla y aislamiento de GUI externa.
+- GitHub Actions actualiza `actions/checkout` a v7 y mantiene build real con Java 17.
 - README, CONTEXTO, KNOWN_ISSUES, checklist, compatibilidad, música, despliegue e índice documental se sincronizan con 0.41.0.
 - Nueva auditoría `docs/AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md`.
 - Versión: **0.41.0**.
