@@ -6,6 +6,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.santipdr.jobsmenu.JobsMenu;
 import com.santipdr.jobsmenu.client.sound.GestorAmbiente;
 import com.santipdr.jobsmenu.client.sound.GestorMusica;
+import com.santipdr.jobsmenu.client.sound.MezclaAudio;
+import com.santipdr.jobsmenu.client.sound.RastreadorAudioJobs;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
@@ -61,6 +63,8 @@ public final class RecargaRecursosCliente {
         long procesada = GENERACION.get();
         GestorMusica.recursosRecargados();
         GestorAmbiente.recursosRecargados();
+        RastreadorAudioJobs.recursosRecargados();
+        MezclaAudio.recursosRecargados();
         TAREA_PENDIENTE.set(false);
 
         // Una recarga pudo terminar mientras se cerraban las instancias de la
