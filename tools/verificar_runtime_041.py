@@ -46,7 +46,12 @@ def main() -> None:
     forbid(mezcla, "SoundEvents.AMBIENT_CAVE", "MezclaAudio")
 
     musica = read(JAVA / "client/sound/GestorMusica.java")
-    require(musica, "Minecraft.getInstance().getMusicManager().stopPlaying();", "GestorMusica")
+    for token in (
+        "cortarMusicaVanilla(Minecraft.getInstance());",
+        "private static void cortarMusicaVanilla(Minecraft cliente)",
+        "cliente.getMusicManager().stopPlaying();",
+    ):
+        require(musica, token, "GestorMusica")
     atender = musica.split("public static void atender()", 1)[1].split("private static boolean fantasma", 1)[0]
     forbid(atender, "getMusicManager().stopPlaying()", "GestorMusica.atender")
 
