@@ -30,12 +30,22 @@ Sin mods que sustituyan Gráficos:
 - [ ] volver desde vanilla regresa a Opciones Jobs;
 - [ ] la pantalla vanilla de vídeo tampoco recibe tematización ni transición Jobs.
 
+## MODPACK / Opciones completas — 0.42
+
+- [ ] el botón `MODPACK` aparece en Opciones Jobs sin solaparse con Online/Cerrar expediente;
+- [ ] `MODPACK` abre el `OptionsScreen` completo y natural del modpack;
+- [ ] cualquier botón, categoría o inyección que otro mod agregue al Options normal también aparece allí;
+- [ ] entrar en un submenú desde MODPACK no añade chrome, transición, click ni hover Jobs;
+- [ ] volver desde un submenú externo regresa al Options natural y no a una reconstrucción Jobs inesperada;
+- [ ] cerrar finalmente el Options natural vuelve a Opciones Jobs con una sola acción.
+
 ## Pantallas de otros mods — 0.42
 
 - [ ] abrir una pantalla de configuración de cualquier mod desde Mods/Options no añade chrome Jobs;
 - [ ] esa Screen externa conserva sus clicks, hover, sliders, tooltips y navegación propios;
 - [ ] si la Screen externa abre otra Screen propia, Jobs no interviene;
 - [ ] si la Screen externa abre un `OptionsScreen`, `SelectWorldScreen`, `JoinMultiplayerScreen` o `ModListScreen` vanilla como subflujo, Jobs no lo reemplaza por una pantalla Jobs sólo porque la sesión del menú siga activa;
+- [ ] un subflujo externo que pasa temporalmente por una Screen `net.minecraft.*` sigue sin recibir banda/click Jobs;
 - [ ] volver desde una Screen externa al padre Jobs funciona sin pantalla intermedia ni doble ESC;
 - [ ] una Screen Forge estándar (`net.minecraftforge.*`) que Jobs sí tematiza históricamente conserva su lógica completa.
 
@@ -115,8 +125,9 @@ Probar 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/3/4.
 
 - [ ] la release `dev-latest` contiene exactamente `jobsmenu-0.42.0.jar`;
 - [ ] el SHA-256 descargado coincide con el digest de GitHub;
-- [ ] `refs/tags/dev-latest` apunta exactamente al mismo SHA que `main` publicado.
+- [ ] `refs/tags/dev-latest` apunta exactamente al mismo SHA que `main` publicado;
+- [ ] el workflow completó en orden `Publish rolling development release` → `Move rolling development tag` → `Remove obsolete release JARs`.
 
 ## Diagnóstico de fallos
 
-Guardar `latest.log` y anotar pista, selector, secuencia de reload, nivel, estado mundo/servidor, selección/scroll Multiplayer, mod dueño de la Screen externa, qué pantalla abrió Gráficos, qué opciones faltaron y valores de config modificados.
+Guardar `latest.log` y anotar pista, selector, secuencia de reload, nivel, estado mundo/servidor, selección/scroll Multiplayer, mod dueño de la Screen externa, si se entró por Gráficos o MODPACK, qué opciones faltaron y valores de config modificados.
