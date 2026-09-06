@@ -1,63 +1,88 @@
-# Música — Jobs Menu 0.38.0
+# Música — Jobs Menu 0.39.0
 
 ## Catálogo empaquetado
 
 1. **Absurdism** — `assets/jobsmenu/sounds/musica/defecto.ogg` — evento `musica.tema`.
-2. **REQUIEM** — `assets/jobsmenu/sounds/musica/requiem.ogg` — evento `musica.requiem`. Fuente autorizada: `music/REQUIEM-Forsaken-OST.ogg`. Crédito: **Emmy Z — Forsaken OST**.
-3. **Upon the Hill V2** — `assets/jobsmenu/sounds/musica/upon_the_hill_v2.ogg` — evento `musica.upon_hill`. Fuente autorizada: `music/upon_the_hill_v2_q4.ogg`. El archivo recibido identifica `ft. @iCosmicCoffee`.
+2. **REQUIEM** — `assets/jobsmenu/sounds/musica/requiem.ogg` — evento `musica.requiem` — crédito **Emmy Z - Forsaken OST**. Fuente autorizada archivada: `music/REQUIEM-Forsaken-OST.ogg`.
+3. **Upon the Hill V2** — `assets/jobsmenu/sounds/musica/upon_the_hill_v2.ogg` — evento `musica.upon_hill` — crédito **ft. @iCosmicCoffee**. Fuente autorizada archivada: `music/upon_the_hill_v2_q4.ogg`.
 
-Los tres recursos de música usan `stream: true` en `sounds.json`. El build no descarga canciones ni depende de servicios externos.
+Los tres eventos usan `stream: true` en `sounds.json`. El build no descarga canciones ni depende de servicios externos.
 
-Las pistas musicales conservan mono/estéreo y 44,1/48 kHz según la fuente autorizada. Los sonidos de interfaz, ambiente y eventos mantienen el contrato mono 44,1 kHz.
+## Marcador de catálogo acreditado
 
-## Selección en configuración
+`GestorMusica.creditoAlfa()` sólo permite mostrar créditos cuando existe:
 
-En `Ajustes del aviso > Audio` se puede elegir **Aleatoria**, **Absurdism**, **REQUIEM** o **Upon the Hill V2**. La elección se guarda en `pista_musica` (0–3). Una pista fija no rota automáticamente y la tecla `N` no la sustituye; al volver a Aleatoria se conserva la pista actual y se reactiva la rotación para el siguiente intervalo.
+`assets/jobsmenu/musica_creditada.txt`
+
+En una etapa antigua ese marcador se había eliminado porque todavía no representaba correctamente la pista empaquetada de entonces. El catálogo actual sí contiene tres pistas identificadas y documentadas, por lo que 0.39.0 restaura el marcador con estas ids:
+
+- `absurdism`;
+- `requiem`;
+- `upon_the_hill_v2`.
+
+El marcador no contiene audio ni modifica la reproducción. Es una compuerta explícita para la presentación del crédito.
+
+## Selección
+
+En `Ajustes del aviso > Audio` se puede elegir:
+
+- Aleatoria;
+- Absurdism;
+- REQUIEM;
+- Upon the Hill V2.
+
+La selección vive en `pista_musica` (0–3). Una pista fija no rota automáticamente y `N` no la sustituye. Al volver a Aleatoria, el gestor conserva la pista actual y reactiva la rotación posterior.
 
 ## Sesión
 
 - La música pertenece a `SesionMenu`, no a una Screen.
-- Una visita empieza en una pista aleatoria o en la pista fija elegida.
-- La siguiente pista se elige entre las otras dos, evitando repetir inmediatamente.
-- El cambio automático ocurre aproximadamente cada 2–4 minutos y usa crossfade.
-- `N` en el main solicita un cambio manual; no encadena otro mientras ya existe un crossfade.
-- `M` mantiene el mute global Jobs.
-- Options, Mods, Mundos, Multiplayer y Recursos no reinician la pista.
-- Transiciones, Suspensión y presencia aplican ducking únicamente dentro del flujo de menú.
-- F3+T reconstruye de forma defensiva la sesión de audio.
+- Una visita nueva elige pista aleatoria o fija según configuración.
+- Navegar Main → Options → Mods → Recursos → volver sigue siendo una sola visita.
+- Desde 0.39.0 `SesionMenu.abrir()` no vuelve a inicializar ambiente/música si la visita ya estaba activa.
+- El cambio automático usa crossfade y evita repetición inmediata.
+- `N` en Aleatoria solicita cambio manual y no apila otro crossfade.
+- `M` controla mute Jobs.
 - Entrar a mundo/servidor aplica hard-stop inmediato a música y ambiente.
-- Desde 0.36.0 no se crean ni dibujan transiciones Jobs mientras existe un nivel cargado; esto no altera el hard-stop ni el feedback breve de UI permitido en pausa/configuración.
+- Pausa/configuración Jobs dentro de gameplay puede emitir feedback breve sin abrir una nueva sesión musical.
 
-## Optimización 0.38.0
+## Resource reload — 0.39
 
-Los consumidores de escena, música y camas ambientales consultan `RotacionNiveles.capturar()`. Desde 0.38.0, si varias consultas ocurren en el **mismo milisegundo**, reciben el mismo `Estado` ya calculado en vez de crear records equivalentes repetidos. Al cambiar un milisegundo el estado se calcula de nuevo, y un salto manual de nivel invalida el cache inmediatamente.
+Idioma, F3+T y Resource Packs pueden reconstruir el `SoundEngine`. `RecargaRecursosCliente` no toca instancias desde el executor de recursos: incrementa una generación y agenda la invalidación en el hilo cliente.
 
-Esto no modifica intervalos, crossfades, pitch, volumen, selección de pista ni hard-stop. La finalidad es reducir cálculos/asignaciones redundantes y, además, hacer que audio y escena que coinciden en el mismo instante compartan exactamente el mismo snapshot.
+Si aparece otra generación mientras se está procesando la anterior, se agenda otra pasada. Así una ráfaga de reloads no debe dejar una invalidación posterior sin procesar.
+
+Después del reload:
+
+- `GestorMusica.recursosRecargados()` descarta instancias viejas y reinicia su ventana de reintento;
+- `GestorAmbiente.recursosRecargados()` cierra camas ligadas al motor anterior;
+- si la visita Jobs sigue activa, el mantenimiento normal recrea el audio correspondiente;
+- el marcador de créditos vuelve a evaluarse contra el ResourceManager nuevo.
+
+## Créditos visibles
+
+`PantallaNivel` consulta la pista dominante real durante crossfade:
+
+- Absurdism: título sin autor inventado;
+- REQUIEM: `Emmy Z - Forsaken OST`;
+- Upon the Hill V2: `ft. @iCosmicCoffee`.
+
+El bloque sólo aparece durante su ventana de entrada/permanencia/salida y puede desactivarse desde Config Jobs.
 
 ## Feedback de interfaz
 
-Desde 0.35.0 el feedback corto de UI no se confunde con la sesión musical. Botones y sliders de una pantalla propia Jobs pueden seguir usando `UI_PASAR`, `UI_ELEGIR`, confirmar, volver o negado dentro de pausa/configuración aunque haya un mundo cargado. Eso **no** abre `SesionMenu`, no reinicia una pista y no vuelve a levantar camas ambientales.
+Los gestos de UI son independientes de la sesión musical:
 
-Los controles vanilla preservados por compatibilidad sustituyen `minecraft:ui.button.click` sólo en superficies Jobs válidas. También reciben un hover Jobs al entrar con ratón o foco de teclado. Video Settings, chat, inventario y pantallas no Jobs conservan el audio que les corresponda y quedan fuera de esta sustitución.
-
-Desde 0.37.0 el atajo F5 de Multiplayer emite `UI_ALTERNAR` como feedback de teclado. Ese gesto tampoco pertenece a `SesionMenu`: refrescar servidores no reinicia, adelanta ni modifica la pista musical. El botón Actualizar conserva su gesto normal y `refrescarLista()` no añade un segundo sonido.
-
-## Créditos
-
-`PantallaNivel` consulta la pista dominante real durante un crossfade. Por eso REQUIEM no puede aparecer como crédito mientras suena Absurdism o Upon the Hill. Absurdism conserva su nombre sin atribución inventada; REQUIEM muestra `Emmy Z - Forsaken OST`; Upon the Hill V2 muestra la mención `ft. @iCosmicCoffee` recibida con el archivo.
+- click/hover/toggle/volver/negado usan sonidos Jobs en superficies Jobs válidas;
+- Video Settings conserva su sonido vanilla;
+- chat, inventario y gameplay no Jobs quedan fuera;
+- F5 de Multiplayer emite un único `UI_ALTERNAR` sin cambiar/reiniciar la pista.
 
 ## Prueba manual
 
-1. Abrir Jobs varias veces y confirmar que el inicio no está fijado siempre a la misma pista.
-2. Pulsar `N` y comprobar crossfade a otra canción.
-3. Pulsar `N` repetidamente durante el crossfade: no debe crear varias instancias.
-4. Comprobar que el HUD y el crédito cambian al tema dominante.
-5. Navegar por subpantallas: la música no reinicia.
-6. Probar `M`, F3+T y Alt+Tab.
-7. Entrar a un mundo/servidor: música y ambiente Jobs deben detenerse por completo.
-8. Abrir pausa/configuración Jobs dentro del mundo: click/hover Jobs pueden responder, pero música y ambiente deben seguir apagados y no debe aparecer ninguna transición de entrada/salida.
-9. Abrir Video Settings, chat e inventario: no deben recibir sustitución de sonido Jobs ni transición Jobs.
-10. En Multiplayer, pulsar F5: debe sonar un solo `UI_ALTERNAR` y la música actual debe continuar sin reinicio/cambio.
-11. Cambiar repetidamente de nivel y confirmar que escena, apagón y camas ambientales siguen entrando juntos; el cache de 0.38.0 no debe introducir desfase perceptible.
-
-Absurdism source 0.26: music/Absurdism-_slowed-piano-part-only_.ogg -> assets/jobsmenu/sounds/musica/defecto.ogg
+1. Forzar cada una de las tres pistas y verificar título/autor.
+2. Volver a Aleatoria y probar `N` durante y fuera de crossfade.
+3. Navegar por varias subpantallas y confirmar continuidad de la pista.
+4. Ejecutar idioma → F3+T → resource pack en secuencia corta y comprobar una sola reconstrucción audible.
+5. Entrar a gameplay justo después del reload y confirmar hard-stop.
+6. Volver al menú y comprobar que ambiente, música y créditos reaparecen limpiamente.
+7. Probar Alt+Tab y F3+T repetido para detectar instancias fantasma.

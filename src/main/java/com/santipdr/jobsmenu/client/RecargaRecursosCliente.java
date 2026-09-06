@@ -1,6 +1,7 @@
 package com.santipdr.jobsmenu.client;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.santipdr.jobsmenu.JobsMenu;
 import com.santipdr.jobsmenu.client.sound.GestorAmbiente;
@@ -26,7 +27,8 @@ import net.minecraftforge.fml.common.Mod;
         bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class RecargaRecursosCliente {
 
-    private static final AtomicBoolean RECARGA_PENDIENTE = new AtomicBoolean();
+    private static final AtomicBoolean TAREA_PENDIENTE = new AtomicBoolean();
+    private static final AtomicLong GENERACION = new AtomicLong();
 
     private RecargaRecursosCliente() {
     }
@@ -37,20 +39,39 @@ public final class RecargaRecursosCliente {
     }
 
     /**
-     * Pide el cierre una sola vez por tanda de recarga y lo ejecuta en el hilo
-     * principal de Minecraft, no en el executor que procesa los recursos.
+     * Cada callback avanza la generacion. Una rafaga de recargas comparte una
+     * sola tarea, pero si aparece otra generacion mientras la tarea se ejecuta
+     * se agenda una segunda pasada. Asi una secuencia idioma -> F3+T -> pack no
+     * puede quedar representada por un callback viejo que llego tarde.
      */
     private static void solicitarCierreEnCliente() {
-        if (!RECARGA_PENDIENTE.compareAndSet(false, true)) {
-            return;
-        }
-        Minecraft.getInstance().execute(RecargaRecursosCliente::cerrarInstancias);
+        GENERACION.incrementAndGet();
+        programarSiHaceFalta();
     }
 
-    /** Se ejecuta en el hilo del cliente cuando termina la tanda de recursos. */
-    private static void cerrarInstancias() {
-        RECARGA_PENDIENTE.set(false);
+    private static void programarSiHaceFalta() {
+        if (!TAREA_PENDIENTE.compareAndSet(false, true)) {
+            return;
+        }
+        Minecraft.getInstance().execute(RecargaRecursosCliente::cerrarUltimaGeneracion);
+    }
+
+    /** Se ejecuta exclusivamente en el hilo del cliente. */
+    private static void cerrarUltimaGeneracion() {
+        long procesada = GENERACION.get();
         GestorMusica.recursosRecargados();
         GestorAmbiente.recursosRecargados();
+        TAREA_PENDIENTE.set(false);
+
+        // Una recarga pudo terminar mientras se cerraban las instancias de la
+        // anterior. No se pierde: se procesa en otra vuelta del hilo cliente.
+        if (GENERACION.get() != procesada) {
+            programarSiHaceFalta();
+        }
+    }
+
+    /** Contador solo para el diagnostico oculto y pruebas de lifecycle. */
+    public static long generacionParaDiagnostico() {
+        return GENERACION.get();
     }
 }

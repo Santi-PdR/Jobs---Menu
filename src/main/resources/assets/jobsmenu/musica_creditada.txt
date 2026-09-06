@@ -1,0 +1,2 @@
+catalogo_creditado=absurdism,requiem,upon_the_hill_v2
+version=1

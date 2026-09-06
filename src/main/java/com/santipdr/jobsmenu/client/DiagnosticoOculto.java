@@ -73,9 +73,12 @@ public final class DiagnosticoOculto {
         JobsMenu.LOG.info("luz          : {} transicion={} suspension={}",
                 String.format(java.util.Locale.ROOT, "%.3f", estado.luz()),
                 estado.enTransicion(), estado.enSuspension());
-        JobsMenu.LOG.info("musica       : sonando={} reintento={}",
-                GestorMusica.sonando(), GestorMusica.reintentoParaDiagnostico());
+        JobsMenu.LOG.info("musica       : sonando={} pista={} reintento={}",
+                GestorMusica.sonando(), GestorMusica.pistaParaDiagnostico(),
+                GestorMusica.reintentoParaDiagnostico());
         JobsMenu.LOG.info("ambiente     : capas={}", GestorAmbiente.capasActivas());
+        JobsMenu.LOG.info("recursos     : generacion={}",
+                RecargaRecursosCliente.generacionParaDiagnostico());
         JobsMenu.LOG.info("volumenes    : aviso={} musica={} ambiente={}",
                 ConfigTurno.volumenAvisoPorcentaje(),
                 ConfigTurno.volumenMusicaPorcentaje(),
