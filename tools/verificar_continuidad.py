@@ -18,8 +18,8 @@ def require(text: str, token: str, where: str) -> None:
 def main() -> None:
     multiplayer = read(JAVA / "client/screen/PantallaMultijugadorJobs.java")
     for token in (
-        "private final String servidorPreferido;",
-        "private final double scrollPreferido;",
+        "private String servidorPreferido;",
+        "private double scrollPreferido;",
         "restaurarSeleccionPreferida();",
         "restaurarScrollPreferido();",
         "this.serverSelectionList.children()",
@@ -29,6 +29,10 @@ def main() -> None:
         "this.onSelectedChange();",
         "String seleccion = ipSeleccionada();",
         "double scroll = scrollActual();",
+        "public void resize(Minecraft minecraft, int width, int height)",
+        "this.servidorPreferido = seleccion;",
+        "this.scrollPreferido = scroll;",
+        "super.resize(minecraft, width, height);",
         "this.cerrando = true;",
         "padreDestino(), seleccion, scroll",
         'Component.translatable("selectServer.refresh")',
