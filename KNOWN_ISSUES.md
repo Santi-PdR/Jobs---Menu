@@ -1,6 +1,6 @@
-# Riesgos y pruebas pendientes — 0.38.0
+# Riesgos y pruebas pendientes — 0.39.0
 
-Este documento contiene riesgos vigentes. El historial está en `CHANGELOG.md` y en las auditorías de `docs/`.
+Este archivo contiene sólo riesgos vigentes. El historial vive en `CHANGELOG.md` y en las auditorías de `docs/`.
 
 ## Certificado automáticamente
 
@@ -10,109 +10,81 @@ Antes de publicar, GitHub Actions comprueba:
 - JAR versionado y política de `dev-latest`;
 - integridad de PNG 10–17 y JPEG 18–31;
 - paridad ES/EN, recursos y coherencia estática;
-- contratos UI/música y hard-stop de gameplay;
-- aislamiento completo de Video Settings vanilla;
-- salida única/idempotente y continuidad de selección de Multiplayer;
-- feedback F5 Jobs y ausencia del antiguo `JOBS/SERVER`;
-- frontera dura que excluye chat, inventario y UI de gameplay;
-- ausencia de `PantallaVideoJobs` y reflection de páginas Embeddium;
-- rango `nivel_fijo` coherente con 32 niveles;
-- perfiles ambientales y lecturas semánticas de sliders;
-- índice/documentación vigente sincronizada;
-- caché de fields/listas de `ListasExpediente` y deduplicación de scrollbar por frame;
-- liberación de cachés al cerrar Screen;
-- filtro de `PlantaImagen` por instancia de textura, no por frame;
-- caché de texto/calendario de `NotaAviso`;
-- reloj único y recorrido unificado de widgets en `PulidoInterfazJobs`;
-- snapshot de `RotacionNiveles` compartido dentro del mismo milisegundo;
-- Alto contraste resuelto una vez por pasada de `PielVanillaJobs`;
-- reducción de capas/draw calls en Bajo consumo;
-- `preserveFileTimestamps=false`, `reproducibleFileOrder=true` y ausencia de `Implementation-Timestamp`;
-- publicación de `jobsmenu-0.38.0.jar` en `dev-latest` sólo desde `main` verde.
+- Video Settings aislado de capas Jobs;
+- frontera dura de gameplay;
+- salida/refresh de Multiplayer Jobs;
+- selección por IP al usar F5/Actualizar;
+- contratos de optimización 0.38;
+- presencia del marcador de catálogo musical acreditado;
+- ids `absurdism`, `requiem` y `upon_the_hill_v2` dentro del marcador;
+- generación atómica de resource reload y reprogramación cuando llega una generación nueva;
+- guard de reapertura de `SesionMenu`;
+- build y publicación sólo desde `main` verde.
 
-Un pipeline fallido no debe actualizar la release.
+## Lo que CI no puede certificar
 
-## Lo que CI no certifica
+CI no abre Minecraft con una ventana real. En `test-1` hay que comprobar:
 
-CI no abre Minecraft con ventana real ni mide FPS/GPU. Después del deploy hay que validar:
-
-1. Los niveles 10–17 siguen completamente estáticos y los 18–31 cargan el JPG correcto.
-2. El encuadre/respiración de 18–31 sigue igual en modo normal y se congela con Movimiento reducido/Bajo consumo.
-3. F3+T vuelve a mostrar los fondos con filtrado correcto, sin textura morado/negro ni pérdida del filtro.
-4. Bajo consumo mantiene la identidad visual aunque use menos bandas/capas.
-5. Comparar fluidez de Mundos, Mods, Resource Packs, Idioma y Multiplayer con listas largas.
-6. Scrollbar Jobs aparece una sola vez, sigue alineada y no afecta wheel/click/drag de la lista real.
-7. `N`, `M`, F3+T, Alt+Tab y navegación no duplican audio.
-8. Gameplay corta inmediatamente música y ambiente Jobs.
-9. ESC/Cancelar/F5 de Multiplayer conservan el comportamiento 0.37.0 y F5 conserva selección online por IP.
-10. Varias recargas F5 conservan LAN, ping, favicons, MOTD y selección por teclado.
-11. Chat/inventario/containers siguen sin piel, bandas, transición ni click Jobs.
-12. Pausa/Config Jobs durante gameplay conservan tema y feedback breve pero ninguna transición ni música/ambiente.
-13. Salir/kick/perder conexión de un servidor vuelve a Multijugador Jobs.
-14. Los avisos rotan en el mismo ritmo y las ventanas especiales siguen apareciendo en la fecha/hora correspondiente.
-15. Alto contraste continúa aplicándose a todos los widgets vanilla tematizados.
+1. que los tres créditos musicales aparecen durante su ventana de HUD;
+2. que REQUIEM muestra `Emmy Z - Forsaken OST` y Upon the Hill V2 `ft. @iCosmicCoffee`;
+3. que una secuencia rápida idioma → F3+T → resource pack no duplica música ni ambiente;
+4. que después de reload la pista vuelve una sola vez;
+5. que entrar a gameplay inmediatamente después de reload mantiene hard-stop total;
+6. que Main → Options → Mods → Recursos → volver conserva una sola visita musical;
+7. que ESC/Cancelar/F5 de Multiplayer siguen funcionando con una sola acción;
+8. que LAN, ping, favicons y MOTD sobreviven a varias recargas F5;
+9. que Video Settings mantiene todas las opciones del juego/mod de vídeo;
+10. que chat, inventario y contenedores no reciben transiciones ni skin Jobs;
+11. que los PNG 10–17 siguen completamente estáticos;
+12. que la respiración 18–31 es sutil y se congela con Movimiento reducido/Bajo consumo;
+13. que GUI Scale 2/3/4 no provoca solapes;
+14. que no hay audio Jobs huérfano al cerrar el juego o desconectarse.
 
 ## Riesgos vigentes
 
-### Rendimiento y cachés
+### Resource reload
 
-- Las optimizaciones reducen trabajo redundante, pero CI no puede cuantificar una mejora de FPS; la ganancia depende de resolución, cantidad de widgets/listas y otros mods.
-- `ListasExpediente` cachea sólo la Screen viva y se invalida en `estilizar()`/cierre. Un mod que reconstruya internamente una lista después de `init()` sin pasar por esas rutas podría requerir compatibilidad específica.
-- `RotacionNiveles` comparte el record únicamente si varias consultas caen en el mismo milisegundo; no es un cache de larga duración.
-- `PlantaImagen` compara identidad del `AbstractTexture`; resource reload debe crear/reentregar la textura y activar de nuevo el filtro, por eso F3+T forma parte del checklist manual.
+- La generación atómica evita perder una recarga posterior, pero el comportamiento final del `SoundEngine` depende también de otros mods de audio/resource packs.
+- El reintento musical posterior al reload sigue siendo temporal y debe probarse con F3+T repetido.
+- Un mod que reemplace por completo el sistema de recursos/sonido puede requerir compatibilidad específica.
 
-### Bajo consumo
+### Créditos
 
-- Reduce bandas de vignette, capas de profundidad/rebote y líneas de humedad. La intensidad global se conserva, pero el acabado puede verse algo menos fino a resoluciones grandes, lo cual es deliberado para este perfil.
-- No debe alterar el modo normal. Cualquier diferencia visual con Bajo consumo desactivado es una regresión.
-
-### Fondos
-
-- Los JPG 18–31 son 1920×1080; el coste depende de GPU, resolución y mods gráficos.
-- `NativeImage` sigue validando cada recurso en su primer uso y existe fallback procedural si falla.
-- Los PNG 10–17 mantienen resolución histórica; filtrado lineal suaviza escalado pero no inventa detalle.
-
-### Interfaces
-
-- Scrollbars Jobs siguen siendo visuales; posición, wheel, click y drag pertenecen a `AbstractSelectionList` real.
-- Mods/resource packs que reconstruyan profundamente Screens/listas pueden necesitar compatibilidad específica.
-- Jobs abre Video Settings vanilla y no reimplementa Embeddium/Oculus.
-- La piel posterior de controles conserva listeners, foco e hitboxes vanilla.
+- `musica_creditada.txt` es una compuerta de autorización interna. Si desaparece, `GestorMusica` vuelve a ocultar créditos por diseño.
+- El texto del crédito se toma del catálogo Java y no de metadata del OGG; cualquier cambio de archivo debe actualizar código/documentación juntos.
 
 ### Multiplayer
 
-- F5 transporta sólo la IP de una entrada online guardada y busca una Entry nueva en la lista reconstruida.
-- Entradas LAN son efímeras y no se fuerzan por IP; se dejan renacer con el detector nuevo.
-- Mods que sustituyan por completo `JoinMultiplayerScreen` pueden requerir compatibilidad específica.
+- F5 reconstruye `JoinMultiplayerScreen` Jobs para refrescar detector LAN/pinger. La selección online se conserva por IP, no reutilizando Entries viejas.
+- Entradas LAN son efímeras y dependen del nuevo detector.
+- Mods que sustituyan totalmente `JoinMultiplayerScreen` pueden necesitar compatibilidad específica.
+
+### Interfaces
+
+- Las pantallas Jobs propias pueden necesitar ajustes con resource packs de GUI muy agresivos.
+- Las capas de scrollbar son visuales; wheel/click/drag pertenecen a la lista real.
+- Video Settings se deja deliberadamente fuera de Jobs para no perder opciones de Minecraft/Embeddium/Sodium.
+
+### Fondos
+
+- JPG 18–31 son 1920×1080 y usan cover; relaciones de aspecto no 16:9 pueden recortar bordes.
+- No existe profiler GPU automático; rendimiento perceptivo debe medirse en el modpack real.
 
 ### Audio
 
-- El modo fijo conserva una sola pista; `N` se rechaza con `UI_NEGADO` para no contradecir la preferencia.
-- Los niveles 18–31 reutilizan camas/eventos autorizados; separación perceptiva requiere prueba dentro del juego.
-- Click/hover Jobs dentro de pausa/configuración no deben reactivar música ni ambiente.
-- La mezcla perceptiva de las tres pistas y los cambios F3+T/Alt+Tab siguen siendo pruebas manuales.
-
-### Navegación tras servidor
-
-- Servidor remoto vuelve a Multijugador Jobs; mundo local vuelve al main Jobs.
-- Mods que sustituyan destinos de desconexión después del evento pueden requerir compatibilidad específica.
-
-### Build/release
-
-- Quitar timestamps variables mejora reproducibilidad, pero ForgeGradle/reobf y la versión exacta de herramientas también participan del binario; el hash publicado sigue siendo la autoridad de la entrega.
-- `dev-latest` es rodante y no representa una release histórica inmutable.
+- La mezcla de las tres pistas y ambientes debe validarse de oído.
+- F3+T, Alt+Tab y cambios rápidos de pantalla siguen siendo casos manuales importantes.
+- El fallback musical de emergencia del motor no forma parte de la identidad de gestos de UI; los gestos Jobs no deben volver a `ui.button.click` vanilla.
 
 ## Mitigaciones
 
-- `tools/verificar_fondos.py` valida los 22 fondos de imagen.
-- `tools/verificar_ui_musica.py` protege Video Settings, UI neutral y lifecycle musical.
-- `tools/verificar_continuidad.py` protege retorno/F5/documentación.
-- `tools/verificar_optimizacion.py` protege los caminos calientes introducidos en 0.38.0.
-- Movimiento reducido y Bajo consumo tienen prioridad sobre decoración.
-- JAR versionado y CI obligatorio antes de publicar.
+- `tools/verificar_reload_creditos.py` fija los contratos nuevos de 0.39.
+- `tools/verificar_optimizacion.py` protege los caminos calientes de 0.38.
+- `tools/verificar_ui_musica.py` protege catálogo, hard-stop y UI/audio.
+- `tools/verificar_continuidad.py` protege Multiplayer y documentación vigente.
+- el diagnóstico oculto registra pista dominante, capas ambientales y generación de reload.
+- `dev-latest` sólo se publica después del build real de Forge.
 
-## Reporte
+## Reporte útil
 
-Un fallo visto en Minecraft debe incluir versión/JAR, SHA-256 si está disponible, pantalla/nivel, resolución, GUI Scale, opciones de Movimiento reducido/Bajo consumo, mods de UI/vídeo relevantes y captura. Adjuntar `latest.log` si afecta crash, recursos o audio.
-
-Un defecto visual, sonoro o de rendimiento no se considera corregido sólo porque compile.
+Ante un fallo, guardar versión/JAR, SHA-256, `latest.log`, pantalla/nivel, resolución, GUI Scale, opciones de Movimiento reducido/Bajo consumo y mods de UI/vídeo/audio relevantes.
