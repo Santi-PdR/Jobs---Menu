@@ -254,6 +254,21 @@ public class PantallaAjustesAviso extends Screen {
         this.minecraft.setScreen(new PantallaAjustesAviso(this.anterior, this.opciones, nueva));
     }
 
+    void abrirCategoriaDesdeBusqueda(int indice) {
+        if (this.minecraft == null) return;
+        Categoria[] categorias = Categoria.values();
+        if (indice < 0 || indice >= categorias.length) return;
+
+        Categoria nueva = categorias[indice];
+        ultimaCategoria = nueva;
+        ConfigTurno.guardarPendiente();
+        if (nueva == this.categoria) {
+            this.minecraft.setScreen(this);
+            return;
+        }
+        this.minecraft.setScreen(new PantallaAjustesAviso(this.anterior, this.opciones, nueva));
+    }
+
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         ChromeExpediente.fondo(g, this.width, this.height);
