@@ -80,12 +80,19 @@ public final class DiagnosticoOculto {
         JobsMenu.LOG.info("musica       : sonando={} pista={} reintento={}",
                 GestorMusica.sonando(), GestorMusica.pistaParaDiagnostico(),
                 GestorMusica.reintentoParaDiagnostico());
-        JobsMenu.LOG.info("ambiente     : capas={} puntuales={} registrados={} barridos={}",
+        JobsMenu.LOG.info("ambiente     : capas={} puntuales={} registrados={} purgados={} barridos={}",
                 GestorAmbiente.capasActivas(), RastreadorAudioJobs.cantidad(),
                 RastreadorAudioJobs.registradosParaDiagnostico(),
+                RastreadorAudioJobs.purgadosParaDiagnostico(),
                 RastreadorAudioJobs.cierresParaDiagnostico());
         JobsMenu.LOG.info("recursos     : generacion={}",
                 RecargaRecursosCliente.generacionParaDiagnostico());
+        JobsMenu.LOG.info("config       : pendiente={} aplicados={} omitidos={} guardados={} ultimoHaceMs={}",
+                ConfigTurno.guardadoPendienteParaDiagnostico(),
+                ConfigTurno.cambiosAplicadosParaDiagnostico(),
+                ConfigTurno.cambiosOmitidosParaDiagnostico(),
+                ConfigTurno.guardadosRealizadosParaDiagnostico(),
+                ConfigTurno.ultimoGuardadoHaceMsParaDiagnostico());
         JobsMenu.LOG.info("volumenes    : aviso={} musica={} ambiente={}",
                 ConfigTurno.volumenAvisoPorcentaje(),
                 ConfigTurno.volumenMusicaPorcentaje(),
