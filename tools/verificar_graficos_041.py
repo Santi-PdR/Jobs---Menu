@@ -36,6 +36,8 @@ def main() -> None:
         "widget.visible = false;",
         "this.botonVideoNatural.onPress();",
         "if (!this.integracionNaturalFinalizada)",
+        "child instanceof Renderable renderable",
+        'startsWith("com.santipdr.jobsmenu.")',
     ):
         require(options, token, "PantallaOpcionesJobs")
 
@@ -47,6 +49,7 @@ def main() -> None:
         "new VideoSettingsScreen",
         "SodiumOptionsGUI",
         "EmbeddiumVideoOptionsScreen",
+        "super.render(g, mouseX, mouseY, partialTick)",
     ):
         forbid(options, token, "PantallaOpcionesJobs")
 
