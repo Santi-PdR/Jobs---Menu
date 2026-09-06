@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.42.0
+# Riesgos y pruebas pendientes — 0.43.0
 
 Este archivo contiene sólo riesgos vigentes. El historial vive en `CHANGELOG.md` y en las auditorías de `docs/`.
 
@@ -13,7 +13,10 @@ Antes de publicar, GitHub Actions comprueba:
 - Jobs no usa `CompatGraficos`, `ConfigScreenFactory`, reflection ni construcción directa de Video Settings;
 - las Screens de terceros se aíslan de forma genérica, sin depender de paquetes Embeddium/Sodium/Iris;
 - una Screen de terceros no habilita redirecciones administrativas Jobs en sus subflujos;
+- los subflujos externos tampoco son capturados si terminan en `TitleScreen` o pausa vanilla;
 - `VideoSettingsScreen` vanilla sigue fuera de chrome/transiciones/click Jobs;
+- los perfiles sólo se consideran activos si coinciden con todos los valores que controla el preset;
+- Mundos y Mods limpian búsqueda/abandonan foco antes de cerrar con ESC y usan cierre idempotente;
 - frontera dura de gameplay;
 - continuidad Multiplayer, selección por IP y scroll en F5 **y resize**;
 - guard de `servers.dat` para no guardar si no hubo cambios;
@@ -39,19 +42,21 @@ En `test-1` comprobar:
 4. sin mods gráficos, la ruta natural sigue terminando en Video Settings vanilla;
 5. ESC/Done desde Gráficos vuelve a Opciones Jobs y la GUI externa no recibe decoración/click Jobs;
 6. abrir una pantalla de configuración de cualquier otro mod no añade bandas, transiciones ni sonidos Jobs;
-7. desde una pantalla externa, abrir un submenú vanilla no provoca que Jobs lo sustituya por una pantalla propia;
+7. desde una pantalla externa, abrir un submenú vanilla o `TitleScreen` no provoca que Jobs secuestre ese subflujo;
 8. no reaparece fondo/título vanilla dentro de Opciones Jobs;
 9. no existen botones/hitboxes invisibles debajo del panel Jobs;
-10. las tres pistas y créditos son correctos, sin música vanilla;
-11. eventos/apagones/FX puntuales se cortan al entrar a mundo/servidor;
-12. idioma → F3+T → resource pack no duplica música, camas ni FX;
-13. F5 y resize conservan selección+scroll Multiplayer;
-14. LAN, ping, MOTD y favicons siguen funcionando;
-15. servidor oficial sigue primero/único/protegido y `Ghoul Outbreak` no vuelve;
-16. sliders/toggles persisten tras reinicio;
-17. chat/inventario/contenedores siguen fuera de Jobs;
-18. PNG 10–17 siguen estáticos y JPG 18–31 conservan movimiento mínimo;
-19. GUI Scale 2/3/4 no provoca solapes.
+10. aplicar Equilibrado/Inmersivo/Rendimiento/Accesible/Mínimo marca el perfil correcto y tocar luego una opción relevante pasa a CUSTOM;
+11. en Mundos y Mods: ESC con búsqueda escrita limpia; segundo ESC suelta foco; tercero vuelve al padre;
+12. las tres pistas y créditos son correctos, sin música vanilla;
+13. eventos/apagones/FX puntuales se cortan al entrar a mundo/servidor;
+14. idioma → F3+T → resource pack no duplica música, camas ni FX;
+15. F5 y resize conservan selección+scroll Multiplayer;
+16. LAN, ping, MOTD y favicons siguen funcionando;
+17. servidor oficial sigue primero/único/protegido y `Ghoul Outbreak` no vuelve;
+18. sliders/toggles persisten tras reinicio;
+19. chat/inventario/contenedores siguen fuera de Jobs;
+20. PNG 10–17 siguen estáticos y JPG 18–31 conservan movimiento mínimo;
+21. GUI Scale 2/3/4 no provoca solapes.
 
 ## Riesgos vigentes
 
@@ -60,6 +65,11 @@ En `test-1` comprobar:
 - La detección alternativa por ranura usa tolerancias pequeñas de posición/tamaño. Un mod que rediseñe por completo `OptionsScreen`, moviendo el control gráfico a otra zona y cambiando además su etiqueta, puede no ser reconocible sin una API propia del proveedor. Jobs prefiere no inventar una ruta en ese caso.
 - Integraciones que sustituyan el botón después del primer render y justo entre sincronización/click son casos extremos que deben probarse en el modpack real.
 - Las pantallas de terceros se detectan por namespace de clase. Un mod que inyecte comportamiento dentro de una `Screen` cuyo tipo siga siendo `net.minecraft.*` conserva el tratamiento Minecraft de esa Screen; esto es intencional para no romper mixins vanilla.
+
+### Perfiles
+
+- La detección exacta compara sólo campos que el preset escribe. Cambiar una preferencia que ese preset deja deliberadamente libre —por ejemplo pista musical fija o nivel fijo mientras rota— no convierte el perfil en CUSTOM.
+- Mínimo oculta el estado de instalación por efecto de `interfaz_minima`; ese estado oculto no se usa para invalidar el preset mientras no tenga efecto visual.
 
 ### Audio
 
@@ -89,6 +99,7 @@ En `test-1` comprobar:
 
 ## Mitigaciones
 
+- `tools/verificar_ux_043.py`: perfiles exactos, ESC/búsqueda y cierre idempotente, frontera externa completa.
 - `tools/verificar_compatibilidad_042.py`: flujo gráfico natural, aislamiento genérico de terceros y ausencia de dependencias por proveedor.
 - `tools/verificar_runtime_041.py`: runtime/audio/config/Multiplayer 0.41.
 - `tools/verificar_audio_identidad.py`: identidad musical/hard-stop 0.40.
@@ -100,4 +111,4 @@ En `test-1` comprobar:
 
 ## Reporte útil
 
-Ante un fallo, guardar versión/JAR, SHA-256, `latest.log`, pista, pantalla/nivel, resolución, GUI Scale, secuencia de reload, posición/selección Multiplayer, nombre del mod que abrió la Screen externa, qué GUI abrió Gráficos y qué opciones faltaron.
+Ante un fallo, guardar versión/JAR, SHA-256, `latest.log`, pista, pantalla/nivel, resolución, GUI Scale, secuencia de reload, posición/selección Multiplayer, estado del buscador, perfil indicado, nombre del mod que abrió la Screen externa, qué GUI abrió Gráficos y qué opciones faltaron.
