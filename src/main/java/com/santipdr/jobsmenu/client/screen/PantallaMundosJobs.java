@@ -10,6 +10,8 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 
+import org.lwjgl.glfw.GLFW;
+
 /** Selector de mundos vanilla presentado como archivo operativo de Jobs. */
 public final class PantallaMundosJobs extends SelectWorldScreen {
 
@@ -17,6 +19,7 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
     private static final int PANEL_Y = 8;
     private final Screen anteriorJobs;
     private EditBox busqueda;
+    private boolean cerrando;
 
     public PantallaMundosJobs(Screen anterior) {
         super(anterior);
@@ -25,6 +28,8 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
 
     @Override
     protected void init() {
+        this.cerrando = false;
+        this.busqueda = null;
         super.init();
         int top = Math.max(72, PANEL_Y + 64);
         int bottom = Math.max(top + 44, this.height - 68);
@@ -43,16 +48,35 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (Screen.hasControlDown() && keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_F && this.busqueda != null) {
+        if (Screen.hasControlDown() && keyCode == GLFW.GLFW_KEY_F && this.busqueda != null) {
             this.setFocused(this.busqueda);
             this.busqueda.setFocused(true);
             return true;
         }
-        if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) {
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE && atenderEscapeBusqueda()) {
+            return true;
+        }
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             volverAlMenu();
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    /**
+     * ESC no debe expulsar de la pantalla mientras el usuario esta trabajando
+     * en el filtro. Primero limpia una busqueda escrita; si ya estaba vacia,
+     * solo abandona el foco. El siguiente ESC vuelve al padre.
+     */
+    private boolean atenderEscapeBusqueda() {
+        if (this.busqueda == null || !this.busqueda.isFocused()) return false;
+        if (!this.busqueda.getValue().isEmpty()) {
+            this.busqueda.setValue("");
+            return true;
+        }
+        this.busqueda.setFocused(false);
+        this.setFocused(null);
+        return true;
     }
 
     @Override
@@ -61,7 +85,8 @@ public final class PantallaMundosJobs extends SelectWorldScreen {
     }
 
     private void volverAlMenu() {
-        if (this.minecraft == null) return;
+        if (this.cerrando || this.minecraft == null) return;
+        this.cerrando = true;
         this.minecraft.setScreen(this.anteriorJobs != null ? this.anteriorJobs : new PantallaNivel());
     }
 
