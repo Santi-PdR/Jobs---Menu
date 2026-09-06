@@ -29,7 +29,7 @@ def main() -> None:
         "private boolean cerrando;",
         "if (this.cerrando || this.minecraft == null) return;",
         "this.cerrando = true;",
-        "if (this.minecraft.screen != this)",
+        "if (this.minecraft.screen instanceof PantallaPaquetesJobs)",
     ):
         require(options, token, "PantallaOpcionesJobs")
 
