@@ -59,11 +59,22 @@ public final class EscuchaCliente {
     private static boolean retornoDesdeJuego;
     private static boolean retornoMultijugadorPendiente;
     private static boolean enServidorRemoto;
+    private static boolean flujoExternoActivo;
+    private static boolean permitirOptionsNaturalUnaVez;
     private static final Set<AbstractButton> HOVER_VANILLA =
             Collections.newSetFromMap(new WeakHashMap<>());
     private static final List<AbstractButton> BOTONES_HOVER_VANILLA = new ArrayList<>();
     private static Screen pantallaHoverVanilla;
     private static int hijosHoverVistos = -1;
+
+    /**
+     * Permite abrir una unica instancia de OptionsScreen sin que Jobs la
+     * sustituya. Se usa para exponer el Options natural completo del modpack,
+     * incluidas inyecciones que Jobs no conoce ni debe reconstruir.
+     */
+    public static void permitirOptionsNaturalUnaVez() {
+        permitirOptionsNaturalUnaVez = true;
+    }
 
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void alAbrirPantalla(ScreenEvent.Opening evento) {
@@ -72,6 +83,20 @@ public final class EscuchaCliente {
 
         ConfigTurno.guardarPendiente();
 
+        boolean optionsNaturalSolicitado = permitirOptionsNaturalUnaVez
+                && siguiente != null && siguiente.getClass() == OptionsScreen.class;
+        if (optionsNaturalSolicitado) {
+            permitirOptionsNaturalUnaVez = false;
+            flujoExternoActivo = true;
+        } else if (permitirOptionsNaturalUnaVez) {
+            // El permiso es de un solo uso y no debe contaminar una apertura
+            // inesperada si otro mod cambia de Screen antes de Options.
+            permitirOptionsNaturalUnaVez = false;
+        }
+
+        boolean flujoExternoActual = flujoExternoActivo
+                || esPantallaTerceros(anterior)
+                || optionsNaturalSolicitado;
         boolean destinoMultijugador = siguiente instanceof JoinMultiplayerScreen
                 || siguiente != null && siguiente.getClass() == TitleScreen.class;
         boolean destinoRetorno = siguiente != null && (
@@ -79,10 +104,11 @@ public final class EscuchaCliente {
                         || siguiente instanceof JoinMultiplayerScreen
                         || siguiente.getClass().getName().equals(
                                 "net.minecraft.client.gui.screens.realms.RealmsMainScreen"));
-        boolean flujoAdministrativo = SesionMenu.activa()
-                || anterior instanceof PantallaNivel
-                || anterior instanceof PantallaEstancia
-                || anterior instanceof PantallaOpcionesJobs;
+        boolean flujoAdministrativo = !flujoExternoActual && (
+                SesionMenu.activa()
+                        || anterior instanceof PantallaNivel
+                        || anterior instanceof PantallaEstancia
+                        || anterior instanceof PantallaOpcionesJobs);
 
         if (ConfigTurno.menuPropio() && retornoDesdeJuego
                 && retornoMultijugadorPendiente && destinoMultijugador) {
@@ -121,6 +147,8 @@ public final class EscuchaCliente {
             evento.setNewScreen(siguiente);
         }
 
+        actualizarFlujoExterno(flujoExternoActual, siguiente, optionsNaturalSolicitado);
+
         if (siguiente instanceof PantallaNivel) {
             limpiarRetornoJuego();
         }
@@ -136,7 +164,7 @@ public final class EscuchaCliente {
         } else {
             TransicionInterfazJobs.cancelar();
         }
-        if (Minecraft.getInstance().level == null) {
+        if (Minecraft.getInstance().level == null && !esSuperficieAjenaIntocable(siguiente)) {
             PulidoInterfazJobs.notificarApertura(siguiente);
         }
         gesto(anterior, siguiente);
@@ -149,13 +177,15 @@ public final class EscuchaCliente {
 
     @SubscribeEvent
     public static void alEmpezarRenderPantalla(ScreenEvent.Render.Pre evento) {
-        ListasExpediente.comenzarFrame(evento.getScreen());
+        Screen pantalla = evento.getScreen();
+        if (pantalla == null || esSuperficieAjenaIntocable(pantalla)) return;
+        ListasExpediente.comenzarFrame(pantalla);
     }
 
     @SubscribeEvent
     public static void alRenderizarPantalla(ScreenEvent.Render.Post evento) {
         Screen pantalla = evento.getScreen();
-        if (pantalla == null || esVideoIntocable(pantalla)) return;
+        if (pantalla == null || esSuperficieAjenaIntocable(pantalla)) return;
 
         Minecraft cliente = Minecraft.getInstance();
         String clase = pantalla.getClass().getName();
@@ -207,13 +237,16 @@ public final class EscuchaCliente {
     public static void alCerrarPantalla(ScreenEvent.Closing evento) {
         Screen pantalla = evento.getScreen();
         ConfigTurno.guardarPendiente();
-        ListasExpediente.liberar(pantalla);
+        if (!esSuperficieAjenaIntocable(pantalla)) {
+            ListasExpediente.liberar(pantalla);
+        }
         invalidarHoverVanilla(pantalla);
     }
 
     @SubscribeEvent
     public static void alEntrarJuego(ClientPlayerNetworkEvent.LoggingIn evento) {
         limpiarRetornoJuego();
+        limpiarFlujoExterno();
         enServidorRemoto = Minecraft.getInstance().getCurrentServer() != null;
         TransicionInterfazJobs.cancelar();
         SesionMenu.cerrar();
@@ -225,6 +258,7 @@ public final class EscuchaCliente {
         retornoDesdeJuego = true;
         retornoMultijugadorPendiente = enServidorRemoto || cliente.getCurrentServer() != null;
         enServidorRemoto = false;
+        limpiarFlujoExterno();
         TransicionInterfazJobs.cancelar();
         SesionMenu.cerrar();
     }
@@ -237,6 +271,7 @@ public final class EscuchaCliente {
             if (cliente.level != null) {
                 enServidorRemoto = cliente.getCurrentServer() != null;
             }
+            limpiarFlujoExterno();
             TransicionInterfazJobs.cancelar();
             SesionMenu.cerrar();
             return;
@@ -250,9 +285,50 @@ public final class EscuchaCliente {
                 && pantalla.getClass().getName().startsWith("com.santipdr.jobsmenu.client.screen.");
     }
 
+    /**
+     * Una Screen suministrada por otro mod es propiedad de ese mod. Jobs no
+     * intenta conocer sus paquetes concretos ni decidir si es una GUI grafica,
+     * de config o cualquier otra superficie: si no pertenece a Minecraft,
+     * Forge o Jobs, queda completamente fuera del chrome/input Jobs.
+     */
+    private static boolean esPantallaTerceros(Screen pantalla) {
+        if (pantalla == null || esPantallaPropia(pantalla)) return false;
+        String clase = pantalla.getClass().getName();
+        return !clase.startsWith("net.minecraft.")
+                && !clase.startsWith("net.minecraftforge.");
+    }
+
+    /**
+     * Video vanilla, pantallas de terceros y sus subflujos vanilla se respetan
+     * sin capas Jobs. El marcador externo desaparece al regresar a una Screen
+     * propia o al abandonar el menu.
+     */
+    private static boolean esSuperficieAjenaIntocable(Screen pantalla) {
+        return pantalla instanceof VideoSettingsScreen
+                || esPantallaTerceros(pantalla)
+                || (flujoExternoActivo && !esPantallaPropia(pantalla));
+    }
+
     private static boolean esSuperficieJobsActiva(Screen pantalla) {
-        if (pantalla == null || !ConfigTurno.menuPropio() || esVideoIntocable(pantalla)) return false;
+        if (pantalla == null || !ConfigTurno.menuPropio()
+                || esSuperficieAjenaIntocable(pantalla)) return false;
         return esPantallaPropia(pantalla) || SesionMenu.activa();
+    }
+
+    private static void actualizarFlujoExterno(boolean veniaExterno, Screen siguiente,
+                                                boolean optionsNaturalSolicitado) {
+        if (siguiente == null || esPantallaPropia(siguiente)) {
+            flujoExternoActivo = false;
+            return;
+        }
+        if (optionsNaturalSolicitado || esPantallaTerceros(siguiente) || veniaExterno) {
+            flujoExternoActivo = true;
+        }
+    }
+
+    private static void limpiarFlujoExterno() {
+        flujoExternoActivo = false;
+        permitirOptionsNaturalUnaVez = false;
     }
 
     private static void actualizarHoverVanilla(Screen pantalla, int mouseX, int mouseY) {
@@ -296,26 +372,9 @@ public final class EscuchaCliente {
 
     private static boolean usaTransicionJobs(Screen desde, Screen hasta) {
         if (Minecraft.getInstance().level != null) return false;
-        if (hasta == null || esVideoIntocable(desde) || esVideoIntocable(hasta)) return false;
+        if (hasta == null || esSuperficieAjenaIntocable(desde)
+                || esSuperficieAjenaIntocable(hasta)) return false;
         return esPantallaPropia(desde) || esPantallaPropia(hasta);
-    }
-
-    /**
-     * Video Settings y cualquier GUI grafica suministrada por Embeddium/Sodium
-     * son propiedad del proveedor grafico. Jobs no les dibuja chrome, no cambia
-     * sus clicks y no intenta recolocar sus widgets. Las comprobaciones por
-     * prefijo cubren tanto SodiumOptionsGUI de Embeddium 1.20.1 como las GUI
-     * nuevas de Embeddium sin depender de sus clases en compile time.
-     */
-    private static boolean esVideoIntocable(Screen pantalla) {
-        if (pantalla == null) return false;
-        if (pantalla instanceof VideoSettingsScreen) return true;
-        String clase = pantalla.getClass().getName();
-        return clase.startsWith("me.jellysquid.mods.sodium.client.gui.")
-                || clase.startsWith("org.embeddedt.embeddium.gui.")
-                || clase.startsWith("org.embeddedt.embeddium.impl.gui.")
-                || clase.startsWith("net.coderbot.iris.gui.screen.")
-                || clase.startsWith("net.irisshaders.iris.gui.screen.");
     }
 
     private static boolean esPausaReal(Screen siguiente) {

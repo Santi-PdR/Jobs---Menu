@@ -7,8 +7,8 @@ Documento maestro del estado vigente. Las auditorías antiguas son históricas y
 | Repositorio | `Santi-PdR/Jobs---Menu` |
 | Rama entregable | `main` |
 | Mod id | `jobsmenu` |
-| Versión actual | **0.41.1** |
-| Artefacto esperado | **`jobsmenu-0.41.1.jar`** |
+| Versión actual | **0.42.0** |
+| Artefacto esperado | **`jobsmenu-0.42.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -22,86 +22,79 @@ Documento maestro del estado vigente. Las auditorías antiguas son históricas y
 2. Todo JAR lleva versión: `jobsmenu-<mod_version>.jar`; nunca `jobsmenu-latest.jar`.
 3. `gradle.properties` es la fuente de verdad de versión.
 4. CI debe estar verde antes de publicar.
-5. `dev-latest` conserva un único JAR Jobs versionado y sólo se actualiza desde `main`.
+5. `dev-latest` conserva un único JAR Jobs versionado, sólo se actualiza desde `main` y el **ref Git del tag debe apuntar al mismo `main` publicado**.
 6. Java fuente permanece ASCII; texto visible vive en `lang` cuando corresponde.
-7. **Gráficos debe seguir la ruta natural del `OptionsScreen` real después de los hooks del modpack. Jobs no elige Embeddium, vanilla ni otro proveedor por su cuenta.**
+7. **Gráficos sigue la ruta natural del `OptionsScreen` real después de los hooks del modpack. Jobs no elige proveedor por su cuenta.**
 8. Jobs no usa `ConfigScreenFactory`, reflection ni clases internas de Embeddium/Sodium para abrir Gráficos.
-9. La GUI gráfica resultante queda fuera de skin, banda, transición, hover/click Jobs y recolocación de widgets.
-10. Chat, inventario, contenedores y UI normal de gameplay no reciben skin, banda, transición ni reemplazo global de clicks Jobs.
-11. Con `Minecraft.level != null` no se crea ni dibuja ninguna transición Jobs.
-12. Música, camas ambientales y FX puntuales del menú aplican hard-stop al entrar a gameplay.
-13. Pausa/Config Jobs pueden conservar tema y gestos breves sin reabrir la sesión musical.
-14. PNG 10–17 son totalmente estáticos.
-15. JPG 18–31 sólo admiten respiración de cámara sutil, no destructiva y desactivable.
-16. El rojo queda reservado a Executores.
-17. Accesibilidad, Movimiento reducido y Bajo consumo tienen prioridad sobre decoración.
-18. Ningún control visible puede tener una hitbox invisible superpuesta.
-19. Pantallas complejas conservan lógica Minecraft/Forge real cuando eso protege compatibilidad.
-20. El servidor oficial único es `JobsDosh.exaroton.me:56477`.
-21. ESC y Cancelar de Multiplayer deben volver al padre Jobs con una sola acción.
-22. F5/Actualizar y resize/maximizar/cambio de escala GUI conservan selección online por IP y posición de scroll; no crean Multiplayer vanilla intermedio.
-23. Un servidor remoto vuelve a Multiplayer Jobs tras salida/kick/pérdida de conexión; un mundo local vuelve al main Jobs.
-24. Las tres pistas musicales son Absurdism, REQUIEM y Upon the Hill V2.
-25. El build no descarga música ni fondos externos.
-26. `assets/jobsmenu/musica_creditada.txt` debe representar las tres pistas empaquetadas.
-27. Los callbacks de resource reload nunca manipulan `SoundInstance` desde el executor de recursos.
-28. La música Jobs nunca usa `minecraft:music.menu` como fallback.
-29. Los FX ambientales Jobs nunca usan `minecraft:ambient.cave` como fallback.
-30. El catálogo musical se construye una sola vez por JVM.
-31. El hard-stop musical ordena también `SoundManager.stop(instance)`.
-32. Los FX puntuales Jobs se rastrean mientras están activos y se cortan al cerrar la visita.
-33. Multiplayer sólo guarda `servers.dat` cuando su normalización realmente modifica datos.
-34. Config Jobs no programa guardado cuando el valor solicitado ya coincide con el actual.
-35. El hover vanilla preservado cachea botones por Screen/init en vez de recorrer todos los hijos por frame.
-36. Jobs corta `MusicManager` una vez al abrir visita y bloquea nuevas instancias `SoundSource.MUSIC` mientras la sesión está activa; no hace polling de stop por tick.
+9. Si un mod reemplaza el botón gráfico y cambia su etiqueta, la ranura original puede usarse para reconocer el sustituto sin construir otra Screen.
+10. Toda Screen de terceros queda fuera de skin, banda, transición, hover/click Jobs y recolocación de widgets.
+11. Una Screen de terceros tampoco habilita redirecciones Jobs sólo porque `SesionMenu` siga activa; su navegación interna se respeta.
+12. `VideoSettingsScreen` vanilla también es superficie intocable.
+13. Chat, inventario, contenedores y UI normal de gameplay no reciben skin, banda, transición ni reemplazo global de clicks Jobs.
+14. Con `Minecraft.level != null` no se crea ni dibuja ninguna transición Jobs.
+15. Música, camas ambientales y FX puntuales del menú aplican hard-stop al entrar a gameplay.
+16. Pausa/Config Jobs pueden conservar tema y gestos breves sin reabrir la sesión musical.
+17. PNG 10–17 son totalmente estáticos.
+18. JPG 18–31 sólo admiten respiración de cámara sutil, no destructiva y desactivable.
+19. El rojo queda reservado a Executores.
+20. Accesibilidad, Movimiento reducido y Bajo consumo tienen prioridad sobre decoración.
+21. Ningún control visible puede tener una hitbox invisible superpuesta.
+22. Pantallas complejas conservan lógica Minecraft/Forge real cuando eso protege compatibilidad.
+23. El servidor oficial único es `JobsDosh.exaroton.me:56477`.
+24. ESC y Cancelar de Multiplayer deben volver al padre Jobs con una sola acción.
+25. F5/Actualizar y resize/maximizar/cambio de escala GUI conservan selección online por IP y posición de scroll; no crean Multiplayer vanilla intermedio.
+26. Un servidor remoto vuelve a Multiplayer Jobs tras salida/kick/pérdida de conexión; un mundo local vuelve al main Jobs.
+27. Las tres pistas musicales son Absurdism, REQUIEM y Upon the Hill V2.
+28. El build no descarga música ni fondos externos.
+29. `assets/jobsmenu/musica_creditada.txt` representa las tres pistas empaquetadas.
+30. Los callbacks de resource reload nunca manipulan `SoundInstance` desde el executor de recursos.
+31. La música Jobs nunca usa `minecraft:music.menu` como fallback.
+32. Los FX ambientales Jobs nunca usan `minecraft:ambient.cave` como fallback.
+33. El catálogo musical se construye una sola vez por JVM.
+34. El hard-stop musical ordena también `SoundManager.stop(instance)`.
+35. Los FX puntuales Jobs se rastrean mientras están activos y se cortan al cerrar la visita.
+36. Multiplayer sólo guarda `servers.dat` cuando su normalización realmente modifica datos.
+37. Config Jobs no programa guardado cuando el valor solicitado ya coincide con el actual.
+38. El hover vanilla preservado cachea botones por Screen/init en vez de recorrer todos los hijos por frame.
+39. Jobs corta `MusicManager` una vez al abrir visita y bloquea nuevas instancias `SoundSource.MUSIC` mientras la sesión está activa; no hace polling de stop por tick.
 
-## Estado 0.41.1
+## Estado 0.42.0
 
-### Gráficos: delegación natural
+### Compatibilidad de terceros
 
-`PantallaOpcionesJobs` hereda de `OptionsScreen`. Al inicializarse ejecuta primero `super.init()`: Minecraft crea sus controles reales y los mixins del modpack pueden modificar exactamente la misma instancia que modificarían en el menú normal.
+`EscuchaCliente` ya no mantiene una lista de paquetes de Embeddium/Sodium/Iris. `esPantallaTerceros()` clasifica como externa cualquier `Screen` que no pertenezca a `net.minecraft.*`, `net.minecraftforge.*` ni al paquete de pantallas Jobs.
 
-Jobs busca el `AbstractButton` cuyo mensaje es `options.video`, conserva ese objeto como backend y oculta los controles externos para que no existan botones/hitboxes visibles debajo del diseño Jobs. El botón Gráficos de Jobs no crea ninguna Screen: llama `onPress()` sobre ese botón natural.
+`esSuperficieAjenaIntocable()` incluye esas pantallas y también `VideoSettingsScreen` vanilla. En esas superficies Jobs no inicia `ListasExpediente`, no aplica piel/bandas/pulido/transiciones y no sustituye clicks vanilla. La música/ambiente de la visita puede seguir viva mientras el usuario está fuera de gameplay, pero la Screen externa conserva su propia interacción y aspecto.
 
-La captura se repite en el primer render, una vez terminado el ciclo de inicialización de Forge, para recoger sustituciones agregadas después del `init()`. También se vuelve a sincronizar inmediatamente antes de pulsarlo.
+El guard `flujoAdministrativo = !esPantallaTerceros(anterior) && (...)` impide que una GUI externa active por accidente las redirecciones de Options/Multiplayer/Worlds/Mods sólo porque `SesionMenu` sigue abierta.
 
-Esto significa:
+### Gráficos: delegación natural reforzada
 
-- si Embeddium sustituye naturalmente Video Settings, se abre Embeddium;
-- si otro mod modifica esa acción, se conserva su modificación;
-- si varios mods encadenan hooks sobre el flujo normal, Jobs no se interpone;
-- si nadie lo modifica, actúa el botón vanilla;
-- al cerrar la pantalla resultante, el padre sigue siendo `PantallaOpcionesJobs` porque esa es la instancia real sobre la que se construyó el callback.
+`PantallaOpcionesJobs` sigue heredando de `OptionsScreen` y ejecutando `super.init()`. El botón visual Gráficos llama al `onPress()` del control natural.
 
-`OptionsScreen.render()` no se usa porque volvería a dibujar fondo/título vanilla. Jobs reutiliza la lógica de inicialización/navegación, pero renderiza únicamente sus widgets propios.
+Además de localizar `options.video` por texto, 0.42 memoriza la posición y tamaño de su ranura. Si un mod elimina el botón original y coloca un sustituto en la misma ranura con otra etiqueta, la segunda sincronización —después de `Init.Post`— puede conservar el nuevo callback. Si el control natural no existe o está deshabilitado, Jobs emite feedback `UI_NEGADO` en vez de inventar una ruta gráfica alternativa.
 
-`CompatGraficos` queda eliminado. No existe consulta directa a `embeddium`, `ConfigScreenHandler.ConfigScreenFactory`, `SodiumOptionsGUI` ni `EmbeddiumVideoOptionsScreen` desde la navegación Jobs.
+### Pipeline `dev-latest`
 
-`EscuchaCliente.esVideoIntocable()` continúa aislando las pantallas gráficas conocidas para que una GUI externa no reciba chrome, transiciones ni sustitución de clicks Jobs.
+La release rodante ya no depende de que `ncipollo/release-action` mueva un tag existente. Después de verificar, compilar y preparar el JAR, el workflow ejecuta explícitamente:
 
-## Estado heredado 0.41.0
+```text
+git tag -f dev-latest "$GITHUB_SHA"
+git push origin refs/tags/dev-latest --force
+```
 
-### Audio puntual y hard-stop
+Ese paso es exclusivo de `main`. El verificador de versión exige su presencia para que release, tag, ZIP/tarball y commit no vuelvan a quedar desalineados.
 
-`RastreadorAudioJobs` conserva las instancias de eventos/FX ambientales Jobs. Al entrar a gameplay o cerrar visita, cada instancia conocida recibe `SoundManager.stop`. Antes de registrar otra, purga las ya finalizadas mediante `SoundManager.isActive`.
+## Estado heredado 0.41
 
-`MezclaAudio.ambiental()` resuelve el SoundEvent con respaldo `null`: un registro faltante produce silencio controlado, no una cueva vanilla.
-
-### Música vanilla sin polling
-
-`GestorMusica.atender()` ya no llama `MusicManager.stopPlaying()` cada tick. Una visita nueva corta la música vanilla una vez y `BloqueoMusicaVanillaJobs` intercepta cualquier `SoundSource.MUSIC` nuevo mientras Jobs posee el menú. Las pistas Jobs usan `MASTER`, por lo que su catálogo no se bloquea.
-
-### Sesión idempotente
-
-`SesionMenu.cerrar()` sólo repite un hard-stop si todavía existe sesión interna, música viva, camas ambientales o FX puntuales registrados. Esto conserva la defensa contra audio residual sin ejecutar cierres completos durante cada tick jugable después del primer corte.
-
-### Multiplayer
-
-F5/Actualizar guarda IP seleccionada y `getScrollAmount()`, reconstruye la pantalla Jobs y restaura una Entry nueva más `setScrollAmount()`. `resize()` captura ese mismo estado antes de que Minecraft vuelva a ejecutar `init()`, de modo que maximizar, redimensionar o cambiar escala GUI conserva contexto. `ServerList.save()` sólo se ejecuta cuando `cambiado` es verdadero.
-
-### Config y UI hot-path
-
-Los setters boolean/int comparan el valor actual antes de `set()`. Valores idénticos se omiten y no generan guardado. El perfil accesible evita reescribir valores ya correctos. `EscuchaCliente` mantiene una lista cacheada de botones vanilla relevantes para hover.
+- `RastreadorAudioJobs` corta FX puntuales al cerrar visita/gameplay.
+- `MezclaAudio.ambiental()` usa silencio controlado, no `AMBIENT_CAVE`.
+- `GestorMusica` no hace `stopPlaying()` por tick y bloquea nueva música vanilla por evento.
+- `SesionMenu.cerrar()` es idempotente.
+- F5/Actualizar y `resize()` de Multiplayer conservan selección+scroll.
+- `ServerList.save()` sólo corre si la normalización cambió datos.
+- Setters de config omiten valores idénticos.
+- Hover vanilla preservado usa caché.
 
 ## Estado heredado importante
 
@@ -148,6 +141,6 @@ Servidor oficial primero, único y protegido; `Ghoul Outbreak` no reaparece; con
 
 ## Verificación
 
-CI ejecuta política de versión, fondos, verificador general, UI/música, continuidad Multiplayer/documentación, optimización, créditos/reload, identidad musical/hard-stop, `tools/verificar_runtime_041.py`, `tools/verificar_graficos_041.py`, build Forge Java 17 y publicación versionada sólo desde `main` verde.
+CI ejecuta política de versión/tag, fondos, verificador general, UI/música, continuidad Multiplayer/documentación, optimización, créditos/reload, identidad musical/hard-stop, `tools/verificar_runtime_041.py`, `tools/verificar_compatibilidad_042.py`, build Forge Java 17 y publicación versionada sólo desde `main` verde.
 
 La validación visual, input, audio perceptivo y compatibilidad final con el modpack siguen siendo manuales en `test-1`.

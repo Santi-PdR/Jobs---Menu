@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.41.1
+# Checklist manual de aceptación — 0.42.0
 
 CI certifica código, recursos y build; este checklist certifica la experiencia real dentro de Forge 1.20.1.
 
@@ -6,19 +6,19 @@ CI certifica código, recursos y build; este checklist certifica la experiencia 
 
 - [ ] Java 17 + Forge 47.x + Minecraft 1.20.1.
 - [ ] cerrar `test-1` antes de sustituir el JAR.
-- [ ] dejar un único `jobsmenu-0.41.1.jar` en `mods`.
+- [ ] dejar un único `jobsmenu-0.42.0.jar` en `mods`.
 - [ ] conservar `latest.log` si aparece crash, audio huérfano o recurso faltante.
 
-## Gráficos / flujo natural — 0.41.1
+## Gráficos / flujo natural — 0.42
 
 Con el modpack real de `test-1`:
 
-- [ ] abrir primero un `OptionsScreen` normal de referencia si es posible y observar qué abre su botón Gráficos;
+- [ ] abrir un `OptionsScreen` normal de referencia si es posible y observar qué abre su botón Gráficos;
 - [ ] **Gráficos de Jobs abre la misma interfaz y conserva las mismas categorías/opciones añadidas por mods**;
 - [ ] Embeddium mantiene todas sus opciones y pestañas;
-- [ ] opciones/inyecciones de otros mods gráficos que estaban presentes en el flujo normal siguen presentes;
-- [ ] Oculus/Iris/shaders siguen abriendo desde la ruta que corresponda en el modpack;
-- [ ] ESC/Done/Cerrar desde la GUI gráfica vuelve a Opciones Jobs;
+- [ ] opciones/inyecciones de Oculus u otros mods gráficos presentes en el flujo normal siguen presentes;
+- [ ] si un mod cambia el texto del botón gráfico pero conserva aproximadamente su ranura, Jobs sigue abriendo el callback sustituido;
+- [ ] ESC/Done/Cerrar desde la GUI gráfica vuelve correctamente a Opciones Jobs;
 - [ ] la GUI gráfica externa no recibe marco, banda, transición, recolocación ni click/hover Jobs;
 - [ ] Opciones Jobs no muestra título/fondo vanilla encima del chrome Jobs;
 - [ ] no existen controles vanilla/modded visibles ni hitboxes invisibles debajo del panel Jobs;
@@ -30,7 +30,26 @@ Sin mods que sustituyan Gráficos:
 - [ ] volver desde vanilla regresa a Opciones Jobs;
 - [ ] la pantalla vanilla de vídeo tampoco recibe tematización ni transición Jobs.
 
-## Audio / lifecycle — 0.41
+## MODPACK / Opciones completas — 0.42
+
+- [ ] el botón `MODPACK` aparece en Opciones Jobs sin solaparse con Online/Cerrar expediente;
+- [ ] `MODPACK` abre el `OptionsScreen` completo y natural del modpack;
+- [ ] cualquier botón, categoría o inyección que otro mod agregue al Options normal también aparece allí;
+- [ ] entrar en un submenú desde MODPACK no añade chrome, transición, click ni hover Jobs;
+- [ ] volver desde un submenú externo regresa al Options natural y no a una reconstrucción Jobs inesperada;
+- [ ] cerrar finalmente el Options natural vuelve a Opciones Jobs con una sola acción.
+
+## Pantallas de otros mods — 0.42
+
+- [ ] abrir una pantalla de configuración de cualquier mod desde Mods/Options no añade chrome Jobs;
+- [ ] esa Screen externa conserva sus clicks, hover, sliders, tooltips y navegación propios;
+- [ ] si la Screen externa abre otra Screen propia, Jobs no interviene;
+- [ ] si la Screen externa abre un `OptionsScreen`, `SelectWorldScreen`, `JoinMultiplayerScreen` o `ModListScreen` vanilla como subflujo, Jobs no lo reemplaza por una pantalla Jobs sólo porque la sesión del menú siga activa;
+- [ ] un subflujo externo que pasa temporalmente por una Screen `net.minecraft.*` sigue sin recibir banda/click Jobs;
+- [ ] volver desde una Screen externa al padre Jobs funciona sin pantalla intermedia ni doble ESC;
+- [ ] una Screen Forge estándar (`net.minecraftforge.*`) que Jobs sí tematiza históricamente conserva su lógica completa.
+
+## Audio / lifecycle — 0.41 heredado
 
 - [ ] Aleatoria reproduce sólo Absurdism, REQUIEM o Upon the Hill V2;
 - [ ] nunca aparece música de menú vanilla;
@@ -38,7 +57,7 @@ Sin mods que sustituyan Gráficos:
 - [ ] entrar a mundo/servidor durante una pista, crossfade o FX puntual corta **todo** el audio de menú inmediatamente;
 - [ ] volver al menú no duplica música, camas ni FX;
 - [ ] permanecer varios minutos en gameplay no produce audio residual ni tirones periódicos por cierre repetido;
-- [ ] F3+T/reload reconstruye audio una sola vez y sigue permitiendo créditos;
+- [ ] F3+T/reload reconstruye audio una sola vez;
 - [ ] Alt+Tab no crea instancias fantasma.
 
 ## Música / créditos
@@ -59,7 +78,7 @@ Sin mods que sustituyan Gráficos:
 - [ ] aplicar dos veces el mismo perfil no causa efectos secundarios ni reinicios de audio;
 - [ ] Perfil accesible sigue activando Movimiento reducido, Destellos reducidos, Alto contraste y Texto grande.
 
-## Multiplayer — 0.41
+## Multiplayer — 0.41 heredado
 
 - [ ] `JobsDosh.exaroton.me:56477` aparece primero y una sola vez;
 - [ ] `Ghoul Outbreak` no aparece;
@@ -102,6 +121,13 @@ Probar 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/3/4.
 - [ ] Movimiento reducido, Bajo consumo o escena quieta congelan 18–31;
 - [ ] Texto grande/Alto contraste no causan solapes críticos.
 
+## Publicación
+
+- [ ] la release `dev-latest` contiene exactamente `jobsmenu-0.42.0.jar`;
+- [ ] el SHA-256 descargado coincide con el digest de GitHub;
+- [ ] `refs/tags/dev-latest` apunta exactamente al mismo SHA que `main` publicado;
+- [ ] el workflow completó en orden `Publish rolling development release` → `Move rolling development tag` → `Remove obsolete release JARs`.
+
 ## Diagnóstico de fallos
 
-Guardar `latest.log` y anotar pista, selector, secuencia de reload, nivel, estado mundo/servidor, selección/scroll Multiplayer, mods gráficos cargados, qué pantalla abrió Gráficos, qué opciones faltaron y valores de config modificados.
+Guardar `latest.log` y anotar pista, selector, secuencia de reload, nivel, estado mundo/servidor, selección/scroll Multiplayer, mod dueño de la Screen externa, si se entró por Gráficos o MODPACK, qué opciones faltaron y valores de config modificados.

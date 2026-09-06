@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regla de entrega: Jobs Menu siempre se publica con version en el nombre."""
+"""Regla de entrega: Jobs Menu siempre se publica con version y tag rodante alineado."""
 from __future__ import annotations
 
 import re
@@ -37,9 +37,25 @@ def main() -> int:
         if "/releases/assets/" not in workflow or 'method="DELETE"' not in workflow:
             error("la limpieza de dev-latest no elimina realmente los assets anteriores")
 
+        for token in (
+            "Publish rolling development release",
+            "Move rolling development tag",
+            'git tag -f dev-latest "$GITHUB_SHA"',
+            "git push origin refs/tags/dev-latest --force",
+            "if: github.ref == 'refs/heads/main'",
+        ):
+            if token not in workflow:
+                error(f"dev-latest puede quedar inconsistente: falta {token}")
+
+        publicar = workflow.index("- name: Publish rolling development release")
+        mover = workflow.index("- name: Move rolling development tag")
+        limpiar = workflow.index("- name: Remove obsolete release JARs")
+        if not (publicar < mover < limpiar):
+            error("orden inseguro: primero debe publicarse el JAR, luego moverse el tag y al final limpiarse assets viejos")
+
         print(f"Version: {version}")
         print(f"Artefacto exigido: jobsmenu-{version}.jar")
-        print("Politica de versionado y limpieza de release: OK")
+        print("Politica de versionado, publicacion, tag rodante y limpieza: OK")
         return 0
     except Exception as exc:
         print(f"ERROR versionado: {exc}", file=sys.stderr)

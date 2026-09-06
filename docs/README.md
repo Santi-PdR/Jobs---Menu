@@ -19,7 +19,10 @@ Para trabajar sobre `main`, leer en este orden:
 ## Contratos que no deben regredir
 
 - **Gráficos delega al botón natural del `OptionsScreen` ya modificado por el modpack; Jobs no elige un proveedor gráfico.**
-- La GUI gráfica final permanece sin capas, transiciones ni reemplazo de clicks Jobs.
+- La ranura original del control gráfico puede identificar un reemplazo que cambie la etiqueta sin acoplar Jobs al proveedor.
+- Cualquier `Screen` de terceros queda sin chrome, transición, hover/click ni recolocación Jobs.
+- La navegación iniciada por una Screen de terceros no se redirige por Jobs sólo porque la sesión siga activa.
+- `VideoSettingsScreen` vanilla también permanece intocable.
 - Chat, inventario, contenedores y UI normal de gameplay quedan fuera de Jobs.
 - Con mundo cargado no existen transiciones Jobs ni música/ambiente de menú.
 - Pausa/Config Jobs sólo conservan tematización/feedback breve permitido.
@@ -35,11 +38,13 @@ Para trabajar sobre `main`, leer en este orden:
 - `MusicManager.stopPlaying()` no se ejecuta por tick: nueva música `SoundSource.MUSIC` se bloquea por evento durante la sesión Jobs.
 - Config Jobs no escribe valores idénticos.
 - Hover vanilla preservado usa una caché de botones, no un scan completo por frame.
+- `dev-latest` debe apuntar al mismo SHA de `main` que publicó el JAR.
 - El JAR usa orden reproducible y `main` es la única rama entregable.
 
 ## Auditoría vigente de la entrega
 
-- [`AUDITORIA_0.41.1_FLUJO_GRAFICO_NATURAL.md`](AUDITORIA_0.41.1_FLUJO_GRAFICO_NATURAL.md) — delegación de Gráficos al OptionsScreen natural del modpack.
+- [`AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md`](AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md) — aislamiento genérico, flujo gráfico natural reforzado y tag rodante consistente.
+- [`AUDITORIA_0.41.1_FLUJO_GRAFICO_NATURAL.md`](AUDITORIA_0.41.1_FLUJO_GRAFICO_NATURAL.md) — origen de la delegación de Gráficos al OptionsScreen natural del modpack.
 - [`AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md`](AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md) — audio puntual, sesión idempotente, config, hover y continuidad Multiplayer.
 - [`AUDITORIA_0.40.0_IDENTIDAD_MUSICAL.md`](AUDITORIA_0.40.0_IDENTIDAD_MUSICAL.md) — eliminación del fallback musical vanilla, catálogo estático y hard-stop musical.
 - [`AUDITORIA_0.39.0_CREDITOS_Y_RELOAD.md`](AUDITORIA_0.39.0_CREDITOS_Y_RELOAD.md) — créditos y generaciones de reload.
@@ -52,4 +57,4 @@ Para trabajar sobre `main`, leer en este orden:
 
 Los demás `AUDITORIA_*.md`, revisiones, catálogos y planes son evidencia histórica. Si contradicen `CONTEXTO.md`, `KNOWN_ISSUES.md`, `compatibilidad.md`, `musica.md` o una auditoría más reciente, manda el documento vigente más nuevo.
 
-En particular, reglas históricas como “Video Settings siempre vanilla” o la integración directa con `ConfigScreenFactory` de Embeddium **no describen el contrato actual**.
+En particular, reglas históricas como “Video Settings siempre vanilla”, la integración directa con `ConfigScreenFactory` de Embeddium o listas de paquetes gráficos específicos **no describen el contrato actual**.
