@@ -4,8 +4,8 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 
 | Campo | Valor |
 |---|---|
-| Versión | **0.45.0** |
-| Artefacto | **`jobsmenu-0.45.0.jar`** |
+| Versión | **0.46.0** |
+| Artefacto | **`jobsmenu-0.46.0.jar`** |
 | Minecraft | **1.20.1** |
 | Forge | **47.x** |
 | Java | **17** |
@@ -13,34 +13,39 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 | Rama entregable | **`main`** |
 | Niveles | **32 (0–31)** |
 
-## 0.45.0 · búsqueda, continuidad y robustez transversal
+## 0.46.0 · lifecycle seguro de Idioma y buscador robusto
 
-0.45.0 es una pasada global de calidad sobre configuración, navegación y reconstrucciones de pantalla. No altera el contrato de Gráficos 0.44.
+0.46.0 endurece dos flujos que todavía podían quedar en estados inconsistentes sin tocar el contrato de Gráficos 0.44.
 
-- **Ajustes Jobs tiene buscador transversal con `Ctrl+F`.** Busca nombre, descripción y categoría; Enter/doble clic abre la categoría correspondiente.
-- El buscador conserva filtro, foco y scroll durante resize/maximizar/cambio de escala.
-- Config Jobs recuerda la última pestaña utilizada durante la sesión y muestra `CUSTOM` de forma explícita cuando ningún preset coincide.
-- Config Jobs, Apariencia y Controles endurecen el cierre idempotente para evitar dobles `setScreen()`.
-- **Idioma es transaccional:** conserva idioma pendiente, filtro y scroll durante resize; si falla el reload de recursos restaura `Options.languageCode` y `LanguageManager` al idioma anterior y muestra feedback de fallo.
-- Mundos y Mods conservan filtro/foco al redimensionar en vez de reconstruirse vacíos.
-- Sonido cachea el `Field` reflectivo de `OptionsList` una sola vez por JVM en vez de resolverlo en cada `init()`.
-- El callback de Resource Packs sólo puede devolver a Opciones Jobs mientras `PantallaPaquetesJobs` siga siendo la pantalla activa, evitando retornos tardíos que secuestren otra navegación.
-- Nuevo `tools/verificar_calidad_045.py` protege estos contratos y CI lo ejecuta antes del build Forge.
+- **Idioma + Force Unicode Font forman una única transacción.** Ambos cambios quedan pendientes hasta `Aplicar y cerrar` y disparan una sola recarga de recursos.
+- Si `reloadResourcePacks()` falla, Jobs restaura **idioma y Unicode juntos**, guarda el estado anterior y deja la pantalla abierta para reintentar.
+- Un callback tardío de recarga sólo vuelve al padre si `PantallaIdiomaJobs` sigue siendo la pantalla actual; no puede secuestrar una navegación posterior.
+- Idioma añade cierre idempotente y mantiene filtro, foco, scroll y selección pendiente durante resize.
+- **El buscador de Ajustes deja de simular una tecla numérica** sobre su pantalla padre. La categoría se abre mediante una ruta explícita y validada.
+- El buscador añade cierre protegido y cachea título, detalle, categoría y contador de resultados para reducir traducciones/formato repetido durante `render()`.
+- Nuevo `tools/verificar_lifecycle_046.py`; CI lo ejecuta junto a todos los contratos 0.35–0.45 antes del build Forge.
 
-## 0.44.0 · Gráficos intocable y navegación de configuración corregida
+## 0.45.0 heredado
 
-- **MODPACK fue eliminado por completo.** No existe botón, permiso de un solo uso ni `OptionsScreen` natural alternativo.
-- `PantallaOpcionesJobs` es una `Screen` Jobs normal y no usa widgets gráficos invisibles como backend.
-- **Gráficos no es dibujado, envuelto, recolocado ni modificado por Jobs.** Con Embeddium instalado se pide a Forge la `ConfigScreenFactory` registrada por el propio Embeddium y se abre la Screen devuelta tal cual.
-- Sin Embeddium, el fallback es `VideoSettingsScreen` vanilla, también declarado superficie intocable.
+- `Ctrl+F` abre búsqueda transversal de Ajustes por nombre, descripción y categoría.
+- Filtro/foco/scroll sobreviven a resize en Ajustes, Idioma, Mundos y Mods.
+- Config recuerda la última categoría de la sesión y muestra `CUSTOM` si ningún preset coincide exactamente.
+- Apariencia, Controles y Config usan cierre idempotente.
+- Resource Packs sólo puede devolver a Opciones Jobs mientras `PantallaPaquetesJobs` siga activa.
+- Sonido cachea el `Field` reflectivo de `OptionsList` una sola vez por JVM.
+
+## Gráficos — contrato 0.44 vigente
+
+- `PantallaOpcionesJobs` es una `Screen` Jobs propia; no hereda de `OptionsScreen` ni reutiliza widgets ocultos.
+- Con Embeddium, Gráficos abre la `ConfigScreenHandler.ConfigScreenFactory` registrada por el propio mod.
+- Sin Embeddium, usa `VideoSettingsScreen` vanilla.
+- La Screen gráfica abierta queda **intocable**: sin chrome, transición, hover/click Jobs, wrapper ni recolocación.
 - Jobs no enlaza clases internas de Embeddium/Sodium ni usa reflection para abrir Gráficos.
-- Las sustituciones administrativas sólo nacen desde padres Jobs concretos, no por `SesionMenu.activa()` a secas.
+- **No existe botón MODPACK.**
 
 ## Compatibilidad de pantallas externas
 
-Las pantallas cuyo código no pertenece a `net.minecraft.*`, `net.minecraftforge.*` o Jobs se consideran de terceros y quedan fuera de la intervención Jobs. Además, `VideoSettingsScreen` vanilla es intocable de forma explícita.
-
-En esas superficies Jobs no aplica skin/chrome, banda contextual, transiciones, hover/click reemplazado ni recolocación/estilizado de listas. El marcador de flujo externo se conserva mientras una GUI ajena abra subpantallas y se limpia al volver a una Screen Jobs.
+Las pantallas cuyo código no pertenece a `net.minecraft.*`, `net.minecraftforge.*` o Jobs se consideran de terceros. Jobs no aplica sobre ellas skin, bandas, transiciones, hover/click reemplazado ni estilizado de listas. Un subflujo iniciado por una GUI externa sigue siendo externo hasta regresar a una Screen Jobs.
 
 ## Audio
 
@@ -52,45 +57,38 @@ Catálogo musical empaquetado:
 
 La música pertenece a `SesionMenu`, no a una Screen. Entrar a mundo/servidor aplica hard-stop a música, camas y FX puntuales. `M` controla mute Jobs y `N` solicita siguiente pista sólo en Aleatoria.
 
-## Interfaz y gameplay
+## Gameplay
 
-- **Gráficos se abre original y queda fuera de la tematización Jobs.**
-- No existe botón MODPACK.
-- Pantallas de terceros y sus subflujos quedan fuera de la intervención visual/input Jobs.
-- Chat, inventario, contenedores y UI normal de gameplay tampoco reciben piel, banda, transición ni sustitución global de clicks Jobs.
-- Mientras `Minecraft.level != null` no se crea ni dibuja ninguna transición Jobs.
-- Pausa/Config Jobs pueden mantener tema y feedback breve sin reactivar música/ambiente.
+- Chat, inventario, contenedores y UI normal de gameplay quedan fuera de Jobs.
+- Con `Minecraft.level != null` no se crea ni dibuja ninguna transición Jobs.
+- Pausa/Config Jobs pueden conservar tematización y feedback breve sin reactivar música/ambiente.
 - El main no muestra la antigua barra visible de atajos.
-- Ningún control visible debe quedar cubierto por una hitbox invisible.
 
 ## Configuración Jobs
 
 - `Ctrl+F` abre búsqueda global de preferencias.
-- Las flechas izquierda/derecha y teclas 1–6 navegan categorías.
-- La última categoría usada se conserva mientras dura la sesión del cliente.
-- Un preset sólo aparece activo si todos los valores que controla coinciden; cualquier desviación relevante muestra **CUSTOM**.
-- Resize no borra búsqueda/foco en Ajustes, Idioma, Mundos o Mods.
+- Flechas izquierda/derecha y teclas 1–6 navegan categorías.
+- La última categoría usada se conserva durante la sesión del cliente.
+- Un preset sólo aparece activo si coinciden todos los valores que controla; cualquier desviación relevante muestra **CUSTOM**.
+- Resize no borra filtro/foco/scroll relevante en Ajustes, Idioma, Mundos o Mods.
 
 ## Multiplayer
 
 Servidor fijado único: `JobsDosh.exaroton.me:56477`.
 
 - `Ghoul Outbreak` y duplicados legacy no reaparecen.
-- ESC y Cancelar vuelven al padre Jobs con una sola acción.
-- Cancelar conexión/error pre-login vuelve a Multiplayer Jobs.
-- Salir/kick/pérdida de conexión desde servidor remoto vuelve a Multiplayer Jobs; mundo local vuelve al main Jobs.
-- F5/Actualizar reconstruye Jobs directamente y conserva selección por IP **más scroll de lista**.
-- Resize/maximizar/cambio de escala GUI conserva también selección y scroll.
-- Abrir Multiplayer no reescribe `servers.dat` si el servidor oficial ya está correcto.
+- ESC/Cancelar, error pre-login y retorno tras servidor conservan el padre Jobs correcto.
+- F5 y resize conservan selección online por IP y scroll sin reutilizar Entries viejas.
+- `servers.dat` sólo se guarda cuando la normalización realmente cambia datos.
 
 ## Fondos
 
 - **10–17:** PNG históricos totalmente estáticos.
-- **18–31:** JPG directos 1920×1080 con respiración de cámara sólo sutil/no destructiva; Movimiento reducido, Bajo consumo o escena quieta la desactivan.
+- **18–31:** JPG directos 1920×1080 con respiración de cámara mínima y desactivable por Movimiento reducido/Bajo consumo/escena quieta.
 
 ## Build y entrega
 
-GitHub Actions ejecuta política de versión/tag, fondos, verificador general, UI/música, continuidad Multiplayer/docs, optimización, créditos/reload, identidad musical/hard-stop, runtime 0.41, aislamiento de terceros, UX 0.43, Gráficos/Opciones 0.44 y calidad global 0.45 antes del build Forge real con Java 17. `dev-latest` sólo se publica desde `main` verde.
+GitHub Actions ejecuta verificadores de versión/tag, fondos, UI/música, continuidad, optimización, créditos/reload, identidad musical, runtime 0.41, terceros 0.42, UX 0.43, Gráficos 0.44, calidad 0.45 y lifecycle 0.46; después compila Forge con Java 17. `dev-latest` sólo se publica desde `main` verde y su tag debe resolver al mismo SHA publicado.
 
 Instancia de prueba:
 
@@ -100,10 +98,8 @@ Instancia de prueba:
 
 - [`CONTEXTO.md`](CONTEXTO.md): contrato maestro vigente.
 - [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md): riesgos y límites de CI.
-- [`CHANGELOG.md`](CHANGELOG.md): evolución reciente.
+- [`CHANGELOG.md`](CHANGELOG.md): historial de versiones.
 - [`docs/README.md`](docs/README.md): índice vigente/histórico.
 - [`docs/checklist-manual.md`](docs/checklist-manual.md): aceptación en `test-1`.
 - [`docs/compatibilidad.md`](docs/compatibilidad.md): fronteras con vanilla/Forge/mods.
-- [`docs/musica.md`](docs/musica.md): catálogo y lifecycle de audio.
-- [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md): publicación e instalación.
-- [`docs/AUDITORIA_0.45.0_CALIDAD_GLOBAL.md`](docs/AUDITORIA_0.45.0_CALIDAD_GLOBAL.md): cambios, contratos y pruebas de esta tanda.
+- [`docs/AUDITORIA_0.46.0_LIFECYCLE_IDIOMA_Y_BUSQUEDA.md`](docs/AUDITORIA_0.46.0_LIFECYCLE_IDIOMA_Y_BUSQUEDA.md): auditoría de esta entrega.

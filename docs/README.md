@@ -1,67 +1,53 @@
 # Índice de documentación — Jobs Menu
 
-Este directorio contiene tanto el **contrato vigente** como auditorías históricas. Una auditoría antigua explica cómo era el mod en ese momento; no debe usarse para revertir decisiones posteriores.
+Este directorio contiene el **contrato vigente** y auditorías históricas. Si una auditoría antigua contradice el estado actual, manda `CONTEXTO.md` y la auditoría más reciente.
 
 ## Documentación vigente
 
-Para trabajar sobre `main`, leer en este orden:
-
-1. [`../CONTEXTO.md`](../CONTEXTO.md) — fuente maestra de alcance, reglas duras y estado actual.
+1. [`../CONTEXTO.md`](../CONTEXTO.md) — fuente maestra de alcance y reglas duras.
 2. [`../README.md`](../README.md) — resumen operativo de la entrega vigente.
 3. [`../KNOWN_ISSUES.md`](../KNOWN_ISSUES.md) — riesgos reales y límites de CI.
-4. [`../CHANGELOG.md`](../CHANGELOG.md) — evolución por versión.
+4. [`../CHANGELOG.md`](../CHANGELOG.md) — historial de versiones.
 5. [`checklist-manual.md`](checklist-manual.md) — aceptación dentro de Minecraft.
 6. [`compatibilidad.md`](compatibilidad.md) — fronteras con vanilla/Forge, gameplay y otros mods.
-7. [`DESPLIEGUE.md`](DESPLIEGUE.md) — flujo de build/release/instalación.
+7. [`DESPLIEGUE.md`](DESPLIEGUE.md) — build/release/instalación.
 8. [`musica.md`](musica.md) — catálogo, créditos y lifecycle de audio.
 9. [`FONDOS_18_31.md`](FONDOS_18_31.md) — asignación de JPG 18–31.
 
 ## Contratos que no deben regredir
 
-- Config Jobs ofrece búsqueda transversal con `Ctrl+F`, recuerda la última categoría de la sesión y muestra `CUSTOM` explícitamente.
-- Ajustes, Idioma, Mundos y Mods conservan filtros/foco/scroll relevantes durante resize.
-- Idioma aplica cambios de forma transaccional y restaura el valor anterior si falla resource reload.
-- Callbacks tardíos de Resource Packs no pueden devolver al usuario a Opciones Jobs si ya abandonó esa pantalla.
-- Apariencia, Controles y Config usan cierres protegidos donde corresponde.
-- Sonido cachea el `Field` reflectivo de `OptionsList` y no recorre fields en cada `init()`.
+- **0.46.0:** Idioma y Force Unicode Font se aplican juntos mediante una sola transacción de resource reload; ante fallo se revierten juntos.
+- Un callback tardío de Idioma no navega si `PantallaIdiomaJobs` ya no es la Screen activa.
+- El buscador de Ajustes usa navegación explícita de categoría; no simula teclas 1–6 contra su padre.
+- El buscador conserva filtro/foco/scroll y evita traducciones/formato repetido por frame.
+- Config recuerda la última categoría de sesión y muestra `CUSTOM` si ningún preset coincide.
+- Resource Packs no puede devolver a Opciones Jobs si ya se abandonó `PantallaPaquetesJobs`.
+- Ajustes, Idioma, Mundos y Mods conservan estado relevante durante resize.
+- Sonido cachea el `Field` reflectivo de `OptionsList`.
 - **Gráficos no se tematiza ni se reconstruye con Jobs.**
-- `PantallaOpcionesJobs` es una `Screen` propia, no un `OptionsScreen` con controles ocultos.
-- Con Embeddium, Gráficos abre la `ConfigScreenFactory` registrada por el propio mod; sin Embeddium usa `VideoSettingsScreen` vanilla.
-- Jobs no enlaza clases internas de Embeddium/Sodium ni usa reflection para Gráficos.
-- **No existe botón MODPACK** ni flujo alternativo de Options completo.
-- Cualquier `Screen` de terceros queda sin chrome, transición, hover/click ni recolocación Jobs.
-- La navegación iniciada por una Screen de terceros no se redirige sólo porque la sesión siga activa.
-- `SesionMenu.activa()` no autoriza por sí sola sustituciones administrativas; el origen debe ser una pantalla Jobs concreta.
-- Los perfiles sólo se identifican como preset cuando todos los valores controlados coinciden; de lo contrario se muestra `CUSTOM`.
-- Chat, inventario, contenedores y UI normal de gameplay quedan fuera de Jobs.
-- Con mundo cargado no existen transiciones Jobs ni música/ambiente de menú.
-- Multiplayer mantiene padre Jobs para ESC/Cancelar, conexión, error y retorno tras servidor.
-- F5/Actualizar y resize conservan **selección por IP + scroll** sin reutilizar Entries viejas.
-- `servers.dat` no se guarda al abrir/recargar si el servidor oficial ya está correcto.
-- PNG 10–17 son estáticos; JPG 18–31 sólo admiten respiración sutil/desactivable.
-- `musica_creditada.txt` representa Absurdism, REQUIEM y Upon the Hill V2.
-- Resource reload usa generaciones y no pierde una recarga posterior.
-- La música Jobs no usa fallback a `minecraft:music.menu`.
-- Los FX Jobs no usan fallback a `minecraft:ambient.cave`.
-- Música, camas y FX puntuales reciben hard-stop en gameplay.
-- Config Jobs no escribe valores idénticos.
-- Hover vanilla preservado usa caché de botones.
+- `PantallaOpcionesJobs` es una `Screen` propia; Embeddium abre su factory registrada y sin Embeddium se usa `VideoSettingsScreen` vanilla.
+- **No existe MODPACK.**
+- Pantallas de terceros y sus subflujos quedan fuera de chrome, transición, hover/click y recolocación Jobs.
+- `SesionMenu.activa()` no autoriza por sí sola redirecciones administrativas.
+- Chat, inventario, contenedores y UI normal de gameplay quedan fuera de Jobs; con mundo cargado no existen transiciones Jobs ni audio de menú.
+- Multiplayer mantiene padre Jobs, selección por IP + scroll en F5/resize y no guarda `servers.dat` sin cambios.
+- PNG 10–17 son estáticos; JPG 18–31 sólo admiten respiración mínima/desactivable.
+- Música Jobs no usa `minecraft:music.menu`; FX Jobs no usan `minecraft:ambient.cave`; música/camas/FX reciben hard-stop en gameplay.
 - `dev-latest` debe apuntar al mismo SHA de `main` que publicó el JAR.
 
 ## Auditoría vigente de la entrega
 
-- [`AUDITORIA_0.45.0_CALIDAD_GLOBAL.md`](AUDITORIA_0.45.0_CALIDAD_GLOBAL.md) — búsqueda transversal, rollback de idioma, continuidad de resize, cierres y callbacks tardíos.
-- [`AUDITORIA_0.44.0_GRAFICOS_Y_NAVEGACION.md`](AUDITORIA_0.44.0_GRAFICOS_Y_NAVEGACION.md) — Gráficos intocable, eliminación de MODPACK y redirecciones administrativas acotadas.
-- [`AUDITORIA_0.43.0_UX_NAVEGACION.md`](AUDITORIA_0.43.0_UX_NAVEGACION.md) — perfiles exactos, búsqueda/ESC y cierre idempotente.
-- [`AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md`](AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md) — origen del aislamiento genérico y publicación consistente.
-- [`AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md`](AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md) — audio puntual, sesión idempotente, config, hover y continuidad Multiplayer.
+- [`AUDITORIA_0.46.0_LIFECYCLE_IDIOMA_Y_BUSQUEDA.md`](AUDITORIA_0.46.0_LIFECYCLE_IDIOMA_Y_BUSQUEDA.md) — transacción Idioma/Unicode, callback tardío, navegación explícita y hot path del buscador.
+- [`AUDITORIA_0.45.0_CALIDAD_GLOBAL.md`](AUDITORIA_0.45.0_CALIDAD_GLOBAL.md) — búsqueda transversal, continuidad de resize, cierres y callbacks.
+- [`AUDITORIA_0.44.0_GRAFICOS_Y_NAVEGACION.md`](AUDITORIA_0.44.0_GRAFICOS_Y_NAVEGACION.md) — Gráficos intocable, eliminación de MODPACK y redirecciones acotadas.
+- [`AUDITORIA_0.43.0_UX_NAVEGACION.md`](AUDITORIA_0.43.0_UX_NAVEGACION.md) — perfiles exactos y navegación robusta.
+- [`AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md`](AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md) — aislamiento genérico de terceros.
+- [`AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md`](AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md) — audio puntual, sesión, config y Multiplayer.
 - [`AUDITORIA_0.40.0_IDENTIDAD_MUSICAL.md`](AUDITORIA_0.40.0_IDENTIDAD_MUSICAL.md) — identidad musical y hard-stop.
 - [`AUDITORIA_0.39.0_CREDITOS_Y_RELOAD.md`](AUDITORIA_0.39.0_CREDITOS_Y_RELOAD.md) — créditos y generaciones de reload.
-- [`AUDITORIA_0.38.0_OPTIMIZACION_GLOBAL.md`](AUDITORIA_0.38.0_OPTIMIZACION_GLOBAL.md) — optimización global y build reproducible.
+- [`AUDITORIA_0.38.0_OPTIMIZACION_GLOBAL.md`](AUDITORIA_0.38.0_OPTIMIZACION_GLOBAL.md) — optimización global.
 - [`AUDITORIA_0.37.0_CONTINUIDAD_MULTIPLAYER_Y_DOCS.md`](AUDITORIA_0.37.0_CONTINUIDAD_MULTIPLAYER_Y_DOCS.md) — continuidad F5 y documentación.
 
 ## Histórico
 
-Los demás `AUDITORIA_*.md`, revisiones, catálogos y planes son evidencia histórica. Si contradicen `CONTEXTO.md`, `KNOWN_ISSUES.md`, `compatibilidad.md` o una auditoría más reciente, manda el documento vigente más nuevo.
-
-En particular, el `OptionsScreen` oculto, la detección gráfica por ranura y el botón MODPACK de 0.41.1/0.42 son históricos y **no describen el contrato actual**.
+El `OptionsScreen` oculto, detección gráfica por ranura y botón MODPACK de 0.41.1/0.42 son históricos y **no describen el contrato vigente**.
