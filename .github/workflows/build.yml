@@ -60,6 +60,8 @@ jobs:
         run: python3 tools/verificar_runtime_041.py
       - name: Verify third-party compatibility 0.42
         run: python3 tools/verificar_compatibilidad_042.py
+      - name: Verify UX and navigation 0.43
+        run: python3 tools/verificar_ux_043.py
       - name: Prepare Gradle wrapper
         run: chmod +x gradlew
       - name: Build Forge mod

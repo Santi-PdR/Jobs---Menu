@@ -21,8 +21,10 @@ Para trabajar sobre `main`, leer en este orden:
 - **Gráficos delega al botón natural del `OptionsScreen` ya modificado por el modpack; Jobs no elige un proveedor gráfico.**
 - La ranura original del control gráfico puede identificar un reemplazo que cambie la etiqueta sin acoplar Jobs al proveedor.
 - Cualquier `Screen` de terceros queda sin chrome, transición, hover/click ni recolocación Jobs.
-- La navegación iniciada por una Screen de terceros no se redirige por Jobs sólo porque la sesión siga activa.
+- La navegación iniciada por una Screen de terceros no se redirige por Jobs sólo porque la sesión siga activa; el aislamiento incluye sus subflujos vanilla, `TitleScreen` y pausa.
 - `VideoSettingsScreen` vanilla también permanece intocable.
+- Los perfiles sólo se identifican como preset cuando todos los valores que controlan siguen coincidiendo; de lo contrario se muestra estado personalizado.
+- En Mundos/Mods, ESC limpia búsqueda y foco antes de salir, y el cierre es idempotente.
 - Chat, inventario, contenedores y UI normal de gameplay quedan fuera de Jobs.
 - Con mundo cargado no existen transiciones Jobs ni música/ambiente de menú.
 - Pausa/Config Jobs sólo conservan tematización/feedback breve permitido.
@@ -43,6 +45,7 @@ Para trabajar sobre `main`, leer en este orden:
 
 ## Auditoría vigente de la entrega
 
+- [`AUDITORIA_0.43.0_UX_NAVEGACION.md`](AUDITORIA_0.43.0_UX_NAVEGACION.md) — perfiles exactos, búsqueda/ESC, cierre idempotente y frontera externa completa.
 - [`AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md`](AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md) — aislamiento genérico, flujo gráfico natural reforzado y tag rodante consistente.
 - [`AUDITORIA_0.41.1_FLUJO_GRAFICO_NATURAL.md`](AUDITORIA_0.41.1_FLUJO_GRAFICO_NATURAL.md) — origen de la delegación de Gráficos al OptionsScreen natural del modpack.
 - [`AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md`](AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md) — audio puntual, sesión idempotente, config, hover y continuidad Multiplayer.
