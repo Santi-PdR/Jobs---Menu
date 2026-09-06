@@ -8,7 +8,7 @@
 
 Los tres eventos usan `stream: true`. El build no descarga canciones ni depende de servicios externos.
 
-## Identidad Jobs — sin fallback vanilla
+## Base 0.40.0 — identidad Jobs sin fallback vanilla
 
 `CATALOGO` se construye una sola vez por JVM. Una pista se resuelve mediante `MezclaAudio.resolver(pista.evento(), null)`: no existe fallback a `minecraft:music.menu`. Si una pista propia falta, se omite/reintenta sin retirar prematuramente la válida.
 
