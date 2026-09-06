@@ -33,8 +33,12 @@ public final class PantallaIdiomaJobs extends Screen {
     private CampoBusquedaCentrado busqueda;
     private String aplicado;
     private String pendiente;
+    private String filtroConservado = "";
+    private boolean focoBusquedaConservado;
+    private double scrollConservado;
     private int panelX, panelY, panelW, panelH;
     private boolean aplicando;
+    private boolean falloAplicacion;
 
     public PantallaIdiomaJobs(Screen anterior, Options opciones, LanguageManager idiomas) {
         super(Component.translatable("jobsmenu.interfaz.idioma.titulo"));
@@ -45,8 +49,13 @@ public final class PantallaIdiomaJobs extends Screen {
 
     @Override
     protected void init() {
-        this.aplicado = this.idiomas.getSelected();
-        this.pendiente = this.aplicado;
+        if (this.aplicado == null) {
+            this.aplicado = this.idiomas.getSelected();
+        }
+        if (this.pendiente == null) {
+            this.pendiente = this.aplicado;
+        }
+
         this.panelW = Math.max(180, Math.min(430, this.width - 12));
         this.panelH = Math.max(190, Math.min(326, this.height - 12));
         this.panelW = Math.min(this.panelW, this.width - 4);
@@ -60,7 +69,10 @@ public final class PantallaIdiomaJobs extends Screen {
         int searchY = panelY + (panelH < 230 ? 42 : 49);
         this.busqueda = new CampoBusquedaCentrado(this.font, listX, searchY, listW, 19,
                 Component.translatable("jobsmenu.interfaz.idioma.buscar"));
-        this.busqueda.setResponder(s -> { if (this.lista != null) this.lista.recargar(s); });
+        this.busqueda.setResponder(s -> {
+            this.filtroConservado = s;
+            if (this.lista != null) this.lista.recargar(s);
+        });
         this.addRenderableWidget(this.busqueda);
 
         int listY = searchY + 25;
@@ -68,6 +80,17 @@ public final class PantallaIdiomaJobs extends Screen {
         int listH = Math.max(62, footerY - listY - 10);
         this.lista = new ListaIdiomas(this.minecraft, listX, listY, listW, listH);
         this.addRenderableWidget(this.lista);
+
+        if (!this.filtroConservado.isEmpty()) {
+            this.busqueda.setValue(this.filtroConservado);
+        } else {
+            this.lista.recargar("");
+        }
+        this.lista.setScrollAmount(this.scrollConservado);
+        if (this.focoBusquedaConservado) {
+            this.setFocused(this.busqueda);
+            this.busqueda.setFocused(true);
+        }
 
         int gap = panelW < 260 ? 4 : 8;
         int util = Math.max(80, panelW - margen * 2);
@@ -85,18 +108,47 @@ public final class PantallaIdiomaJobs extends Screen {
                 BotonExpediente.Tipo.PRINCIPAL, this::aplicarYCerrar));
     }
 
+    @Override
+    public void resize(Minecraft minecraft, int width, int height) {
+        if (this.busqueda != null) {
+            this.filtroConservado = this.busqueda.getValue();
+            this.focoBusquedaConservado = this.busqueda.isFocused();
+        }
+        if (this.lista != null) {
+            this.scrollConservado = this.lista.getScrollAmount();
+        }
+        super.resize(minecraft, width, height);
+    }
+
     private void aplicarYCerrar() {
         if (this.aplicando) return;
         if (this.pendiente != null && !Objects.equals(this.pendiente, this.idiomas.getSelected())) {
+            String idiomaAnterior = this.idiomas.getSelected();
             this.aplicando = true;
+            this.falloAplicacion = false;
             this.opciones.languageCode = this.pendiente;
             this.idiomas.setSelected(this.pendiente);
             this.opciones.save();
             MezclaAudio.gesto(SonidosNivel.UI_CONFIRMAR, 0.52F);
             this.minecraft.reloadResourcePacks().whenComplete((ignorado, error) ->
                     this.minecraft.execute(() -> {
-                        if (error == null) this.minecraft.setScreen(this.anterior);
-                        else this.aplicando = false;
+                        if (error == null) {
+                            this.aplicado = this.pendiente;
+                            this.aplicando = false;
+                            this.minecraft.setScreen(this.anterior);
+                            return;
+                        }
+
+                        // Rollback de estado: una recarga fallida no debe dejar
+                        // Options/LanguageManager apuntando a un idioma que no
+                        // llego a aplicarse en los recursos activos.
+                        this.opciones.languageCode = idiomaAnterior;
+                        this.idiomas.setSelected(idiomaAnterior);
+                        this.opciones.save();
+                        this.aplicado = idiomaAnterior;
+                        this.aplicando = false;
+                        this.falloAplicacion = true;
+                        MezclaAudio.gesto(SonidosNivel.UI_NEGADO, 0.46F);
                     }));
             return;
         }
@@ -130,6 +182,19 @@ public final class PantallaIdiomaJobs extends Screen {
 
         super.render(g, mouseX, mouseY, partialTick);
 
+        if (this.falloAplicacion && !this.aplicando && this.panelW > 220) {
+            String error = Component.translatable("jobsmenu.subtitulo.ui.negado").getString();
+            if (this.pendiente != null) {
+                error += " // " + this.pendiente.toUpperCase(java.util.Locale.ROOT);
+            }
+            error = ChromeExpediente.ajustar(this.font, error, Math.max(80, this.panelW - 50));
+            int ew = this.font.width(error);
+            int ex = this.panelX + (this.panelW - ew) / 2;
+            int ey = this.panelY + this.panelH - 43;
+            g.drawString(this.font, error, ex, ey,
+                    Paleta.conAlfa(Paleta.UI_ACENTO_FUERTE, 0.72F), false);
+        }
+
         if (this.aplicando) {
             g.fill(0, 0, this.width, this.height, Paleta.conAlfa(Paleta.VANO, 0.62F));
             Component msg = Component.translatable("jobsmenu.interfaz.idioma.aplicando");
@@ -155,15 +220,21 @@ public final class PantallaIdiomaJobs extends Screen {
         if (Screen.hasControlDown() && keyCode == GLFW.GLFW_KEY_F && this.busqueda != null) {
             this.setFocused(this.busqueda);
             this.busqueda.setFocused(true);
+            this.focoBusquedaConservado = true;
             return true;
         }
         if ((keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) && this.pendiente != null) {
             aplicarYCerrar();
             return true;
         }
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE && this.busqueda != null
-                && this.busqueda.isFocused() && !this.busqueda.getValue().isEmpty()) {
-            this.busqueda.setValue("");
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE && this.busqueda != null && this.busqueda.isFocused()) {
+            if (!this.busqueda.getValue().isEmpty()) {
+                this.busqueda.setValue("");
+                return true;
+            }
+            this.busqueda.setFocused(false);
+            this.setFocused(null);
+            this.focoBusquedaConservado = false;
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
@@ -300,6 +371,7 @@ public final class PantallaIdiomaJobs extends Screen {
                     && ahora - this.ultimoClick < 420L;
             this.ultimoClick = ahora;
             PantallaIdiomaJobs.this.pendiente = this.codigo;
+            PantallaIdiomaJobs.this.falloAplicacion = false;
             PantallaIdiomaJobs.this.lista.setSelected(this);
             MezclaAudio.gesto(SonidosNivel.UI_ELEGIR, 0.36F);
             if (doble) PantallaIdiomaJobs.this.aplicarYCerrar();
