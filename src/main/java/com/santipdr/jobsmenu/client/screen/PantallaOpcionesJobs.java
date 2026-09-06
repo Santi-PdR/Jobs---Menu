@@ -1,5 +1,6 @@
 package com.santipdr.jobsmenu.client.screen;
 
+import com.santipdr.jobsmenu.client.EscuchaCliente;
 import com.santipdr.jobsmenu.client.sound.MezclaAudio;
 import com.santipdr.jobsmenu.client.sound.SonidosNivel;
 import com.santipdr.jobsmenu.client.ui.BotonExpediente;
@@ -83,8 +84,11 @@ public final class PantallaOpcionesJobs extends OptionsScreen {
         boton(x1, sy + paso * 2, bw, bh, "options.chat.title", "jobsmenu.tooltip.chat", this::abrirChat);
         boton(x0, sy + paso * 3, bw, bh, "resourcePack.title", "jobsmenu.tooltip.recursos", this::abrirPaquetes);
         boton(x1, sy + paso * 3, bw, bh, "options.accessibility.title", "jobsmenu.tooltip.accesibilidad", this::abrirAccesibilidad);
-        boton(x0, sy + paso * 4, anchoUtil, bh,
+        boton(x0, sy + paso * 4, bw, bh,
                 "options.online.title", "jobsmenu.tooltip.online", this::abrirOnline);
+        boton(x1, sy + paso * 4, bw, bh,
+                "jobsmenu.interfaz.opciones.modpack", "jobsmenu.tooltip.opciones.modpack",
+                this::abrirOpcionesModpack);
 
         int volverH = compacta ? 19 : 22;
         int volverY = this.panelY + this.panelH - volverH - 8;
@@ -238,6 +242,12 @@ public final class PantallaOpcionesJobs extends OptionsScreen {
 
     private void abrirOnline() {
         this.minecraft.setScreen(new PantallaOnlineJobs(this, this.opciones));
+    }
+
+    private void abrirOpcionesModpack() {
+        if (this.minecraft == null) return;
+        EscuchaCliente.permitirOptionsNaturalUnaVez();
+        this.minecraft.setScreen(new OptionsScreen(this, this.opciones));
     }
 
     private void abrirAviso() {
