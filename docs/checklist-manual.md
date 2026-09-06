@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.42.0
+# Checklist manual de aceptación — 0.43.0
 
 CI certifica código, recursos y build; este checklist certifica la experiencia real dentro de Forge 1.20.1.
 
@@ -6,10 +6,31 @@ CI certifica código, recursos y build; este checklist certifica la experiencia 
 
 - [ ] Java 17 + Forge 47.x + Minecraft 1.20.1.
 - [ ] cerrar `test-1` antes de sustituir el JAR.
-- [ ] dejar un único `jobsmenu-0.42.0.jar` en `mods`.
+- [ ] dejar un único `jobsmenu-0.43.0.jar` en `mods`.
 - [ ] conservar `latest.log` si aparece crash, audio huérfano o recurso faltante.
 
-## Gráficos / flujo natural — 0.42
+## Perfiles / estado CUSTOM — 0.43
+
+- [ ] aplicar **Equilibrado** marca el perfil Equilibrado;
+- [ ] cambiar después un valor controlado por ese preset (por ejemplo volumen ambiente) cambia el indicador a CUSTOM;
+- [ ] volver a aplicar Equilibrado restaura su identificación;
+- [ ] repetir lo mismo con Inmersivo, Rendimiento, Accesible y Mínimo;
+- [ ] cambiar sólo una opción que el preset no controla, como pista musical fija o nivel fijo, no invalida el perfil;
+- [ ] Perfil accesible sigue activando Movimiento reducido, Destellos reducidos, Alto contraste y Texto grande;
+- [ ] tocar manualmente una de esas cuatro opciones desactiva el flag del Perfil accesible como antes.
+
+## Mundos / Mods — 0.43
+
+En ambas pantallas:
+
+- [ ] `Ctrl+F` enfoca el campo de búsqueda;
+- [ ] con texto escrito, primer `ESC` vacía el filtro y **no sale**;
+- [ ] con filtro vacío pero campo aún enfocado, segundo `ESC` sólo suelta el foco;
+- [ ] el siguiente `ESC` vuelve al padre Jobs con una única transición;
+- [ ] cerrar por botón/ESC repetido no produce pantalla intermedia, doble retorno ni necesidad de pulsar varias veces;
+- [ ] redimensionar/maximizar no deja el guard de cierre bloqueado.
+
+## Gráficos / flujo natural — 0.42 heredado
 
 Con el modpack real de `test-1`:
 
@@ -30,7 +51,7 @@ Sin mods que sustituyan Gráficos:
 - [ ] volver desde vanilla regresa a Opciones Jobs;
 - [ ] la pantalla vanilla de vídeo tampoco recibe tematización ni transición Jobs.
 
-## MODPACK / Opciones completas — 0.42
+## MODPACK / Opciones completas — 0.42 heredado
 
 - [ ] el botón `MODPACK` aparece en Opciones Jobs sin solaparse con Online/Cerrar expediente;
 - [ ] `MODPACK` abre el `OptionsScreen` completo y natural del modpack;
@@ -39,13 +60,14 @@ Sin mods que sustituyan Gráficos:
 - [ ] volver desde un submenú externo regresa al Options natural y no a una reconstrucción Jobs inesperada;
 - [ ] cerrar finalmente el Options natural vuelve a Opciones Jobs con una sola acción.
 
-## Pantallas de otros mods — 0.42
+## Pantallas de otros mods — 0.43
 
 - [ ] abrir una pantalla de configuración de cualquier mod desde Mods/Options no añade chrome Jobs;
 - [ ] esa Screen externa conserva sus clicks, hover, sliders, tooltips y navegación propios;
 - [ ] si la Screen externa abre otra Screen propia, Jobs no interviene;
 - [ ] si la Screen externa abre un `OptionsScreen`, `SelectWorldScreen`, `JoinMultiplayerScreen` o `ModListScreen` vanilla como subflujo, Jobs no lo reemplaza por una pantalla Jobs sólo porque la sesión del menú siga activa;
 - [ ] un subflujo externo que pasa temporalmente por una Screen `net.minecraft.*` sigue sin recibir banda/click Jobs;
+- [ ] si un subflujo externo abre `TitleScreen`, Jobs no lo reemplaza mientras ese flujo siga marcado como externo;
 - [ ] volver desde una Screen externa al padre Jobs funciona sin pantalla intermedia ni doble ESC;
 - [ ] una Screen Forge estándar (`net.minecraftforge.*`) que Jobs sí tematiza históricamente conserva su lógica completa.
 
@@ -75,8 +97,7 @@ Sin mods que sustituyan Gráficos:
 - [ ] sliders arrastrados rápido no producen stutter por escritura continua;
 - [ ] salir de Config conserva el último valor;
 - [ ] reiniciar Minecraft conserva música, volúmenes, nivel fijo y accesibilidad;
-- [ ] aplicar dos veces el mismo perfil no causa efectos secundarios ni reinicios de audio;
-- [ ] Perfil accesible sigue activando Movimiento reducido, Destellos reducidos, Alto contraste y Texto grande.
+- [ ] aplicar dos veces el mismo perfil no causa efectos secundarios ni reinicios de audio.
 
 ## Multiplayer — 0.41 heredado
 
@@ -123,11 +144,11 @@ Probar 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/3/4.
 
 ## Publicación
 
-- [ ] la release `dev-latest` contiene exactamente `jobsmenu-0.42.0.jar`;
+- [ ] la release `dev-latest` contiene exactamente `jobsmenu-0.43.0.jar`;
 - [ ] el SHA-256 descargado coincide con el digest de GitHub;
 - [ ] `refs/tags/dev-latest` apunta exactamente al mismo SHA que `main` publicado;
 - [ ] el workflow completó en orden `Publish rolling development release` → `Move rolling development tag` → `Remove obsolete release JARs`.
 
 ## Diagnóstico de fallos
 
-Guardar `latest.log` y anotar pista, selector, secuencia de reload, nivel, estado mundo/servidor, selección/scroll Multiplayer, mod dueño de la Screen externa, si se entró por Gráficos o MODPACK, qué opciones faltaron y valores de config modificados.
+Guardar `latest.log` y anotar pista, selector, secuencia de reload, nivel, estado mundo/servidor, selección/scroll Multiplayer, estado del buscador, perfil indicado, mod dueño de la Screen externa, si se entró por Gráficos o MODPACK, qué opciones faltaron y valores de config modificados.
