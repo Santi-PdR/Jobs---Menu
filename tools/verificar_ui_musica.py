@@ -108,7 +108,8 @@ def verify_robustness() -> None:
     options = read(JAVA / "client/screen/PantallaOpcionesJobs.java")
     require(options, ("extends OptionsScreen", "super.init();", "private AbstractButton botonVideoNatural;",
                       'Component.translatable("options.video").getString()',
-                      "this.botonVideoNatural.onPress();",
+                      "this.botonVideoNatural.onPress();", "coincideRanuraVideo",
+                      "recordarVideo", "ranuraVideoConocida",
                       "anchoUtil, bh,\n                \"options.online.title\""),
             "PantallaOpcionesJobs")
     for token in ("CompatGraficos", "ConfigScreenHandler", "new VideoSettingsScreen",
@@ -121,8 +122,15 @@ def verify_robustness() -> None:
     if (JAVA / "client/CompatGraficos.java").exists():
         fail("CompatGraficos no debe existir.")
 
-    require(listener, ("esVideoIntocable", "pantalla instanceof VideoSettingsScreen",
-                       "esVideoIntocable(pantalla)"), "EscuchaCliente")
+    require(listener, ("esPantallaTerceros", "esSuperficieAjenaIntocable",
+                       "pantalla instanceof VideoSettingsScreen",
+                       '!clase.startsWith("net.minecraft.")',
+                       '!clase.startsWith("net.minecraftforge.")',
+                       "esSuperficieAjenaIntocable(pantalla)"), "EscuchaCliente")
+    for token in ("me.jellysquid.mods.sodium", "org.embeddedt.embeddium",
+                  "net.coderbot.iris", "net.irisshaders.iris"):
+        if token in listener:
+            fail(f"EscuchaCliente vuelve a depender de un proveedor grafico concreto: {token}")
 
     require(multiplayer, ("conectarSeleccionado", "ConnectScreen.startConnecting(this, this.minecraft",
                           "ServerAddress.parseString(servidor.ip)", "private final Screen pantallaPadre;",
@@ -137,9 +145,10 @@ def verify_robustness() -> None:
 
     transition = read(JAVA / "client/ui/TransicionInterfazJobs.java")
     require(listener, ("usaTransicionJobs", "TransicionInterfazJobs.cancelar()",
-                       "Minecraft.getInstance().level != null && !propia",
+                       "if (cliente.level != null && !propia) return;",
                        "if (Minecraft.getInstance().level != null) return false;",
-                       "if (Minecraft.getInstance().level == null) {\n            PulidoInterfazJobs.notificarApertura(siguiente);",
+                       "Minecraft.getInstance().level == null && !esSuperficieAjenaIntocable(siguiente)",
+                       "esSuperficieAjenaIntocable(desde)", "esSuperficieAjenaIntocable(hasta)",
                        "if (cliente.level == null) {\n            TransicionInterfazJobs.dibujar(pantalla, evento.getGuiGraphics());"),
             "EscuchaCliente")
     require(transition, ("public static void cancelar()",), "TransicionInterfazJobs")
@@ -227,7 +236,7 @@ def main() -> int:
         verify_music_session()
         verify_ambient_catalog()
         verify_audio_sources()
-        print("UI, navegacion natural, gameplay y audio Jobs: OK")
+        print("UI, navegacion natural, aislamiento de terceros y audio Jobs: OK")
         print("Composicion adaptativa y catalogo musical/ambiental: OK")
         return 0
     except Exception as exc:
