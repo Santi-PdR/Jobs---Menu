@@ -19,11 +19,13 @@ Mod **exclusivamente de cliente** para Minecraft Forge 1.20.1. Jobs reemplaza y 
 
 - **Gráficos sigue el botón real de `OptionsScreen`.** Jobs no construye Embeddium, Sodium, Oculus, Iris ni `VideoSettingsScreen` por su cuenta.
 - La delegación guarda también la **ranura original** del botón de vídeo. Si un mod reemplaza el control y además cambia su etiqueta, Jobs puede reconocer el sustituto por su posición/tamaño y conservar su callback natural.
-- Las pantallas cuyo código no pertenece a `net.minecraft.*`, `net.minecraftforge.*` o Jobs se consideran **pantallas de terceros** y no reciben chrome, bandas, transiciones, hover ni sustitución de clicks Jobs.
-- La navegación iniciada desde una pantalla de terceros tampoco se intercepta sólo porque la sesión Jobs siga activa. Un mod puede abrir sus propios submenús o pantallas vanilla sin que Jobs secuestre ese flujo.
+- Opciones Jobs añade **MODPACK**, una salida deliberada al `OptionsScreen` completo y natural. Sirve para acceder a botones, categorías e inyecciones que otros mods añadan y que Jobs no conoce.
+- Al entrar por MODPACK se marca un **subflujo externo**: si esa pantalla abre después una GUI de otro mod o incluso una Screen vanilla, Jobs no le agrega chrome, bandas, transiciones, hover, clicks ni redirecciones internas.
+- Las pantallas cuyo código no pertenece a `net.minecraft.*`, `net.minecraftforge.*` o Jobs se consideran **pantallas de terceros** y quedan fuera de la intervención Jobs.
 - `VideoSettingsScreen` vanilla sigue siendo intocable aunque pertenezca al paquete de Minecraft.
 - Se eliminan las listas de paquetes específicos de Embeddium/Sodium/Iris del listener: la compatibilidad ya no depende del nombre de clase de un proveedor concreto.
-- El pipeline mueve de forma explícita el tag Git `dev-latest` al `GITHUB_SHA` publicado. Release, tag, ZIP/tarball y commit quedan alineados después de un `main` verde.
+- El trabajo de `ListasExpediente` se omite también en superficies externas, evitando scans/cachés innecesarios dentro de GUI ajenas.
+- El pipeline publica primero el JAR, después mueve el tag Git `dev-latest` al `GITHUB_SHA` y al final limpia assets Jobs obsoletos. Así el tag no se adelanta a una publicación fallida.
 - Nuevo `tools/verificar_compatibilidad_042.py`; el antiguo verificador gráfico específico de 0.41 se retira.
 
 ## Estado heredado 0.41
@@ -54,7 +56,8 @@ La música pertenece a `SesionMenu`, no a una Screen. Entrar a mundo/servidor ap
 ## Interfaz y gameplay
 
 - **Gráficos usa la misma ruta que usaría el `OptionsScreen` real del modpack.**
-- pantallas de terceros quedan completamente fuera de la intervención visual/input de Jobs;
+- **MODPACK** abre el Options completo y natural como garantía de acceso a configuraciones añadidas por terceros;
+- pantallas de terceros y sus subflujos quedan completamente fuera de la intervención visual/input de Jobs;
 - chat, inventario, contenedores y UI normal de gameplay tampoco reciben piel, banda, transición ni sustitución global de clicks Jobs;
 - mientras `Minecraft.level != null` no se crea ni dibuja ninguna transición Jobs;
 - Pausa/Config Jobs pueden mantener tema y feedback breve sin reactivar música/ambiente;
@@ -80,7 +83,7 @@ Servidor fijado único: `JobsDosh.exaroton.me:56477`.
 
 ## Build y entrega
 
-GitHub Actions ejecuta política de versión/tag, fondos, verificador general, UI/música, continuidad Multiplayer/docs, optimización, créditos/reload, identidad musical/hard-stop, runtime 0.41 y compatibilidad 0.42 antes del build Forge real con Java 17. `dev-latest` sólo se publica desde `main` verde y su tag debe terminar apuntando al mismo commit publicado.
+GitHub Actions ejecuta política de versión/tag, fondos, verificador general, UI/música, continuidad Multiplayer/docs, optimización, créditos/reload, identidad musical/hard-stop, runtime 0.41 y compatibilidad 0.42 antes del build Forge real con Java 17. `dev-latest` sólo se publica desde `main` verde. El orden final es **publicar JAR → mover tag → limpiar assets obsoletos** y el tag debe terminar apuntando al mismo commit publicado.
 
 Instancia de prueba:
 
