@@ -40,6 +40,7 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
 
     private final Screen pantallaPadre;
     private final String servidorPreferido;
+    private final double scrollPreferido;
     private Button realSelect, realDirect, realAdd, realEdit, realDelete;
     private BotonExpediente select, edit, delete, refresh;
     private int panelX, panelY, panelW, panelH;
@@ -53,13 +54,15 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
     private int anchoFijado;
 
     public PantallaMultijugadorJobs(Screen anterior) {
-        this(anterior, null);
+        this(anterior, null, -1.0D);
     }
 
-    private PantallaMultijugadorJobs(Screen anterior, String servidorPreferido) {
+    private PantallaMultijugadorJobs(Screen anterior, String servidorPreferido,
+                                      double scrollPreferido) {
         super(anterior);
         this.pantallaPadre = anterior;
         this.servidorPreferido = servidorPreferido;
+        this.scrollPreferido = scrollPreferido;
     }
 
     @Override
@@ -73,7 +76,6 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         this.panelH = Math.max(100, this.height - 16);
 
         asegurarServidorOficial();
-        restaurarSeleccionPreferida();
 
         this.realSelect = buscar("selectServer.select");
         this.realDirect = buscar("selectServer.direct");
@@ -91,6 +93,8 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
                 lista.updateSize(this.width, this.height, top, bottom);
             }
         }
+        restaurarSeleccionPreferida();
+        restaurarScrollPreferido();
         prepararRotulos();
         crearBotones();
     }
@@ -112,6 +116,7 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
 
         String nombre = SERVIDOR_OFICIAL.getString();
         boolean oficialConservado = false;
+        boolean cambiado = false;
         for (int i = servidores.size() - 1; i >= 0; i--) {
             ServerData dato = servidores.get(i);
             String nombreGuardado = dato.name == null ? "" : dato.name.toLowerCase(Locale.ROOT);
@@ -121,10 +126,14 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
                     && (nombreGuardado.equals("jobs official server")
                     || nombreGuardado.equals("servidor oficial de jobs"));
             if (oficial && !oficialConservado) {
-                dato.name = nombre;
+                if (!nombre.equals(dato.name)) {
+                    dato.name = nombre;
+                    cambiado = true;
+                }
                 oficialConservado = true;
             } else if (oficial || ghoulLegado || jobsFalso) {
                 servidores.remove(dato);
+                cambiado = true;
             }
         }
 
@@ -132,7 +141,10 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         for (int i = 0; i < servidores.size(); i++) {
             ServerData dato = servidores.get(i);
             if (SERVIDOR_IP.equalsIgnoreCase(dato.ip)) {
-                dato.name = nombre;
+                if (!nombre.equals(dato.name)) {
+                    dato.name = nombre;
+                    cambiado = true;
+                }
                 indice = i;
                 break;
             }
@@ -140,13 +152,19 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         if (indice < 0) {
             servidores.add(new ServerData(nombre, SERVIDOR_IP, false), false);
             indice = servidores.size() - 1;
+            cambiado = true;
         }
         while (indice > 0) {
             servidores.swap(indice, indice - 1);
             indice--;
+            cambiado = true;
         }
-        servidores.save();
-        if (this.serverSelectionList != null) this.serverSelectionList.updateOnlineServers(servidores);
+        if (cambiado) {
+            servidores.save();
+            if (this.serverSelectionList != null) {
+                this.serverSelectionList.updateOnlineServers(servidores);
+            }
+        }
     }
 
     /** Restaura el servidor seleccionado despues de una recarga F5 sin guardar una Entry obsoleta. */
@@ -163,6 +181,12 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         }
     }
 
+    /** Mantiene la zona que el usuario estaba inspeccionando al recargar. */
+    private void restaurarScrollPreferido() {
+        if (this.serverSelectionList == null || this.scrollPreferido < 0.0D) return;
+        this.serverSelectionList.setScrollAmount(this.scrollPreferido);
+    }
+
     private String ipSeleccionada() {
         if (this.serverSelectionList == null) return null;
         ServerSelectionList.Entry entrada = this.serverSelectionList.getSelected();
@@ -170,6 +194,10 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
             return online.getServerData().ip;
         }
         return null;
+    }
+
+    private double scrollActual() {
+        return this.serverSelectionList == null ? -1.0D : this.serverSelectionList.getScrollAmount();
     }
 
     private Button buscar(String clave) {
@@ -348,12 +376,14 @@ public final class PantallaMultijugadorJobs extends JoinMultiplayerScreen {
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
-    /** Recarga servidores sin crear primero una pantalla vanilla intermedia ni perder la seleccion. */
+    /** Recarga servidores sin crear pantalla vanilla ni perder contexto de lista. */
     private void refrescarLista() {
         if (this.minecraft == null || this.cerrando) return;
         String seleccion = ipSeleccionada();
+        double scroll = scrollActual();
         this.cerrando = true;
-        this.minecraft.setScreen(new PantallaMultijugadorJobs(padreDestino(), seleccion));
+        this.minecraft.setScreen(new PantallaMultijugadorJobs(
+                padreDestino(), seleccion, scroll));
     }
 
     /**
