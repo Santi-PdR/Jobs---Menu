@@ -151,3 +151,14 @@ jobs:
                   if response.status != 204:
                       raise RuntimeError(f"GitHub devolvio HTTP {response.status} al borrar {name}")
           PY
+      - name: Cleanup historical branches
+        if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[cleanup-branches]')
+        shell: bash
+        run: |
+          mapfile -t REFS < <(git ls-remote --heads origin | awk '$2 != "refs/heads/main" {print ":" $2}')
+          if [ "${#REFS[@]}" -eq 0 ]; then
+            echo 'No hay ramas auxiliares que borrar.'
+            exit 0
+          fi
+          echo "Eliminando ${#REFS[@]} ramas auxiliares; main se conserva."
+          git push origin "${REFS[@]}"
