@@ -23,8 +23,6 @@ def forbid(text: str, token: str, where: str) -> None:
 def main() -> None:
     if (JAVA / "client/CompatGraficos.java").exists():
         raise RuntimeError("CompatGraficos no debe existir.")
-    if (ROOT / "tools/verificar_graficos_041.py").exists():
-        raise RuntimeError("El verificador grafico 0.41 ya no representa el contrato proveedor-agnostico.")
 
     options = read(JAVA / "client/screen/PantallaOpcionesJobs.java")
     for token in (
@@ -39,6 +37,10 @@ def main() -> None:
         "this.botonVideoNatural.onPress();",
         "widget.visible = false;",
         "if (!this.integracionNaturalFinalizada)",
+        "private void abrirOpcionesModpack()",
+        "EscuchaCliente.permitirOptionsNaturalUnaVez();",
+        "new OptionsScreen(this, this.opciones)",
+        'Component.translatable("options.title")',
     ):
         require(options, token, "PantallaOpcionesJobs")
     for token in (
@@ -54,18 +56,26 @@ def main() -> None:
 
     listener = read(JAVA / "client/EscuchaCliente.java")
     for token in (
+        "private static boolean flujoExternoActivo;",
+        "private static boolean permitirOptionsNaturalUnaVez;",
+        "public static void permitirOptionsNaturalUnaVez()",
+        "boolean optionsNaturalSolicitado = permitirOptionsNaturalUnaVez",
+        "boolean flujoExternoActual = flujoExternoActivo",
+        "boolean flujoAdministrativo = !flujoExternoActual && (",
+        "actualizarFlujoExterno(flujoExternoActual, siguiente, optionsNaturalSolicitado);",
         "private static boolean esPantallaTerceros(Screen pantalla)",
         "private static boolean esSuperficieAjenaIntocable(Screen pantalla)",
         '!clase.startsWith("net.minecraft.")',
         '!clase.startsWith("net.minecraftforge.")',
-        "pantalla instanceof VideoSettingsScreen || esPantallaTerceros(pantalla)",
-        "boolean flujoAdministrativo = !esPantallaTerceros(anterior) && (",
+        "pantalla instanceof VideoSettingsScreen",
+        "|| (flujoExternoActivo && !esPantallaPropia(pantalla))",
         "if (pantalla == null || esSuperficieAjenaIntocable(pantalla)) return;",
         "|| esSuperficieAjenaIntocable(pantalla)) return false;",
         "esSuperficieAjenaIntocable(desde)",
         "esSuperficieAjenaIntocable(hasta)",
         "Minecraft.getInstance().level == null && !esSuperficieAjenaIntocable(siguiente)",
         "siguiente.getClass() == OptionsScreen.class",
+        "private static void limpiarFlujoExterno()",
     ):
         require(listener, token, "EscuchaCliente")
     for token in (
@@ -76,7 +86,7 @@ def main() -> None:
     ):
         forbid(listener, token, "EscuchaCliente")
 
-    print("OK compatibilidad 0.42: flujo natural + terceros intocables + navegacion aislada")
+    print("OK compatibilidad 0.42: flujo natural + terceros/subflujos intocables + Options completo")
 
 
 if __name__ == "__main__":
