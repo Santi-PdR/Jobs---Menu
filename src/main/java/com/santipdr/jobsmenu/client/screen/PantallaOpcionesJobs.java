@@ -1,5 +1,6 @@
 package com.santipdr.jobsmenu.client.screen;
 
+import com.santipdr.jobsmenu.client.CompatGraficos;
 import com.santipdr.jobsmenu.client.ui.BotonExpediente;
 import com.santipdr.jobsmenu.client.ui.ChromeExpediente;
 import net.minecraft.client.Minecraft;
@@ -103,9 +104,13 @@ public final class PantallaOpcionesJobs extends Screen {
     }
 
     private void abrirVideo() {
-        // Esta pantalla es deliberadamente vanilla. No se reconstruye, no se
-        // recoloca su lista y no se adivinan APIs de mods mediante reflection.
-        this.minecraft.setScreen(new VideoSettingsScreen(this, this.opciones));
+        // Embeddium registra su pantalla mediante el extension point oficial de
+        // Forge. Jobs la usa si esta disponible y solo cae a vanilla si no hay
+        // proveedor grafico externo o si este falla al construir su Screen.
+        Screen embeddium = CompatGraficos.crearPantallaEmbeddium(this.minecraft, this);
+        this.minecraft.setScreen(embeddium != null
+                ? embeddium
+                : new VideoSettingsScreen(this, this.opciones));
     }
 
     private void abrirControles() {
