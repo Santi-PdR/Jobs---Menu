@@ -46,6 +46,9 @@ CI certifica código, recursos y build; este checklist certifica la experiencia 
 - [ ] Direct Connect/Add/Edit/Delete funcionan para el resto;
 - [ ] seleccionar un servidor, bajar bastante en la lista y pulsar F5 conserva **selección y scroll**;
 - [ ] botón Actualizar hace lo mismo;
+- [ ] maximizar/restaurar la ventana conserva selección y scroll;
+- [ ] redimensionar varias veces conserva selección y scroll;
+- [ ] cambiar GUI Scale y volver a Multiplayer no deja la lista saltando al inicio durante el resize;
 - [ ] varias recargas seguidas no saltan al inicio de lista;
 - [ ] LAN, ping, MOTD y favicons siguen funcionando;
 - [ ] F5 suena una sola vez;
@@ -65,10 +68,25 @@ Probar 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/3/4.
 - [ ] hover/foco en controles vanilla preservados sigue sonando una sola vez al entrar;
 - [ ] no se nota retraso adicional al mover el mouse por pantallas con muchos widgets.
 
-## Video Settings / gameplay
+## Gráficos / Embeddium / gameplay
 
-- [ ] Video Settings abre completo y vanilla, también con Embeddium/Oculus;
-- [ ] no tiene marco/transición/recolocación/click Jobs;
+Con Embeddium instalado:
+
+- [ ] **Gráficos abre la interfaz real de Embeddium**, no `VideoSettingsScreen` vanilla;
+- [ ] las categorías/opciones propias de Embeddium siguen completas y funcionales;
+- [ ] ESC/Done/Cerrar vuelve a Opciones Jobs;
+- [ ] la GUI de Embeddium no recibe marco, banda, transición, recolocación ni click/hover Jobs;
+- [ ] abrir/cerrar Gráficos varias veces no duplica widgets ni rompe el foco;
+- [ ] Oculus/Iris puede abrir su pantalla de shaders sin recibir chrome Jobs.
+
+Sin Embeddium:
+
+- [ ] Gráficos abre `VideoSettingsScreen` vanilla como fallback;
+- [ ] volver desde vanilla regresa a Opciones Jobs;
+- [ ] el fallback tampoco recibe tematización ni transición Jobs.
+
+Gameplay:
+
 - [ ] chat, inventario y contenedores no reciben skin ni transición;
 - [ ] Pausa/Config Jobs conservan sólo tematización/feedback permitidos;
 - [ ] con mundo cargado no aparece ninguna transición Jobs.
@@ -82,4 +100,4 @@ Probar 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/3/4.
 
 ## Diagnóstico de fallos
 
-Guardar `latest.log` y anotar pista, selector, secuencia de reload, nivel, estado mundo/servidor, selección/scroll Multiplayer, valores de config modificados y mods de audio/resource packs activos.
+Guardar `latest.log` y anotar pista, selector, secuencia de reload, nivel, estado mundo/servidor, selección/scroll Multiplayer, si Embeddium estaba cargado, qué pantalla abrió Gráficos, valores de config modificados y mods de audio/resource packs activos.
