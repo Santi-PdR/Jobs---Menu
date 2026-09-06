@@ -1,4 +1,4 @@
-# Compatibilidad — Jobs Menu 0.44.0
+# Compatibilidad — Jobs Menu 0.45.0
 
 ## Perfil soportado
 
@@ -8,7 +8,7 @@
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente |
-| Artefacto | `jobsmenu-0.44.0.jar` |
+| Artefacto | `jobsmenu-0.45.0.jar` |
 
 Jobs distingue entre pantallas que controla y pantallas ajenas que debe respetar completamente.
 
@@ -21,9 +21,9 @@ Con mundo/servidor cargado:
 - música, camas ambientales y FX puntuales del menú reciben hard-stop;
 - Pausa/Config Jobs pueden mantener tema/feedback breve sin reactivar la sesión.
 
-## Gráficos — contrato 0.44
+## Gráficos — contrato 0.44 preservado en 0.45
 
-`PantallaOpcionesJobs` **ya no hereda de `OptionsScreen`**. No llama `super.init()`, no crea widgets vanilla/modded ocultos, no memoriza ranuras y no ejecuta un botón gráfico invisible.
+`PantallaOpcionesJobs` **no hereda de `OptionsScreen`**. No llama `super.init()`, no crea widgets vanilla/modded ocultos, no memoriza ranuras y no ejecuta un botón gráfico invisible.
 
 El botón Gráficos de Jobs sólo decide qué Screen abrir:
 
@@ -36,13 +36,7 @@ Después de obtener esa Screen, Jobs no la modifica. No hay wrapper, chrome, ove
 
 ## MODPACK eliminado
 
-El acceso MODPACK introducido en 0.42 se elimina por completo porque podía crear un ciclo de retorno en configuración. Ya no existen:
-
-- botón `MODPACK`;
-- `abrirOpcionesModpack()`;
-- `permitirOptionsNaturalUnaVez`;
-- `optionsNaturalSolicitado`;
-- un `OptionsScreen` completo alternativo abierto desde Opciones Jobs.
+El acceso MODPACK introducido en 0.42 sigue eliminado. No existen botón, `abrirOpcionesModpack()`, `permitirOptionsNaturalUnaVez`, `optionsNaturalSolicitado` ni un `OptionsScreen` completo alternativo abierto desde Opciones Jobs.
 
 ## Propiedad de pantallas de terceros
 
@@ -53,38 +47,57 @@ El acceso MODPACK introducido en 0.42 se elimina por completo porque podía crea
 - `net.minecraftforge.*` → Forge;
 - cualquier otro namespace de `Screen` → tercero.
 
-Una Screen de terceros no recibe:
-
-- `PielVanillaJobs`;
-- `ChromeExpediente.bandaContextual`;
-- `PulidoInterfazJobs`;
-- `TransicionInterfazJobs`;
-- hover Jobs;
-- reemplazo del click vanilla;
-- gestión visual de listas Jobs.
-
-`VideoSettingsScreen` vanilla se declara también intocable explícitamente.
+Una Screen de terceros no recibe `PielVanillaJobs`, bandas, pulido, transición, hover/click Jobs ni gestión visual de listas. `VideoSettingsScreen` vanilla se declara también intocable explícitamente.
 
 ### Navegación interna de terceros
 
 `flujoExternoActivo` acompaña al usuario cuando una GUI externa abre otra Screen. Ese flujo no habilita sustituciones Jobs sólo porque la sesión del menú continúe activa.
 
-0.44 endurece además el origen administrativo: `SesionMenu.activa()` ya no basta para sustituir `OptionsScreen`, `JoinMultiplayerScreen`, `SelectWorldScreen` o `ModListScreen`. Esas conversiones sólo nacen desde padres Jobs concretos: `PantallaNivel`, `PantallaEstancia` y `PantallaOpcionesJobs`.
+Las conversiones administrativas sólo nacen desde padres Jobs concretos: `PantallaNivel`, `PantallaEstancia` y `PantallaOpcionesJobs`.
 
-Esto reduce capturas accidentales y bucles de retorno.
+## Configuración Jobs — 0.45
 
-## Perfiles — 0.43 heredado
+- `Ctrl+F` abre `PantallaBuscarAjustesJobs`.
+- El buscador filtra nombre, detalle y categoría y conserva filtro/foco/scroll en resize.
+- Enter/doble clic abre la categoría real del ajuste.
+- Config recuerda la última categoría utilizada durante la sesión del cliente.
+- Si ningún preset coincide, el indicador muestra `CUSTOM` explícitamente.
+- Config usa cierre idempotente.
 
-`PerfilesJobs.actual()` compara cada preset de forma explícita. Si una edición manual rompe un valor controlado por el preset, el estado pasa a `CUSTOM`. Opciones deliberadamente libres —como pista musical o nivel fijo— no invalidan el perfil.
+## Idioma — 0.45
 
-## Mundos y Mods — 0.43 heredado
+- idioma pendiente, filtro, foco y scroll sobreviven a resize/maximizar;
+- antes de aplicar se conserva el idioma anterior;
+- si `reloadResourcePacks()` falla, se restauran `Options.languageCode` y `LanguageManager`;
+- la pantalla permanece abierta y permite reintentar.
+
+Esto evita estados parcialmente aplicados cuando un mod/resource pack rompe la recarga.
+
+## Mundos y Mods — 0.45
 
 1. `Ctrl+F` enfoca búsqueda.
-2. ESC con texto limpia el filtro.
-3. ESC con filtro vacío pero foco activo abandona el campo.
-4. El siguiente ESC vuelve al padre.
+2. Resize conserva filtro y foco relevante.
+3. ESC con texto limpia el filtro.
+4. ESC con filtro vacío pero foco activo abandona el campo.
+5. El siguiente ESC vuelve al padre.
 
 Ambas pantallas usan guard `cerrando` para evitar dos `setScreen()` por una misma salida.
+
+## Apariencia / Controles — 0.45
+
+Ambas pantallas añaden guard de cierre y `minecraft != null` antes de volver al padre. El objetivo es evitar rutas dobles durante ESC/botón/resize sin cambiar las opciones vanilla que administran.
+
+## Resource Packs — 0.45
+
+El callback de aplicación sólo devuelve a Opciones Jobs si la Screen activa sigue siendo `PantallaPaquetesJobs`. Si el usuario ya navegó a otra superficie, un callback tardío no puede secuestrar ese flujo.
+
+## Sonido — 0.45
+
+`PantallaSonidoJobs` sigue reutilizando la lista vanilla real, pero el `Field` de `OptionsList` se resuelve una sola vez por JVM y se cachea. No se recorre `SoundOptionsScreen.getDeclaredFields()` en cada `init()`.
+
+## Perfiles
+
+`PerfilesJobs.actual()` compara cada preset de forma explícita. Si una edición manual rompe un valor controlado por el preset, el estado pasa a `CUSTOM`. Opciones deliberadamente libres —como pista musical o nivel fijo— no invalidan el perfil.
 
 ## Audio / resource reload / sesión
 
@@ -94,11 +107,9 @@ Ambas pantallas usan guard `cerrando` para evitar dos `setScreen()` por una mism
 - `SesionMenu.cerrar()` es idempotente.
 - `MusicManager.stopPlaying()` no se ejecuta por tick.
 
-## Config
+## Config / persistencia
 
 Los setters comprueban el valor actual antes de guardar. Los cambios reales mantienen throttle y `guardarPendiente()` al abandonar/cambiar pantalla.
-
-Opciones Jobs añade también un guard de cierre idempotente. El callback de resource packs sólo ejecuta `setScreen(this)` si esa Screen no es ya la actual.
 
 ## Multiplayer
 
@@ -127,6 +138,6 @@ Servidor fijado único: `JobsDosh.exaroton.me:56477`.
 
 ## Compatibilidad manual prioritaria
 
-Probar Embeddium real, fallback vanilla, retorno ESC/Done desde Gráficos, ausencia total de MODPACK, repetición de abrir/cerrar Opciones, configuraciones de otros mods, perfiles CUSTOM, búsqueda/ESC de Mundos y Mods, resource packs, F3+T, Multiplayer con listas largas, GUI Scale extremos y resize/maximizar.
+Probar búsqueda global de Config, rollback de Idioma, resize en Config/Idioma/Mundos/Mods, callback de Resource Packs, cierres repetidos de Apariencia/Controles, Embeddium real, fallback vanilla, ausencia total de MODPACK, configuraciones de otros mods, resource reload, Multiplayer con listas largas, GUI Scale extremos y resize/maximizar.
 
 Regla general: **si tematizar exige duplicar o adivinar lógica ajena, se conserva la Screen original y Jobs no la toca**.
