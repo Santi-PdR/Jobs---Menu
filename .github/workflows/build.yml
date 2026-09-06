@@ -81,6 +81,18 @@ jobs:
           path: ${{ env.MOD_JAR }}
           if-no-files-found: error
           retention-days: 30
+      - name: Publish rolling development release
+        if: github.ref == 'refs/heads/main'
+        uses: ncipollo/release-action@v1
+        with:
+          tag: dev-latest
+          name: Jobs Menu v${{ env.MOD_VERSION }} - Latest Dev Build
+          body: Build de desarrollo v${{ env.MOD_VERSION }} generado automaticamente desde el ultimo commit que paso verificacion y compilacion con Java 17.
+          prerelease: true
+          allowUpdates: true
+          replacesArtifacts: true
+          artifactErrorsFailBuild: true
+          artifacts: ${{ env.MOD_JAR }}
       - name: Move rolling development tag
         if: github.ref == 'refs/heads/main'
         shell: bash
@@ -133,15 +145,3 @@ jobs:
                   if response.status != 204:
                       raise RuntimeError(f"GitHub devolvio HTTP {response.status} al borrar {name}")
           PY
-      - name: Publish rolling development release
-        if: github.ref == 'refs/heads/main'
-        uses: ncipollo/release-action@v1
-        with:
-          tag: dev-latest
-          name: Jobs Menu v${{ env.MOD_VERSION }} - Latest Dev Build
-          body: Build de desarrollo v${{ env.MOD_VERSION }} generado automaticamente desde el ultimo commit que paso verificacion y compilacion con Java 17.
-          prerelease: true
-          allowUpdates: true
-          replacesArtifacts: true
-          artifactErrorsFailBuild: true
-          artifacts: ${{ env.MOD_JAR }}
