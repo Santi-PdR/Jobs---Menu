@@ -1,4 +1,4 @@
-# Riesgos y pruebas pendientes — 0.39.0
+# Riesgos y pruebas pendientes — 0.40.0
 
 Este archivo contiene sólo riesgos vigentes. El historial vive en `CHANGELOG.md` y en las auditorías de `docs/`.
 
@@ -12,25 +12,24 @@ Antes de publicar, GitHub Actions comprueba:
 - paridad ES/EN, recursos y coherencia estática;
 - Video Settings aislado de capas Jobs;
 - frontera dura de gameplay;
-- salida/refresh de Multiplayer Jobs;
-- selección por IP al usar F5/Actualizar;
+- salida/refresh de Multiplayer Jobs y selección por IP;
 - contratos de optimización 0.38;
-- presencia del marcador de catálogo musical acreditado;
-- ids `absurdism`, `requiem` y `upon_the_hill_v2` dentro del marcador;
-- generación atómica de resource reload y reprogramación cuando llega una generación nueva;
-- guard de reapertura de `SesionMenu`;
+- créditos y generaciones de resource reload 0.39;
+- catálogo musical estático de 0.40;
+- ausencia de `SoundEvents.MUSIC_MENU`/fallback vanilla dentro de `GestorMusica`;
+- hard-stop directo al `SoundManager`;
 - build y publicación sólo desde `main` verde.
 
 ## Lo que CI no puede certificar
 
-CI no abre Minecraft con una ventana real. En `test-1` hay que comprobar:
+En `test-1` hay que comprobar:
 
-1. que los tres créditos musicales aparecen durante su ventana de HUD;
-2. que REQUIEM muestra `Emmy Z - Forsaken OST` y Upon the Hill V2 `ft. @iCosmicCoffee`;
+1. que las tres pistas siguen reproduciéndose y acreditándose correctamente;
+2. que ninguna falla/reload termina reproduciendo música de menú vanilla;
 3. que una secuencia rápida idioma → F3+T → resource pack no duplica música ni ambiente;
-4. que después de reload la pista vuelve una sola vez;
-5. que entrar a gameplay inmediatamente después de reload mantiene hard-stop total;
-6. que Main → Options → Mods → Recursos → volver conserva una sola visita musical;
+4. que entrar a gameplay durante reproducción/crossfade corta el audio Jobs inmediatamente;
+5. que volver al menú inicia/reanuda una visita limpia sin dos instancias;
+6. que Main → Options → Mods → Recursos → volver conserva una sola visita;
 7. que ESC/Cancelar/F5 de Multiplayer siguen funcionando con una sola acción;
 8. que LAN, ping, favicons y MOTD sobreviven a varias recargas F5;
 9. que Video Settings mantiene todas las opciones del juego/mod de vídeo;
@@ -42,15 +41,16 @@ CI no abre Minecraft con una ventana real. En `test-1` hay que comprobar:
 
 ## Riesgos vigentes
 
-### Resource reload
+### Audio y resource reload
 
-- La generación atómica evita perder una recarga posterior, pero el comportamiento final del `SoundEngine` depende también de otros mods de audio/resource packs.
-- El reintento musical posterior al reload sigue siendo temporal y debe probarse con F3+T repetido.
-- Un mod que reemplace por completo el sistema de recursos/sonido puede requerir compatibilidad específica.
+- Si otro mod sustituye por completo `SoundEngine` o intercepta `SoundManager.stop`, la compatibilidad final sigue necesitando prueba real.
+- Una pista Jobs cuyo SoundEvent no esté registrado se omite y reintenta; no hay fallback vanilla. El log avisa una vez por visita/reload para evitar spam.
+- El `RegistryObject` puede existir aunque un resource pack rompa el archivo de sonido físico; ese caso sólo puede validarse dentro del motor real.
+- La mezcla de las tres pistas y ambientes sigue siendo una prueba perceptiva manual.
 
 ### Créditos
 
-- `musica_creditada.txt` es una compuerta de autorización interna. Si desaparece, `GestorMusica` vuelve a ocultar créditos por diseño.
+- `musica_creditada.txt` es una compuerta interna. Si desaparece, `GestorMusica` oculta créditos por diseño.
 - El texto del crédito se toma del catálogo Java y no de metadata del OGG; cualquier cambio de archivo debe actualizar código/documentación juntos.
 
 ### Multiplayer
@@ -59,32 +59,22 @@ CI no abre Minecraft con una ventana real. En `test-1` hay que comprobar:
 - Entradas LAN son efímeras y dependen del nuevo detector.
 - Mods que sustituyan totalmente `JoinMultiplayerScreen` pueden necesitar compatibilidad específica.
 
-### Interfaces
+### Interfaces y fondos
 
-- Las pantallas Jobs propias pueden necesitar ajustes con resource packs de GUI muy agresivos.
-- Las capas de scrollbar son visuales; wheel/click/drag pertenecen a la lista real.
-- Video Settings se deja deliberadamente fuera de Jobs para no perder opciones de Minecraft/Embeddium/Sodium.
-
-### Fondos
-
-- JPG 18–31 son 1920×1080 y usan cover; relaciones de aspecto no 16:9 pueden recortar bordes.
-- No existe profiler GPU automático; rendimiento perceptivo debe medirse en el modpack real.
-
-### Audio
-
-- La mezcla de las tres pistas y ambientes debe validarse de oído.
-- F3+T, Alt+Tab y cambios rápidos de pantalla siguen siendo casos manuales importantes.
-- El fallback musical de emergencia del motor no forma parte de la identidad de gestos de UI; los gestos Jobs no deben volver a `ui.button.click` vanilla.
+- Resource packs de GUI agresivos pueden requerir ajustes visuales.
+- Las scrollbars Jobs son presentación; wheel/click/drag pertenecen a la lista real.
+- JPG 18–31 usan cover y pueden recortar bordes en relaciones no 16:9.
+- No existe profiler GPU automático; rendimiento perceptivo se mide en el modpack real.
 
 ## Mitigaciones
 
-- `tools/verificar_reload_creditos.py` fija los contratos nuevos de 0.39.
-- `tools/verificar_optimizacion.py` protege los caminos calientes de 0.38.
-- `tools/verificar_ui_musica.py` protege catálogo, hard-stop y UI/audio.
+- `tools/verificar_audio_identidad.py` protege identidad musical, catálogo estable y hard-stop 0.40.
+- `tools/verificar_reload_creditos.py` protege créditos/reload 0.39.
+- `tools/verificar_optimizacion.py` protege caminos calientes 0.38.
+- `tools/verificar_ui_musica.py` protege catálogo, sesión y UI/audio.
 - `tools/verificar_continuidad.py` protege Multiplayer y documentación vigente.
-- el diagnóstico oculto registra pista dominante, capas ambientales y generación de reload.
 - `dev-latest` sólo se publica después del build real de Forge.
 
 ## Reporte útil
 
-Ante un fallo, guardar versión/JAR, SHA-256, `latest.log`, pantalla/nivel, resolución, GUI Scale, opciones de Movimiento reducido/Bajo consumo y mods de UI/vídeo/audio relevantes.
+Ante un fallo, guardar versión/JAR, SHA-256, `latest.log`, pista, pantalla/nivel, resolución, GUI Scale, secuencia de reload y mods de UI/vídeo/audio relevantes.

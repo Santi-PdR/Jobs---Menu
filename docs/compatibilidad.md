@@ -1,4 +1,4 @@
-# Compatibilidad — Jobs Menu 0.39.0
+# Compatibilidad — Jobs Menu 0.40.0
 
 ## Perfil soportado
 
@@ -8,7 +8,7 @@
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente |
-| Artefacto | `jobsmenu-0.39.0.jar` |
+| Artefacto | `jobsmenu-0.40.0.jar` |
 
 Jobs distingue entre pantallas que controla, pantallas vanilla/Forge cuya lógica conserva y pantallas de terceros que debe respetar.
 
@@ -27,49 +27,29 @@ Video Settings queda fuera de Jobs incluso durante una visita de menú.
 
 `PantallaOpcionesJobs` abre la pantalla de vídeo real. Jobs no reconstruye páginas de Embeddium/Sodium, no recoloca su lista y no dibuja capas posteriores encima.
 
-Si un mod reemplaza completamente Video Settings por otra clase, Jobs la deja en manos de ese mod. La compatibilidad final debe probarse en el modpack real.
+## Música — identidad 0.40
 
-## Pantallas preservadas
+El catálogo musical contiene únicamente las tres pistas Jobs empaquetadas. Ya no existe fallback a `SoundEvents.MUSIC_MENU`.
 
-Se conserva la lógica real de Minecraft/Forge en:
+Si una pista propia no puede resolverse:
 
-- Sonido;
-- Video;
-- Chat;
-- Accesibilidad;
-- Mouse/Teclas;
-- Online;
-- Resource Packs;
-- Seleccionar mundo;
-- Mods de Forge;
-- Multiplayer y sus diálogos auxiliares.
+1. no se crea la instancia entrante;
+2. la pista actual no se retira prematuramente;
+3. se programa reintento;
+4. el log emite una advertencia única por visita/reload;
+5. nunca se reproduce `minecraft:music.menu` como sustitución.
 
-Las capas Jobs nunca deben sustituir hitboxes, callbacks, datos de servidor, selección real o validación de estas pantallas.
+`CATALOGO` se construye una sola vez por JVM. Consultas de título/autor/cantidad y decisiones de crossfade reutilizan esa misma estructura.
 
-## Resource reload — 0.39
+El hard-stop musical pone volumen/ganancias a cero, marca la instancia detenida y llama también a `SoundManager.stop(instance)`.
 
-`RecargaRecursosCliente` está registrado como listener de recursos del cliente. El callback puede llegar desde el executor de reload, por lo que no manipula `SoundInstance` directamente allí.
+## Resource reload — 0.39+
 
-Flujo actual:
+`RecargaRecursosCliente` usa generación atómica. El callback de recursos nunca manipula `SoundInstance` desde el executor de reload; el cierre se agenda en el hilo cliente y una generación nueva fuerza otra pasada si llegó durante el procesamiento anterior.
 
-1. cada callback incrementa `GENERACION`;
-2. se intenta programar una sola tarea en el hilo cliente;
-3. la tarea invalida música/ambiente ligados al SoundEngine anterior;
-4. si apareció una generación nueva mientras se procesaba la anterior, se agenda otra pasada.
+## Sesión y créditos
 
-Esto evita que una ráfaga idioma → F3+T → resource pack pierda la última invalidación.
-
-## Sesión y navegación
-
-`SesionMenu` representa una visita completa al flujo Jobs. Desde 0.39.0, `abrir()` retorna inmediatamente si la visita ya estaba activa: pasar Main → Options → Mods → Recursos no reinicializa el ambiente.
-
-El mantenimiento de camas continúa por tick y puede recrearlas después de un resource reload.
-
-## Créditos musicales
-
-`GestorMusica` sólo muestra el bloque de créditos cuando existe `assets/jobsmenu/musica_creditada.txt`. En 0.39.0 ese marcador vuelve a existir y enumera las tres pistas acreditadas actuales.
-
-El marcador no contiene audio; sólo habilita la presentación del catálogo ya empaquetado.
+`SesionMenu` representa una visita completa y no se reinicializa al pasar entre pantallas Jobs. `musica_creditada.txt` habilita créditos del catálogo actual y se reevalúa tras reload.
 
 ## Multiplayer
 
@@ -77,52 +57,30 @@ El marcador no contiene audio; sólo habilita la presentación del catálogo ya 
 
 - ESC/Cancelar usan el padre Jobs directo y un guard idempotente.
 - F5/Actualizar reconstruye Jobs directamente.
-- la selección online se conserva por IP y se busca una Entry nueva en la lista reconstruida;
-- una Entry vieja nunca se reutiliza;
-- LAN continúa siendo efímero y depende del detector nuevo;
+- la selección online se conserva por IP buscando una Entry nueva;
 - conectar usa la propia pantalla Jobs como padre de `ConnectScreen`;
 - cancelar/error antes del login vuelve a la lista Jobs;
-- después de una sesión remota, logout/kick/pérdida de conexión vuelve a Multiplayer Jobs.
+- logout/kick/pérdida de conexión remota vuelve a Multiplayer Jobs.
 
 Servidor fijado único: `JobsDosh.exaroton.me:56477`.
 
 ## Scrollbars y listas
 
-`ListasExpediente` sólo tematiza la presentación. La lista real conserva wheel, drag, click, foco y tamaño de contenido.
-
-Desde 0.38.0:
-
-- fields reflection se cachean por clase;
-- listas se cachean por Screen viva;
-- scrollbar Jobs se deduplica por frame;
-- cachés se liberan al cerrar la Screen.
-
-Si reflection no puede resolver una lista modificada por otro mod, Jobs debe degradar visualmente antes que romper input.
+`ListasExpediente` sólo tematiza presentación. Wheel, drag, click, foco y tamaño de contenido pertenecen a la lista real. Reflection/listas se cachean y una scrollbar Jobs no se dibuja dos veces por frame.
 
 ## Fondos
 
 - niveles 10–17: PNG estrictamente estáticos;
 - niveles 18–31: JPG 1920×1080 con cover y respiración opcional mínima;
 - Movimiento reducido/Bajo consumo/escena quieta congelan 18–31;
-- F3+T puede reconstruir objetos de textura y Jobs reaplica el filtrado sólo a la nueva instancia.
+- F3+T reaplica filtrado sólo si Minecraft crea un objeto de textura nuevo.
 
 ## Idiomas
 
-`es_ar`, `es_cl`, `es_ec`, `es_mx`, `es_uy` y `es_ve` reutilizan la traducción neutral `es_es` durante `processResources` para evitar pantallas mitad español/mitad inglés.
+`es_ar`, `es_cl`, `es_ec`, `es_mx`, `es_uy` y `es_ve` reutilizan la traducción neutral `es_es` durante `processResources`. Cambiar idioma puede disparar resource reload y queda cubierto por el sistema de generaciones.
 
-Cambiar idioma puede disparar resource reload; 0.39.0 protege ese camino con generación.
+## Compatibilidad manual
 
-## Compatibilidad que sigue siendo manual
+Probar especialmente Embeddium/Oculus, mods que sustituyan `JoinMultiplayerScreen`, resource packs de GUI, mods de audio/SoundEngine, múltiples F3+T consecutivos, LAN/ping/favicons, GUI Scale extremos, Texto grande y salida/kick con reemplazos de `DisconnectedScreen`.
 
-Probar específicamente:
-
-- Embeddium/Oculus y addons de vídeo;
-- mods que sustituyan por completo `JoinMultiplayerScreen`;
-- resource packs de GUI agresivos;
-- mods de audio que alteren `SoundEngine`;
-- múltiples F3+T/reloads consecutivos;
-- LAN/ping/favicons tras varias reconstrucciones;
-- GUI Scale extremos y Texto grande;
-- salida/kick de servidor con mods que sustituyan `DisconnectedScreen`.
-
-La regla general es: **si tematizar exige duplicar la lógica de Minecraft/Forge, se conserva la lógica real y se reduce la intervención visual**.
+Regla general: **si tematizar exige duplicar la lógica de Minecraft/Forge, se conserva la lógica real y se reduce la intervención visual**.

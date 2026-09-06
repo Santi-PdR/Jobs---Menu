@@ -10,7 +10,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraftforge.registries.RegistryObject;
@@ -24,11 +23,8 @@ import org.lwjgl.glfw.GLFW;
  * continua al abrir Opciones, Mods, Mundos o Recursos y se corta de forma
  * defensiva antes de dejar que exista un tick audible dentro de un mundo.
  *
- * 0.17 introduce un catalogo real de pistas. Cada pista entra y sale con su
- * propia ganancia; cuando haya mas de una disponible el gestor hace crossfade
- * sin reiniciar el ambiente ni pelearse con la musica vanilla. La primera pista
- * del catalogo es Absurdism. La segunda pista solicitada queda documentada como
- * fuente pendiente hasta que exista un archivo OGG autorizado en el proyecto.
+ * El catalogo es estatico y usa solo pistas Jobs. Si un registro propio no esta
+ * disponible se omite temporalmente: nunca se sustituye por musica vanilla.
  */
 public final class GestorMusica extends AbstractTickableSoundInstance {
 
@@ -47,6 +43,7 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
     private static int reintento;
     private static int marcador = -1;
     private static int selectorVisto = -1;
+    private static boolean avisoPistaFaltante;
 
     private final String idPista;
     private float actual;
@@ -54,6 +51,21 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
     private float gananciaObjetivo;
     private int edad;
     private int ultimaEdadVista = -1;
+
+    private record Pista(String id, RegistryObject<SoundEvent> evento, String recurso,
+                         String titulo, String autor) {
+    }
+
+    /** Catalogo inmutable de runtime: se construye una sola vez por JVM. */
+    private static final Pista[] CATALOGO = new Pista[] {
+            new Pista("absurdism", SonidosNivel.MUSICA_TEMA, "musica/defecto.ogg",
+                    "Absurdism", ""),
+            new Pista("requiem", SonidosNivel.MUSICA_REQUIEM, "musica/requiem.ogg",
+                    "REQUIEM", "Emmy Z - Forsaken OST"),
+            new Pista("upon_the_hill_v2", SonidosNivel.MUSICA_UPON_HILL,
+                    "musica/upon_the_hill_v2.ogg", "Upon the Hill V2",
+                    "ft. @iCosmicCoffee")
+    };
 
     private GestorMusica(String idPista, SoundEvent evento, float gananciaInicial,
                          float gananciaObjetivo, int retardo) {
@@ -73,21 +85,9 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         this.gananciaObjetivo = Math.max(0.0F, Math.min(1.0F, gananciaObjetivo));
     }
 
-    private record Pista(String id, RegistryObject<SoundEvent> evento, String recurso,
-                         String titulo, String autor) {
-    }
-
-    /** Catalogo real de la sesion. Cada pista conserva identidad y credito. */
+    /** Mantiene la firma historica sin recrear el array en cada consulta. */
     private static Pista[] catalogo() {
-        return new Pista[] {
-                new Pista("absurdism", SonidosNivel.MUSICA_TEMA, "musica/defecto.ogg",
-                        "Absurdism", ""),
-                new Pista("requiem", SonidosNivel.MUSICA_REQUIEM, "musica/requiem.ogg",
-                        "REQUIEM", "Emmy Z - Forsaken OST"),
-                new Pista("upon_the_hill_v2", SonidosNivel.MUSICA_UPON_HILL,
-                        "musica/upon_the_hill_v2.ogg", "Upon the Hill V2",
-                        "ft. @iCosmicCoffee")
-        };
+        return CATALOGO;
     }
 
     public static void asegurar() {
@@ -100,26 +100,31 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         if (fijada >= 0) indiceActual = fijada;
         selectorVisto = ConfigTurno.pistaMusica();
         indiceActual = Math.floorMod(indiceActual, pistas.length);
-        principal = crear(pistas[indiceActual], 0.0F, 1.0F, RETARDO_INICIAL);
+        GestorMusica nueva = crear(pistas[indiceActual], 0.0F, 1.0F, RETARDO_INICIAL);
+        if (nueva == null) {
+            reintento = 20;
+            return;
+        }
+        principal = nueva;
         Minecraft.getInstance().getSoundManager().play(principal);
         JobsMenu.LOG.info("[jobsmenu] Pista de menu iniciada: {} ({}).",
                 pistas[indiceActual].id(), pistas[indiceActual].recurso());
     }
 
     private static GestorMusica crear(Pista pista, float desde, float hasta, int retardo) {
-        return new GestorMusica(pista.id(), resolverPista(pista), desde, hasta, retardo);
+        SoundEvent evento = resolverPista(pista);
+        if (evento == null) return null;
+        return new GestorMusica(pista.id(), evento, desde, hasta, retardo);
     }
 
-    /**
-     * Mantiene explicitamente el camino de la pista actual por el guard comun.
-     * El segundo branch permite que futuras pistas nominales usen el mismo
-     * mecanismo sin accesos directos a RegistryObject.get().
-     */
+    /** La musica Jobs no cae nunca en musica vanilla si un registro falla. */
     private static SoundEvent resolverPista(Pista pista) {
-        if (pista.evento() == SonidosNivel.MUSICA_TEMA) {
-            return MezclaAudio.resolver(SonidosNivel.MUSICA_TEMA, SoundEvents.MUSIC_MENU.value());
+        SoundEvent evento = MezclaAudio.resolver(pista.evento(), null);
+        if (evento == null && !avisoPistaFaltante) {
+            avisoPistaFaltante = true;
+            JobsMenu.LOG.warn("[jobsmenu] Una pista Jobs no esta registrada; se omite sin fallback vanilla.");
         }
-        return MezclaAudio.resolver(pista.evento(), SoundEvents.MUSIC_MENU.value());
+        return evento;
     }
 
     private static int indiceFijado(Pista[] pistas) {
@@ -160,14 +165,20 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
             indiceActual = objetivo;
             return;
         }
+
+        GestorMusica nueva = crear(pista, 0.0F, 1.0F, 0);
+        if (nueva == null) {
+            reintento = 20;
+            return;
+        }
         if (viva(entrante)) entrante.detener(true);
         entrante = null;
         if (viva(principal)) {
             principal.gananciaObjetivo = 0.0F;
-            entrante = crear(pista, 0.0F, 1.0F, 0);
+            entrante = nueva;
             Minecraft.getInstance().getSoundManager().play(entrante);
         } else {
-            principal = crear(pista, 0.0F, 1.0F, 0);
+            principal = nueva;
             Minecraft.getInstance().getSoundManager().play(principal);
         }
         indiceActual = objetivo;
@@ -209,10 +220,6 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         return false;
     }
 
-    /**
-     * Con una sola pista no hace nada. Con dos o mas, abre la siguiente a cero,
-     * sube su ganancia y retira la anterior en paralelo.
-     */
     private static void atenderCrossfade() {
         if (!viva(principal) && viva(entrante)) {
             principal = entrante;
@@ -225,7 +232,14 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         if (permiteRotacion && entrante == null
                 && ticksSesion >= proximoCambio && viva(principal)) {
             int siguiente = siguienteIndice(pistas);
-            entrante = crear(pistas[siguiente], 0.0F, 1.0F, 0);
+            GestorMusica nueva = crear(pistas[siguiente], 0.0F, 1.0F, 0);
+            if (nueva == null) {
+                ticksSesion = 0;
+                proximoCambio = CAMBIO_MIN_TICKS;
+                reintento = 20;
+                return;
+            }
+            entrante = nueva;
             principal.gananciaObjetivo = 0.0F;
             Minecraft.getInstance().getSoundManager().play(entrante);
             indiceActual = siguiente;
@@ -237,7 +251,7 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
 
         if (entrante != null && principal != null
                 && principal.gananciaActual <= 0.004F && principal.actual <= 0.004F) {
-            principal.stop();
+            principal.detener(true);
             principal = entrante;
             entrante = null;
         }
@@ -256,7 +270,12 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
                 || !SesionMenu.activa() || !ConfigTurno.musicaMenu()
                 || !viva(principal) || viva(entrante)) return false;
         int siguiente = siguienteIndice(pistas);
-        entrante = crear(pistas[siguiente], 0.0F, 1.0F, 0);
+        GestorMusica nueva = crear(pistas[siguiente], 0.0F, 1.0F, 0);
+        if (nueva == null) {
+            reintento = 20;
+            return false;
+        }
+        entrante = nueva;
         principal.gananciaObjetivo = 0.0F;
         Minecraft.getInstance().getSoundManager().play(entrante);
         indiceActual = siguiente;
@@ -271,6 +290,7 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         detenerInstancias(true);
         reintento = 0;
         marcador = -1;
+        avisoPistaFaltante = false;
         Pista[] pistas = catalogo();
         selectorVisto = ConfigTurno.pistaMusica();
         int fijada = indiceFijado(pistas);
@@ -281,10 +301,7 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
                 + (int) (Math.random() * CAMBIO_VARIACION_TICKS);
     }
 
-    /**
-     * Gameplay es frontera dura: no se hace fade aqui porque una cola bonita
-     * seria precisamente el bug de musica de menu dentro del mundo.
-     */
+    /** Gameplay es frontera dura: el corte es inmediato, sin fade residual. */
     public static void detenerAhora() {
         detenerInstancias(true);
         reintento = 0;
@@ -295,6 +312,7 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
         detenerInstancias(true);
         marcador = -1;
         selectorVisto = -1;
+        avisoPistaFaltante = false;
         reintento = 20;
         ticksSesion = 0;
     }
@@ -321,6 +339,7 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
             this.gananciaObjetivo = 0.0F;
             this.volume = 0.0F;
             this.stop();
+            Minecraft.getInstance().getSoundManager().stop(this);
         } else {
             this.gananciaObjetivo = 0.0F;
         }
@@ -354,7 +373,7 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
 
     private static Pista datosPista(String id) {
         if (id == null) return null;
-        for (Pista pista : catalogo()) if (pista.id().equals(id)) return pista;
+        for (Pista pista : CATALOGO) if (pista.id().equals(id)) return pista;
         return null;
     }
 
@@ -371,7 +390,7 @@ public final class GestorMusica extends AbstractTickableSoundInstance {
     }
 
     public static int cantidadPistas() {
-        return catalogo().length;
+        return CATALOGO.length;
     }
 
     public static float creditoAlfa() {
