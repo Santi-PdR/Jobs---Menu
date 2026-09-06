@@ -57,6 +57,7 @@ def main() -> None:
         '!clase.startsWith("net.minecraft.")',
         '!clase.startsWith("net.minecraftforge.")',
         "pantalla instanceof VideoSettingsScreen || esPantallaTerceros(pantalla)",
+        "boolean flujoAdministrativo = !esPantallaTerceros(anterior) && (",
         "if (pantalla == null || esSuperficieAjenaIntocable(pantalla)) return;",
         "|| esSuperficieAjenaIntocable(pantalla)) return false;",
         "esSuperficieAjenaIntocable(desde)",
@@ -73,7 +74,7 @@ def main() -> None:
     ):
         forbid(listener, token, "EscuchaCliente")
 
-    print("OK compatibilidad 0.42: flujo natural + terceros intocables + proveedor agnostico")
+    print("OK compatibilidad 0.42: flujo natural + terceros intocables + navegacion aislada")
 
 
 if __name__ == "__main__":
