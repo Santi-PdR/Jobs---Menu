@@ -1,12 +1,12 @@
 # Despliegue de Jobs Menu
 
-Procedimiento único de prueba local para la entrega **0.38.0**.
+Procedimiento único de prueba local para la entrega **0.39.0**.
 
 ## Destino
 
 `C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods`
 
-No se compila localmente para una prueba normal. Se instala el JAR que GitHub Actions publicó en `dev-latest` después de un `main` verde.
+No se compila localmente para una prueba normal. Se instala el JAR que GitHub Actions publica en `dev-latest` después de un `main` verde.
 
 ## Orden de entrega
 
@@ -15,50 +15,61 @@ No se compila localmente para una prueba normal. Se instala el JAR que GitHub Ac
 3. PR verde;
 4. squash/merge a `main`;
 5. CI de `main` verde;
-6. `dev-latest` actualizado con un único asset 0.38.0;
-7. SHA-256 verificado;
-8. PowerShell al usuario.
+6. `dev-latest` actualizado;
+7. instalación en `test-1`.
 
 ## Versión actual
 
-`jobsmenu-0.38.0.jar`
+`jobsmenu-0.39.0.jar`
 
 `jobsmenu-latest.jar` está prohibido. `dev-latest` es sólo el tag rodante; el asset siempre lleva versión.
 
 ## PowerShell canónico
 
-El script de entrega final debe comprobar la versión y el SHA-256 publicados **antes** de borrar un JAR Jobs anterior. Nunca toca otros mods de `test-1`.
+El script consulta `dev-latest`, exige exactamente el JAR 0.39.0, comprueba el digest SHA-256 publicado por GitHub y sólo después reemplaza Jobs Menu.
 
 ```powershell
 $ErrorActionPreference = "Stop"
 
 $mods = "C:\Users\santi\AppData\Roaming\.sklauncher\instances\test-1\mods"
-$version = "0.38.0"
-$file = "jobsmenu-$version.jar"
-$url = "https://github.com/Santi-PdR/Jobs---Menu/releases/download/dev-latest/$file"
-$expectedSha = "REEMPLAZAR_POR_SHA256_CERTIFICADO_DE_MAIN"
+$version = "0.39.0"
+$name = "jobsmenu-$version.jar"
+$releaseApi = "https://api.github.com/repos/Santi-PdR/Jobs---Menu/releases/tags/dev-latest"
 
-New-Item -ItemType Directory -Force -Path $mods | Out-Null
-$temp = Join-Path $env:TEMP $file
-$dest = Join-Path $mods $file
+if (!(Test-Path $mods -PathType Container)) {
+    New-Item -ItemType Directory -Path $mods -Force | Out-Null
+}
+
+$release = Invoke-RestMethod -Uri $releaseApi -Headers @{ "User-Agent" = "JobsMenu-Deploy" }
+$assets = @($release.assets | Where-Object { $_.name -match '^jobsmenu-.*\.jar$' })
+$asset = @($assets | Where-Object { $_.name -eq $name })
+
+if ($assets.Count -ne 1 -or $asset.Count -ne 1) {
+    throw "dev-latest no contiene exactamente $name. No se modificó test-1."
+}
+
+$asset = $asset[0]
+if ([string]::IsNullOrWhiteSpace($asset.digest) -or !$asset.digest.StartsWith("sha256:")) {
+    throw "GitHub no devolvió SHA-256 para $name."
+}
+
+$expected = $asset.digest.Substring(7).ToUpperInvariant()
+$temp = Join-Path $env:TEMP $name
+$dest = Join-Path $mods $name
 
 Remove-Item $temp -Force -ErrorAction SilentlyContinue
-Invoke-WebRequest -Uri $url -OutFile $temp -UseBasicParsing
-
-if (!(Test-Path $temp -PathType Leaf)) {
-    throw "La descarga no creó el JAR."
-}
+Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $temp -UseBasicParsing
 
 $bytes = [System.IO.File]::ReadAllBytes($temp)
 if ($bytes.Length -lt 100000 -or $bytes[0] -ne 0x50 -or $bytes[1] -ne 0x4B) {
     Remove-Item $temp -Force -ErrorAction SilentlyContinue
-    throw "La descarga no parece un JAR válido. No se modificó test-1."
+    throw "La descarga no parece un JAR válido."
 }
 
 $sha = (Get-FileHash $temp -Algorithm SHA256).Hash.ToUpperInvariant()
-if ($sha -ne $expectedSha) {
+if ($sha -ne $expected) {
     Remove-Item $temp -Force -ErrorAction SilentlyContinue
-    throw "SHA-256 inválido. Esperado: $expectedSha / recibido: $sha"
+    throw "SHA-256 incorrecto. Esperado: $expected | Recibido: $sha"
 }
 
 Get-ChildItem $mods -File -ErrorAction SilentlyContinue |
@@ -67,32 +78,36 @@ Get-ChildItem $mods -File -ErrorAction SilentlyContinue |
 
 Move-Item $temp $dest -Force
 
-Write-Host "Jobs Menu $version instalado correctamente." -ForegroundColor Green
-Write-Host "Destino: $dest" -ForegroundColor Cyan
-Write-Host "SHA-256: $sha" -ForegroundColor Cyan
+Write-Host "Jobs Menu $version instalado." -ForegroundColor Green
+Write-Host "Destino: $dest"
+Write-Host "SHA-256: $sha"
 ```
 
-El valor real de `$expectedSha` sólo se escribe después de verificar el asset publicado por el CI de `main`; no se toma del artefacto de un PR.
+## CI 0.39
 
-## CI
+El workflow ejecuta:
 
-El workflow ejecuta Java 17, `verificar_version.py`, `verificar_fondos.py`, `verificar.py`, `verificar_ui_musica.py`, `verificar_continuidad.py`, `verificar_optimizacion.py`, Forge build, artifact versionado y publicación sólo desde `main`.
-
-- `verificar_fondos.py` cubre PNG 10–17 y JPG directos 18–31.
-- `verificar_ui_musica.py` fija frontera de gameplay, Video Settings vanilla, gestos Jobs, música y ambientes.
-- `verificar_continuidad.py` fija selección F5 de Multiplayer, guard de recarga y coherencia mínima de documentación.
-- `verificar_optimizacion.py` protege cachés de listas/texturas/texto, deduplicación por frame, Bajo consumo real y build reproducible.
+- `tools/verificar_version.py`;
+- `tools/verificar_fondos.py`;
+- `tools/verificar.py`;
+- `tools/verificar_ui_musica.py`;
+- `tools/verificar_continuidad.py`;
+- `tools/verificar_optimizacion.py`;
+- `tools/verificar_reload_creditos.py`;
+- Forge build con Java 17;
+- preparación/upload de `jobsmenu-0.39.0.jar`;
+- limpieza de JARs Jobs obsoletos en `dev-latest`;
+- publicación sólo desde `main`.
 
 ## Prueba manual posterior
 
-CI no puede certificar imagen, input, audio ni FPS dentro de Minecraft. Después del deploy revisar:
+Después del deploy revisar especialmente:
 
-- niveles 10–31 y F3+T;
-- Movimiento reducido y Bajo consumo;
-- GUI Scale 2/3/4;
-- listas largas y scrollbar Jobs en Mundos/Mods/Recursos/Idioma/Multiplayer;
-- `N`, `M`, ESC y retorno desde mundos/servidores;
-- F5/Actualizar, selección conservada, LAN, ping y favicons;
-- hard-stop de audio Jobs dentro de gameplay;
-- ausencia de transiciones Jobs en chat, inventario, containers, pausa/config durante gameplay;
-- Video Settings completamente vanilla.
+- créditos de Absurdism/REQUIEM/Upon the Hill V2;
+- idioma → F3+T → resource pack sin audio duplicado;
+- hard-stop inmediato en gameplay;
+- Multiplayer ESC/Cancelar/F5, selección por IP, LAN/ping/favicons;
+- Video Settings completo;
+- PNG 10–17 estáticos;
+- JPG 18–31 y Bajo consumo/Movimiento reducido;
+- GUI Scale 2/3/4.
