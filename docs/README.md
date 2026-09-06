@@ -18,16 +18,18 @@ Para trabajar sobre `main`, leer en este orden:
 
 ## Contratos que no deben regredir
 
-- **Gráficos delega al botón natural del `OptionsScreen` ya modificado por el modpack; Jobs no elige un proveedor gráfico.**
-- La ranura original del control gráfico puede identificar un reemplazo que cambie la etiqueta sin acoplar Jobs al proveedor.
+- **Gráficos no se tematiza ni se reconstruye con Jobs.**
+- `PantallaOpcionesJobs` es una `Screen` propia, no un `OptionsScreen` con controles ocultos.
+- Con Embeddium, Gráficos abre la `ConfigScreenFactory` registrada por el propio mod; sin Embeddium usa `VideoSettingsScreen` vanilla.
+- Jobs no enlaza clases internas de Embeddium/Sodium ni usa reflection para Gráficos.
+- **No existe botón MODPACK** ni flujo alternativo de Options completo.
 - Cualquier `Screen` de terceros queda sin chrome, transición, hover/click ni recolocación Jobs.
-- La navegación iniciada por una Screen de terceros no se redirige por Jobs sólo porque la sesión siga activa; el aislamiento incluye sus subflujos vanilla, `TitleScreen` y pausa.
-- `VideoSettingsScreen` vanilla también permanece intocable.
-- Los perfiles sólo se identifican como preset cuando todos los valores que controlan siguen coincidiendo; de lo contrario se muestra estado personalizado.
+- La navegación iniciada por una Screen de terceros no se redirige sólo porque la sesión siga activa.
+- `SesionMenu.activa()` no autoriza por sí sola sustituciones administrativas; el origen debe ser una pantalla Jobs concreta.
+- Los perfiles sólo se identifican como preset cuando todos los valores controlados coinciden; de lo contrario se muestra `CUSTOM`.
 - En Mundos/Mods, ESC limpia búsqueda y foco antes de salir, y el cierre es idempotente.
 - Chat, inventario, contenedores y UI normal de gameplay quedan fuera de Jobs.
 - Con mundo cargado no existen transiciones Jobs ni música/ambiente de menú.
-- Pausa/Config Jobs sólo conservan tematización/feedback breve permitido.
 - Multiplayer mantiene padre Jobs para ESC/Cancelar, conexión, error y retorno tras servidor.
 - F5/Actualizar y resize conservan **selección por IP + scroll** sin reutilizar Entries viejas.
 - `servers.dat` no se guarda al abrir/recargar si el servidor oficial ya está correcto.
@@ -37,27 +39,23 @@ Para trabajar sobre `main`, leer en este orden:
 - La música Jobs no usa fallback a `minecraft:music.menu`.
 - Los FX Jobs no usan fallback a `minecraft:ambient.cave`.
 - Música, camas y FX puntuales reciben hard-stop en gameplay.
-- `MusicManager.stopPlaying()` no se ejecuta por tick: nueva música `SoundSource.MUSIC` se bloquea por evento durante la sesión Jobs.
 - Config Jobs no escribe valores idénticos.
-- Hover vanilla preservado usa una caché de botones, no un scan completo por frame.
+- Hover vanilla preservado usa caché de botones.
 - `dev-latest` debe apuntar al mismo SHA de `main` que publicó el JAR.
-- El JAR usa orden reproducible y `main` es la única rama entregable.
 
 ## Auditoría vigente de la entrega
 
-- [`AUDITORIA_0.43.0_UX_NAVEGACION.md`](AUDITORIA_0.43.0_UX_NAVEGACION.md) — perfiles exactos, búsqueda/ESC, cierre idempotente y frontera externa completa.
-- [`AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md`](AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md) — aislamiento genérico, flujo gráfico natural reforzado y tag rodante consistente.
-- [`AUDITORIA_0.41.1_FLUJO_GRAFICO_NATURAL.md`](AUDITORIA_0.41.1_FLUJO_GRAFICO_NATURAL.md) — origen de la delegación de Gráficos al OptionsScreen natural del modpack.
+- [`AUDITORIA_0.44.0_GRAFICOS_Y_NAVEGACION.md`](AUDITORIA_0.44.0_GRAFICOS_Y_NAVEGACION.md) — Gráficos intocable, eliminación de MODPACK y redirecciones administrativas acotadas.
+- [`AUDITORIA_0.43.0_UX_NAVEGACION.md`](AUDITORIA_0.43.0_UX_NAVEGACION.md) — perfiles exactos, búsqueda/ESC y cierre idempotente.
+- [`AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md`](AUDITORIA_0.42.0_COMPATIBILIDAD_TERCEROS.md) — origen del aislamiento genérico y publicación consistente.
 - [`AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md`](AUDITORIA_0.41.0_RUNTIME_MULTIPLAYER.md) — audio puntual, sesión idempotente, config, hover y continuidad Multiplayer.
-- [`AUDITORIA_0.40.0_IDENTIDAD_MUSICAL.md`](AUDITORIA_0.40.0_IDENTIDAD_MUSICAL.md) — eliminación del fallback musical vanilla, catálogo estático y hard-stop musical.
+- [`AUDITORIA_0.40.0_IDENTIDAD_MUSICAL.md`](AUDITORIA_0.40.0_IDENTIDAD_MUSICAL.md) — identidad musical y hard-stop.
 - [`AUDITORIA_0.39.0_CREDITOS_Y_RELOAD.md`](AUDITORIA_0.39.0_CREDITOS_Y_RELOAD.md) — créditos y generaciones de reload.
 - [`AUDITORIA_0.38.0_OPTIMIZACION_GLOBAL.md`](AUDITORIA_0.38.0_OPTIMIZACION_GLOBAL.md) — optimización global y build reproducible.
 - [`AUDITORIA_0.37.0_CONTINUIDAD_MULTIPLAYER_Y_DOCS.md`](AUDITORIA_0.37.0_CONTINUIDAD_MULTIPLAYER_Y_DOCS.md) — continuidad F5 y documentación.
-- [`AUDITORIA_0.36.0_MULTIPLAYER_Y_GAMEPLAY.md`](AUDITORIA_0.36.0_MULTIPLAYER_Y_GAMEPLAY.md) — cierre de Multiplayer y cero transiciones en gameplay.
-- [`AUDITORIA_0.35.0_AUDIO_Y_RETORNO.md`](AUDITORIA_0.35.0_AUDIO_Y_RETORNO.md) — feedback Jobs y retorno contextual.
 
 ## Histórico
 
-Los demás `AUDITORIA_*.md`, revisiones, catálogos y planes son evidencia histórica. Si contradicen `CONTEXTO.md`, `KNOWN_ISSUES.md`, `compatibilidad.md`, `musica.md` o una auditoría más reciente, manda el documento vigente más nuevo.
+Los demás `AUDITORIA_*.md`, revisiones, catálogos y planes son evidencia histórica. Si contradicen `CONTEXTO.md`, `KNOWN_ISSUES.md`, `compatibilidad.md` o una auditoría más reciente, manda el documento vigente más nuevo.
 
-En particular, reglas históricas como “Video Settings siempre vanilla”, la integración directa con `ConfigScreenFactory` de Embeddium o listas de paquetes gráficos específicos **no describen el contrato actual**.
+En particular, el `OptionsScreen` oculto, la detección gráfica por ranura y el botón MODPACK de 0.41.1/0.42 son históricos y **no describen el contrato actual**.
