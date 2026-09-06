@@ -110,7 +110,10 @@ def verify_robustness() -> None:
                       'Component.translatable("options.video").getString()',
                       "this.botonVideoNatural.onPress();", "coincideRanuraVideo",
                       "recordarVideo", "ranuraVideoConocida",
-                      "anchoUtil, bh,\n                \"options.online.title\""),
+                      "anchoUtil, bh,\n                \"options.online.title\"",
+                      "EscuchaCliente.permitirOptionsNaturalUnaVez();",
+                      "new OptionsScreen(this, this.opciones)",
+                      'Component.literal("MODPACK")'),
             "PantallaOpcionesJobs")
     for token in ("CompatGraficos", "ConfigScreenHandler", "new VideoSettingsScreen",
                   "Class.forName", "EmbeddiumVideoOptionsScreen"):
@@ -126,7 +129,9 @@ def verify_robustness() -> None:
                        "pantalla instanceof VideoSettingsScreen",
                        '!clase.startsWith("net.minecraft.")',
                        '!clase.startsWith("net.minecraftforge.")',
-                       "esSuperficieAjenaIntocable(pantalla)"), "EscuchaCliente")
+                       "esSuperficieAjenaIntocable(pantalla)",
+                       "private static boolean flujoExternoActivo;",
+                       "public static void permitirOptionsNaturalUnaVez()"), "EscuchaCliente")
     for token in ("me.jellysquid.mods.sodium", "org.embeddedt.embeddium",
                   "net.coderbot.iris", "net.irisshaders.iris"):
         if token in listener:
@@ -145,7 +150,7 @@ def verify_robustness() -> None:
 
     transition = read(JAVA / "client/ui/TransicionInterfazJobs.java")
     require(listener, ("usaTransicionJobs", "TransicionInterfazJobs.cancelar()",
-                       "if (cliente.level != null && !propia) return;",
+                       "if (Minecraft.getInstance().level != null && !propia) return;",
                        "if (Minecraft.getInstance().level != null) return false;",
                        "Minecraft.getInstance().level == null && !esSuperficieAjenaIntocable(siguiente)",
                        "esSuperficieAjenaIntocable(desde)", "esSuperficieAjenaIntocable(hasta)",
