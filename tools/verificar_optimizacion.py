@@ -37,8 +37,10 @@ def main() -> None:
     escucha = read(JAVA / "client/EscuchaCliente.java")
     for token in (
         "ScreenEvent.Render.Pre",
-        "ListasExpediente.comenzarFrame(evento.getScreen())",
-        "ListasExpediente.liberar(pantalla)",
+        "Screen pantalla = evento.getScreen();",
+        "if (pantalla == null || esSuperficieAjenaIntocable(pantalla)) return;",
+        "ListasExpediente.comenzarFrame(pantalla)",
+        "if (!esSuperficieAjenaIntocable(pantalla)) {\n            ListasExpediente.liberar(pantalla);",
         "long ahora = System.currentTimeMillis();",
         "Collections.newSetFromMap(new WeakHashMap<>())",
     ):
