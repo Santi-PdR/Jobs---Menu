@@ -112,10 +112,11 @@ def main() -> None:
 
     multi = read(JAVA / "client/screen/PantallaMultijugadorJobs.java")
     for token in (
-        "private final double scrollPreferido;",
+        "private double scrollPreferido;",
         "restaurarScrollPreferido();",
         "setScrollAmount(this.scrollPreferido)",
         "getScrollAmount()",
+        "public void resize(Minecraft minecraft, int width, int height)",
         "boolean cambiado = false;",
         "if (cambiado) {",
         "padreDestino(), seleccion, scroll",
