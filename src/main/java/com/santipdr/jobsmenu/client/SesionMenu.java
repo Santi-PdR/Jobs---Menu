@@ -2,6 +2,7 @@ package com.santipdr.jobsmenu.client;
 
 import com.santipdr.jobsmenu.client.sound.GestorAmbiente;
 import com.santipdr.jobsmenu.client.sound.GestorMusica;
+import com.santipdr.jobsmenu.client.sound.RastreadorAudioJobs;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
@@ -13,6 +14,7 @@ public final class SesionMenu {
     private static boolean activa;
     private static long inicioVisita;
     private static long numeroVisita;
+    private static long cierresEfectivos;
     private static int pantallasVisitadas;
     private static Screen ultimaPantalla;
 
@@ -28,6 +30,8 @@ public final class SesionMenu {
             return;
         }
 
+        // Una visita nueva nunca hereda un FX puntual de una visita anterior.
+        RastreadorAudioJobs.detenerTodo();
         GestorMusica.nuevaVisita();
         inicioVisita = System.currentTimeMillis();
         numeroVisita++;
@@ -38,10 +42,22 @@ public final class SesionMenu {
     }
 
     public static void cerrar() {
+        // alTickCliente llama a cerrar() durante gameplay por defensa. Despues
+        // del primer hard-stop no tiene sentido recorrer musica/capas en cada
+        // tick. Si aparece audio residual, los contadores vivos vuelven a abrir
+        // esta ruta y se ejecuta otro corte completo.
+        boolean necesitaCierre = activa
+                || GestorMusica.sonando()
+                || GestorAmbiente.capasActivas() > 0
+                || RastreadorAudioJobs.cantidad() > 0;
+        if (!necesitaCierre) return;
+
         activa = false;
         ultimaPantalla = null;
         GestorMusica.detenerAhora();
         GestorAmbiente.cerrar();
+        RastreadorAudioJobs.detenerTodo();
+        cierresEfectivos++;
     }
 
     /**
@@ -68,6 +84,15 @@ public final class SesionMenu {
     /** Contador de visitas de esta ejecucion de Minecraft. */
     public static long numeroVisita() {
         return Math.max(0L, numeroVisita);
+    }
+
+    /** Estado bruto antes de aplicar guards de mundo/pantalla/config. */
+    public static boolean activaInternaParaDiagnostico() {
+        return activa;
+    }
+
+    public static long cierresEfectivosParaDiagnostico() {
+        return cierresEfectivos;
     }
 
     /**
