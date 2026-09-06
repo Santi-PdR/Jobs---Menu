@@ -13,7 +13,7 @@ Para trabajar sobre `main`, leer en este orden:
 5. [`checklist-manual.md`](checklist-manual.md) — aceptación dentro de Minecraft.
 6. [`compatibilidad.md`](compatibilidad.md) — fronteras con vanilla/Forge, gameplay, otros mods y caminos calientes.
 7. [`DESPLIEGUE.md`](DESPLIEGUE.md) — flujo de build/release/instalación.
-8. [`musica.md`](musica.md) — catálogo y lifecycle de audio musical.
+8. [`musica.md`](musica.md) — catálogo, créditos y lifecycle de audio musical.
 9. [`FONDOS_18_31.md`](FONDOS_18_31.md) — asignación de los JPG directos 18–31.
 
 ## Contratos que no deben regredir
@@ -28,17 +28,21 @@ Para trabajar sobre `main`, leer en este orden:
 - Las listas Jobs cachean reflection/instancias y una scrollbar no se dibuja dos veces en el mismo frame.
 - El filtrado de fondos de imagen se aplica por instancia de textura, no por frame.
 - Bajo consumo reduce trabajo real de render sin modificar el modo normal.
+- El catálogo musical acreditado contiene Absurdism, REQUIEM y Upon the Hill V2 y mantiene `musica_creditada.txt` como compuerta explícita de presentación.
+- Resource reload usa generaciones y procesa cualquier generación que llegue durante el cierre de la anterior.
+- Navegar entre pantallas Jobs de una misma visita no reinicializa la sesión.
 - El JAR usa orden reproducible y no introduce timestamps variables de build.
 - `gradle.properties` es la fuente de verdad de versión y `main` es la única rama entregable.
 
 ## Auditoría vigente de la entrega
 
+- [`AUDITORIA_0.39.0_CREDITOS_Y_RELOAD.md`](AUDITORIA_0.39.0_CREDITOS_Y_RELOAD.md) — créditos del catálogo actual, generación de resource reload, sesión y diagnóstico.
 - [`AUDITORIA_0.38.0_OPTIMIZACION_GLOBAL.md`](AUDITORIA_0.38.0_OPTIMIZACION_GLOBAL.md) — optimización de listas/reflection, UI, texturas, escena/audio, Bajo consumo y build reproducible.
 - [`AUDITORIA_0.37.0_CONTINUIDAD_MULTIPLAYER_Y_DOCS.md`](AUDITORIA_0.37.0_CONTINUIDAD_MULTIPLAYER_Y_DOCS.md) — continuidad F5, feedback de recarga, documentación y CI.
 - [`AUDITORIA_0.36.0_MULTIPLAYER_Y_GAMEPLAY.md`](AUDITORIA_0.36.0_MULTIPLAYER_Y_GAMEPLAY.md) — cierre directo de Multiplayer y cero transiciones durante gameplay.
 - [`AUDITORIA_0.35.0_AUDIO_Y_RETORNO.md`](AUDITORIA_0.35.0_AUDIO_Y_RETORNO.md) — clicks/hover Jobs y retorno contextual después de servidor.
 
-Estas auditorías se complementan: 0.38.0 optimiza los caminos calientes sin revertir los contratos funcionales de 0.35–0.37.
+Estas auditorías se complementan: 0.39.0 endurece audio/reload sin revertir rendimiento 0.38 ni los contratos funcionales de 0.35–0.37.
 
 ## Histórico
 
