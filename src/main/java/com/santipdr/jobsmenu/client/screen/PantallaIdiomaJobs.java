@@ -33,12 +33,15 @@ public final class PantallaIdiomaJobs extends Screen {
     private CampoBusquedaCentrado busqueda;
     private String aplicado;
     private String pendiente;
+    private Boolean unicodeAplicado;
+    private boolean unicodePendiente;
     private String filtroConservado = "";
     private boolean focoBusquedaConservado;
     private double scrollConservado;
     private int panelX, panelY, panelW, panelH;
     private boolean aplicando;
     private boolean falloAplicacion;
+    private boolean cerrando;
 
     public PantallaIdiomaJobs(Screen anterior, Options opciones, LanguageManager idiomas) {
         super(Component.translatable("jobsmenu.interfaz.idioma.titulo"));
@@ -49,11 +52,16 @@ public final class PantallaIdiomaJobs extends Screen {
 
     @Override
     protected void init() {
+        this.cerrando = false;
         if (this.aplicado == null) {
             this.aplicado = this.idiomas.getSelected();
         }
         if (this.pendiente == null) {
             this.pendiente = this.aplicado;
+        }
+        if (this.unicodeAplicado == null) {
+            this.unicodeAplicado = this.opciones.forceUnicodeFont().get();
+            this.unicodePendiente = this.unicodeAplicado;
         }
 
         this.panelW = Math.max(180, Math.min(430, this.width - 12));
@@ -98,9 +106,9 @@ public final class PantallaIdiomaJobs extends Screen {
         int x0 = panelX + margen;
         this.unicode = this.addRenderableWidget(new ToggleExpediente(
                 x0, footerY, bw, 22, Component.translatable("options.forceUnicodeFont"),
-                () -> this.opciones.forceUnicodeFont().get(), v -> {
-                    this.opciones.forceUnicodeFont().set(v);
-                    this.opciones.save();
+                () -> this.unicodePendiente, v -> {
+                    this.unicodePendiente = v;
+                    this.falloAplicacion = false;
                 }));
         this.addRenderableWidget(new BotonExpediente(
                 x0 + bw + gap, footerY, bw, 22,
@@ -121,37 +129,65 @@ public final class PantallaIdiomaJobs extends Screen {
     }
 
     private void aplicarYCerrar() {
-        if (this.aplicando) return;
-        if (this.pendiente != null && !Objects.equals(this.pendiente, this.idiomas.getSelected())) {
-            String idiomaAnterior = this.idiomas.getSelected();
-            this.aplicando = true;
-            this.falloAplicacion = false;
-            this.opciones.languageCode = this.pendiente;
-            this.idiomas.setSelected(this.pendiente);
-            this.opciones.save();
-            MezclaAudio.gesto(SonidosNivel.UI_CONFIRMAR, 0.52F);
-            this.minecraft.reloadResourcePacks().whenComplete((ignorado, error) ->
-                    this.minecraft.execute(() -> {
-                        if (error == null) {
-                            this.aplicado = this.pendiente;
-                            this.aplicando = false;
-                            this.minecraft.setScreen(this.anterior);
-                            return;
-                        }
+        if (this.aplicando || this.cerrando || this.minecraft == null) return;
 
-                        // Rollback de estado: una recarga fallida no debe dejar
-                        // Options/LanguageManager apuntando a un idioma que no
-                        // llego a aplicarse en los recursos activos.
-                        this.opciones.languageCode = idiomaAnterior;
-                        this.idiomas.setSelected(idiomaAnterior);
-                        this.opciones.save();
-                        this.aplicado = idiomaAnterior;
-                        this.aplicando = false;
-                        this.falloAplicacion = true;
-                        MezclaAudio.gesto(SonidosNivel.UI_NEGADO, 0.46F);
-                    }));
+        String idiomaAnterior = this.idiomas.getSelected();
+        String idiomaObjetivo = this.pendiente == null ? idiomaAnterior : this.pendiente;
+        boolean unicodeAnterior = this.opciones.forceUnicodeFont().get();
+        boolean cambiaIdioma = !Objects.equals(idiomaObjetivo, idiomaAnterior);
+        boolean cambiaUnicode = this.unicodePendiente != unicodeAnterior;
+
+        if (!cambiaIdioma && !cambiaUnicode) {
+            cerrarSinRecarga();
             return;
         }
+
+        this.aplicando = true;
+        this.falloAplicacion = false;
+        this.opciones.languageCode = idiomaObjetivo;
+        this.idiomas.setSelected(idiomaObjetivo);
+        this.opciones.forceUnicodeFont().set(this.unicodePendiente);
+        this.opciones.save();
+        MezclaAudio.gesto(SonidosNivel.UI_CONFIRMAR, 0.52F);
+
+        boolean unicodeObjetivo = this.unicodePendiente;
+        this.minecraft.reloadResourcePacks().whenComplete((ignorado, error) ->
+                this.minecraft.execute(() -> finalizarAplicacion(
+                        idiomaAnterior, unicodeAnterior, idiomaObjetivo, unicodeObjetivo, error)));
+    }
+
+    private void finalizarAplicacion(String idiomaAnterior, boolean unicodeAnterior,
+                                     String idiomaObjetivo, boolean unicodeObjetivo, Throwable error) {
+        if (error == null) {
+            this.aplicado = idiomaObjetivo;
+            this.unicodeAplicado = unicodeObjetivo;
+            this.aplicando = false;
+            this.falloAplicacion = false;
+            if (this.minecraft != null && this.minecraft.screen == this) {
+                this.cerrando = true;
+                this.minecraft.setScreen(this.anterior);
+            }
+            return;
+        }
+
+        // Rollback completo: idioma y fuente Unicode deben seguir describiendo
+        // exactamente los recursos que permanecen activos tras una recarga fallida.
+        this.opciones.languageCode = idiomaAnterior;
+        this.idiomas.setSelected(idiomaAnterior);
+        this.opciones.forceUnicodeFont().set(unicodeAnterior);
+        this.opciones.save();
+        this.aplicado = idiomaAnterior;
+        this.unicodeAplicado = unicodeAnterior;
+        this.aplicando = false;
+        this.falloAplicacion = true;
+        if (this.minecraft != null && this.minecraft.screen == this) {
+            MezclaAudio.gesto(SonidosNivel.UI_NEGADO, 0.46F);
+        }
+    }
+
+    private void cerrarSinRecarga() {
+        if (this.cerrando || this.minecraft == null) return;
+        this.cerrando = true;
         this.opciones.save();
         this.minecraft.setScreen(this.anterior);
     }
@@ -241,10 +277,7 @@ public final class PantallaIdiomaJobs extends Screen {
     }
 
     @Override public void onClose() {
-        if (!this.aplicando) {
-            this.opciones.save();
-            this.minecraft.setScreen(this.anterior);
-        }
+        if (!this.aplicando) cerrarSinRecarga();
     }
     @Override public void renderBackground(GuiGraphics g) { }
 
