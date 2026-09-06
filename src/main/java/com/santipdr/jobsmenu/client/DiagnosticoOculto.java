@@ -6,6 +6,7 @@ import com.santipdr.jobsmenu.client.screen.PantallaEstancia;
 import com.santipdr.jobsmenu.client.screen.PantallaNivel;
 import com.santipdr.jobsmenu.client.sound.GestorAmbiente;
 import com.santipdr.jobsmenu.client.sound.GestorMusica;
+import com.santipdr.jobsmenu.client.sound.RastreadorAudioJobs;
 import com.santipdr.jobsmenu.config.ConfigTurno;
 
 import net.minecraft.client.Minecraft;
@@ -68,7 +69,10 @@ public final class DiagnosticoOculto {
         JobsMenu.LOG.info("=== jobsmenu diagnostico ===");
         JobsMenu.LOG.info("pantalla     : {}", cliente.screen == null
                 ? "null" : cliente.screen.getClass().getName());
-        JobsMenu.LOG.info("sesion       : activa={}", SesionMenu.activa());
+        JobsMenu.LOG.info("sesion       : activa={} interna={} visita={} pantallas={} cierres={}",
+                SesionMenu.activa(), SesionMenu.activaInternaParaDiagnostico(),
+                SesionMenu.numeroVisita(), SesionMenu.pantallasVisitadas(),
+                SesionMenu.cierresEfectivosParaDiagnostico());
         JobsMenu.LOG.info("nivel        : {} (indice {})", estado.nivel().clave, estado.indice());
         JobsMenu.LOG.info("luz          : {} transicion={} suspension={}",
                 String.format(java.util.Locale.ROOT, "%.3f", estado.luz()),
@@ -76,9 +80,23 @@ public final class DiagnosticoOculto {
         JobsMenu.LOG.info("musica       : sonando={} pista={} reintento={}",
                 GestorMusica.sonando(), GestorMusica.pistaParaDiagnostico(),
                 GestorMusica.reintentoParaDiagnostico());
-        JobsMenu.LOG.info("ambiente     : capas={}", GestorAmbiente.capasActivas());
+        JobsMenu.LOG.info("ambiente     : capas={} puntuales={} registrados={} purgados={} barridos={}",
+                GestorAmbiente.capasActivas(), RastreadorAudioJobs.cantidad(),
+                RastreadorAudioJobs.registradosParaDiagnostico(),
+                RastreadorAudioJobs.purgadosParaDiagnostico(),
+                RastreadorAudioJobs.cierresParaDiagnostico());
         JobsMenu.LOG.info("recursos     : generacion={}",
                 RecargaRecursosCliente.generacionParaDiagnostico());
+        JobsMenu.LOG.info("graficos     : embeddium={} aperturas={} fallbackVanilla={}",
+                CompatGraficos.embeddiumPresenteParaDiagnostico(),
+                CompatGraficos.aperturasEmbeddiumParaDiagnostico(),
+                CompatGraficos.fallbacksVanillaParaDiagnostico());
+        JobsMenu.LOG.info("config       : pendiente={} aplicados={} omitidos={} guardados={} ultimoHaceMs={}",
+                ConfigTurno.guardadoPendienteParaDiagnostico(),
+                ConfigTurno.cambiosAplicadosParaDiagnostico(),
+                ConfigTurno.cambiosOmitidosParaDiagnostico(),
+                ConfigTurno.guardadosRealizadosParaDiagnostico(),
+                ConfigTurno.ultimoGuardadoHaceMsParaDiagnostico());
         JobsMenu.LOG.info("volumenes    : aviso={} musica={} ambiente={}",
                 ConfigTurno.volumenAvisoPorcentaje(),
                 ConfigTurno.volumenMusicaPorcentaje(),

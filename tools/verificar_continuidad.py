@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Contratos pequeños que deben sobrevivir a futuras refactorizaciones del flujo Jobs."""
+"""Contratos pequenos que deben sobrevivir a futuras refactorizaciones del flujo Jobs."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -18,22 +18,39 @@ def require(text: str, token: str, where: str) -> None:
 def main() -> None:
     multiplayer = read(JAVA / "client/screen/PantallaMultijugadorJobs.java")
     for token in (
-        "private final String servidorPreferido;",
+        "private String servidorPreferido;",
+        "private double scrollPreferido;",
         "restaurarSeleccionPreferida();",
+        "restaurarScrollPreferido();",
         "this.serverSelectionList.children()",
         "this.serverSelectionList.setSelected(entrada);",
+        "this.serverSelectionList.setScrollAmount(this.scrollPreferido);",
+        "this.serverSelectionList.getScrollAmount()",
         "this.onSelectedChange();",
         "String seleccion = ipSeleccionada();",
+        "double scroll = scrollActual();",
+        "public void resize(Minecraft minecraft, int width, int height)",
+        "this.servidorPreferido = seleccion;",
+        "this.scrollPreferido = scroll;",
+        "super.resize(minecraft, width, height);",
         "this.cerrando = true;",
-        "new PantallaMultijugadorJobs(padreDestino(), seleccion)",
+        "padreDestino(), seleccion, scroll",
         'Component.translatable("selectServer.refresh")',
         "if (this.minecraft != null && !this.cerrando)",
         "MezclaAudio.gesto(SonidosNivel.UI_ALTERNAR, 0.34F);",
+        "boolean cambiado = false;",
+        "if (cambiado) {",
+        "servidores.save();",
     ):
         require(multiplayer, token, "PantallaMultijugadorJobs")
 
     if '"F5  //  " + (seleccionOficial ? "JOBS" : "SERVER")' in multiplayer:
         raise RuntimeError("Multiplayer recupero el indicador duro JOBS/SERVER.")
+
+    # Guardar servers.dat de forma incondicional al abrir la pantalla vuelve a
+    # introducir escrituras y reconstrucciones de lista que 0.41 elimina.
+    if "        servidores.save();\n        if (this.serverSelectionList != null)" in multiplayer:
+        raise RuntimeError("Multiplayer vuelve a guardar servers.dat aunque no haya cambios.")
 
     version = None
     for line in read(ROOT / "gradle.properties").splitlines():

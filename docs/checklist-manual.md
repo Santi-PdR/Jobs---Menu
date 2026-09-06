@@ -1,4 +1,4 @@
-# Checklist manual de aceptación — 0.40.0
+# Checklist manual de aceptación — 0.41.0
 
 CI certifica código, recursos y build; este checklist certifica la experiencia real dentro de Forge 1.20.1.
 
@@ -6,87 +6,98 @@ CI certifica código, recursos y build; este checklist certifica la experiencia 
 
 - [ ] Java 17 + Forge 47.x + Minecraft 1.20.1.
 - [ ] cerrar `test-1` antes de sustituir el JAR.
-- [ ] dejar un único `jobsmenu-0.40.0.jar` en `mods`.
+- [ ] dejar un único `jobsmenu-0.41.0.jar` en `mods`.
 - [ ] conservar `latest.log` si aparece crash, audio huérfano o recurso faltante.
 
-## Identidad musical — 0.40
+## Audio / lifecycle — 0.41
 
-- [ ] Aleatoria reproduce únicamente Absurdism, REQUIEM o Upon the Hill V2;
-- [ ] nunca aparece música de menú vanilla de Minecraft como sustitución de una pista Jobs;
-- [ ] forzar cada pista fija mantiene título/autor correctos;
-- [ ] `N` cambia pista sólo en Aleatoria y no apila crossfades;
-- [ ] durante un crossfade la pista saliente no se corta antes de que la entrante realmente haya empezado;
-- [ ] `M` silencia/restaura sin cambiar de pista;
-- [ ] entrar a un mundo/servidor durante reproducción o crossfade corta Jobs inmediatamente;
-- [ ] volver al menú no crea dos copias de la misma pista.
+- [ ] Aleatoria reproduce sólo Absurdism, REQUIEM o Upon the Hill V2;
+- [ ] nunca aparece música de menú vanilla;
+- [ ] eventos, apagones y FX ambientales suenan como Jobs, nunca como `ambient.cave` vanilla;
+- [ ] entrar a mundo/servidor durante una pista, crossfade o FX puntual corta **todo** el audio de menú inmediatamente;
+- [ ] volver al menú no duplica música, camas ni FX;
+- [ ] permanecer varios minutos en gameplay no produce audio residual ni tirones periódicos por cierre repetido;
+- [ ] F3+T/reload reconstruye audio una sola vez y sigue permitiendo créditos;
+- [ ] Alt+Tab no crea instancias fantasma.
 
-## Créditos y resource reload — 0.39/0.40
+## Música / créditos
 
-Ejecutar varias veces: cambiar idioma → F3+T → aplicar/quitar resource pack → volver al main.
-
-- [ ] no se superponen dos copias de una pista;
-- [ ] no aparecen 6/9 camas ambientales por duplicación de reload;
-- [ ] la música vuelve una sola vez cuando corresponde;
-- [ ] el ambiente del nivel vuelve sin quedar mudo;
 - [ ] Absurdism muestra título sin autor inventado;
 - [ ] REQUIEM muestra `Emmy Z - Forsaken OST`;
 - [ ] Upon the Hill V2 muestra `ft. @iCosmicCoffee`;
-- [ ] el crédito sigue funcionando después del reload;
-- [ ] gameplay inmediatamente después del reload mantiene hard-stop total.
+- [ ] `N` sólo cambia pista en Aleatoria;
+- [ ] `M` silencia/restaura sin cambiar pista;
+- [ ] una pista entrante inválida nunca corta prematuramente la válida.
+
+## Config Jobs — 0.41
+
+- [ ] toggles aplican el cambio una sola vez;
+- [ ] sliders arrastrados rápido no producen stutter por escritura continua;
+- [ ] salir de Config conserva el último valor;
+- [ ] reiniciar Minecraft conserva música, volúmenes, nivel fijo y accesibilidad;
+- [ ] aplicar dos veces el mismo perfil no causa efectos secundarios ni reinicios de audio;
+- [ ] Perfil accesible sigue activando Movimiento reducido, Destellos reducidos, Alto contraste y Texto grande.
+
+## Multiplayer — 0.41
+
+- [ ] `JobsDosh.exaroton.me:56477` aparece primero y una sola vez;
+- [ ] `Ghoul Outbreak` no aparece;
+- [ ] servidor oficial no se puede editar/borrar;
+- [ ] Direct Connect/Add/Edit/Delete funcionan para el resto;
+- [ ] seleccionar un servidor, bajar bastante en la lista y pulsar F5 conserva **selección y scroll**;
+- [ ] botón Actualizar hace lo mismo;
+- [ ] maximizar/restaurar la ventana conserva selección y scroll;
+- [ ] redimensionar varias veces conserva selección y scroll;
+- [ ] cambiar GUI Scale y volver a Multiplayer no deja la lista saltando al inicio durante el resize;
+- [ ] varias recargas seguidas no saltan al inicio de lista;
+- [ ] LAN, ping, MOTD y favicons siguen funcionando;
+- [ ] F5 suena una sola vez;
+- [ ] ESC vuelve al padre Jobs con una pulsación;
+- [ ] Cancelar conexión/error pre-login vuelve a la lista Jobs;
+- [ ] salida/kick de servidor remoto vuelve a Multiplayer Jobs;
+- [ ] salir de mundo local vuelve al main Jobs.
 
 ## Main / layout
 
 Probar 854×480, 1280×720, 1920×1080, ventana estrecha y GUI Scale 2/3/4.
 
 - [ ] no hay títulos vanilla duplicados ni claves `jobsmenu.*` visibles;
-- [ ] nombre y nota del nivel no chocan con metadatos/créditos;
-- [ ] la antigua barra visible `1-4/F/M/N/TAB/ENTER` no reaparece;
-- [ ] botones, sliders y campos mantienen hitboxes correctas;
-- [ ] foco teclado y hover se distinguen;
-- [ ] español, inglés y Español (Uruguay) mantienen textos completos.
+- [ ] nombre/nota/crédito no chocan;
+- [ ] no reaparece la barra visible `1-4/F/M/N/TAB/ENTER`;
+- [ ] botones/sliders/campos mantienen hitboxes correctas;
+- [ ] hover/foco en controles vanilla preservados sigue sonando una sola vez al entrar;
+- [ ] no se nota retraso adicional al mover el mouse por pantallas con muchos widgets.
 
-## Video Settings
+## Gráficos / Embeddium / gameplay
 
-- [ ] abre la pantalla vanilla completa;
-- [ ] no hay marco, transición, recolocación ni click Jobs encima;
-- [ ] aparecen todas las opciones del juego/mod gráfico;
-- [ ] Done/Volver funciona normalmente;
-- [ ] Embeddium/Oculus no pierde opciones por Jobs.
+Con Embeddium instalado:
 
-## Gameplay
+- [ ] **Gráficos abre la interfaz real de Embeddium**, no `VideoSettingsScreen` vanilla;
+- [ ] las categorías/opciones propias de Embeddium siguen completas y funcionales;
+- [ ] ESC/Done/Cerrar vuelve a Opciones Jobs;
+- [ ] la GUI de Embeddium no recibe marco, banda, transición, recolocación ni click/hover Jobs;
+- [ ] abrir/cerrar Gráficos varias veces no duplica widgets ni rompe el foco;
+- [ ] Oculus/Iris puede abrir su pantalla de shaders sin recibir chrome Jobs.
 
-- [ ] chat no recibe skin, banda ni transición Jobs;
-- [ ] inventario/contenedores tampoco;
-- [ ] Pausa y Config Jobs conservan tema permitido;
-- [ ] ninguna pantalla durante gameplay muestra animación de entrada/salida Jobs;
-- [ ] al primer tick jugable música y ambiente Jobs están detenidos.
+Sin Embeddium:
 
-## Multiplayer
+- [ ] Gráficos abre `VideoSettingsScreen` vanilla como fallback;
+- [ ] volver desde vanilla regresa a Opciones Jobs;
+- [ ] el fallback tampoco recibe tematización ni transición Jobs.
 
-- [ ] `JobsDosh.exaroton.me:56477` aparece primero y una sola vez;
-- [ ] `Ghoul Outbreak` no aparece;
-- [ ] el servidor oficial no se puede editar/borrar;
-- [ ] Direct Connect/Add/Edit/Delete funcionan para el resto;
-- [ ] seleccionar un servidor online y pulsar F5 conserva esa selección por IP;
-- [ ] Actualizar hace lo mismo;
-- [ ] no aparece una pantalla Multiplayer vanilla intermedia;
-- [ ] F5 suena una vez y no duplica el click del botón Actualizar;
-- [ ] ESC vuelve al padre Jobs con una pulsación;
-- [ ] Cancelar vuelve con un click;
-- [ ] Cancelar conexión/error pre-login vuelve a la misma lista Jobs;
-- [ ] salir/kick/pérdida de conexión de servidor vuelve a Multiplayer Jobs;
-- [ ] salir de mundo local vuelve al main Jobs;
-- [ ] LAN, ping, MOTD y favicons siguen funcionando tras varias recargas.
+Gameplay:
+
+- [ ] chat, inventario y contenedores no reciben skin ni transición;
+- [ ] Pausa/Config Jobs conservan sólo tematización/feedback permitidos;
+- [ ] con mundo cargado no aparece ninguna transición Jobs.
 
 ## Fondos / accesibilidad
 
-- [ ] PNG 10–17 cargan y permanecen totalmente estáticos;
-- [ ] JPG 18–31 cargan y mantienen respiración sutil/no destructiva;
+- [ ] PNG 10–17 permanecen totalmente estáticos;
+- [ ] JPG 18–31 mantienen respiración sutil/no destructiva;
 - [ ] Movimiento reducido, Bajo consumo o escena quieta congelan 18–31;
-- [ ] Bajo consumo reduce detalle sin romper lectura;
-- [ ] Destellos reducidos elimina flicker agresivo;
-- [ ] Alto contraste y Texto grande no crean solapes críticos.
+- [ ] Texto grande/Alto contraste no causan solapes críticos.
 
 ## Diagnóstico de fallos
 
-Guardar `latest.log` y anotar pista, selector Aleatoria/fija, secuencia de reload, nivel, si había mundo/servidor cargado y mods de audio/resource packs activos.
+Guardar `latest.log` y anotar pista, selector, secuencia de reload, nivel, estado mundo/servidor, selección/scroll Multiplayer, si Embeddium estaba cargado, qué pantalla abrió Gráficos, valores de config modificados y mods de audio/resource packs activos.

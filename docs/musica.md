@@ -1,4 +1,4 @@
-# Música — Jobs Menu 0.40.0
+# Música — Jobs Menu 0.41.0
 
 ## Catálogo empaquetado
 
@@ -6,80 +6,70 @@
 2. **REQUIEM** — `assets/jobsmenu/sounds/musica/requiem.ogg` — evento `musica.requiem` — crédito **Emmy Z - Forsaken OST**. Fuente autorizada archivada: `music/REQUIEM-Forsaken-OST.ogg`.
 3. **Upon the Hill V2** — `assets/jobsmenu/sounds/musica/upon_the_hill_v2.ogg` — evento `musica.upon_hill` — crédito **ft. @iCosmicCoffee**. Fuente autorizada archivada: `music/upon_the_hill_v2_q4.ogg`.
 
-Los tres eventos usan `stream: true` en `sounds.json`. El build no descarga canciones ni depende de servicios externos.
+Los tres eventos usan `stream: true`. El build no descarga canciones ni depende de servicios externos.
 
-## 0.40.0 — identidad Jobs sin fallback vanilla
+## Base 0.40.0 — identidad Jobs sin fallback vanilla
 
-El catálogo de runtime vive en `CATALOGO` y se construye una sola vez por JVM. `catalogo()` devuelve esa misma estructura; título, autor, cantidad y crossfade no crean arrays nuevos por consulta.
+`CATALOGO` se construye una sola vez por JVM. Una pista se resuelve mediante `MezclaAudio.resolver(pista.evento(), null)`: no existe fallback a `minecraft:music.menu`. Si una pista propia falta, se omite/reintenta sin retirar prematuramente la válida.
 
-La resolución de una pista usa `MezclaAudio.resolver(pista.evento(), null)`. Por diseño **no existe fallback a `minecraft:music.menu`**. Si el SoundEvent propio no está disponible:
+## 0.41 — MusicManager sin polling
 
-- la pista entrante no se crea;
-- la pista actual no se empieza a retirar;
-- se programa reintento;
-- se registra una advertencia única por visita/reload;
-- el resultado temporal es silencio/continuidad de la pista válida, nunca música vanilla.
+Antes `GestorMusica.atender()` llamaba `MusicManager.stopPlaying()` en cada tick de menú. 0.41 cambia el modelo:
 
-Esto separa la identidad Jobs de cualquier recuperación defensiva del motor.
+1. al iniciar una visita Jobs se corta una vez la música gestionada por Minecraft;
+2. `BloqueoMusicaVanillaJobs` escucha `PlaySoundEvent` con prioridad alta;
+3. mientras `SesionMenu` está activa, una nueva instancia `SoundSource.MUSIC` se cancela antes de entrar al motor;
+4. las pistas Jobs usan `SoundSource.MASTER`, por lo que siguen reproduciéndose normalmente.
 
-## Hard-stop reforzado
+Esto evita 20 órdenes de stop por segundo y mantiene la banda sonora Jobs exclusiva. Música de otros mods que use `SoundSource.MUSIC` durante el menú también queda silenciada mientras Jobs está activo, deliberadamente.
 
-Al cortar una instancia musical de forma inmediata:
+## FX puntuales — 0.41
 
-1. volumen y ganancias quedan en cero;
-2. se marca `stop()`;
-3. se llama también `SoundManager.stop(instance)`.
+Eventos ambientales, apagones y sonidos sueltos creados por `MezclaAudio.ambiental()` ahora pasan por `RastreadorAudioJobs`.
 
-Se usa al entrar a gameplay, cerrar la sesión, reconstruir el motor tras resource reload o recuperar una instancia fantasma. No se hace fade en la frontera gameplay.
+- un SoundEvent faltante devuelve `null`; no hay fallback a `minecraft:ambient.cave`;
+- antes de registrar una instancia nueva se purgan referencias que `SoundManager.isActive` ya considera finalizadas;
+- al cerrar la visita/entrar a gameplay las instancias restantes reciben `SoundManager.stop`;
+- resource reload descarta referencias ligadas al motor anterior.
 
-## Marcador de catálogo acreditado
+Las camas continuas siguen administradas por `GestorAmbiente`; la música, por `GestorMusica`.
 
-`GestorMusica.creditoAlfa()` sólo permite mostrar créditos cuando existe `assets/jobsmenu/musica_creditada.txt`, que enumera:
+## Hard-stop
 
-- `absurdism`;
-- `requiem`;
-- `upon_the_hill_v2`.
+La frontera gameplay no usa fade. El corte cubre:
 
-El marcador no contiene audio ni modifica la reproducción; habilita la presentación de créditos del catálogo empaquetado.
+- música principal/entrante;
+- camas ambientales activas;
+- FX puntuales registrados.
 
-## Selección
+`SesionMenu.cerrar()` es idempotente: después del corte inicial no repite el trabajo cada tick salvo que detecte estado Jobs residual.
 
-En `Ajustes del aviso > Audio` se puede elegir Aleatoria, Absurdism, REQUIEM o Upon the Hill V2. La selección vive en `pista_musica` (0–3). Una pista fija no rota automáticamente y `N` no la sustituye. Al volver a Aleatoria se conserva la pista actual y se reactiva la rotación posterior.
+## Créditos
 
-## Sesión
-
-- La música pertenece a `SesionMenu`, no a una Screen.
-- Navegar Main → Options → Mods → Recursos → volver sigue siendo una sola visita.
-- `SesionMenu.abrir()` no reinicializa una visita ya activa.
-- El cambio automático usa crossfade y evita repetición inmediata.
-- `N` en Aleatoria solicita cambio manual y no apila otro crossfade.
-- `M` controla mute Jobs.
-- Entrar a mundo/servidor aplica hard-stop inmediato.
-- Pausa/configuración Jobs dentro de gameplay puede emitir feedback breve sin abrir sesión musical.
-
-## Resource reload
-
-Idioma, F3+T y Resource Packs pueden reconstruir el `SoundEngine`. `RecargaRecursosCliente` incrementa una generación y agenda invalidación en el hilo cliente. Si aparece otra generación mientras se procesa la anterior, se agenda otra pasada.
-
-Después del reload, música/ambiente ligados al motor anterior se descartan, el marcador de créditos vuelve a evaluarse y el mantenimiento normal recrea sólo las instancias válidas.
-
-## Créditos visibles
+`assets/jobsmenu/musica_creditada.txt` enumera `absurdism`, `requiem` y `upon_the_hill_v2`. `GestorMusica.creditoAlfa()` exige ese marcador y la opción `credito_musica`.
 
 - Absurdism: título sin autor inventado.
 - REQUIEM: `Emmy Z - Forsaken OST`.
 - Upon the Hill V2: `ft. @iCosmicCoffee`.
 
-El bloque sólo aparece durante su ventana temporal y puede desactivarse desde Config Jobs.
+## Selección y sesión
+
+En Config Jobs > Audio: Aleatoria, Absurdism, REQUIEM o Upon the Hill V2. Una pista fija no rota y `N` sólo actúa en Aleatoria. `M` controla mute Jobs. Navegar entre pantallas Jobs sigue siendo una sola visita.
+
+## Resource reload
+
+Idioma, F3+T y Resource Packs pueden reconstruir el `SoundEngine`. `RecargaRecursosCliente` usa una generación atómica y procesa invalidaciones en el hilo cliente. 0.41 invalida además el rastreador de FX puntuales y reinicia el estado de aviso de registros faltantes de la mezcla.
 
 ## Feedback de interfaz
 
-Los gestos UI son independientes de la sesión musical: click/hover/toggle/volver/negado usan sonidos Jobs en superficies Jobs válidas; Video Settings conserva vanilla; chat/inventario/gameplay no Jobs quedan fuera; F5 de Multiplayer emite un único `UI_ALTERNAR` sin cambiar la pista.
+Los gestos UI son independientes de la sesión musical. Click/hover/toggle/volver/negado usan sonidos Jobs en superficies Jobs válidas; Video Settings conserva vanilla; chat/inventario/gameplay no Jobs quedan fuera.
 
 ## Prueba manual
 
-1. Forzar las tres pistas y verificar que ninguna deriva a música vanilla.
-2. Probar Aleatoria + `N` y cambios fijos durante crossfade.
-3. Entrar a gameplay durante pista normal y durante crossfade: el audio Jobs debe desaparecer inmediatamente.
-4. Ejecutar idioma → F3+T → resource pack en secuencia corta.
-5. Volver al menú y comprobar una única instancia de música/ambiente.
-6. Probar Alt+Tab y F3+T repetido para detectar instancias fantasma.
+1. Forzar las tres pistas y confirmar que ninguna deriva a música vanilla.
+2. Probar Aleatoria + `N`, pista fija y crossfade.
+3. Disparar un evento/apagón y entrar inmediatamente a gameplay: no debe quedar cola audible.
+4. Permanecer en el menú suficiente tiempo para varios FX y verificar que no crece audio acumulado.
+5. Ejecutar idioma → F3+T → resource pack.
+6. Probar un mod/resource pack de audio y verificar que el bloqueo MUSIC sólo opera durante la visita Jobs.
+7. Volver al menú y comprobar una única instancia por capa/pista.

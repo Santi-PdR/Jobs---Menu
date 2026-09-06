@@ -42,7 +42,9 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -59,7 +61,9 @@ public final class EscuchaCliente {
     private static boolean enServidorRemoto;
     private static final Set<AbstractButton> HOVER_VANILLA =
             Collections.newSetFromMap(new WeakHashMap<>());
+    private static final List<AbstractButton> BOTONES_HOVER_VANILLA = new ArrayList<>();
     private static Screen pantallaHoverVanilla;
+    private static int hijosHoverVistos = -1;
 
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void alAbrirPantalla(ScreenEvent.Opening evento) {
@@ -139,6 +143,11 @@ public final class EscuchaCliente {
     }
 
     @SubscribeEvent
+    public static void alInicializarPantalla(ScreenEvent.Init.Post evento) {
+        invalidarHoverVanilla(evento.getScreen());
+    }
+
+    @SubscribeEvent
     public static void alEmpezarRenderPantalla(ScreenEvent.Render.Pre evento) {
         ListasExpediente.comenzarFrame(evento.getScreen());
     }
@@ -199,10 +208,7 @@ public final class EscuchaCliente {
         Screen pantalla = evento.getScreen();
         ConfigTurno.guardarPendiente();
         ListasExpediente.liberar(pantalla);
-        if (pantallaHoverVanilla == pantalla) {
-            HOVER_VANILLA.clear();
-            pantallaHoverVanilla = null;
-        }
+        invalidarHoverVanilla(pantalla);
     }
 
     @SubscribeEvent
@@ -251,13 +257,11 @@ public final class EscuchaCliente {
 
     private static void actualizarHoverVanilla(Screen pantalla, int mouseX, int mouseY) {
         if (!esSuperficieJobsActiva(pantalla)) return;
-        if (pantallaHoverVanilla != pantalla) {
-            HOVER_VANILLA.clear();
-            pantallaHoverVanilla = pantalla;
+        int hijos = pantalla.children().size();
+        if (pantallaHoverVanilla != pantalla || hijosHoverVistos != hijos) {
+            reconstruirHoverVanilla(pantalla, hijos);
         }
-        for (var child : pantalla.children()) {
-            if (!(child instanceof AbstractButton boton)) continue;
-            if (child.getClass().getName().startsWith("com.santipdr.jobsmenu.")) continue;
+        for (AbstractButton boton : BOTONES_HOVER_VANILLA) {
             boolean foco = boton.visible && boton.active
                     && (boton.isMouseOver(mouseX, mouseY) || boton.isFocused());
             if (foco) {
@@ -270,18 +274,48 @@ public final class EscuchaCliente {
         }
     }
 
+    private static void reconstruirHoverVanilla(Screen pantalla, int hijos) {
+        HOVER_VANILLA.clear();
+        BOTONES_HOVER_VANILLA.clear();
+        pantallaHoverVanilla = pantalla;
+        hijosHoverVistos = hijos;
+        for (var child : pantalla.children()) {
+            if (!(child instanceof AbstractButton boton)) continue;
+            if (child.getClass().getName().startsWith("com.santipdr.jobsmenu.")) continue;
+            BOTONES_HOVER_VANILLA.add(boton);
+        }
+    }
+
+    private static void invalidarHoverVanilla(Screen pantalla) {
+        if (pantallaHoverVanilla != null && pantallaHoverVanilla != pantalla) return;
+        HOVER_VANILLA.clear();
+        BOTONES_HOVER_VANILLA.clear();
+        pantallaHoverVanilla = null;
+        hijosHoverVistos = -1;
+    }
+
     private static boolean usaTransicionJobs(Screen desde, Screen hasta) {
         if (Minecraft.getInstance().level != null) return false;
         if (hasta == null || esVideoIntocable(desde) || esVideoIntocable(hasta)) return false;
         return esPantallaPropia(desde) || esPantallaPropia(hasta);
     }
 
+    /**
+     * Video Settings y cualquier GUI grafica suministrada por Embeddium/Sodium
+     * son propiedad del proveedor grafico. Jobs no les dibuja chrome, no cambia
+     * sus clicks y no intenta recolocar sus widgets. Las comprobaciones por
+     * prefijo cubren tanto SodiumOptionsGUI de Embeddium 1.20.1 como las GUI
+     * nuevas de Embeddium sin depender de sus clases en compile time.
+     */
     private static boolean esVideoIntocable(Screen pantalla) {
         if (pantalla == null) return false;
         if (pantalla instanceof VideoSettingsScreen) return true;
-        String clase = pantalla.getClass().getName().toLowerCase(java.util.Locale.ROOT);
-        return (clase.contains("embeddium") || clase.contains("sodium"))
-                && clase.contains("video") && clase.contains("screen");
+        String clase = pantalla.getClass().getName();
+        return clase.startsWith("me.jellysquid.mods.sodium.client.gui.")
+                || clase.startsWith("org.embeddedt.embeddium.gui.")
+                || clase.startsWith("org.embeddedt.embeddium.impl.gui.")
+                || clase.startsWith("net.coderbot.iris.gui.screen.")
+                || clase.startsWith("net.irisshaders.iris.gui.screen.");
     }
 
     private static boolean esPausaReal(Screen siguiente) {
