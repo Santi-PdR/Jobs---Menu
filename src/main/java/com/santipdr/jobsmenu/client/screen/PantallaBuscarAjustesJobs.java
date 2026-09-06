@@ -49,7 +49,7 @@ public final class PantallaBuscarAjustesJobs extends Screen {
             ajuste(2, "jobsmenu.ajustes.volaviso"),
             ajuste(2, "jobsmenu.ajustes.volmusica"),
             ajuste(2, "jobsmenu.ajustes.volambiente"),
-            ajuste(2, "jobsmenu.ajustes.pista"),
+            new Ajuste(2, "jobsmenu.ajustes.pista.aleatoria", "jobsmenu.ajustes.pista.detalle"),
             ajuste(2, "jobsmenu.ajustes.musica"),
             ajuste(2, "jobsmenu.ajustes.ambiente"),
             ajuste(2, "jobsmenu.ajustes.botones"),
@@ -106,6 +106,7 @@ public final class PantallaBuscarAjustesJobs extends Screen {
 
         this.busqueda = new EditBox(this.font, x, searchY, w, 20,
                 Component.literal("CTRL+F // SEARCH"));
+        this.busqueda.setHint(Component.literal("CTRL+F // SEARCH"));
         this.busqueda.setBordered(false);
         this.busqueda.setTextColor(Paleta.UI_TINTA);
         this.busqueda.setTextColorUneditable(Paleta.UI_TINTA_TENUE);
