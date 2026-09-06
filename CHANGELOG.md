@@ -1,5 +1,35 @@
 # Registro de cambios
 
+## 0.43.0 — Perfiles exactos, búsqueda y navegación robusta — 2026-09-06
+
+### Perfiles / configuración
+
+- `PerfilesJobs.actual()` deja de inferir presets con unas pocas señales generales.
+- Cada preset comprueba ahora todos los valores que realmente controla: escena, accesibilidad, papel/interfaz, eventos/presencia, respiración, suspensión, rotación, bajo consumo, duraciones y volúmenes correspondientes.
+- Una configuración modificada manualmente deja de aparecer falsamente como Equilibrado/Inmersivo/Rendimiento/etc. y pasa a estado `CUSTOM`.
+- Pista musical y nivel fijo no invalidan un perfil porque los presets no los modifican.
+
+### Mundos / Mods
+
+- `Ctrl+F` conserva el acceso rápido al buscador.
+- Con el buscador enfocado, `ESC` limpia primero el filtro; un segundo `ESC` abandona el foco y sólo el siguiente vuelve al padre Jobs.
+- `PantallaMundosJobs` y `PantallaModsJobs` añaden guard `cerrando` para evitar dobles cambios de Screen por rutas de cierre superpuestas.
+- `init()` reinicia correctamente buscador y guard tras resize/reconstrucción.
+
+### Compatibilidad / navegación externa
+
+- El subflujo externo de 0.42 protege también `TitleScreen`: una GUI ajena que termine allí no es secuestrada por Jobs mientras siga dentro de ese flujo.
+- La sustitución de pausa vanilla por `PantallaEstancia` también respeta el marcador externo.
+- Los retornos reales desde gameplay mantienen su comportamiento Jobs porque su estado contextual se procesa antes de estas reglas.
+
+### Calidad
+
+- Nuevo `tools/verificar_ux_043.py` protege detección exacta de perfiles, búsqueda/ESC, cierre idempotente y la frontera externa completa.
+- CI añade `Verify UX and navigation 0.43` antes del build Forge.
+- README, CONTEXTO, KNOWN_ISSUES, checklist y compatibilidad se sincronizan con 0.43.0.
+- Versión: **0.43.0**.
+- Artefacto esperado: **`jobsmenu-0.43.0.jar`**.
+
 ## 0.42.0 — Compatibilidad de terceros y publicación consistente — 2026-09-06
 
 ### Compatibilidad / navegación
