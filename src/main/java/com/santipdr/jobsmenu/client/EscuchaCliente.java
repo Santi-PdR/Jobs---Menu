@@ -79,10 +79,11 @@ public final class EscuchaCliente {
                         || siguiente instanceof JoinMultiplayerScreen
                         || siguiente.getClass().getName().equals(
                                 "net.minecraft.client.gui.screens.realms.RealmsMainScreen"));
-        boolean flujoAdministrativo = SesionMenu.activa()
-                || anterior instanceof PantallaNivel
-                || anterior instanceof PantallaEstancia
-                || anterior instanceof PantallaOpcionesJobs;
+        boolean flujoAdministrativo = !esPantallaTerceros(anterior) && (
+                SesionMenu.activa()
+                        || anterior instanceof PantallaNivel
+                        || anterior instanceof PantallaEstancia
+                        || anterior instanceof PantallaOpcionesJobs);
 
         if (ConfigTurno.menuPropio() && retornoDesdeJuego
                 && retornoMultijugadorPendiente && destinoMultijugador) {
