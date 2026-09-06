@@ -651,7 +651,7 @@ def verificar_audio_seguro() -> None:
         fallo("MezclaAudio no protege RegistryObject con resolver/isPresent().")
     if "MezclaAudio.resolver(sonido, null)" not in ambiente:
         fallo("GestorAmbiente resuelve una capa sin pasar por el guard de sonido.")
-    if "MezclaAudio.resolver(SonidosNivel.MUSICA_TEMA" not in musica:
+    if "MezclaAudio.resolver(pista.evento(), null)" not in musica:
         fallo("GestorMusica resuelve la pista sin pasar por el guard de sonido.")
 
     for ruta in (RAIZ / "src/main/java/com/santipdr/jobsmenu/client/sound").glob("*.java"):
