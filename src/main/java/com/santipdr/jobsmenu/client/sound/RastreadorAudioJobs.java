@@ -19,6 +19,7 @@ public final class RastreadorAudioJobs {
 
     private static final List<SoundInstance> PUNTUALES = new ArrayList<>();
     private static long registrados;
+    private static long purgados;
     private static long cierres;
 
     private RastreadorAudioJobs() {
@@ -26,9 +27,23 @@ public final class RastreadorAudioJobs {
 
     public static SoundInstance registrar(SoundInstance instancia) {
         if (instancia == null) return null;
+        purgarFinalizados();
         PUNTUALES.add(instancia);
         registrados++;
         return instancia;
+    }
+
+    /**
+     * Los eventos ya terminados no deben quedar retenidos hasta el cierre de la
+     * visita. SoundManager conoce el estado real de cada instancia y permite
+     * retirar referencias sin tocar ningun sonido que siga activo.
+     */
+    private static void purgarFinalizados() {
+        if (PUNTUALES.isEmpty()) return;
+        var sonidos = Minecraft.getInstance().getSoundManager();
+        int antes = PUNTUALES.size();
+        PUNTUALES.removeIf(instancia -> !sonidos.isActive(instancia));
+        purgados += antes - PUNTUALES.size();
     }
 
     /** Hard-stop de todo evento/FX ambiental Jobs conocido. */
@@ -56,6 +71,10 @@ public final class RastreadorAudioJobs {
 
     public static long registradosParaDiagnostico() {
         return registrados;
+    }
+
+    public static long purgadosParaDiagnostico() {
+        return purgados;
     }
 
     public static long cierresParaDiagnostico() {
