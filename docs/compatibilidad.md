@@ -1,4 +1,4 @@
-# Compatibilidad — Jobs Menu 0.41.1
+# Compatibilidad — Jobs Menu 0.42.0
 
 ## Perfil soportado
 
@@ -8,9 +8,9 @@
 | Forge | 47.x |
 | Java | 17 |
 | Lado | Cliente |
-| Artefacto | `jobsmenu-0.41.1.jar` |
+| Artefacto | `jobsmenu-0.42.0.jar` |
 
-Jobs distingue entre pantallas que controla, pantallas vanilla/Forge cuya lógica conserva y pantallas de terceros que debe respetar.
+Jobs distingue entre pantallas que controla, pantallas Minecraft/Forge cuya lógica conserva y pantallas de terceros que debe respetar completamente.
 
 ## Frontera de gameplay
 
@@ -21,51 +21,70 @@ Con mundo/servidor cargado:
 - música, camas ambientales y FX puntuales del menú reciben hard-stop;
 - Pausa/Config Jobs pueden mantener tema/feedback breve sin reactivar la sesión.
 
-## Gráficos — flujo natural del modpack
+## Gráficos — flujo natural reforzado
 
-0.41.1 deja de integrar un proveedor gráfico concreto. `PantallaOpcionesJobs` **es un `OptionsScreen` real** y llama primero a `super.init()`. Esto permite que mixins y hooks de Embeddium, Oculus y otros mods modifiquen la misma instancia que encontrarían en el flujo normal de Minecraft.
+`PantallaOpcionesJobs` **es un `OptionsScreen` real** y llama primero a `super.init()`. Los mixins y hooks del modpack trabajan sobre la misma instancia que encontrarían en el flujo normal de Minecraft.
 
-Después de esa inicialización Jobs conserva el `AbstractButton` de `options.video` y oculta los controles externos usados como backend. El botón Gráficos visible de Jobs ejecuta el `onPress()` del control natural. No construye `VideoSettingsScreen`, no llama un factory de Embeddium y no enlaza clases internas de mods gráficos.
+Jobs conserva el `AbstractButton` de `options.video` y oculta los controles externos usados como backend. El botón Gráficos visible de Jobs ejecuta el `onPress()` del control natural. No construye `VideoSettingsScreen`, no llama factories de Embeddium y no enlaza clases internas de proveedores gráficos.
 
-La captura se repite en el primer render —cuando ya terminó el ciclo de inicialización de Forge— y justo antes de usarla. Por eso también se recogen reemplazos tardíos del botón.
+0.42 añade una segunda identidad para ese control: su ranura original (`x/y/ancho/alto`). Si un mod sustituye el botón después de `init()` y cambia también su etiqueta, Jobs puede reconocer el reemplazo si ocupa aproximadamente la misma ranura. Esto permite conservar más modificaciones naturales sin acoplarse al mod que las hizo.
 
-`OptionsScreen.render()` no se ejecuta: dibujaría otra vez el fondo y el título vanilla. Jobs reutiliza su lógica de inicialización y callbacks, pero renderiza sólo widgets Jobs.
+Si no se puede resolver un control natural válido, Jobs no inventa una ruta de respaldo: emite feedback negado. La prioridad es no perder opciones de otros mods por abrir una Screen incorrecta.
 
-La exclusión visual/sonora continúa reconociendo:
+`OptionsScreen.render()` no se ejecuta porque dibujaría otra vez fondo/título vanilla. Jobs reutiliza inicialización/callbacks y renderiza sólo widgets Jobs.
 
-- `VideoSettingsScreen` vanilla;
-- `me.jellysquid.mods.sodium.client.gui.*`;
-- `org.embeddedt.embeddium.gui.*`;
-- `org.embeddedt.embeddium.impl.gui.*`;
-- pantallas gráficas conocidas de Iris/Oculus.
+## Propiedad de pantallas de terceros
 
-Esas GUI no reciben chrome Jobs, transición, recolocación de widgets ni reemplazo de clicks. Si un proveedor futuro usa clases distintas, la ruta de apertura seguirá siendo natural, aunque puede requerir ampliar la exclusión visual.
+La exclusión deja de enumerar Sodium, Embeddium, Iris u Oculus. `EscuchaCliente.esPantallaTerceros()` aplica una regla general:
 
-## Audio — 0.41
+- `com.santipdr.jobsmenu.client.screen.*` → Jobs;
+- `net.minecraft.*` → Minecraft;
+- `net.minecraftforge.*` → Forge;
+- cualquier otro namespace de `Screen` → tercero.
+
+Una Screen de terceros no recibe:
+
+- `PielVanillaJobs`;
+- `ChromeExpediente.bandaContextual`;
+- `PulidoInterfazJobs`;
+- `TransicionInterfazJobs`;
+- hover Jobs;
+- reemplazo del click vanilla;
+- gestión visual de listas Jobs.
+
+`VideoSettingsScreen` vanilla se declara también intocable de forma explícita aunque esté bajo `net.minecraft.*`.
+
+### Navegación interna de un mod
+
+Una sesión Jobs puede seguir abierta mientras se visita una configuración externa, principalmente para mantener continuidad del menú fuera de gameplay. Eso **no** da permiso para secuestrar el flujo del tercero.
+
+`flujoAdministrativo` exige que la pantalla anterior no sea de terceros. Por tanto, si un mod abre desde su GUI un `OptionsScreen`, `SelectWorldScreen`, `JoinMultiplayerScreen` o `ModListScreen`, Jobs no lo sustituye sólo porque `SesionMenu.activa()` sea verdadera.
+
+Esta regla evita dependencias por nombres concretos y protege mods nuevos que Jobs nunca haya visto.
+
+## Audio — estado heredado 0.41
 
 ### FX puntuales
 
-`RastreadorAudioJobs` conserva referencias a los `SoundInstance` puntuales creados por `MezclaAudio.ambiental()`. Antes de registrar otro purga los ya finalizados consultando `SoundManager.isActive`; al cerrar la visita llama `SoundManager.stop` sobre los restantes.
+`RastreadorAudioJobs` conserva referencias a los `SoundInstance` puntuales creados por `MezclaAudio.ambiental()`. Antes de registrar otro purga los finalizados con `SoundManager.isActive`; al cerrar visita llama `SoundManager.stop` sobre los restantes.
 
-Un registro ambiental faltante se resuelve con `null`. Ya no existe fallback a `SoundEvents.AMBIENT_CAVE` para sonidos Jobs.
+Un registro ambiental faltante se resuelve con `null`. No existe fallback a `SoundEvents.AMBIENT_CAVE` para sonidos Jobs.
 
 ### Música
 
-El catálogo sigue siendo exclusivamente Jobs y sin `SoundEvents.MUSIC_MENU`. `GestorMusica` corta el `MusicManager` una vez al iniciar visita. `BloqueoMusicaVanillaJobs` intercepta nuevas instancias `SoundSource.MUSIC` mientras `SesionMenu` está activa, reemplazando el antiguo `stopPlaying()` por tick. Las pistas Jobs se reproducen en `MASTER`.
-
-Mods que inyecten música propia de menú mediante `SoundSource.MUSIC` quedan silenciados durante la visita Jobs por diseño; Jobs posee la banda sonora de su menú.
+El catálogo es exclusivamente Jobs y sin `SoundEvents.MUSIC_MENU`. `GestorMusica` corta el `MusicManager` una vez al iniciar visita. `BloqueoMusicaVanillaJobs` intercepta nuevas instancias `SoundSource.MUSIC` mientras `SesionMenu` está activa, sin polling por tick.
 
 ## Resource reload
 
-`RecargaRecursosCliente` usa generación atómica y ejecuta invalidaciones en el hilo cliente. Además de música/camas, 0.41 descarta referencias puntuales del motor anterior y reinicia el aviso de registros faltantes de `MezclaAudio`.
+`RecargaRecursosCliente` usa generación atómica y ejecuta invalidaciones en el hilo cliente. Además de música/camas, descarta referencias puntuales del motor anterior y reinicia estado de mezcla.
 
 ## Sesión
 
-`SesionMenu.cerrar()` es idempotente: si no existe sesión interna ni música/camas/FX vivos, retorna sin repetir el trabajo. Si aparece estado residual detectable, vuelve a ejecutar hard-stop.
+`SesionMenu.cerrar()` es idempotente: si no existe sesión interna ni música/camas/FX vivos, retorna sin repetir trabajo. Si aparece estado residual detectable, vuelve a ejecutar hard-stop.
 
 ## Config
 
-Los setters boolean/int comprueban el valor actual antes de llamar `set()`. Valores idénticos no abren una nueva ventana de guardado. Los cambios reales conservan el throttle de 250 ms y `guardarPendiente()` al abandonar/cambiar pantalla. El perfil accesible muta sólo los campos que realmente necesitan cambio.
+Los setters boolean/int comprueban el valor actual antes de llamar `set()`. Valores idénticos no abren otra ventana de guardado. Los cambios reales conservan throttle y `guardarPendiente()` al abandonar/cambiar pantalla.
 
 ## Multiplayer
 
@@ -73,21 +92,25 @@ Los setters boolean/int comprueban el valor actual antes de llamar `set()`. Valo
 
 - ESC/Cancelar usan padre Jobs directo y guard idempotente.
 - F5/Actualizar reconstruye Jobs directamente.
-- se conserva la selección online por IP buscando una Entry nueva;
-- se conserva `getScrollAmount()` y se restaura con `setScrollAmount()`;
-- `resize()` captura selección+scroll antes de que Minecraft reconstruya widgets;
-- normalizar el servidor oficial sólo llama `ServerList.save()` si hubo un cambio real;
-- conectar usa la propia pantalla Jobs como padre de `ConnectScreen`;
-- cancelar/error pre-login vuelve a la lista Jobs;
+- selección online se conserva por IP buscando una Entry nueva;
+- scroll se conserva con `getScrollAmount()` / `setScrollAmount()`;
+- `resize()` captura selección+scroll antes de reconstruir widgets;
+- `ServerList.save()` sólo se ejecuta si la normalización cambió datos;
+- cancelar/error pre-login vuelve a Jobs;
 - logout/kick remoto vuelve a Multiplayer Jobs.
 
 Servidor fijado único: `JobsDosh.exaroton.me:56477`.
 
-## Hover y listas
+## Pipeline de publicación
 
-`EscuchaCliente` cachea los `AbstractButton` vanilla que pueden recibir feedback Jobs. La caché se reconstruye al inicializar/cambiar Screen o variar su cantidad de hijos.
+`dev-latest` es una release rodante, pero el asset mantiene versión. 0.42 añade un movimiento explícito del ref Git después del build verificado:
 
-`ListasExpediente` sigue siendo visual: wheel, drag, click, foco y contenido pertenecen a la lista real. Reflection/listas permanecen cacheadas y una scrollbar Jobs no se dibuja dos veces por frame.
+```text
+git tag -f dev-latest "$GITHUB_SHA"
+git push origin refs/tags/dev-latest --force
+```
+
+La verificación final debe confirmar que el SHA del tag coincide exactamente con el SHA de `main` que publicó el JAR.
 
 ## Fondos
 
@@ -97,6 +120,6 @@ Servidor fijado único: `JobsDosh.exaroton.me:56477`.
 
 ## Compatibilidad manual
 
-Probar especialmente la **comparación lado a lado entre Gráficos natural y Gráficos desde Jobs**, Embeddium/Oculus, mods que agreguen opciones de vídeo, abrir/cerrar Gráficos repetidamente, volver por ESC/Done a Opciones Jobs, mods que sustituyan `JoinMultiplayerScreen`, mods de audio, resource packs de GUI, múltiples F3+T, listas largas, LAN/ping/favicons, GUI Scale extremos y resize/maximizar.
+Probar especialmente comparación lado a lado entre Gráficos natural y Gráficos desde Jobs, mods que cambien etiqueta/posición de Video Settings, configuraciones de mods no gráficos, submenús abiertos desde esas configuraciones, Embeddium/Oculus, mods que sustituyan `JoinMultiplayerScreen`, mods de audio, resource packs de GUI, múltiples F3+T, listas largas, LAN/ping/favicons, GUI Scale extremos y resize/maximizar.
 
-Regla general: **si tematizar exige duplicar la lógica de Minecraft/Forge o de un proveedor, se conserva la lógica real y se reduce la intervención visual**.
+Regla general: **si tematizar exige duplicar o adivinar la lógica de Minecraft/Forge/otro mod, se conserva la lógica real y Jobs reduce su intervención**.
